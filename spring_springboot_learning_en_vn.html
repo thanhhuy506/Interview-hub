@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring & Spring Boot Learning Guide - EN/VN</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #166534;
+      --primary-2: #16a34a;
+      --primary-soft: #ecfdf5;
+      --border: #e5e7eb;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --blue-bg: #eff6ff;
+      --blue-border: #3b82f6;
+      --green-bg: #ecfdf5;
+      --green-border: #10b981;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #f59e0b;
+      --red-bg: #fef2f2;
+      --red-border: #ef4444;
+      --purple-bg: #f5f3ff;
+      --purple-border: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      background: linear-gradient(135deg, #064e3b, #16a34a);
+      color: white;
+      padding: 44px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: 2.35rem;
+      line-height: 1.2;
+    }
+
+    header p {
+      max-width: 1040px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+      opacity: 0.95;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    nav {
+      position: sticky;
+      top: 16px;
+      height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    nav h3 {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    nav a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+    }
+
+    nav a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    nav hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .language-tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 247, 251, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 12px 0;
+    }
+
+    .tab-button {
+      border: none;
+      background: var(--card);
+      color: var(--primary);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .tab-button.active {
+      background: var(--primary-2);
+      color: white;
+      border-color: var(--primary-2);
+    }
+
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.65rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #111827;
+      margin-top: 28px;
+      font-size: 1.2rem;
+    }
+
+    h4 {
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .summary, .success, .warning, .danger, .note {
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .summary {
+      background: var(--blue-bg);
+      border-left: 5px solid var(--blue-border);
+    }
+
+    .success {
+      background: var(--green-bg);
+      border-left: 5px solid var(--green-border);
+    }
+
+    .warning {
+      background: var(--yellow-bg);
+      border-left: 5px solid var(--yellow-border);
+    }
+
+    .danger {
+      background: var(--red-bg);
+      border-left: 5px solid var(--red-border);
+    }
+
+    .note {
+      background: var(--purple-bg);
+      border-left: 5px solid var(--purple-border);
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 0.93rem;
+      line-height: 1.55;
+      border: 1px solid #374151;
+      margin: 14px 0;
+    }
+
+    code {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+    }
+
+    p code, li code, td code {
+      background: #e8f5ee;
+      color: #065f46;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.93em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #111827;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fafafa;
+    }
+
+    .mini-card h4 {
+      margin: 0 0 8px;
+      color: var(--primary);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pill {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .flow {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      padding: 14px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      margin: 14px 0;
+    }
+
+    .big-idea {
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+      border: 1px solid #bbf7d0;
+      padding: 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: #064e3b;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px;
+      font-size: 0.95rem;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      nav {
+        position: static;
+        height: auto;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    @media print {
+      nav, .language-tabs {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      .lang-section {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spring & Spring Boot Learning Guide</h1>
+    <p>From basic to advanced: Spring Core, IoC, Dependency Injection, Bean lifecycle, scopes, annotations, Spring Boot, starters, auto-configuration, profiles, properties, AOP, transactions, REST API, testing, and interview answers. English and Vietnamese versions included.</p>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <h3>English</h3>
+      <a href="#en-roadmap">Roadmap</a>
+      <a href="#en-spring">What is Spring?</a>
+      <a href="#en-ioc-di">IoC and DI</a>
+      <a href="#en-container">IoC Container</a>
+      <a href="#en-bean">Bean</a>
+      <a href="#en-bean-create">How Beans Are Created</a>
+      <a href="#en-di-types">DI Types</a>
+      <a href="#en-annotations">Core Annotations</a>
+      <a href="#en-bean-lifecycle">Bean Lifecycle</a>
+      <a href="#en-scopes">Bean Scopes</a>
+      <a href="#en-qualifier">Multiple Beans</a>
+      <a href="#en-boot">Spring Boot</a>
+      <a href="#en-autoconfig">Auto-configuration</a>
+      <a href="#en-properties">Properties & Profiles</a>
+      <a href="#en-rest">REST API Layer</a>
+      <a href="#en-aop">AOP</a>
+      <a href="#en-transaction">Transaction</a>
+      <a href="#en-testing">Testing</a>
+      <a href="#en-prod">Production Best Practices</a>
+      <a href="#en-interview">Interview Summary</a>
+
+      <hr />
+
+      <h3>Tiếng Việt</h3>
+      <a href="#vn-roadmap">Roadmap</a>
+      <a href="#vn-spring">Spring là gì?</a>
+      <a href="#vn-ioc-di">IoC và DI</a>
+      <a href="#vn-container">IoC Container</a>
+      <a href="#vn-bean">Bean</a>
+      <a href="#vn-bean-create">Bean được tạo thế nào</a>
+      <a href="#vn-di-types">Các kiểu DI</a>
+      <a href="#vn-annotations">Annotation quan trọng</a>
+      <a href="#vn-bean-lifecycle">Bean Lifecycle</a>
+      <a href="#vn-scopes">Bean Scopes</a>
+      <a href="#vn-qualifier">Nhiều Bean</a>
+      <a href="#vn-boot">Spring Boot</a>
+      <a href="#vn-autoconfig">Auto-configuration</a>
+      <a href="#vn-properties">Properties & Profiles</a>
+      <a href="#vn-rest">REST API Layer</a>
+      <a href="#vn-aop">AOP</a>
+      <a href="#vn-transaction">Transaction</a>
+      <a href="#vn-testing">Testing</a>
+      <a href="#vn-prod">Production Best Practices</a>
+      <a href="#vn-interview">Tóm tắt phỏng vấn</a>
+    </nav>
+
+    <main>
+      <div class="language-tabs">
+        <button class="tab-button active" onclick="showLang('en')">English Version</button>
+        <button class="tab-button" onclick="showLang('vn')">Vietnamese Version</button>
+      </div>
+
+      <div id="en" class="lang-section active">
+        <section id="en-roadmap">
+          <h2>1. Learning Roadmap</h2>
+          <div class="big-idea">Spring is mainly about object creation, dependency wiring, lifecycle management, and infrastructure support so that business code can stay clean.</div>
+
+          <h3>Recommended order</h3>
+          <ol>
+            <li>Understand why Spring exists.</li>
+            <li>Learn IoC and Dependency Injection.</li>
+            <li>Learn what a Bean is.</li>
+            <li>Learn ApplicationContext and BeanFactory.</li>
+            <li>Learn component scanning and annotations.</li>
+            <li>Learn bean lifecycle and bean scopes.</li>
+            <li>Learn how Spring resolves multiple beans.</li>
+            <li>Learn Spring Boot and starters.</li>
+            <li>Learn auto-configuration.</li>
+            <li>Learn properties and profiles.</li>
+            <li>Learn REST API structure.</li>
+            <li>Learn validation, exception handling, transaction, AOP, and testing.</li>
+            <li>Learn production best practices.</li>
+          </ol>
+
+          <h3>Core mental model</h3>
+          <div class="flow">Your code declares dependencies
+        ↓
+Spring scans configuration metadata
+        ↓
+Spring creates beans
+        ↓
+Spring injects dependencies
+        ↓
+Spring manages lifecycle
+        ↓
+Your application uses ready-to-use objects</div>
+        </section>
+
+        <section id="en-spring">
+          <h2>2. What is Spring?</h2>
+          <p><strong>Spring</strong> is a Java application framework that helps build enterprise applications by providing infrastructure for dependency injection, transaction management, web applications, data access, messaging, security integration, testing, and more.</p>
+
+          <div class="summary">
+            <strong>Simple definition:</strong> Spring is a framework and IoC container that creates objects, wires dependencies, and manages their lifecycle.
+          </div>
+
+          <h3>Without Spring</h3>
+          <pre><code>public class OrderService {
+    private final PaymentService paymentService = new PaymentService();
+    private final EmailService emailService = new EmailService();
+
+    public void createOrder() {
+        paymentService.pay();
+        emailService.sendEmail();
+    }
+}</code></pre>
+
+          <p>Problems:</p>
+          <ul>
+            <li><code>OrderService</code> directly creates its dependencies.</li>
+            <li>Hard to replace <code>PaymentService</code> with another implementation.</li>
+            <li>Hard to unit test because dependencies are hard-coded.</li>
+            <li>Object creation and business logic are mixed together.</li>
+          </ul>
+
+          <h3>With Spring</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final PaymentService paymentService;
+    private final EmailService emailService;
+
+    public OrderService(PaymentService paymentService, EmailService emailService) {
+        this.paymentService = paymentService;
+        this.emailService = emailService;
+    }
+
+    public void createOrder() {
+        paymentService.pay();
+        emailService.sendEmail();
+    }
+}</code></pre>
+
+          <div class="success">
+            Now <code>OrderService</code> only declares what it needs. Spring creates and injects the dependencies.
+          </div>
+
+          <h3>Spring ecosystem</h3>
+          <div class="grid">
+            <div class="mini-card"><h4>Spring Core</h4><p>IoC container, beans, dependency injection.</p></div>
+            <div class="mini-card"><h4>Spring MVC</h4><p>Build REST APIs and web applications.</p></div>
+            <div class="mini-card"><h4>Spring Data</h4><p>Repository abstraction for JPA, MongoDB, Redis, etc.</p></div>
+            <div class="mini-card"><h4>Spring Security</h4><p>Authentication, authorization, OAuth2, JWT integration.</p></div>
+            <div class="mini-card"><h4>Spring Boot</h4><p>Simplifies Spring app setup with starters and auto-configuration.</p></div>
+            <div class="mini-card"><h4>Spring Cloud</h4><p>Microservice patterns such as config, gateway, discovery, resilience.</p></div>
+          </div>
+        </section>
+
+        <section id="en-ioc-di">
+          <h2>3. IoC and Dependency Injection</h2>
+
+          <h3>3.1. What is IoC?</h3>
+          <p><strong>IoC</strong> means <strong>Inversion of Control</strong>. The control of object creation and dependency wiring is moved from application code to the Spring container.</p>
+
+          <div class="flow">Traditional code:
+Your class creates dependencies using new
+
+IoC:
+Spring container creates dependencies and gives them to your class</div>
+
+          <h3>3.2. What is DI?</h3>
+          <p><strong>Dependency Injection</strong> is one implementation of IoC. It means an object receives its dependencies from outside instead of creating them itself.</p>
+
+          <pre><code>public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <p>Here, <code>OrderService</code> does not create <code>PaymentService</code>. It receives it through constructor injection.</p>
+
+          <h3>3.3. IoC vs DI</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Meaning</th>
+                <th>Simple Explanation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IoC</td>
+                <td>Inversion of Control</td>
+                <td>The framework controls object creation and wiring.</td>
+              </tr>
+              <tr>
+                <td>DI</td>
+                <td>Dependency Injection</td>
+                <td>The framework injects required dependencies into objects.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="summary">
+            <strong>Interview line:</strong> IoC is the principle. DI is the technique Spring uses to implement that principle.
+          </div>
+        </section>
+
+        <section id="en-container">
+          <h2>4. Spring IoC Container</h2>
+
+          <p>The <strong>IoC container</strong> is responsible for creating, configuring, assembling, and managing Spring beans.</p>
+
+          <h3>Two important container interfaces</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Interface</th>
+                <th>Meaning</th>
+                <th>Use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>BeanFactory</code></td>
+                <td>Basic IoC container.</td>
+                <td>Provides basic bean creation and dependency injection.</td>
+              </tr>
+              <tr>
+                <td><code>ApplicationContext</code></td>
+                <td>Advanced container built on top of BeanFactory features.</td>
+                <td>Most commonly used. Adds events, i18n, resource loading, environment, annotation support, etc.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Typical Spring Boot container</h3>
+          <pre><code>@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        ApplicationContext context =
+                SpringApplication.run(DemoApplication.class, args);
+    }
+}</code></pre>
+
+          <h3>What happens at startup?</h3>
+          <div class="flow">SpringApplication.run()
+        ↓
+Create ApplicationContext
+        ↓
+Read configuration metadata
+        ↓
+Scan components
+        ↓
+Register BeanDefinitions
+        ↓
+Create beans
+        ↓
+Inject dependencies
+        ↓
+Run lifecycle callbacks
+        ↓
+Application is ready</div>
+        </section>
+
+        <section id="en-bean">
+          <h2>5. What is a Bean?</h2>
+
+          <p>A <strong>Spring Bean</strong> is an object created, configured, and managed by the Spring IoC container.</p>
+
+          <div class="summary">
+            Normal Java object = object you create and manage yourself.<br />
+            Spring Bean = object Spring creates and manages for you.
+          </div>
+
+          <h3>Example bean using @Component</h3>
+          <pre><code>@Component
+public class EmailService {
+    public void sendEmail(String message) {
+        System.out.println("Sending email: " + message);
+    }
+}</code></pre>
+
+          <h3>Example bean using @Bean</h3>
+          <pre><code>@Configuration
+public class AppConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}</code></pre>
+
+          <h3>BeanDefinition vs Bean instance</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BeanDefinition</td>
+                <td>Metadata that tells Spring how to create a bean.</td>
+              </tr>
+              <tr>
+                <td>Bean instance</td>
+                <td>The actual object created from BeanDefinition.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-bean-create">
+          <h2>6. How Beans Are Created</h2>
+
+          <h3>6.1. Component scanning</h3>
+          <p>Spring scans classes annotated with stereotype annotations and registers them as beans.</p>
+
+          <div class="pill-row">
+            <span class="pill">@Component</span>
+            <span class="pill">@Service</span>
+            <span class="pill">@Repository</span>
+            <span class="pill">@Controller</span>
+            <span class="pill">@RestController</span>
+          </div>
+
+          <pre><code>@Service
+public class PaymentService {
+    public void pay() {
+        System.out.println("Payment completed");
+    }
+}</code></pre>
+
+          <h3>6.2. Java configuration with @Bean</h3>
+          <p>Use <code>@Bean</code> when you need to create a bean manually, especially for third-party classes.</p>
+
+          <pre><code>@Configuration
+public class HttpClientConfig {
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+                .baseUrl("https://api.example.com")
+                .build();
+    }
+}</code></pre>
+
+          <h3>@Component vs @Bean</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Point</th>
+                <th>@Component</th>
+                <th>@Bean</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Where used</td>
+                <td>On class</td>
+                <td>On method inside @Configuration class</td>
+              </tr>
+              <tr>
+                <td>Best for</td>
+                <td>Your own classes</td>
+                <td>Third-party classes or custom construction logic</td>
+              </tr>
+              <tr>
+                <td>Creation style</td>
+                <td>Automatic by component scanning</td>
+                <td>Manual method return value becomes bean</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-di-types">
+          <h2>7. Types of Dependency Injection</h2>
+
+          <h3>7.1. Constructor Injection - Recommended</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <div class="success">
+            Constructor injection is recommended because it makes dependencies explicit, supports immutability with <code>final</code>, and improves testability.
+          </div>
+
+          <h3>7.2. Setter Injection</h3>
+          <pre><code>@Service
+public class OrderService {
+    private PaymentService paymentService;
+
+    @Autowired
+    public void setPaymentService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <p>Useful for optional dependencies, but less strict than constructor injection.</p>
+
+          <h3>7.3. Field Injection - Usually Avoid</h3>
+          <pre><code>@Service
+public class OrderService {
+
+    @Autowired
+    private PaymentService paymentService;
+}</code></pre>
+
+          <div class="warning">
+            Field injection is easy to write but harder to test and hides required dependencies. Prefer constructor injection in production code.
+          </div>
+
+          <h3>Comparison</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Injection type</th>
+                <th>Pros</th>
+                <th>Cons</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Constructor</td>
+                <td>Explicit, immutable, easy to test</td>
+                <td>Can be verbose with many dependencies</td>
+                <td>Best default</td>
+              </tr>
+              <tr>
+                <td>Setter</td>
+                <td>Good for optional dependency</td>
+                <td>Object may be partially initialized</td>
+                <td>Use when dependency is optional</td>
+              </tr>
+              <tr>
+                <td>Field</td>
+                <td>Short code</td>
+                <td>Harder to test, hides dependency</td>
+                <td>Avoid in business code</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-annotations">
+          <h2>8. Important Spring Annotations</h2>
+
+          <h3>Stereotype annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Component</code></td>
+                <td>Generic Spring-managed component.</td>
+              </tr>
+              <tr>
+                <td><code>@Service</code></td>
+                <td>Business service layer.</td>
+              </tr>
+              <tr>
+                <td><code>@Repository</code></td>
+                <td>Persistence/data access layer. Also supports exception translation.</td>
+              </tr>
+              <tr>
+                <td><code>@Controller</code></td>
+                <td>Spring MVC controller returning views.</td>
+              </tr>
+              <tr>
+                <td><code>@RestController</code></td>
+                <td>REST controller. Combines <code>@Controller</code> and <code>@ResponseBody</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Configuration annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Configuration</code></td>
+                <td>Declares a class that provides bean definitions.</td>
+              </tr>
+              <tr>
+                <td><code>@Bean</code></td>
+                <td>Declares a method return value as a Spring bean.</td>
+              </tr>
+              <tr>
+                <td><code>@ComponentScan</code></td>
+                <td>Scans packages for components.</td>
+              </tr>
+              <tr>
+                <td><code>@PropertySource</code></td>
+                <td>Loads property files.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Spring Boot annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@SpringBootApplication</code></td>
+                <td>Combines <code>@SpringBootConfiguration</code>, <code>@EnableAutoConfiguration</code>, and <code>@ComponentScan</code>.</td>
+              </tr>
+              <tr>
+                <td><code>@EnableAutoConfiguration</code></td>
+                <td>Enables Spring Boot auto-configuration.</td>
+              </tr>
+              <tr>
+                <td><code>@ConfigurationProperties</code></td>
+                <td>Binds external configuration to Java objects.</td>
+              </tr>
+              <tr>
+                <td><code>@Profile</code></td>
+                <td>Activates beans for specific environments.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-bean-lifecycle">
+          <h2>9. Bean Lifecycle</h2>
+
+          <p>Bean lifecycle means the steps Spring follows from bean creation to bean destruction.</p>
+
+          <div class="flow">1. Instantiate bean
+2. Populate properties / inject dependencies
+3. Aware callbacks
+4. BeanPostProcessor before initialization
+5. @PostConstruct
+6. InitializingBean.afterPropertiesSet()
+7. Custom init method
+8. Bean is ready to use
+9. @PreDestroy
+10. DisposableBean.destroy()
+11. Custom destroy method</div>
+
+          <h3>Example with @PostConstruct and @PreDestroy</h3>
+          <pre><code>@Service
+public class CacheService {
+
+    @PostConstruct
+    public void init() {
+        System.out.println("Initialize cache");
+    }
+
+    @PreDestroy
+    public void destroy() {
+        System.out.println("Cleanup cache");
+    }
+}</code></pre>
+
+          <h3>BeanPostProcessor</h3>
+          <p><code>BeanPostProcessor</code> allows custom logic before and after bean initialization. Many Spring features are implemented using post-processors.</p>
+
+          <pre><code>@Component
+public class CustomBeanPostProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        System.out.println("Before init: " + beanName);
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        System.out.println("After init: " + beanName);
+        return bean;
+    }
+}</code></pre>
+
+          <div class="note">
+            <strong>Senior note:</strong> AOP proxies are often created during bean post-processing. That is why the actual bean used at runtime may be a proxy, not the raw object.
+          </div>
+        </section>
+
+        <section id="en-scopes">
+          <h2>10. Bean Scopes</h2>
+
+          <p>Bean scope controls how many instances Spring creates and how long they live.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Scope</th>
+                <th>Meaning</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>singleton</code></td>
+                <td>One bean instance per Spring container.</td>
+                <td>Default. Stateless services.</td>
+              </tr>
+              <tr>
+                <td><code>prototype</code></td>
+                <td>New instance every time requested.</td>
+                <td>Stateful or short-lived objects.</td>
+              </tr>
+              <tr>
+                <td><code>request</code></td>
+                <td>One instance per HTTP request.</td>
+                <td>Web request data.</td>
+              </tr>
+              <tr>
+                <td><code>session</code></td>
+                <td>One instance per HTTP session.</td>
+                <td>User session state.</td>
+              </tr>
+              <tr>
+                <td><code>application</code></td>
+                <td>One instance per ServletContext.</td>
+                <td>Application-level web state.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Singleton scope example</h3>
+          <pre><code>@Service
+public class OrderService {
+}</code></pre>
+
+          <p>By default, this is singleton.</p>
+
+          <h3>Prototype scope example</h3>
+          <pre><code>@Component
+@Scope("prototype")
+public class ReportBuilder {
+}</code></pre>
+
+          <div class="danger">
+            <strong>Important:</strong> Since singleton beans are shared across threads, do not store request-specific mutable data in fields.
+          </div>
+
+          <h3>Bad singleton example</h3>
+          <pre><code>@Service
+public class PaymentService {
+    private String currentUserId; // dangerous in singleton bean
+
+    public void pay(String userId) {
+        this.currentUserId = userId;
+    }
+}</code></pre>
+
+          <h3>Good singleton example</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    public void pay(String userId) {
+        String currentUserId = userId; // local variable
+    }
+}</code></pre>
+        </section>
+
+        <section id="en-qualifier">
+          <h2>11. Multiple Beans: @Primary and @Qualifier</h2>
+
+          <p>If multiple beans implement the same interface, Spring may not know which one to inject.</p>
+
+          <h3>Interface</h3>
+          <pre><code>public interface NotificationService {
+    void send(String message);
+}</code></pre>
+
+          <h3>Two implementations</h3>
+          <pre><code>@Service
+public class EmailNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("Email: " + message);
+    }
+}
+
+@Service
+public class SmsNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("SMS: " + message);
+    }
+}</code></pre>
+
+          <h3>Use @Qualifier</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final NotificationService notificationService;
+
+    public OrderService(
+            @Qualifier("emailNotificationService")
+            NotificationService notificationService
+    ) {
+        this.notificationService = notificationService;
+    }
+}</code></pre>
+
+          <h3>Use @Primary</h3>
+          <pre><code>@Service
+@Primary
+public class EmailNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("Email: " + message);
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Primary</code></td>
+                <td>Default bean when multiple candidates exist.</td>
+              </tr>
+              <tr>
+                <td><code>@Qualifier</code></td>
+                <td>Explicitly select a bean by name or qualifier.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-boot">
+          <h2>12. What is Spring Boot?</h2>
+
+          <p><strong>Spring Boot</strong> is built on top of Spring. It makes it easier to create production-ready Spring applications with less configuration.</p>
+
+          <h3>What Spring Boot gives us</h3>
+          <ul>
+            <li>Auto-configuration.</li>
+            <li>Starter dependencies.</li>
+            <li>Embedded servers such as Tomcat, Jetty, or Undertow.</li>
+            <li>Externalized configuration through properties or YAML.</li>
+            <li>Actuator for monitoring and management.</li>
+            <li>Easy testing support.</li>
+            <li>Production-friendly defaults.</li>
+          </ul>
+
+          <h3>Minimal Spring Boot application</h3>
+          <pre><code>@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}</code></pre>
+
+          <h3>@SpringBootApplication internally</h3>
+          <pre><code>@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan
+public @interface SpringBootApplication {
+}</code></pre>
+
+          <h3>Spring vs Spring Boot</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Spring</th>
+                <th>Spring Boot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Core framework.</td>
+                <td>Opinionated way to build Spring applications quickly.</td>
+              </tr>
+              <tr>
+                <td>Manual configuration is often needed.</td>
+                <td>Auto-configuration reduces manual setup.</td>
+              </tr>
+              <tr>
+                <td>Server setup can be external.</td>
+                <td>Embedded server is included by default for web apps.</td>
+              </tr>
+              <tr>
+                <td>More flexible but more verbose.</td>
+                <td>Faster setup with sensible defaults.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-autoconfig">
+          <h2>13. Spring Boot Auto-configuration</h2>
+
+          <p><strong>Auto-configuration</strong> means Spring Boot tries to automatically configure your application based on the dependencies on the classpath and existing beans in the context.</p>
+
+          <div class="flow">You add dependency
+        ↓
+Spring Boot sees classpath
+        ↓
+Auto-configuration classes are evaluated
+        ↓
+Conditions are checked
+        ↓
+Missing beans are created automatically
+        ↓
+You can override them by defining your own bean</div>
+
+          <h3>Example: Web MVC auto-configuration</h3>
+          <p>If you add:</p>
+          <pre><code>spring-boot-starter-web</code></pre>
+
+          <p>Spring Boot can auto-configure:</p>
+          <ul>
+            <li>Embedded Tomcat.</li>
+            <li>Spring MVC.</li>
+            <li>Jackson JSON converter.</li>
+            <li>Default error handling.</li>
+            <li>DispatcherServlet.</li>
+          </ul>
+
+          <h3>Example: DataSource auto-configuration</h3>
+          <p>If JDBC/JPA dependencies and database driver are on the classpath, Spring Boot can configure a <code>DataSource</code> if you provide properties.</p>
+
+          <pre><code>spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/demo
+    username: demo
+    password: secret</code></pre>
+
+          <h3>Common condition annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@ConditionalOnClass</code></td>
+                <td>Apply configuration only if a class exists on the classpath.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnMissingBean</code></td>
+                <td>Create bean only if user has not already defined one.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnProperty</code></td>
+                <td>Apply configuration based on a property value.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnWebApplication</code></td>
+                <td>Apply only in a web application.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Override auto-configuration</h3>
+          <pre><code>@Configuration
+public class CustomJacksonConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .findAndRegisterModules();
+    }
+}</code></pre>
+
+          <p>If auto-configuration uses <code>@ConditionalOnMissingBean(ObjectMapper.class)</code>, your custom bean wins.</p>
+
+          <h3>Disable specific auto-configuration</h3>
+          <pre><code>@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+public class DemoApplication {
+}</code></pre>
+
+          <div class="summary">
+            <strong>Interview line:</strong> Auto-configuration does not mean magic. It is conditional configuration. Spring Boot checks classpath, properties, and existing beans, then creates default beans only when appropriate.
+          </div>
+        </section>
+
+        <section id="en-properties">
+          <h2>14. Properties, YAML, and Profiles</h2>
+
+          <h3>application.yml</h3>
+          <pre><code>server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orderdb
+    username: order_user
+    password: secret</code></pre>
+
+          <h3>@Value</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    @Value("${payment.timeout-seconds}")
+    private int timeoutSeconds;
+}</code></pre>
+
+          <p><code>@Value</code> is simple but not ideal for many related properties.</p>
+
+          <h3>@ConfigurationProperties</h3>
+          <pre><code>@ConfigurationProperties(prefix = "payment")
+public class PaymentProperties {
+    private String provider;
+    private int timeoutSeconds;
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public int getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(int timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
+    }
+}</code></pre>
+
+          <pre><code>payment:
+  provider: stripe
+  timeout-seconds: 30</code></pre>
+
+          <h3>Profiles</h3>
+          <pre><code>spring:
+  profiles:
+    active: dev</code></pre>
+
+          <p>Example files:</p>
+          <div class="flow">application.yml
+application-dev.yml
+application-stg.yml
+application-prod.yml</div>
+
+          <h3>@Profile</h3>
+          <pre><code>@Configuration
+@Profile("dev")
+public class DevConfig {
+
+    @Bean
+    public PaymentClient mockPaymentClient() {
+        return new MockPaymentClient();
+    }
+}</code></pre>
+        </section>
+
+        <section id="en-rest">
+          <h2>15. REST API Layer in Spring Boot</h2>
+
+          <h3>Typical layers</h3>
+          <div class="flow">Controller → Service → Repository → Database</div>
+
+          <h3>Entity</h3>
+          <pre><code>@Entity
+@Table(name = "employees")
+public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private BigDecimal salary;
+}</code></pre>
+
+          <h3>Repository</h3>
+          <pre><code>public interface EmployeeRepository extends JpaRepository&lt;Employee, Long&gt; {
+}</code></pre>
+
+          <h3>Service</h3>
+          <pre><code>@Service
+public class EmployeeService {
+    private final EmployeeRepository employeeRepository;
+
+    public EmployeeService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
+
+    public Employee getById(Long id) {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+    }
+}</code></pre>
+
+          <h3>Controller</h3>
+          <pre><code>@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+    private final EmployeeService employeeService;
+
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;Employee&gt; getById(@PathVariable Long id) {
+        return ResponseEntity.ok(employeeService.getById(id));
+    }
+}</code></pre>
+
+          <h3>Validation</h3>
+          <pre><code>public class CreateEmployeeRequest {
+
+    @NotBlank
+    private String name;
+
+    @Positive
+    private BigDecimal salary;
+}</code></pre>
+
+          <pre><code>@PostMapping
+public ResponseEntity&lt;EmployeeResponse&gt; create(
+        @Valid @RequestBody CreateEmployeeRequest request
+) {
+    return ResponseEntity.ok(employeeService.create(request));
+}</code></pre>
+
+          <h3>Global exception handler</h3>
+          <pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNotFound(EmployeeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("EMPLOYEE_NOT_FOUND", ex.getMessage()));
+    }
+}</code></pre>
+        </section>
+
+        <section id="en-aop">
+          <h2>16. AOP - Aspect Oriented Programming</h2>
+
+          <p><strong>AOP</strong> helps separate cross-cutting concerns from business logic.</p>
+
+          <h3>Common cross-cutting concerns</h3>
+          <ul>
+            <li>Logging.</li>
+            <li>Security.</li>
+            <li>Transaction management.</li>
+            <li>Metrics.</li>
+            <li>Auditing.</li>
+            <li>Retry.</li>
+          </ul>
+
+          <h3>Example custom annotation</h3>
+          <pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogExecutionTime {
+}</code></pre>
+
+          <h3>Aspect</h3>
+          <pre><code>@Aspect
+@Component
+public class LogExecutionTimeAspect {
+
+    @Around("@annotation(LogExecutionTime)")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        Object result = joinPoint.proceed();
+
+        long end = System.currentTimeMillis();
+        System.out.println("Execution time: " + (end - start) + "ms");
+
+        return result;
+    }
+}</code></pre>
+
+          <h3>Use annotation</h3>
+          <pre><code>@Service
+public class ReportService {
+
+    @LogExecutionTime
+    public void generateReport() {
+        // business logic
+    }
+}</code></pre>
+
+          <div class="note">
+            <strong>Senior note:</strong> Spring AOP usually works through proxies. A common limitation is self-invocation: when one method inside the same class calls another proxied method, the proxy may be bypassed.
+          </div>
+        </section>
+
+        <section id="en-transaction">
+          <h2>17. Transaction Management</h2>
+
+          <p><code>@Transactional</code> tells Spring to run a method inside a database transaction.</p>
+
+          <pre><code>@Service
+public class OrderService {
+
+    @Transactional
+    public void createOrder(CreateOrderRequest request) {
+        orderRepository.save(order);
+        paymentRepository.save(payment);
+    }
+}</code></pre>
+
+          <h3>What happens?</h3>
+          <div class="flow">Method starts
+        ↓
+Spring opens transaction
+        ↓
+Business logic runs
+        ↓
+If success → commit
+If runtime exception → rollback</div>
+
+          <h3>Important rules</h3>
+          <ul>
+            <li>By default, rollback happens for unchecked exceptions.</li>
+            <li>Checked exceptions do not trigger rollback by default unless configured.</li>
+            <li><code>@Transactional</code> usually works through proxy-based AOP.</li>
+            <li>Self-invocation may bypass transaction proxy.</li>
+            <li>Use transaction boundary at service layer, not controller layer.</li>
+          </ul>
+
+          <h3>Rollback for checked exception</h3>
+          <pre><code>@Transactional(rollbackFor = Exception.class)
+public void process() throws Exception {
+    // business logic
+}</code></pre>
+
+          <h3>Read-only transaction</h3>
+          <pre><code>@Transactional(readOnly = true)
+public List&lt;Order&gt; getOrders() {
+    return orderRepository.findAll();
+}</code></pre>
+        </section>
+
+        <section id="en-testing">
+          <h2>18. Testing Spring Boot Applications</h2>
+
+          <h3>Unit test service with Mockito</h3>
+          <pre><code>@ExtendWith(MockitoExtension.class)
+class OrderServiceTest {
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @InjectMocks
+    private OrderService orderService;
+
+    @Test
+    void shouldCreateOrder() {
+        when(orderRepository.save(any(Order.class)))
+                .thenReturn(new Order());
+
+        Order result = orderService.createOrder(new CreateOrderRequest());
+
+        assertNotNull(result);
+        verify(orderRepository).save(any(Order.class));
+    }
+}</code></pre>
+
+          <h3>Controller slice test with @WebMvcTest</h3>
+          <pre><code>@WebMvcTest(EmployeeController.class)
+class EmployeeControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private EmployeeService employeeService;
+
+    @Test
+    void shouldReturnEmployee() throws Exception {
+        when(employeeService.getById(1L))
+                .thenReturn(new EmployeeResponse(1L, "John"));
+
+        mockMvc.perform(get("/api/employees/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("John"));
+    }
+}</code></pre>
+
+          <h3>Integration test with @SpringBootTest</h3>
+          <pre><code>@SpringBootTest
+class ApplicationIntegrationTest {
+
+    @Test
+    void contextLoads() {
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Test Type</th>
+                <th>Annotation</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unit test</td>
+                <td>JUnit + Mockito</td>
+                <td>Test one class without Spring context.</td>
+              </tr>
+              <tr>
+                <td>Controller test</td>
+                <td><code>@WebMvcTest</code></td>
+                <td>Test MVC layer only.</td>
+              </tr>
+              <tr>
+                <td>JPA test</td>
+                <td><code>@DataJpaTest</code></td>
+                <td>Test repository layer.</td>
+              </tr>
+              <tr>
+                <td>Integration test</td>
+                <td><code>@SpringBootTest</code></td>
+                <td>Start full Spring context.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-prod">
+          <h2>19. Production Best Practices</h2>
+
+          <div class="grid">
+            <div class="mini-card"><h4>Use constructor injection</h4><p>Clear dependencies, easier tests, immutable fields.</p></div>
+            <div class="mini-card"><h4>Keep services stateless</h4><p>Singleton beans are shared by multiple threads.</p></div>
+            <div class="mini-card"><h4>Separate layers</h4><p>Controller, service, repository, DTO, mapper.</p></div>
+            <div class="mini-card"><h4>Use DTOs</h4><p>Do not expose entities directly in public APIs.</p></div>
+            <div class="mini-card"><h4>Centralize exceptions</h4><p>Use <code>@RestControllerAdvice</code>.</p></div>
+            <div class="mini-card"><h4>Use configuration properties</h4><p>Prefer typed configuration over many scattered <code>@Value</code>.</p></div>
+            <div class="mini-card"><h4>Use profiles carefully</h4><p>Separate dev, staging, production config.</p></div>
+            <div class="mini-card"><h4>Monitor with Actuator</h4><p>Expose health, metrics, readiness/liveness carefully.</p></div>
+          </div>
+
+          <h3>Common mistakes</h3>
+          <ul>
+            <li>Putting business logic in controller.</li>
+            <li>Using field injection everywhere.</li>
+            <li>Using entities as API response directly.</li>
+            <li>Storing request-specific data in singleton services.</li>
+            <li>Misunderstanding <code>@Transactional</code> self-invocation.</li>
+            <li>Creating too many beans without clear responsibility.</li>
+            <li>Overusing profiles to hide design problems.</li>
+          </ul>
+        </section>
+
+        <section id="en-interview">
+          <h2>20. Interview Summary</h2>
+
+          <h3>What is Spring?</h3>
+          <div class="summary">
+            Spring is a Java framework and IoC container that helps build enterprise applications. It manages object creation, dependency injection, lifecycle, transactions, web layer, data access, and many infrastructure concerns so developers can focus on business logic.
+          </div>
+
+          <h3>What is a Bean?</h3>
+          <div class="summary">
+            A bean is an object that is created, configured, and managed by the Spring IoC container. Instead of manually creating objects using <code>new</code>, we let Spring create and wire them.
+          </div>
+
+          <h3>What is IoC?</h3>
+          <div class="summary">
+            IoC means Inversion of Control. The responsibility of creating and wiring objects is moved from application code to the Spring container.
+          </div>
+
+          <h3>What is DI?</h3>
+          <div class="summary">
+            Dependency Injection is a way to implement IoC. A class receives its dependencies from outside, usually through constructor injection, instead of creating them itself.
+          </div>
+
+          <h3>What is Spring Boot auto-configuration?</h3>
+          <div class="summary">
+            Auto-configuration is conditional configuration. Spring Boot checks classpath dependencies, properties, and existing beans, then creates default beans automatically when appropriate. Developers can override it by defining their own beans or excluding specific auto-configuration classes.
+          </div>
+
+          <h3>Best short interview answer</h3>
+          <pre><code>Spring is mainly about IoC and Dependency Injection. 
+Instead of creating dependencies manually, we declare what a class needs, 
+and the Spring container creates beans, injects dependencies, and manages their lifecycle.
+
+Spring Boot builds on top of Spring and reduces configuration through starters and auto-configuration. 
+Auto-configuration checks the classpath, properties, and existing beans, then creates sensible default beans. 
+It is not magic; it is conditional configuration that can be overridden.</code></pre>
+        </section>
+
+        <section id="en-references">
+          <h2>21. Official References</h2>
+          <ul>
+            <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/introduction.html" target="_blank">Spring Framework: Introduction to the IoC Container and Beans</a></li>
+            <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html" target="_blank">Spring Framework: Dependency Injection</a></li>
+            <li><a href="https://docs.spring.io/spring-boot/reference/using/auto-configuration.html" target="_blank">Spring Boot: Auto-configuration</a></li>
+            <li><a href="https://docs.spring.io/spring-boot/reference/features/developing-auto-configuration.html" target="_blank">Spring Boot: Creating Your Own Auto-configuration</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <div id="vn" class="lang-section">
+        <section id="vn-roadmap">
+          <h2>1. Roadmap học Spring</h2>
+          <div class="big-idea">Spring chủ yếu giúp quản lý việc tạo object, inject dependency, quản lý lifecycle và hỗ trợ infrastructure để business code sạch hơn.</div>
+
+          <h3>Thứ tự học nên theo</h3>
+          <ol>
+            <li>Hiểu vì sao cần Spring.</li>
+            <li>Học IoC và Dependency Injection.</li>
+            <li>Hiểu Bean là gì.</li>
+            <li>Hiểu ApplicationContext và BeanFactory.</li>
+            <li>Học component scanning và annotations.</li>
+            <li>Học bean lifecycle và bean scopes.</li>
+            <li>Học cách Spring xử lý nhiều bean cùng type.</li>
+            <li>Học Spring Boot và starters.</li>
+            <li>Học auto-configuration.</li>
+            <li>Học properties và profiles.</li>
+            <li>Học cấu trúc REST API.</li>
+            <li>Học validation, exception handling, transaction, AOP và testing.</li>
+            <li>Học best practices trong production.</li>
+          </ol>
+
+          <h3>Mindset cốt lõi</h3>
+          <div class="flow">Code của mình khai báo dependency cần dùng
+        ↓
+Spring đọc configuration metadata
+        ↓
+Spring tạo beans
+        ↓
+Spring inject dependencies
+        ↓
+Spring quản lý lifecycle
+        ↓
+Application có object sẵn sàng để dùng</div>
+        </section>
+
+        <section id="vn-spring">
+          <h2>2. Spring là gì?</h2>
+          <p><strong>Spring</strong> là Java application framework giúp xây dựng enterprise applications bằng cách cung cấp nền tảng cho dependency injection, transaction management, web application, data access, messaging, security integration, testing và nhiều phần infrastructure khác.</p>
+
+          <div class="summary">
+            <strong>Định nghĩa dễ nhớ:</strong> Spring là framework và IoC container giúp tạo object, nối dependency và quản lý lifecycle của chúng.
+          </div>
+
+          <h3>Nếu không dùng Spring</h3>
+          <pre><code>public class OrderService {
+    private final PaymentService paymentService = new PaymentService();
+    private final EmailService emailService = new EmailService();
+
+    public void createOrder() {
+        paymentService.pay();
+        emailService.sendEmail();
+    }
+}</code></pre>
+
+          <p>Vấn đề:</p>
+          <ul>
+            <li><code>OrderService</code> tự tạo dependency.</li>
+            <li>Khó thay <code>PaymentService</code> bằng implementation khác.</li>
+            <li>Khó unit test vì dependency bị hard-code.</li>
+            <li>Object creation bị trộn với business logic.</li>
+          </ul>
+
+          <h3>Khi dùng Spring</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final PaymentService paymentService;
+    private final EmailService emailService;
+
+    public OrderService(PaymentService paymentService, EmailService emailService) {
+        this.paymentService = paymentService;
+        this.emailService = emailService;
+    }
+
+    public void createOrder() {
+        paymentService.pay();
+        emailService.sendEmail();
+    }
+}</code></pre>
+
+          <div class="success">
+            Lúc này <code>OrderService</code> chỉ khai báo nó cần gì. Spring sẽ tạo và inject dependencies.
+          </div>
+
+          <h3>Hệ sinh thái Spring</h3>
+          <div class="grid">
+            <div class="mini-card"><h4>Spring Core</h4><p>IoC container, beans, dependency injection.</p></div>
+            <div class="mini-card"><h4>Spring MVC</h4><p>Xây dựng REST APIs và web applications.</p></div>
+            <div class="mini-card"><h4>Spring Data</h4><p>Repository abstraction cho JPA, MongoDB, Redis, v.v.</p></div>
+            <div class="mini-card"><h4>Spring Security</h4><p>Authentication, authorization, OAuth2, JWT integration.</p></div>
+            <div class="mini-card"><h4>Spring Boot</h4><p>Đơn giản hóa setup Spring app bằng starters và auto-configuration.</p></div>
+            <div class="mini-card"><h4>Spring Cloud</h4><p>Microservice patterns như config, gateway, discovery, resilience.</p></div>
+          </div>
+        </section>
+
+        <section id="vn-ioc-di">
+          <h2>3. IoC và Dependency Injection</h2>
+
+          <h3>3.1. IoC là gì?</h3>
+          <p><strong>IoC</strong> là <strong>Inversion of Control</strong>. Nghĩa là quyền kiểm soát việc tạo object và wiring dependency được chuyển từ code của mình sang Spring container.</p>
+
+          <div class="flow">Code truyền thống:
+Class tự tạo dependency bằng new
+
+IoC:
+Spring container tạo dependency và đưa dependency đó cho class</div>
+
+          <h3>3.2. DI là gì?</h3>
+          <p><strong>Dependency Injection</strong> là một cách implement IoC. Object nhận dependency từ bên ngoài thay vì tự tạo dependency bên trong.</p>
+
+          <pre><code>public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <p>Ở đây <code>OrderService</code> không tự tạo <code>PaymentService</code>. Nó nhận dependency qua constructor.</p>
+
+          <h3>3.3. IoC vs DI</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Khái niệm</th>
+                <th>Ý nghĩa</th>
+                <th>Giải thích dễ hiểu</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IoC</td>
+                <td>Inversion of Control</td>
+                <td>Framework kiểm soát việc tạo object và wiring.</td>
+              </tr>
+              <tr>
+                <td>DI</td>
+                <td>Dependency Injection</td>
+                <td>Framework inject dependency vào object.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="summary">
+            <strong>Câu phỏng vấn:</strong> IoC là nguyên lý. DI là kỹ thuật Spring dùng để implement nguyên lý đó.
+          </div>
+        </section>
+
+        <section id="vn-container">
+          <h2>4. Spring IoC Container</h2>
+
+          <p><strong>IoC container</strong> chịu trách nhiệm tạo, cấu hình, assemble và quản lý Spring beans.</p>
+
+          <h3>Hai interface quan trọng</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Interface</th>
+                <th>Ý nghĩa</th>
+                <th>Cách dùng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>BeanFactory</code></td>
+                <td>IoC container cơ bản.</td>
+                <td>Cung cấp bean creation và dependency injection cơ bản.</td>
+              </tr>
+              <tr>
+                <td><code>ApplicationContext</code></td>
+                <td>Container nâng cao, mở rộng từ các feature của BeanFactory.</td>
+                <td>Dùng phổ biến nhất. Có event, i18n, resource loading, environment, annotation support, v.v.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Container trong Spring Boot</h3>
+          <pre><code>@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        ApplicationContext context =
+                SpringApplication.run(DemoApplication.class, args);
+    }
+}</code></pre>
+
+          <h3>Khi startup xảy ra gì?</h3>
+          <div class="flow">SpringApplication.run()
+        ↓
+Tạo ApplicationContext
+        ↓
+Đọc configuration metadata
+        ↓
+Scan components
+        ↓
+Register BeanDefinitions
+        ↓
+Tạo beans
+        ↓
+Inject dependencies
+        ↓
+Chạy lifecycle callbacks
+        ↓
+Application sẵn sàng</div>
+        </section>
+
+        <section id="vn-bean">
+          <h2>5. Bean là gì?</h2>
+
+          <p><strong>Spring Bean</strong> là object được Spring IoC container tạo, cấu hình và quản lý.</p>
+
+          <div class="summary">
+            Java object bình thường = object mình tự tạo và tự quản lý.<br />
+            Spring Bean = object Spring tạo và quản lý giúp mình.
+          </div>
+
+          <h3>Bean bằng @Component</h3>
+          <pre><code>@Component
+public class EmailService {
+    public void sendEmail(String message) {
+        System.out.println("Sending email: " + message);
+    }
+}</code></pre>
+
+          <h3>Bean bằng @Bean</h3>
+          <pre><code>@Configuration
+public class AppConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}</code></pre>
+
+          <h3>BeanDefinition vs Bean instance</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Khái niệm</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BeanDefinition</td>
+                <td>Metadata cho Spring biết cách tạo bean.</td>
+              </tr>
+              <tr>
+                <td>Bean instance</td>
+                <td>Object thật được tạo từ BeanDefinition.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-bean-create">
+          <h2>6. Bean được tạo thế nào?</h2>
+
+          <h3>6.1. Component scanning</h3>
+          <p>Spring scan các class có stereotype annotations và register chúng thành beans.</p>
+
+          <div class="pill-row">
+            <span class="pill">@Component</span>
+            <span class="pill">@Service</span>
+            <span class="pill">@Repository</span>
+            <span class="pill">@Controller</span>
+            <span class="pill">@RestController</span>
+          </div>
+
+          <pre><code>@Service
+public class PaymentService {
+    public void pay() {
+        System.out.println("Payment completed");
+    }
+}</code></pre>
+
+          <h3>6.2. Java configuration với @Bean</h3>
+          <p>Dùng <code>@Bean</code> khi cần tạo bean thủ công, đặc biệt với third-party classes.</p>
+
+          <pre><code>@Configuration
+public class HttpClientConfig {
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+                .baseUrl("https://api.example.com")
+                .build();
+    }
+}</code></pre>
+
+          <h3>@Component vs @Bean</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Điểm so sánh</th>
+                <th>@Component</th>
+                <th>@Bean</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dùng ở đâu</td>
+                <td>Trên class</td>
+                <td>Trên method trong @Configuration class</td>
+              </tr>
+              <tr>
+                <td>Phù hợp cho</td>
+                <td>Class mình tự viết</td>
+                <td>Third-party classes hoặc logic khởi tạo custom</td>
+              </tr>
+              <tr>
+                <td>Cách tạo</td>
+                <td>Tự động qua component scanning</td>
+                <td>Return value của method thành bean</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-di-types">
+          <h2>7. Các kiểu Dependency Injection</h2>
+
+          <h3>7.1. Constructor Injection - Khuyến nghị dùng</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <div class="success">
+            Constructor injection được khuyến nghị vì dependency rõ ràng, hỗ trợ immutability với <code>final</code>, và dễ test hơn.
+          </div>
+
+          <h3>7.2. Setter Injection</h3>
+          <pre><code>@Service
+public class OrderService {
+    private PaymentService paymentService;
+
+    @Autowired
+    public void setPaymentService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}</code></pre>
+
+          <p>Hữu ích cho optional dependencies, nhưng không strict bằng constructor injection.</p>
+
+          <h3>7.3. Field Injection - Thường nên tránh</h3>
+          <pre><code>@Service
+public class OrderService {
+
+    @Autowired
+    private PaymentService paymentService;
+}</code></pre>
+
+          <div class="warning">
+            Field injection viết nhanh nhưng khó test hơn và che giấu required dependencies. Trong production code nên ưu tiên constructor injection.
+          </div>
+
+          <h3>So sánh</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Kiểu injection</th>
+                <th>Ưu điểm</th>
+                <th>Nhược điểm</th>
+                <th>Khuyến nghị</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Constructor</td>
+                <td>Rõ ràng, immutable, dễ test</td>
+                <td>Có thể dài nếu quá nhiều dependency</td>
+                <td>Nên dùng mặc định</td>
+              </tr>
+              <tr>
+                <td>Setter</td>
+                <td>Tốt cho optional dependency</td>
+                <td>Object có thể bị partially initialized</td>
+                <td>Dùng khi dependency optional</td>
+              </tr>
+              <tr>
+                <td>Field</td>
+                <td>Code ngắn</td>
+                <td>Khó test, giấu dependency</td>
+                <td>Nên tránh trong business code</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-annotations">
+          <h2>8. Các annotation quan trọng trong Spring</h2>
+
+          <h3>Stereotype annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Component</code></td>
+                <td>Component chung được Spring quản lý.</td>
+              </tr>
+              <tr>
+                <td><code>@Service</code></td>
+                <td>Business service layer.</td>
+              </tr>
+              <tr>
+                <td><code>@Repository</code></td>
+                <td>Persistence/data access layer. Hỗ trợ exception translation.</td>
+              </tr>
+              <tr>
+                <td><code>@Controller</code></td>
+                <td>Spring MVC controller trả về view.</td>
+              </tr>
+              <tr>
+                <td><code>@RestController</code></td>
+                <td>REST controller. Kết hợp <code>@Controller</code> và <code>@ResponseBody</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Configuration annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Cách dùng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Configuration</code></td>
+                <td>Khai báo class cung cấp bean definitions.</td>
+              </tr>
+              <tr>
+                <td><code>@Bean</code></td>
+                <td>Khai báo return value của method là Spring bean.</td>
+              </tr>
+              <tr>
+                <td><code>@ComponentScan</code></td>
+                <td>Scan package để tìm components.</td>
+              </tr>
+              <tr>
+                <td><code>@PropertySource</code></td>
+                <td>Load property files.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Spring Boot annotations</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@SpringBootApplication</code></td>
+                <td>Kết hợp <code>@SpringBootConfiguration</code>, <code>@EnableAutoConfiguration</code>, và <code>@ComponentScan</code>.</td>
+              </tr>
+              <tr>
+                <td><code>@EnableAutoConfiguration</code></td>
+                <td>Bật Spring Boot auto-configuration.</td>
+              </tr>
+              <tr>
+                <td><code>@ConfigurationProperties</code></td>
+                <td>Bind external configuration vào Java object.</td>
+              </tr>
+              <tr>
+                <td><code>@Profile</code></td>
+                <td>Kích hoạt bean theo environment cụ thể.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-bean-lifecycle">
+          <h2>9. Bean Lifecycle</h2>
+
+          <p>Bean lifecycle là các bước Spring thực hiện từ lúc tạo bean đến lúc destroy bean.</p>
+
+          <div class="flow">1. Instantiate bean
+2. Populate properties / inject dependencies
+3. Aware callbacks
+4. BeanPostProcessor before initialization
+5. @PostConstruct
+6. InitializingBean.afterPropertiesSet()
+7. Custom init method
+8. Bean sẵn sàng sử dụng
+9. @PreDestroy
+10. DisposableBean.destroy()
+11. Custom destroy method</div>
+
+          <h3>Ví dụ @PostConstruct và @PreDestroy</h3>
+          <pre><code>@Service
+public class CacheService {
+
+    @PostConstruct
+    public void init() {
+        System.out.println("Initialize cache");
+    }
+
+    @PreDestroy
+    public void destroy() {
+        System.out.println("Cleanup cache");
+    }
+}</code></pre>
+
+          <h3>BeanPostProcessor</h3>
+          <p><code>BeanPostProcessor</code> cho phép chạy custom logic trước và sau bean initialization. Rất nhiều feature của Spring được implement thông qua post-processors.</p>
+
+          <pre><code>@Component
+public class CustomBeanPostProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        System.out.println("Before init: " + beanName);
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        System.out.println("After init: " + beanName);
+        return bean;
+    }
+}</code></pre>
+
+          <div class="note">
+            <strong>Senior note:</strong> AOP proxies thường được tạo trong giai đoạn bean post-processing. Vì vậy object runtime đôi khi là proxy, không phải raw object ban đầu.
+          </div>
+        </section>
+
+        <section id="vn-scopes">
+          <h2>10. Bean Scopes</h2>
+
+          <p>Bean scope quyết định Spring tạo bao nhiêu instance và vòng đời của instance đó.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Scope</th>
+                <th>Ý nghĩa</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>singleton</code></td>
+                <td>Một bean instance cho mỗi Spring container.</td>
+                <td>Mặc định. Stateless services.</td>
+              </tr>
+              <tr>
+                <td><code>prototype</code></td>
+                <td>Mỗi lần request bean sẽ tạo instance mới.</td>
+                <td>Stateful hoặc short-lived objects.</td>
+              </tr>
+              <tr>
+                <td><code>request</code></td>
+                <td>Một instance cho mỗi HTTP request.</td>
+                <td>Web request data.</td>
+              </tr>
+              <tr>
+                <td><code>session</code></td>
+                <td>Một instance cho mỗi HTTP session.</td>
+                <td>User session state.</td>
+              </tr>
+              <tr>
+                <td><code>application</code></td>
+                <td>Một instance cho mỗi ServletContext.</td>
+                <td>Application-level web state.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Singleton scope</h3>
+          <pre><code>@Service
+public class OrderService {
+}</code></pre>
+
+          <p>Mặc định bean này là singleton.</p>
+
+          <h3>Prototype scope</h3>
+          <pre><code>@Component
+@Scope("prototype")
+public class ReportBuilder {
+}</code></pre>
+
+          <div class="danger">
+            <strong>Quan trọng:</strong> Vì singleton bean được share giữa nhiều threads, không nên lưu request-specific mutable data trong field.
+          </div>
+
+          <h3>Ví dụ sai với singleton</h3>
+          <pre><code>@Service
+public class PaymentService {
+    private String currentUserId; // nguy hiểm trong singleton bean
+
+    public void pay(String userId) {
+        this.currentUserId = userId;
+    }
+}</code></pre>
+
+          <h3>Ví dụ đúng</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    public void pay(String userId) {
+        String currentUserId = userId; // local variable
+    }
+}</code></pre>
+        </section>
+
+        <section id="vn-qualifier">
+          <h2>11. Nhiều Bean: @Primary và @Qualifier</h2>
+
+          <p>Nếu nhiều bean cùng implement một interface, Spring có thể không biết nên inject bean nào.</p>
+
+          <h3>Interface</h3>
+          <pre><code>public interface NotificationService {
+    void send(String message);
+}</code></pre>
+
+          <h3>Hai implementation</h3>
+          <pre><code>@Service
+public class EmailNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("Email: " + message);
+    }
+}
+
+@Service
+public class SmsNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("SMS: " + message);
+    }
+}</code></pre>
+
+          <h3>Dùng @Qualifier</h3>
+          <pre><code>@Service
+public class OrderService {
+    private final NotificationService notificationService;
+
+    public OrderService(
+            @Qualifier("emailNotificationService")
+            NotificationService notificationService
+    ) {
+        this.notificationService = notificationService;
+    }
+}</code></pre>
+
+          <h3>Dùng @Primary</h3>
+          <pre><code>@Service
+@Primary
+public class EmailNotificationService implements NotificationService {
+    public void send(String message) {
+        System.out.println("Email: " + message);
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@Primary</code></td>
+                <td>Bean mặc định khi có nhiều candidates.</td>
+              </tr>
+              <tr>
+                <td><code>@Qualifier</code></td>
+                <td>Chọn bean cụ thể theo name hoặc qualifier.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-boot">
+          <h2>12. Spring Boot là gì?</h2>
+
+          <p><strong>Spring Boot</strong> được xây dựng trên nền Spring. Nó giúp tạo production-ready Spring applications nhanh hơn với ít configuration hơn.</p>
+
+          <h3>Spring Boot cung cấp gì?</h3>
+          <ul>
+            <li>Auto-configuration.</li>
+            <li>Starter dependencies.</li>
+            <li>Embedded servers như Tomcat, Jetty hoặc Undertow.</li>
+            <li>Externalized configuration qua properties hoặc YAML.</li>
+            <li>Actuator cho monitoring và management.</li>
+            <li>Testing support dễ dùng.</li>
+            <li>Production-friendly defaults.</li>
+          </ul>
+
+          <h3>Spring Boot application tối thiểu</h3>
+          <pre><code>@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}</code></pre>
+
+          <h3>@SpringBootApplication bên trong gồm gì?</h3>
+          <pre><code>@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan
+public @interface SpringBootApplication {
+}</code></pre>
+
+          <h3>Spring vs Spring Boot</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Spring</th>
+                <th>Spring Boot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Core framework.</td>
+                <td>Cách opinionated để build Spring app nhanh hơn.</td>
+              </tr>
+              <tr>
+                <td>Thường cần nhiều manual configuration.</td>
+                <td>Auto-configuration giảm setup thủ công.</td>
+              </tr>
+              <tr>
+                <td>Server setup có thể external.</td>
+                <td>Web app thường có embedded server mặc định.</td>
+              </tr>
+              <tr>
+                <td>Linh hoạt hơn nhưng verbose hơn.</td>
+                <td>Setup nhanh hơn với sensible defaults.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-autoconfig">
+          <h2>13. Spring Boot Auto-configuration</h2>
+
+          <p><strong>Auto-configuration</strong> nghĩa là Spring Boot cố gắng tự động cấu hình application dựa trên dependencies trong classpath và các bean đã tồn tại trong context.</p>
+
+          <div class="flow">Mình thêm dependency
+        ↓
+Spring Boot kiểm tra classpath
+        ↓
+Auto-configuration classes được evaluate
+        ↓
+Conditions được check
+        ↓
+Missing beans được tạo tự động
+        ↓
+Mình có thể override bằng cách tự định nghĩa bean</div>
+
+          <h3>Ví dụ: Web MVC auto-configuration</h3>
+          <p>Nếu thêm:</p>
+          <pre><code>spring-boot-starter-web</code></pre>
+
+          <p>Spring Boot có thể auto-configure:</p>
+          <ul>
+            <li>Embedded Tomcat.</li>
+            <li>Spring MVC.</li>
+            <li>Jackson JSON converter.</li>
+            <li>Default error handling.</li>
+            <li>DispatcherServlet.</li>
+          </ul>
+
+          <h3>Ví dụ: DataSource auto-configuration</h3>
+          <p>Nếu có JDBC/JPA dependencies và database driver trong classpath, Spring Boot có thể configure <code>DataSource</code> nếu mình cung cấp properties.</p>
+
+          <pre><code>spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/demo
+    username: demo
+    password: secret</code></pre>
+
+          <h3>Các condition annotations phổ biến</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Annotation</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@ConditionalOnClass</code></td>
+                <td>Apply configuration nếu class tồn tại trong classpath.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnMissingBean</code></td>
+                <td>Chỉ tạo bean nếu user chưa define bean đó.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnProperty</code></td>
+                <td>Apply configuration dựa trên property value.</td>
+              </tr>
+              <tr>
+                <td><code>@ConditionalOnWebApplication</code></td>
+                <td>Chỉ apply trong web application.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Override auto-configuration</h3>
+          <pre><code>@Configuration
+public class CustomJacksonConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .findAndRegisterModules();
+    }
+}</code></pre>
+
+          <p>Nếu auto-configuration dùng <code>@ConditionalOnMissingBean(ObjectMapper.class)</code>, bean custom của mình sẽ được ưu tiên.</p>
+
+          <h3>Disable một auto-configuration cụ thể</h3>
+          <pre><code>@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+public class DemoApplication {
+}</code></pre>
+
+          <div class="summary">
+            <strong>Câu phỏng vấn:</strong> Auto-configuration không phải magic. Nó là conditional configuration. Spring Boot kiểm tra classpath, properties và existing beans, sau đó tạo default beans khi phù hợp.
+          </div>
+        </section>
+
+        <section id="vn-properties">
+          <h2>14. Properties, YAML và Profiles</h2>
+
+          <h3>application.yml</h3>
+          <pre><code>server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orderdb
+    username: order_user
+    password: secret</code></pre>
+
+          <h3>@Value</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    @Value("${payment.timeout-seconds}")
+    private int timeoutSeconds;
+}</code></pre>
+
+          <p><code>@Value</code> đơn giản nhưng không tối ưu nếu có nhiều related properties.</p>
+
+          <h3>@ConfigurationProperties</h3>
+          <pre><code>@ConfigurationProperties(prefix = "payment")
+public class PaymentProperties {
+    private String provider;
+    private int timeoutSeconds;
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public int getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
+
+    public void setTimeoutSeconds(int timeoutSeconds) {
+        this.timeoutSeconds = timeoutSeconds;
+    }
+}</code></pre>
+
+          <pre><code>payment:
+  provider: stripe
+  timeout-seconds: 30</code></pre>
+
+          <h3>Profiles</h3>
+          <pre><code>spring:
+  profiles:
+    active: dev</code></pre>
+
+          <p>Các file thường gặp:</p>
+          <div class="flow">application.yml
+application-dev.yml
+application-stg.yml
+application-prod.yml</div>
+
+          <h3>@Profile</h3>
+          <pre><code>@Configuration
+@Profile("dev")
+public class DevConfig {
+
+    @Bean
+    public PaymentClient mockPaymentClient() {
+        return new MockPaymentClient();
+    }
+}</code></pre>
+        </section>
+
+        <section id="vn-rest">
+          <h2>15. REST API Layer trong Spring Boot</h2>
+
+          <h3>Các layer phổ biến</h3>
+          <div class="flow">Controller → Service → Repository → Database</div>
+
+          <h3>Entity</h3>
+          <pre><code>@Entity
+@Table(name = "employees")
+public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private BigDecimal salary;
+}</code></pre>
+
+          <h3>Repository</h3>
+          <pre><code>public interface EmployeeRepository extends JpaRepository&lt;Employee, Long&gt; {
+}</code></pre>
+
+          <h3>Service</h3>
+          <pre><code>@Service
+public class EmployeeService {
+    private final EmployeeRepository employeeRepository;
+
+    public EmployeeService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
+
+    public Employee getById(Long id) {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+    }
+}</code></pre>
+
+          <h3>Controller</h3>
+          <pre><code>@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+    private final EmployeeService employeeService;
+
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;Employee&gt; getById(@PathVariable Long id) {
+        return ResponseEntity.ok(employeeService.getById(id));
+    }
+}</code></pre>
+
+          <h3>Validation</h3>
+          <pre><code>public class CreateEmployeeRequest {
+
+    @NotBlank
+    private String name;
+
+    @Positive
+    private BigDecimal salary;
+}</code></pre>
+
+          <pre><code>@PostMapping
+public ResponseEntity&lt;EmployeeResponse&gt; create(
+        @Valid @RequestBody CreateEmployeeRequest request
+) {
+    return ResponseEntity.ok(employeeService.create(request));
+}</code></pre>
+
+          <h3>Global exception handler</h3>
+          <pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNotFound(EmployeeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("EMPLOYEE_NOT_FOUND", ex.getMessage()));
+    }
+}</code></pre>
+        </section>
+
+        <section id="vn-aop">
+          <h2>16. AOP - Aspect Oriented Programming</h2>
+
+          <p><strong>AOP</strong> giúp tách các cross-cutting concerns ra khỏi business logic.</p>
+
+          <h3>Các cross-cutting concerns phổ biến</h3>
+          <ul>
+            <li>Logging.</li>
+            <li>Security.</li>
+            <li>Transaction management.</li>
+            <li>Metrics.</li>
+            <li>Auditing.</li>
+            <li>Retry.</li>
+          </ul>
+
+          <h3>Ví dụ custom annotation</h3>
+          <pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogExecutionTime {
+}</code></pre>
+
+          <h3>Aspect</h3>
+          <pre><code>@Aspect
+@Component
+public class LogExecutionTimeAspect {
+
+    @Around("@annotation(LogExecutionTime)")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        Object result = joinPoint.proceed();
+
+        long end = System.currentTimeMillis();
+        System.out.println("Execution time: " + (end - start) + "ms");
+
+        return result;
+    }
+}</code></pre>
+
+          <h3>Sử dụng annotation</h3>
+          <pre><code>@Service
+public class ReportService {
+
+    @LogExecutionTime
+    public void generateReport() {
+        // business logic
+    }
+}</code></pre>
+
+          <div class="note">
+            <strong>Senior note:</strong> Spring AOP thường hoạt động thông qua proxy. Một limitation phổ biến là self-invocation: method trong cùng class gọi method khác cũng trong class đó thì proxy có thể bị bypass.
+          </div>
+        </section>
+
+        <section id="vn-transaction">
+          <h2>17. Transaction Management</h2>
+
+          <p><code>@Transactional</code> nói với Spring rằng method cần chạy trong database transaction.</p>
+
+          <pre><code>@Service
+public class OrderService {
+
+    @Transactional
+    public void createOrder(CreateOrderRequest request) {
+        orderRepository.save(order);
+        paymentRepository.save(payment);
+    }
+}</code></pre>
+
+          <h3>Điều gì xảy ra?</h3>
+          <div class="flow">Method bắt đầu
+        ↓
+Spring mở transaction
+        ↓
+Business logic chạy
+        ↓
+Nếu success → commit
+Nếu runtime exception → rollback</div>
+
+          <h3>Quy tắc quan trọng</h3>
+          <ul>
+            <li>Mặc định rollback cho unchecked exceptions.</li>
+            <li>Checked exceptions không rollback mặc định nếu không config.</li>
+            <li><code>@Transactional</code> thường hoạt động qua proxy-based AOP.</li>
+            <li>Self-invocation có thể bypass transaction proxy.</li>
+            <li>Nên đặt transaction boundary ở service layer, không phải controller layer.</li>
+          </ul>
+
+          <h3>Rollback cho checked exception</h3>
+          <pre><code>@Transactional(rollbackFor = Exception.class)
+public void process() throws Exception {
+    // business logic
+}</code></pre>
+
+          <h3>Read-only transaction</h3>
+          <pre><code>@Transactional(readOnly = true)
+public List&lt;Order&gt; getOrders() {
+    return orderRepository.findAll();
+}</code></pre>
+        </section>
+
+        <section id="vn-testing">
+          <h2>18. Testing Spring Boot Applications</h2>
+
+          <h3>Unit test service với Mockito</h3>
+          <pre><code>@ExtendWith(MockitoExtension.class)
+class OrderServiceTest {
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @InjectMocks
+    private OrderService orderService;
+
+    @Test
+    void shouldCreateOrder() {
+        when(orderRepository.save(any(Order.class)))
+                .thenReturn(new Order());
+
+        Order result = orderService.createOrder(new CreateOrderRequest());
+
+        assertNotNull(result);
+        verify(orderRepository).save(any(Order.class));
+    }
+}</code></pre>
+
+          <h3>Controller slice test với @WebMvcTest</h3>
+          <pre><code>@WebMvcTest(EmployeeController.class)
+class EmployeeControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private EmployeeService employeeService;
+
+    @Test
+    void shouldReturnEmployee() throws Exception {
+        when(employeeService.getById(1L))
+                .thenReturn(new EmployeeResponse(1L, "John"));
+
+        mockMvc.perform(get("/api/employees/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("John"));
+    }
+}</code></pre>
+
+          <h3>Integration test với @SpringBootTest</h3>
+          <pre><code>@SpringBootTest
+class ApplicationIntegrationTest {
+
+    @Test
+    void contextLoads() {
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Test Type</th>
+                <th>Annotation</th>
+                <th>Mục đích</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unit test</td>
+                <td>JUnit + Mockito</td>
+                <td>Test một class, không cần Spring context.</td>
+              </tr>
+              <tr>
+                <td>Controller test</td>
+                <td><code>@WebMvcTest</code></td>
+                <td>Test MVC layer.</td>
+              </tr>
+              <tr>
+                <td>JPA test</td>
+                <td><code>@DataJpaTest</code></td>
+                <td>Test repository layer.</td>
+              </tr>
+              <tr>
+                <td>Integration test</td>
+                <td><code>@SpringBootTest</code></td>
+                <td>Start full Spring context.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-prod">
+          <h2>19. Production Best Practices</h2>
+
+          <div class="grid">
+            <div class="mini-card"><h4>Dùng constructor injection</h4><p>Dependency rõ ràng, dễ test, hỗ trợ immutable fields.</p></div>
+            <div class="mini-card"><h4>Giữ service stateless</h4><p>Singleton beans được share bởi nhiều threads.</p></div>
+            <div class="mini-card"><h4>Tách layer rõ ràng</h4><p>Controller, service, repository, DTO, mapper.</p></div>
+            <div class="mini-card"><h4>Dùng DTOs</h4><p>Không expose entity trực tiếp ra public APIs.</p></div>
+            <div class="mini-card"><h4>Centralize exceptions</h4><p>Dùng <code>@RestControllerAdvice</code>.</p></div>
+            <div class="mini-card"><h4>Dùng configuration properties</h4><p>Ưu tiên typed configuration thay vì nhiều <code>@Value</code> rải rác.</p></div>
+            <div class="mini-card"><h4>Dùng profiles cẩn thận</h4><p>Tách config dev, staging, production rõ ràng.</p></div>
+            <div class="mini-card"><h4>Monitor bằng Actuator</h4><p>Expose health, metrics, readiness/liveness một cách an toàn.</p></div>
+          </div>
+
+          <h3>Lỗi phổ biến</h3>
+          <ul>
+            <li>Đưa business logic vào controller.</li>
+            <li>Dùng field injection khắp nơi.</li>
+            <li>Dùng entity làm API response trực tiếp.</li>
+            <li>Lưu request-specific data trong singleton services.</li>
+            <li>Không hiểu self-invocation của <code>@Transactional</code>.</li>
+            <li>Tạo quá nhiều beans mà responsibility không rõ.</li>
+            <li>Lạm dụng profiles để che design problem.</li>
+          </ul>
+        </section>
+
+        <section id="vn-interview">
+          <h2>20. Tóm tắt phỏng vấn</h2>
+
+          <h3>Spring là gì?</h3>
+          <div class="summary">
+            Spring là Java framework và IoC container giúp xây dựng enterprise applications. Nó quản lý object creation, dependency injection, lifecycle, transaction, web layer, data access và nhiều infrastructure concerns để developer tập trung vào business logic.
+          </div>
+
+          <h3>Bean là gì?</h3>
+          <div class="summary">
+            Bean là object được Spring IoC container tạo, cấu hình và quản lý. Thay vì tự tạo object bằng <code>new</code>, mình để Spring tạo và wire object đó.
+          </div>
+
+          <h3>IoC là gì?</h3>
+          <div class="summary">
+            IoC là Inversion of Control. Trách nhiệm tạo object và wiring dependency được chuyển từ application code sang Spring container.
+          </div>
+
+          <h3>DI là gì?</h3>
+          <div class="summary">
+            Dependency Injection là cách implement IoC. Một class nhận dependency từ bên ngoài, thường qua constructor injection, thay vì tự tạo dependency bên trong.
+          </div>
+
+          <h3>Spring Boot auto-configuration là gì?</h3>
+          <div class="summary">
+            Auto-configuration là conditional configuration. Spring Boot kiểm tra classpath dependencies, properties và existing beans, sau đó tự tạo default beans khi phù hợp. Developer có thể override bằng cách tự define bean hoặc exclude auto-configuration class cụ thể.
+          </div>
+
+          <h3>Câu trả lời phỏng vấn ngắn gọn</h3>
+          <pre><code>Spring chủ yếu xoay quanh IoC và Dependency Injection. 
+Thay vì tự tạo dependencies thủ công, mình khai báo class cần gì, 
+Spring container sẽ tạo beans, inject dependencies và quản lý lifecycle của chúng.
+
+Spring Boot xây dựng trên Spring và giảm configuration thông qua starters và auto-configuration. 
+Auto-configuration kiểm tra classpath, properties và existing beans, sau đó tạo các default beans phù hợp. 
+Nó không phải magic; nó là conditional configuration và mình có thể override.</code></pre>
+        </section>
+
+        <section id="vn-references">
+          <h2>21. Official References</h2>
+          <ul>
+            <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/introduction.html" target="_blank">Spring Framework: Introduction to the IoC Container and Beans</a></li>
+            <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html" target="_blank">Spring Framework: Dependency Injection</a></li>
+            <li><a href="https://docs.spring.io/spring-boot/reference/using/auto-configuration.html" target="_blank">Spring Boot: Auto-configuration</a></li>
+            <li><a href="https://docs.spring.io/spring-boot/reference/features/developing-auto-configuration.html" target="_blank">Spring Boot: Creating Your Own Auto-configuration</a></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="footer">
+    Spring & Spring Boot Learning Guide - EN/VN version
+  </div>
+
+  <script>
+    function showLang(lang) {
+      const sections = document.querySelectorAll('.lang-section');
+      const buttons = document.querySelectorAll('.tab-button');
+
+      sections.forEach(section => section.classList.remove('active'));
+      buttons.forEach(button => button.classList.remove('active'));
+
+      document.getElementById(lang).classList.add('active');
+
+      if (lang === 'en') {
+        buttons[0].classList.add('active');
+      } else {
+        buttons[1].classList.add('active');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Senior-level bilingual Java Collections Framework deep dive: internals, concurrency, performance, production pitfalls, and interview questions." />
+  <title>Java Collections Framework — Internals & Production Deep Dive (EN / VN)</title>
+  <style>
+    :root {
+      --bg: #071019;
+      --bg2: #0a1725;
+      --surface: rgba(15, 30, 47, .92);
+      --surface2: #12243a;
+      --surface3: #19304c;
+      --text: #eef6ff;
+      --muted: #9cb0c8;
+      --line: rgba(154, 188, 223, .16);
+      --primary: #63d7ff;
+      --secondary: #9f84ff;
+      --green: #58e6a8;
+      --yellow: #ffc65c;
+      --red: #ff788c;
+      --code: #050e18;
+      --shadow: 0 22px 64px rgba(0,0,0,.28);
+      --radius: 18px;
+      --sidebar: 314px;
+    }
+    html[data-theme="light"] {
+      --bg: #edf4fa;
+      --bg2: #f8fbff;
+      --surface: rgba(255,255,255,.94);
+      --surface2: #f0f6fb;
+      --surface3: #e5eef7;
+      --text: #15243a;
+      --muted: #607287;
+      --line: rgba(35,69,105,.15);
+      --primary: #007eae;
+      --secondary: #684fd0;
+      --green: #0b9362;
+      --yellow: #9c6200;
+      --red: #c33c54;
+      --code: #0a1726;
+      --shadow: 0 18px 44px rgba(26,59,95,.12);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 18px; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 84% -7%, rgba(139,113,255,.19), transparent 32%),
+        radial-gradient(circle at 13% 5%, rgba(64,202,255,.15), transparent 28%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+    }
+    a { color: var(--primary); }
+    button,input { font: inherit; }
+    .layout { display:grid; grid-template-columns:var(--sidebar) 1fr; min-height:100vh; }
+    aside {
+      position:fixed; inset:0 auto 0 0; width:var(--sidebar); z-index:30;
+      padding:22px 18px; overflow-y:auto; border-right:1px solid var(--line);
+      background:color-mix(in srgb,var(--bg) 90%,transparent); backdrop-filter:blur(18px);
+    }
+    main { grid-column:2; width:min(1200px,calc(100vw - var(--sidebar))); padding:34px 44px 100px; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .brand-mark {
+      width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+      color:#06121e;font-weight:950;letter-spacing:-.06em;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      box-shadow:0 12px 30px rgba(73,182,255,.23);
+    }
+    .brand strong { display:block;font-size:14px; }
+    .brand span { display:block;color:var(--muted);font-size:12px; }
+    .search {
+      width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;
+      color:var(--text);background:var(--surface);outline:none;
+    }
+    .search:focus { border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 16%,transparent); }
+    .controls { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0; }
+    .btn {
+      padding:9px 10px;border:1px solid var(--line);border-radius:11px;cursor:pointer;
+      color:var(--text);background:var(--surface2);
+    }
+    .btn:hover { border-color:var(--primary); }
+    .progress-wrap { margin:15px 0 12px; }
+    .progress-line { height:5px;border-radius:999px;background:var(--surface3);overflow:hidden; }
+    #progress { height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--secondary)); }
+    #progressText { font-size:11px;color:var(--muted); }
+    nav a {
+      display:block;padding:7px 10px;border-left:2px solid transparent;border-radius:9px;
+      text-decoration:none;color:var(--muted);font-size:13px;
+    }
+    nav a:hover, nav a.active { color:var(--text);background:var(--surface2);border-left-color:var(--primary); }
+    .hero {
+      position:relative;overflow:hidden;padding:44px;border:1px solid var(--line);border-radius:28px;
+      background:linear-gradient(145deg,color-mix(in srgb,var(--surface) 97%,transparent),color-mix(in srgb,var(--surface2) 84%,transparent));
+      box-shadow:var(--shadow);margin-bottom:28px;
+    }
+    .hero:after {
+      content:"";position:absolute;width:360px;height:360px;right:-145px;top:-185px;border-radius:50%;
+      background:radial-gradient(circle,color-mix(in srgb,var(--secondary) 33%,transparent),transparent 70%);
+    }
+    .eyebrow { color:var(--primary);font-size:12px;font-weight:850;letter-spacing:.17em;text-transform:uppercase; }
+    h1 { max-width:920px;margin:12px 0 18px;font-size:clamp(38px,5.2vw,66px);line-height:1.03;letter-spacing:-.048em; }
+    .lead { max-width:910px;color:var(--muted);font-size:18px; }
+    .hero-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:27px; }
+    .metric { padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025); }
+    .metric strong { display:block;font-size:20px; }
+    .metric span { color:var(--muted);font-size:12px; }
+    section {
+      margin:24px 0;padding:30px;border:1px solid var(--line);border-radius:var(--radius);
+      background:var(--surface);box-shadow:0 10px 34px rgba(0,0,0,.08);
+    }
+    section.search-hidden { display:none; }
+    .kicker { color:var(--primary);font-size:12px;font-weight:850;letter-spacing:.14em;text-transform:uppercase; }
+    h2 { margin:2px 0 11px;font-size:30px;line-height:1.18;letter-spacing:-.026em; }
+    h3 { margin:27px 0 10px;font-size:21px; }
+    h4 { margin:18px 0 7px;color:var(--primary);font-size:16px; }
+    p { margin:9px 0 13px; }
+    .muted { color:var(--muted); }
+    .grid2,.grid3,.grid4 { display:grid;gap:14px;margin:16px 0; }
+    .grid2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:18px;border:1px solid var(--line);border-radius:15px;background:var(--surface2); }
+    .card h3,.card h4 { margin-top:0; }
+    .callout {
+      margin:16px 0;padding:15px 17px;border-left:4px solid var(--primary);border-radius:12px;
+      background:color-mix(in srgb,var(--primary) 7%,var(--surface2));
+    }
+    .callout.green { border-left-color:var(--green);background:color-mix(in srgb,var(--green) 7%,var(--surface2)); }
+    .callout.yellow { border-left-color:var(--yellow);background:color-mix(in srgb,var(--yellow) 7%,var(--surface2)); }
+    .callout.red { border-left-color:var(--red);background:color-mix(in srgb,var(--red) 7%,var(--surface2)); }
+    .diagram {
+      margin:16px 0;padding:19px;border:1px dashed color-mix(in srgb,var(--primary) 42%,var(--line));
+      border-radius:15px;background:color-mix(in srgb,var(--primary) 4%,var(--surface2));
+    }
+    pre {
+      position:relative;overflow:auto;padding:18px;border:1px solid rgba(180,210,240,.14);
+      border-radius:14px;background:var(--code);color:#ddecff;font-size:13px;line-height:1.55;
+    }
+    code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
+    :not(pre)>code { padding:2px 6px;border-radius:6px;color:var(--primary);background:color-mix(in srgb,var(--primary) 9%,transparent); }
+    .copy {
+      position:absolute;right:9px;top:9px;padding:5px 8px;border:1px solid rgba(255,255,255,.15);
+      border-radius:8px;background:#14253c;color:#ddecff;cursor:pointer;font-size:11px;
+    }
+    .table-wrap { overflow:auto;border:1px solid var(--line);border-radius:14px;margin:15px 0; }
+    table { width:100%;border-collapse:collapse;font-size:14px; }
+    th,td { padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left; }
+    th { position:sticky;top:0;color:var(--primary);background:var(--surface2); }
+    .good { color:var(--green);font-weight:750; }
+    .warn { color:var(--yellow);font-weight:750; }
+    .bad { color:var(--red);font-weight:750; }
+    .pill-row { display:flex;flex-wrap:wrap;gap:8px;margin:11px 0; }
+    .pill { padding:5px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px; }
+    details { margin:9px 0;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface2); }
+    summary { cursor:pointer;font-weight:750; }
+    details p, details ul { color:var(--muted); }
+    ul,ol { padding-left:22px; }
+    li { margin:5px 0; }
+    .lang-vn { display:none; }
+    body.show-vn .lang-en { display:none; }
+    body.show-vn .lang-vn { display:initial; }
+    .dual .lang-en,.dual .lang-vn { display:block; }
+    body:not(.show-both) .dual .lang-vn { display:none; }
+    body.show-vn:not(.show-both) .dual .lang-en { display:none; }
+    body.show-vn:not(.show-both) .dual .lang-vn { display:block; }
+    body.show-both .dual { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+    body.show-both .dual>* { margin:0; }
+    .mobile { display:none; }
+    footer { padding:25px;text-align:center;color:var(--muted);font-size:13px; }
+    @media (max-width:1020px) {
+      .layout { display:block; }
+      aside { transform:translateX(-100%);transition:.25s;box-shadow:var(--shadow); }
+      aside.open { transform:translateX(0); }
+      main { width:100%;padding:75px 18px 80px; }
+      .mobile { display:flex;position:fixed;z-index:40;top:12px;left:12px;right:12px;gap:8px; }
+      .mobile button { padding:9px 12px;border:1px solid var(--line);border-radius:11px;color:var(--text);background:var(--surface);backdrop-filter:blur(15px); }
+      .hero-grid,.grid4 { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:720px) {
+      .hero { padding:28px 22px; }
+      section { padding:22px 18px; }
+      .grid2,.grid3,.grid4,body.show-both .dual { grid-template-columns:1fr; }
+      .hero-grid { grid-template-columns:1fr 1fr; }
+      h1 { font-size:40px; }
+      h2 { font-size:25px; }
+    }
+    @media print {
+      aside,.mobile,.copy,.controls { display:none!important; }
+      main { width:100%;padding:0; }
+      body { background:#fff;color:#111; }
+      section,.hero { box-shadow:none;break-inside:avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="mobile">
+  <button onclick="document.querySelector('aside').classList.toggle('open')">☰ Contents</button>
+  <button onclick="toggleTheme()">◐ Theme</button>
+  <button onclick="cycleLang()">EN/VN</button>
+</div>
+
+<div class="layout">
+  <aside>
+    <div class="brand">
+      <div class="brand-mark">JCF</div>
+      <div><strong>Java Collections Deep Dive</strong><span>Internals • Concurrency • Production</span></div>
+    </div>
+    <input id="search" class="search" placeholder="Search HashMap, equals, queue..." />
+    <div class="controls">
+      <button id="langBtn" class="btn" onclick="cycleLang()">English</button>
+      <button id="themeBtn" class="btn" onclick="toggleTheme()">Dark</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-line"><div id="progress"></div></div>
+      <span id="progressText">0% read</span>
+    </div>
+    <nav>
+      <a href="#mindset">01. Senior mindset</a>
+      <a href="#hierarchy">02. Hierarchy</a>
+      <a href="#complexity">03. Complexity & memory</a>
+      <a href="#arraylist">04. ArrayList internals</a>
+      <a href="#linkedlist">05. LinkedList & ArrayDeque</a>
+      <a href="#hashmap">06. HashMap internals</a>
+      <a href="#equals">07. equals & hashCode</a>
+      <a href="#set">08. Set uniqueness</a>
+      <a href="#ordered">09. Ordered & sorted maps</a>
+      <a href="#queue">10. Queue & heap</a>
+      <a href="#iterators">11. Iterators</a>
+      <a href="#concurrenthashmap">12. ConcurrentHashMap</a>
+      <a href="#concurrent">13. Concurrent collections</a>
+      <a href="#immutable">14. Immutable & views</a>
+      <a href="#sorting">15. Sorting</a>
+      <a href="#production">16. Production bugs</a>
+      <a href="#selection">17. Selection guide</a>
+      <a href="#interview">18. Interview Q&A</a>
+      <a href="#exercises">19. Exercises</a>
+      <a href="#sources">Official sources</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Senior Java Backend • English + Vietnamese</div>
+      <h1>Java Collections Framework<br/>Internals & Production</h1>
+      <div class="lead dual">
+        <p class="lang-en">Understand not only which collection to use, but how it stores data, resolves collisions, grows memory, behaves under concurrency, and fails in production.</p>
+        <p class="lang-vn">Không chỉ học dùng collection nào, mà phải hiểu nó lưu dữ liệu ra sao, xử lý collision thế nào, tăng memory như thế nào, hoạt động trong concurrency ra sao và vì sao gây lỗi production.</p>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><strong>19</strong><span>deep-dive chapters</span></div>
+        <div class="metric"><strong>EN + VN</strong><span>three language modes</span></div>
+        <div class="metric"><strong>Java 17/21</strong><span>backend focus</span></div>
+        <div class="metric"><strong>Production</strong><span>pitfalls & runbooks</span></div>
+      </div>
+    </header>
+
+    <section id="mindset">
+      <div class="kicker">01 • Why collections matter</div>
+      <h2><span class="lang-en">A collection choice is an architecture decision</span><span class="lang-vn">Chọn collection là một quyết định kiến trúc</span></h2>
+      <div class="dual">
+        <div class="lang-en">
+          <p>Collections appear in almost every Java backend path: request aggregation, caching, deduplication, scheduling, batching, indexing, messaging, authorization, and persistence mapping.</p>
+          <p>A senior engineer chooses by <strong>access pattern, ordering, uniqueness, concurrency, mutation frequency, boundedness, and data size</strong>—not by habit.</p>
+        </div>
+        <div class="lang-vn">
+          <p>Collection xuất hiện trong hầu hết Java backend code: gom request, cache, loại trùng, scheduling, batching, indexing, messaging, authorization và mapping dữ liệu.</p>
+          <p>Senior phải chọn dựa trên <strong>access pattern, ordering, uniqueness, concurrency, tần suất thay đổi, giới hạn dung lượng và data size</strong>—không chọn theo thói quen.</p>
+        </div>
+      </div>
+      <div class="grid4">
+        <div class="card"><h3>Access</h3><p>Index lookup, key lookup, sequential scan, range query, head/tail operations.</p></div>
+        <div class="card"><h3>Semantics</h3><p>Duplicates, order, sort order, null policy, mutability.</p></div>
+        <div class="card"><h3>Concurrency</h3><p>Single-thread, externally locked, concurrent reads, atomic updates, blocking coordination.</p></div>
+        <div class="card"><h3>Capacity</h3><p>Expected cardinality, growth policy, node overhead, queue bounds, retention lifecycle.</p></div>
+      </div>
+      <div class="callout green dual">
+        <p class="lang-en"><strong>Senior rule:</strong> Big-O is only the first filter. Memory locality, contention, allocation overhead, iteration cost, and business lifecycle often decide production performance.</p>
+        <p class="lang-vn"><strong>Quy tắc senior:</strong> Big-O chỉ là bước lọc đầu tiên. Memory locality, contention, allocation overhead, iteration cost và business lifecycle mới thường quyết định hiệu năng production.</p>
+      </div>
+    </section>
+
+    <section id="hierarchy">
+      <div class="kicker">02 • Framework structure</div>
+      <h2><span class="lang-en">Java Collections hierarchy</span><span class="lang-vn">Cấu trúc Java Collections Framework</span></h2>
+      <div class="diagram">
+        <pre><code>Iterable
+└── Collection
+    ├── List
+    │   ├── ArrayList
+    │   ├── LinkedList
+    │   └── CopyOnWriteArrayList
+    ├── Set
+    │   ├── HashSet
+    │   ├── LinkedHashSet
+    │   ├── TreeSet / NavigableSet
+    │   └── ConcurrentSkipListSet
+    └── Queue
+        ├── Deque
+        │   ├── ArrayDeque
+        │   ├── LinkedList
+        │   └── ConcurrentLinkedDeque
+        ├── PriorityQueue
+        └── BlockingQueue implementations
+
+Map  ← separate hierarchy, not a Collection
+├── HashMap
+├── LinkedHashMap
+├── TreeMap / NavigableMap
+├── EnumMap
+├── WeakHashMap
+├── IdentityHashMap
+├── ConcurrentHashMap
+└── ConcurrentSkipListMap</code></pre>
+      </div>
+      <div class="grid3">
+        <div class="card"><h3><code>Collection</code></h3><p>A group of individual elements. Core operations include add, remove, contains, size, iteration.</p></div>
+        <div class="card"><h3><code>Map</code></h3><p>Key-value associations. A map cannot contain duplicate keys; each key maps to at most one value.</p></div>
+        <div class="card"><h3><code>Collections</code></h3><p>A utility class containing algorithms and wrappers. It is not the <code>Collection</code> interface.</p></div>
+      </div>
+      <h3>Why Map does not extend Collection</h3>
+      <div class="dual">
+        <p class="lang-en">A map stores entries with two-part semantics: key and value. Operations such as <code>add(E)</code> or “one element” are ambiguous. Instead, Map exposes collection views through <code>keySet()</code>, <code>values()</code>, and <code>entrySet()</code>.</p>
+        <p class="lang-vn">Map lưu entry có hai phần: key và value. Các operation như <code>add(E)</code> hoặc khái niệm “một element” không rõ ràng. Vì vậy Map cung cấp collection view qua <code>keySet()</code>, <code>values()</code> và <code>entrySet()</code>.</p>
+      </div>
+    </section>
+
+    <section id="complexity">
+      <div class="kicker">03 • Cost model</div>
+      <h2><span class="lang-en">Time complexity and hidden memory cost</span><span class="lang-vn">Time complexity và chi phí memory ẩn</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Collection</th><th>Get/search</th><th>Add</th><th>Remove</th><th>Order</th><th>Memory notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>ArrayList</strong></td><td>Index O(1), value O(n)</td><td>End amortized O(1), middle O(n)</td><td>Middle O(n)</td><td>Insertion</td><td>Backing array + spare capacity; good locality</td></tr>
+            <tr><td><strong>LinkedList</strong></td><td>O(n)</td><td>Ends O(1)</td><td>Known node O(1), locating O(n)</td><td>Insertion</td><td>Node object + two links per element; poor locality</td></tr>
+            <tr><td><strong>HashMap</strong></td><td>Expected O(1)</td><td>Expected O(1)</td><td>Expected O(1)</td><td>Unspecified</td><td>Table + nodes + unused capacity</td></tr>
+            <tr><td><strong>TreeMap</strong></td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted by key</td><td>Tree node links and balancing metadata</td></tr>
+            <tr><td><strong>HashSet</strong></td><td>Expected O(1)</td><td>Expected O(1)</td><td>Expected O(1)</td><td>Unspecified</td><td>Backed by HashMap</td></tr>
+            <tr><td><strong>ArrayDeque</strong></td><td>Ends O(1)</td><td>Ends amortized O(1)</td><td>Ends O(1)</td><td>Deque order</td><td>Circular array, compact</td></tr>
+            <tr><td><strong>PriorityQueue</strong></td><td>Peek O(1), contains O(n)</td><td>O(log n)</td><td>Poll O(log n), arbitrary O(n)</td><td>Heap priority only</td><td>Array-backed binary heap</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout yellow">
+        Complexity assumes a correct implementation contract and normal distribution. A poor <code>hashCode()</code>, expensive comparator, contention, cache misses, resizing, or large object graph can dominate the theoretical cost.
+      </div>
+      <h3>Memory locality matters</h3>
+      <div class="grid2">
+        <div class="card"><h4>Array-based structures</h4><p>References are contiguous, requiring fewer objects and often fewer CPU cache misses during iteration.</p></div>
+        <div class="card"><h4>Node-based structures</h4><p>Each element may require a separate node object and pointer chasing, increasing allocation, GC, and cache-miss cost.</p></div>
+      </div>
+    </section>
+
+    <section id="arraylist">
+      <div class="kicker">04 • Dynamic array</div>
+      <h2>ArrayList internals</h2>
+      <div class="diagram">
+        <pre><code>ArrayList&lt;E&gt;
+
+size = 5
+elementData (capacity = 8)
+┌────┬────┬────┬────┬────┬──────┬──────┬──────┐
+│ A  │ B  │ C  │ D  │ E  │ null │ null │ null │
+└────┴────┴────┴────┴────┴──────┴──────┴──────┘
+  0    1    2    3    4        spare capacity
+
+size      = number of logical elements
+capacity  = length of backing Object[]</code></pre>
+      </div>
+      <h3>How <code>add(E)</code> works</h3>
+      <ol>
+        <li>Check whether the backing array has free capacity.</li>
+        <li>If full, allocate a larger array—current OpenJDK growth is approximately 1.5× for normal growth.</li>
+        <li>Copy old references to the new array.</li>
+        <li>Store the new element at <code>elementData[size]</code>.</li>
+        <li>Increase <code>size</code> and structural modification count.</li>
+      </ol>
+      <pre><code>public boolean add(E element) {
+    // conceptual, simplified
+    if (size == elementData.length) {
+        elementData = grow();
+    }
+    elementData[size++] = element;
+    return true;
+}</code></pre>
+      <h3>Why end insertion is amortized O(1)</h3>
+      <div class="dual">
+        <p class="lang-en">Most additions only write one array slot. A resize is O(n), but it occurs occasionally, so the average cost over many additions is constant.</p>
+        <p class="lang-vn">Phần lớn lần add chỉ ghi một ô array. Resize có cost O(n), nhưng chỉ thỉnh thoảng xảy ra nên cost trung bình trên nhiều lần add là O(1).</p>
+      </div>
+      <h3>Insertion and removal in the middle</h3>
+      <pre><code>// Insert at index 2
+[A][B][C][D][E][_]
+       └──────────► shift C,D,E right
+[A][B][X][C][D][E]
+
+// Remove index 2
+[A][B][X][C][D][E]
+          ◄──────── shift C,D,E left
+[A][B][C][D][E][null]</code></pre>
+      <p>OpenJDK uses efficient array-copy operations, but shifting is still proportional to the number of moved references.</p>
+      <h3>Important production details</h3>
+      <div class="grid3">
+        <div class="card"><h4>Pre-size</h4><p>Use <code>new ArrayList&lt;&gt;(expectedSize)</code> when cardinality is known to avoid repeated allocation and copying.</p></div>
+        <div class="card"><h4>Remove references</h4><p>Removal and clear null out unused slots so referenced objects can become collectible.</p></div>
+        <div class="card"><h4>Excess capacity</h4><p>A list that temporarily grew very large can retain a large backing array. <code>trimToSize()</code> may help only when justified.</p></div>
+      </div>
+      <h3><code>subList()</code> retention trap</h3>
+      <pre><code>List&lt;LargeObject&gt; huge = loadOneMillionObjects();
+List&lt;LargeObject&gt; firstTen = huge.subList(0, 10);
+
+// firstTen is a view and can retain the root list/backing array.
+List&lt;LargeObject&gt; detached = new ArrayList&lt;&gt;(huge.subList(0, 10));</code></pre>
+      <div class="callout green">
+        Default choice for most list workloads: <strong>ArrayList</strong>. Choose LinkedList only when its actual node-based access pattern is proven beneficial.
+      </div>
+    </section>
+
+    <section id="linkedlist">
+      <div class="kicker">05 • Linked nodes and deque</div>
+      <h2>LinkedList vs ArrayDeque</h2>
+      <div class="diagram">
+        <pre><code>LinkedList (doubly linked)
+
+null ← [prev|A|next] ⇄ [prev|B|next] ⇄ [prev|C|next] → null
+       ↑ first                                  last ↑
+
+Each element requires a Node object containing:
+item + previous reference + next reference</code></pre>
+      </div>
+      <h3>How indexed access works</h3>
+      <p><code>LinkedList.get(index)</code> does not jump directly to the index. It traverses from the head if the index is in the first half, otherwise from the tail.</p>
+      <pre><code>get(800) in a list of 1,000:
+start from last and follow prev about 199 times → O(n)</code></pre>
+      <h3>The common interview trap</h3>
+      <div class="callout yellow dual">
+        <p class="lang-en">“LinkedList insertion is O(1)” is incomplete. It is O(1) only when you already have the node/iterator position. Inserting by index first requires O(n) traversal.</p>
+        <p class="lang-vn">Câu “LinkedList insert O(1)” chưa đầy đủ. Nó chỉ O(1) khi đã có node/iterator position. Insert bằng index phải traverse O(n) trước.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Need</th><th>Prefer</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Frequent indexed reads</td><td><strong>ArrayList</strong></td><td>Direct array access and good locality</td></tr>
+            <tr><td>Stack or queue at ends</td><td><strong>ArrayDeque</strong></td><td>Compact circular array; no per-element node</td></tr>
+            <tr><td>Frequent insertion through an existing ListIterator</td><td><strong>LinkedList</strong> may fit</td><td>No array shifting after location is known</td></tr>
+            <tr><td>General-purpose list</td><td><strong>ArrayList</strong></td><td>Usually lower memory and faster iteration</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>ArrayDeque circular-array model</h3>
+      <pre><code>          tail
+            ▼
+[ D ][ E ][ _ ][ _ ][ A ][ B ][ C ]
+                  ▲
+                 head
+
+When head/tail reaches the physical end,
+the index wraps around without moving every element.</code></pre>
+      <p>Use <code>ArrayDeque</code> instead of legacy <code>Stack</code>, and usually instead of <code>LinkedList</code>, for LIFO/FIFO operations. It does not permit null elements.</p>
+    </section>
+
+    <section id="hashmap">
+      <div class="kicker">06 • Most important interview topic</div>
+      <h2>HashMap internals — step by step</h2>
+      <div class="pill-row">
+        <span class="pill">table: Node[]</span><span class="pill">power-of-two capacity</span>
+        <span class="pill">default load factor 0.75</span><span class="pill">list → red-black tree</span>
+        <span class="pill">not thread-safe</span>
+      </div>
+      <h3>Core structure</h3>
+      <div class="diagram">
+        <pre><code>HashMap table (capacity = 16)
+
+index 0   null
+index 1   [hash,key,value,next] → [collision node] → null
+index 2   null
+...
+index 9   [single node] → null
+...
+index 15  [tree bin when heavily collided]
+
+Node contains:
+hash | key reference | value reference | next reference</code></pre>
+      </div>
+
+      <h3>1. Hash calculation</h3>
+      <pre><code>static int spread(int h) {
+    return h ^ (h >>> 16); // conceptual form used by HashMap
+}</code></pre>
+      <div class="dual">
+        <p class="lang-en">HashMap mixes high bits into low bits because the bucket index uses low bits when capacity is a power of two. This improves distribution for hash codes whose useful variation is mostly in higher bits.</p>
+        <p class="lang-vn">HashMap trộn high bits xuống low bits vì bucket index dùng low bits khi capacity là lũy thừa của 2. Việc này cải thiện distribution khi <code>hashCode()</code> có độ biến thiên chủ yếu ở high bits.</p>
+      </div>
+
+      <h3>2. Bucket index</h3>
+      <pre><code>index = (capacity - 1) & hash
+
+Example:
+capacity = 16       → capacity - 1 = 0000 1111
+hash                →                  ... 1010
+index               →                      1010 = 10</code></pre>
+      <p>A power-of-two capacity makes bit masking fast and allows efficient splitting during resize.</p>
+
+      <h3>3. Complete <code>put(key, value)</code> flow</h3>
+      <div class="diagram">
+        <pre><code>put(key, value)
+   │
+   ├─ key == null ? hash = 0 : spread(key.hashCode())
+   ├─ table absent/empty? → initialize table
+   ├─ calculate bucket index
+   │
+   ├─ bucket empty?
+   │      └─ create Node
+   │
+   └─ bucket occupied
+          ├─ first node has same hash and equals key?
+          │      └─ replace value
+          ├─ bucket is TreeNode?
+          │      └─ insert/search in red-black tree
+          └─ linked-list traversal
+                 ├─ equal key found → replace value
+                 └─ append new node
+                       └─ treeify if collision chain threshold reached
+   │
+   └─ new key inserted → size++
+          └─ size > threshold? → resize</code></pre>
+      </div>
+
+      <h3>How key equality is checked</h3>
+      <pre><code>// Conceptually
+if (storedHash == searchedHash
+        && (storedKey == searchedKey || searchedKey.equals(storedKey))) {
+    // same logical key
+}</code></pre>
+      <p>Hash equality narrows candidates; <code>equals()</code> confirms logical equality. Different hash means HashMap normally does not call <code>equals()</code> for that candidate.</p>
+
+      <h3>Collision handling</h3>
+      <div class="grid3">
+        <div class="card"><h4>Empty bucket</h4><p>Insert one node directly.</p></div>
+        <div class="card"><h4>Linked bin</h4><p>Multiple keys sharing a bucket are connected through <code>next</code>.</p></div>
+        <div class="card"><h4>Tree bin</h4><p>Heavily collided bins can become red-black trees to improve worst-case lookup.</p></div>
+      </div>
+      <div class="callout yellow">
+        OpenJDK uses a treeification threshold of 8, an untreeification threshold of 6, and treeifies only when table capacity is at least 64; otherwise it prefers resizing. These are implementation details, not a general Map contract.
+      </div>
+
+      <h3>Why a red-black tree?</h3>
+      <p>A red-black tree keeps height approximately logarithmic through coloring and rotations. This changes a severe collision chain from linear traversal toward O(log n), while regular well-distributed buckets remain cheaper linked nodes.</p>
+
+      <h3>Resize process</h3>
+      <pre><code>threshold = capacity × loadFactor
+
+Example:
+capacity   = 16
+loadFactor = 0.75
+threshold  = 12
+
+When size exceeds threshold:
+capacity usually doubles → 32
+threshold usually doubles → 24</code></pre>
+      <div class="diagram">
+        <pre><code>During Java 8+ style resize, each old bucket is split:
+
+(hash & oldCapacity) == 0 → stays at old index
+(hash & oldCapacity) != 0 → moves to old index + oldCapacity
+
+This avoids recomputing a completely new hash for every node.</code></pre>
+      </div>
+
+      <h3><code>get(key)</code> flow</h3>
+      <ol>
+        <li>Calculate spread hash.</li>
+        <li>Calculate bucket index.</li>
+        <li>Check first node.</li>
+        <li>If necessary, traverse linked nodes or search the tree bin.</li>
+        <li>Match by hash and logical equality.</li>
+        <li>Return value or null.</li>
+      </ol>
+
+      <h3>Complexity with the correct nuance</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Condition</th><th>Lookup cost</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td>Good distribution</td><td>Expected O(1)</td><td>Small number of nodes per bucket</td></tr>
+            <tr><td>Collision linked bin</td><td>O(k)</td><td>k entries in the selected bucket</td></tr>
+            <tr><td>Tree bin</td><td>Approximately O(log k)</td><td>Balanced tree search within one bucket</td></tr>
+            <tr><td>Iteration</td><td>O(capacity + size)</td><td>Iterator visits table slots and entries</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Capacity sizing</h3>
+      <pre><code>// Rough planning before power-of-two rounding:
+requiredCapacity ≈ ceil(expectedEntries / loadFactor)
+
+expectedEntries = 100_000
+loadFactor       = 0.75
+raw capacity     ≈ 133_334
+
+Pre-sizing avoids repeated resize and temporary allocation pressure.</code></pre>
+      <div class="callout red">
+        <strong>HashMap is not thread-safe.</strong> Concurrent reads and writes without synchronization can produce lost updates, stale visibility, inconsistent iteration, and invalid compound operations. Use a proper concurrent design.
+      </div>
+    </section>
+
+    <section id="equals">
+      <div class="kicker">07 • Identity contract</div>
+      <h2><code>equals()</code>, <code>hashCode()</code>, and mutable keys</h2>
+      <h3>The required contract</h3>
+      <div class="grid3">
+        <div class="card"><h4>Equal → same hash</h4><p>If <code>a.equals(b)</code> is true, <code>a.hashCode() == b.hashCode()</code> must be true.</p></div>
+        <div class="card"><h4>Same hash ≠ equal</h4><p>Different objects may legally produce the same hash code; HashMap resolves collision using equals.</p></div>
+        <div class="card"><h4>Stable while stored</h4><p>Fields participating in equality/hash must not change while the object is used as a hash key.</p></div>
+      </div>
+      <h3>What goes wrong when only <code>equals()</code> is overridden?</h3>
+      <pre><code>final class UserKey {
+    private final String tenant;
+    private final String userId;
+
+    @Override
+    public boolean equals(Object o) {
+        // logical equality implemented
+    }
+
+    // hashCode() forgotten → inherits identity-based Object.hashCode()
+}</code></pre>
+      <p>Two logically equal keys can be sent to different buckets, so <code>get()</code>, <code>containsKey()</code>, and Set uniqueness fail unexpectedly.</p>
+
+      <h3>Correct immutable key</h3>
+      <pre><code>public record UserKey(String tenant, String userId) {
+    public UserKey {
+        Objects.requireNonNull(tenant);
+        Objects.requireNonNull(userId);
+    }
+}
+// record provides value-based equals() and hashCode()</code></pre>
+
+      <h3>Mutable-key production bug</h3>
+      <pre><code>final class AccountKey {
+    String accountNumber; // mutable and used by equals/hashCode
+}
+
+AccountKey key = new AccountKey();
+key.accountNumber = "A-100";
+
+Map&lt;AccountKey, String&gt; map = new HashMap&lt;&gt;();
+map.put(key, "ACTIVE");
+
+key.accountNumber = "A-200"; // hash may now point to another bucket
+
+map.get(key);    // may return null
+map.remove(key); // may fail; the old entry remains retained</code></pre>
+      <div class="callout red dual">
+        <p class="lang-en"><strong>Use immutable hash keys.</strong> A mutable key can become “lost” inside the map: the node remains in the old bucket but future lookup calculates a new bucket.</p>
+        <p class="lang-vn"><strong>Hãy dùng immutable key.</strong> Mutable key có thể bị “mất” trong map: node vẫn nằm ở bucket cũ nhưng lần lookup sau tính ra bucket mới.</p>
+      </div>
+
+      <h3>Good hashCode characteristics</h3>
+      <ul>
+        <li>Consistent with equals.</li>
+        <li>Stable while used as a key.</li>
+        <li>Uses the same significant fields as equals.</li>
+        <li>Distributes expected business data reasonably.</li>
+        <li>Cheap enough for frequent lookup.</li>
+      </ul>
+    </section>
+
+    <section id="set">
+      <div class="kicker">08 • Uniqueness</div>
+      <h2>How Set uniqueness works</h2>
+      <div class="grid3">
+        <div class="card"><h3>HashSet</h3><p>Backed internally by a HashMap. Elements are stored as keys with a shared dummy value.</p></div>
+        <div class="card"><h3>LinkedHashSet</h3><p>Hash-based uniqueness plus predictable insertion order.</p></div>
+        <div class="card"><h3>TreeSet</h3><p>Tree-based uniqueness and sorted order determined by natural ordering or Comparator.</p></div>
+      </div>
+      <pre><code>// Conceptual HashSet internals
+private transient HashMap&lt;E, Object&gt; map;
+private static final Object PRESENT = new Object();
+
+public boolean add(E e) {
+    return map.put(e, PRESENT) == null;
+}</code></pre>
+      <h3>HashSet duplicate decision</h3>
+      <pre><code>1. Calculate element.hashCode()
+2. Select HashMap bucket
+3. Compare hash and equals against candidates
+4. Equal candidate exists → add returns false
+5. No equal candidate → insert key, add returns true</code></pre>
+      <h3>TreeSet uniqueness trap</h3>
+      <pre><code>Comparator&lt;Employee&gt; bySalary =
+    Comparator.comparing(Employee::salary);
+
+TreeSet&lt;Employee&gt; set = new TreeSet&lt;&gt;(bySalary);
+
+// Two different employees with the same salary compare as 0.
+// TreeSet treats them as the same position/key.</code></pre>
+      <div class="callout yellow">
+        For sorted sets/maps, <code>compare(a,b) == 0</code> determines key uniqueness. A comparator inconsistent with equals may be legal but can produce surprising Set/Map behavior.
+      </div>
+      <h3>Mutable sorted elements</h3>
+      <p>Changing a field used by the comparator after insertion can break tree ordering. The element remains physically at an old tree position, so lookup/removal may fail. Prefer immutable ordering fields.</p>
+    </section>
+
+    <section id="ordered">
+      <div class="kicker">09 • Ordering semantics</div>
+      <h2>HashMap, LinkedHashMap, and TreeMap</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Map</th><th>Iteration order</th><th>Cost</th><th>Best use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>HashMap</strong></td><td>Unspecified; never depend on observed order</td><td>Expected O(1)</td><td>Fast general key lookup</td></tr>
+            <tr><td><strong>LinkedHashMap</strong></td><td>Insertion order or access order</td><td>Expected O(1), extra links</td><td>Predictable order, simple bounded LRU</td></tr>
+            <tr><td><strong>TreeMap</strong></td><td>Sorted key order</td><td>O(log n)</td><td>Range queries, floor/ceiling, ordered navigation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>LinkedHashMap internals</h3>
+      <pre><code>Hash table lookup
+      │
+      ▼
+[entry] ⇄ [entry] ⇄ [entry]  // doubly linked iteration order
+
+It keeps HashMap buckets for lookup
+plus before/after links for order.</code></pre>
+      <h3>Simple LRU cache</h3>
+      <pre><code>class LruCache&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt; {
+    private final int maxEntries;
+
+    LruCache(int maxEntries) {
+        super(16, 0.75f, true); // access-order
+        this.maxEntries = maxEntries;
+    }
+
+    @Override
+    protected boolean removeEldestEntry(Map.Entry&lt;K, V&gt; eldest) {
+        return size() &gt; maxEntries;
+    }
+}</code></pre>
+      <div class="callout yellow">
+        This LRU example is not thread-safe and lacks TTL, weight-based eviction, metrics, async loading, and stampede protection. Production caches usually need a dedicated cache library.
+      </div>
+
+      <h3>TreeMap red-black tree</h3>
+      <div class="diagram">
+        <pre><code>              [40 Black]
+              /        \
+        [20 Red]       [70 Red]
+        /     \        /     \
+      [10]   [30]    [60]   [90]
+
+Search compares keys and chooses left/right.
+Rotations and recoloring maintain logarithmic height.</code></pre>
+      </div>
+      <p>Useful operations: <code>floorKey</code>, <code>ceilingKey</code>, <code>lowerKey</code>, <code>higherKey</code>, <code>subMap</code>, <code>headMap</code>, and <code>tailMap</code>.</p>
+    </section>
+
+    <section id="queue">
+      <div class="kicker">10 • Queue, deque, priority</div>
+      <h2>Queue selection and PriorityQueue internals</h2>
+      <h3>PriorityQueue is a binary min-heap</h3>
+      <div class="diagram">
+        <pre><code>Logical tree                 Backing array
+
+        2                    [2, 5, 4, 9, 7, 8]
+      /   \                   0  1  2  3  4  5
+     5     4
+    / \   /
+   9   7 8
+
+parent(i)     = (i - 1) / 2
+leftChild(i)  = 2i + 1
+rightChild(i) = 2i + 2</code></pre>
+      </div>
+      <h3>Add and poll</h3>
+      <ul>
+        <li><strong>add/offer:</strong> append at end, then sift up until heap order is restored — O(log n).</li>
+        <li><strong>peek:</strong> return root — O(1).</li>
+        <li><strong>poll:</strong> move last element to root, then sift down — O(log n).</li>
+        <li><strong>iteration:</strong> not globally sorted. Only the head is guaranteed to be the minimum by comparator.</li>
+      </ul>
+      <pre><code>PriorityQueue&lt;Job&gt; jobs =
+    new PriorityQueue&lt;&gt;(Comparator.comparing(Job::priority));
+
+while (!jobs.isEmpty()) {
+    process(jobs.poll()); // priority order
+}</code></pre>
+
+      <h3>BlockingQueue selection</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Implementation</th><th>Capacity</th><th>Use case</th><th>Production warning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>ArrayBlockingQueue</strong></td><td>Bounded</td><td>Fixed-capacity producer/consumer</td><td>Provides explicit backpressure</td></tr>
+            <tr><td><strong>LinkedBlockingQueue</strong></td><td>Optional bound</td><td>Producer/consumer with flexible capacity</td><td>Default capacity is extremely large; specify a bound</td></tr>
+            <tr><td><strong>SynchronousQueue</strong></td><td>No storage</td><td>Direct handoff</td><td>Producer waits for consumer</td></tr>
+            <tr><td><strong>PriorityBlockingQueue</strong></td><td>Logically unbounded</td><td>Concurrent priority scheduling</td><td>Can grow memory without backpressure</td></tr>
+            <tr><td><strong>DelayQueue</strong></td><td>Unbounded</td><td>Delayed expiration/scheduling</td><td>Retention until delay and removal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout red dual">
+        <p class="lang-en"><strong>Unbounded queue = hidden memory policy.</strong> When producers are faster than consumers, the queue becomes an in-memory backlog until latency or OOM exposes the problem.</p>
+        <p class="lang-vn"><strong>Unbounded queue chính là một memory policy ẩn.</strong> Khi producer nhanh hơn consumer, queue biến thành backlog trong memory cho đến khi latency tăng hoặc OOM xảy ra.</p>
+      </div>
+    </section>
+
+    <section id="iterators">
+      <div class="kicker">11 • Iteration behavior</div>
+      <h2>Fail-fast, snapshot, and weakly consistent iterators</h2>
+      <h3>Fail-fast internals</h3>
+      <pre><code>Collection:
+    modCount = number of structural modifications
+
+Iterator creation:
+    expectedModCount = collection.modCount
+
+During next/remove:
+    if (modCount != expectedModCount)
+        throw ConcurrentModificationException</code></pre>
+      <div class="callout yellow">
+        Fail-fast is <strong>best effort</strong>, not a concurrency guarantee. Never use <code>ConcurrentModificationException</code> as synchronization or program correctness logic.
+      </div>
+
+      <h3>Structural modification</h3>
+      <p>Adding/removing elements, resizing, or otherwise changing collection structure usually increments <code>modCount</code>. Replacing a value for an existing map key may not be considered structural because the number/topology of entries does not change.</p>
+
+      <h3>Correct removal during iteration</h3>
+      <pre><code>Iterator&lt;Order&gt; it = orders.iterator();
+while (it.hasNext()) {
+    Order order = it.next();
+    if (order.isExpired()) {
+        it.remove(); // updates iterator state correctly
+    }
+}
+
+// Or:
+orders.removeIf(Order::isExpired);</code></pre>
+
+      <h3>“Fail-safe” is not an official iterator category</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Behavior</th><th>Example</th><th>What iteration sees</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Fail-fast</strong></td><td>ArrayList, HashMap</td><td>Detects some structural modifications and may throw CME</td></tr>
+            <tr><td><strong>Snapshot</strong></td><td>CopyOnWriteArrayList</td><td>Immutable snapshot from iterator creation; later writes are not visible</td></tr>
+            <tr><td><strong>Weakly consistent</strong></td><td>ConcurrentHashMap</td><td>No CME; may reflect some modifications during traversal, never requires a full snapshot</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Synchronized wrapper iteration</h3>
+      <pre><code>List&lt;String&gt; list =
+    Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+synchronized (list) {
+    for (String value : list) {
+        consume(value);
+    }
+}</code></pre>
+      <p>The wrapper synchronizes individual methods. A multi-step iteration still requires locking on the wrapper object for the whole traversal.</p>
+    </section>
+
+    <section id="concurrenthashmap">
+      <div class="kicker">12 • Concurrent map internals</div>
+      <h2>ConcurrentHashMap — how it works</h2>
+      <div class="callout green">
+        Modern ConcurrentHashMap does <strong>not</strong> use the old Java 7 fixed Segment architecture as its primary design. Java 8+ implementations use table bins, CAS, synchronized bin-level updates, tree bins, and cooperative resizing.
+      </div>
+
+      <h3>High-level structure</h3>
+      <div class="diagram">
+        <pre><code>ConcurrentHashMap table
+
+bucket 0   null
+bucket 1   Node → Node
+bucket 2   TreeBin → TreeNode tree
+bucket 3   ForwardingNode → points to next table during resize
+...
+
+Reads:
+mostly volatile/ordered reads without locking the whole map
+
+Writes:
+CAS into empty bin
+or synchronize on selected bin head for collision updates</code></pre>
+      </div>
+
+      <h3><code>get(key)</code></h3>
+      <ol>
+        <li>Calculate spread hash and bucket index.</li>
+        <li>Read table/bin using memory-safe volatile semantics.</li>
+        <li>Check first node, linked nodes, tree bin, or forwarding state.</li>
+        <li>No global lock is required for ordinary retrieval.</li>
+      </ol>
+
+      <h3><code>put(key,value)</code> simplified</h3>
+      <div class="diagram">
+        <pre><code>put
+ ├─ initialize table if needed
+ ├─ target bin empty?
+ │      └─ CAS new Node into slot
+ ├─ bin is ForwardingNode?
+ │      └─ help transfer during resize
+ └─ occupied normal/tree bin
+        └─ synchronize on bin head
+             ├─ revalidate bin
+             ├─ insert/update list or tree
+             └─ release bin lock
+ └─ update count; resize if needed</code></pre>
+      </div>
+
+      <h3>Why reads scale</h3>
+      <p>Retrievals normally do not acquire a map-wide lock. Updates to unrelated bins can progress concurrently. A completed update for a key has a happens-before relationship with a subsequent non-null retrieval of that key.</p>
+
+      <h3>Cooperative resizing</h3>
+      <div class="dual">
+        <p class="lang-en">When resizing begins, bins can be marked with forwarding nodes. Multiple threads encountering the migration can help transfer bins to the new table instead of one thread performing all work.</p>
+        <p class="lang-vn">Khi resize bắt đầu, bucket có thể được đánh dấu bằng forwarding node. Nhiều thread gặp quá trình migration có thể cùng chuyển bucket sang table mới thay vì chỉ một thread làm toàn bộ.</p>
+      </div>
+
+      <h3>Why null keys and values are forbidden</h3>
+      <p><code>null</code> is used as an unambiguous signal that no mapping currently exists. In concurrent code, allowing null would make it impossible to distinguish “absent” from “mapped to null” without another atomic check.</p>
+
+      <h3>Atomic methods</h3>
+      <pre><code>// Race-prone check-then-act
+if (!map.containsKey(key)) {
+    map.put(key, load(key));
+}
+
+// Atomic map operation
+map.computeIfAbsent(key, this::load);</code></pre>
+      <div class="callout red">
+        Keep <code>computeIfAbsent</code>, <code>compute</code>, and <code>merge</code> functions short and side-effect controlled. Some updates for the same bin/key may block while computation runs. Do not perform slow remote I/O under an atomic map computation without deliberate design.
+      </div>
+
+      <h3>Scalable frequency map</h3>
+      <pre><code>ConcurrentHashMap&lt;String, LongAdder&gt; frequencies =
+    new ConcurrentHashMap&lt;&gt;();
+
+frequencies
+    .computeIfAbsent(eventType, ignored -&gt; new LongAdder())
+    .increment();</code></pre>
+
+      <h3>Iteration semantics</h3>
+      <p>Iterators are weakly consistent: they do not throw ConcurrentModificationException, can proceed during updates, and may observe some but not necessarily all concurrent changes. Aggregate methods such as <code>size()</code> should not be used as exact coordination signals while updates are ongoing.</p>
+    </section>
+
+    <section id="concurrent">
+      <div class="kicker">13 • Concurrent choices</div>
+      <h2>Concurrent collection patterns</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Need</th><th>Collection</th><th>Reason / trade-off</th></tr></thead>
+          <tbody>
+            <tr><td>Concurrent key lookup and atomic updates</td><td><strong>ConcurrentHashMap</strong></td><td>Scalable reads and per-bin/key update coordination</td></tr>
+            <tr><td>Read-mostly listener/config list</td><td><strong>CopyOnWriteArrayList</strong></td><td>Lock-free snapshot reads; writes copy entire array</td></tr>
+            <tr><td>Non-blocking FIFO</td><td><strong>ConcurrentLinkedQueue</strong></td><td>CAS-based concurrent queue; unbounded</td></tr>
+            <tr><td>Bounded producer/consumer</td><td><strong>ArrayBlockingQueue</strong></td><td>Backpressure and fixed memory capacity</td></tr>
+            <tr><td>Concurrent sorted/range map</td><td><strong>ConcurrentSkipListMap</strong></td><td>Expected logarithmic sorted operations</td></tr>
+            <tr><td>Externally locked compound workflow</td><td><strong>Collections.synchronizedX</strong> or explicit lock</td><td>Simple but coarse locking; lock full compound operation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>CopyOnWriteArrayList internals</h3>
+      <pre><code>read:
+    read current immutable array snapshot
+
+write:
+    lock
+    copy old array → new array
+    apply change to new array
+    publish new array
+    unlock
+
+iterator:
+    traverses the captured old array snapshot</code></pre>
+      <div class="grid2">
+        <div class="card"><h4>Excellent when</h4><p>Reads/iterations greatly outnumber writes, list is moderate in size, and snapshot semantics are acceptable.</p></div>
+        <div class="card"><h4>Bad when</h4><p>Writes are frequent or list is large; every mutation allocates and copies O(n) references.</p></div>
+      </div>
+
+      <h3>Thread-safe collection does not make a workflow atomic</h3>
+      <pre><code>// Each method is thread-safe, but this sequence is not atomic:
+if (inventory.get(sku) &gt; 0) {
+    inventory.put(sku, inventory.get(sku) - 1);
+}
+
+// Use compute, merge, atomic value, or a domain lock:
+inventory.computeIfPresent(sku, (k, stock) -&gt;
+    stock &gt; 0 ? stock - 1 : stock
+);</code></pre>
+    </section>
+
+    <section id="immutable">
+      <div class="kicker">14 • Mutability and views</div>
+      <h2>Immutable, unmodifiable, fixed-size, and live views</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Creation</th><th>Can add/remove?</th><th>Backed by mutable source?</th><th>Nulls</th></tr></thead>
+          <tbody>
+            <tr><td><code>List.of(...)</code></td><td>No</td><td>No external backing view</td><td>Rejected</td></tr>
+            <tr><td><code>List.copyOf(source)</code></td><td>No</td><td>Produces unmodifiable result</td><td>Rejected</td></tr>
+            <tr><td><code>Collections.unmodifiableList(list)</code></td><td>Not through wrapper</td><td><strong>Yes</strong>; source changes are visible</td><td>Depends on source</td></tr>
+            <tr><td><code>Arrays.asList(array)</code></td><td>No size change; <code>set</code> allowed</td><td><strong>Yes</strong>; backed by array</td><td>Allowed</td></tr>
+            <tr><td><code>stream.toList()</code></td><td>No</td><td>Unmodifiable result</td><td>Stream-dependent contents</td></tr>
+            <tr><td><code>map.keySet()</code></td><td>Live view</td><td><strong>Yes</strong>; removals affect map</td><td>Map-dependent</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>List&lt;String&gt; source = new ArrayList&lt;&gt;(List.of("A", "B"));
+List&lt;String&gt; view = Collections.unmodifiableList(source);
+
+source.add("C");
+System.out.println(view); // [A, B, C]</code></pre>
+      <div class="callout yellow">
+        “Unmodifiable” means mutation operations through that reference are rejected. It does not automatically mean deep immutability, thread safety, or that mutable element objects cannot change.
+      </div>
+      <h3>Defensive copying</h3>
+      <pre><code>public final class PricingRule {
+    private final List&lt;Tier&gt; tiers;
+
+    public PricingRule(List&lt;Tier&gt; tiers) {
+        this.tiers = List.copyOf(tiers);
+    }
+
+    public List&lt;Tier&gt; tiers() {
+        return tiers;
+    }
+}</code></pre>
+    </section>
+
+    <section id="sorting">
+      <div class="kicker">15 • Ordering algorithms</div>
+      <h2>Sorting, Comparable, Comparator, and Top-K</h2>
+      <h3>Comparable vs Comparator</h3>
+      <div class="grid2">
+        <div class="card"><h4>Comparable&lt;T&gt;</h4><p>Defines the type's natural order inside the class through <code>compareTo</code>.</p></div>
+        <div class="card"><h4>Comparator&lt;T&gt;</h4><p>Defines an external or alternative order and supports composition.</p></div>
+      </div>
+      <pre><code>Comparator&lt;Employee&gt; order =
+    Comparator.comparing(Employee::department)
+        .thenComparing(Employee::salary, Comparator.reverseOrder())
+        .thenComparing(Employee::id);
+
+employees.sort(order);</code></pre>
+
+      <h3>Comparator contract</h3>
+      <ul>
+        <li>Antisymmetry/sign consistency.</li>
+        <li>Transitivity.</li>
+        <li>Consistent result for equivalent comparison state.</li>
+        <li>Prefer consistency with equals for sorted sets/maps.</li>
+      </ul>
+
+      <h3>How List sorting works</h3>
+      <p><code>List.sort</code> guarantees a stable sort: equal elements retain their relative order. Current OpenJDK object-list sorting is based on a TimSort adaptation, which takes advantage of existing ordered runs.</p>
+      <pre><code>// Stable multi-step sort can preserve previous order among equal values,
+// but a single composed Comparator is clearer and usually preferable.
+employees.sort(Comparator.comparing(Employee::department)
+                         .thenComparing(Employee::name));</code></pre>
+
+      <h3>Do not sort everything for Top-K</h3>
+      <div class="grid2">
+        <div class="card">
+          <h4>Full sort</h4>
+          <pre><code>O(n log n)
+sort all, take first k</code></pre>
+        </div>
+        <div class="card">
+          <h4>Bounded heap</h4>
+          <pre><code>O(n log k)
+maintain PriorityQueue of size k</code></pre>
+        </div>
+      </div>
+      <pre><code>PriorityQueue&lt;Employee&gt; top =
+    new PriorityQueue&lt;&gt;(Comparator.comparing(Employee::salary));
+
+for (Employee e : employees) {
+    top.offer(e);
+    if (top.size() &gt; k) {
+        top.poll();
+    }
+}</code></pre>
+
+      <h3>Sorted collection vs sorting on demand</h3>
+      <ul>
+        <li>Use <code>ArrayList + sort</code> when writes happen in batches and reads need occasional ordered output.</li>
+        <li>Use <code>TreeMap/TreeSet</code> when you continuously need ordered lookup and range navigation.</li>
+        <li>Use <code>PriorityQueue</code> when only the next highest/lowest element matters.</li>
+      </ul>
+    </section>
+
+    <section id="production">
+      <div class="kicker">16 • Real failure modes</div>
+      <h2>Common collection bugs in production</h2>
+      <div class="grid3">
+        <div class="card"><h3>Mutable hash key</h3><p>Entry becomes unreachable through normal lookup after key fields change.</p></div>
+        <div class="card"><h3>Wrong equals/hashCode</h3><p>Duplicate Set values or missing Map lookup despite logical equality.</p></div>
+        <div class="card"><h3>Unbounded growth</h3><p>Cache, queue, dedup Set, retry map, or session registry grows until OOM.</p></div>
+        <div class="card"><h3>Wrong concurrent type</h3><p>Lost updates, visibility bugs, CME, or race conditions from HashMap/ArrayList sharing.</p></div>
+        <div class="card"><h3>Expensive atomic callback</h3><p>Slow <code>computeIfAbsent</code> blocks competing updates and creates latency spikes.</p></div>
+        <div class="card"><h3>Hidden backing view</h3><p><code>subList</code>, <code>unmodifiableList</code>, <code>keySet</code>, or <code>Arrays.asList</code> behaves differently than a copy.</p></div>
+      </div>
+
+      <h3>Unbounded cache</h3>
+      <pre><code>private final Map&lt;String, CustomerProfile&gt; cache =
+    new ConcurrentHashMap&lt;&gt;();
+
+CustomerProfile get(String customerId) {
+    return cache.computeIfAbsent(customerId, repository::load);
+}
+// No maximum size, TTL, invalidation, or tenant-cardinality protection.</code></pre>
+      <p>Fix with an explicit capacity/weight, expiry, invalidation, hit-rate metrics, loading policy, and ownership lifecycle.</p>
+
+      <h3>Parallel stream with shared mutable collection</h3>
+      <pre><code>// Wrong
+List&lt;Result&gt; results = new ArrayList&lt;&gt;();
+inputs.parallelStream().forEach(x -&gt; results.add(process(x)));
+
+// Better
+List&lt;Result&gt; results = inputs.parallelStream()
+    .map(this::process)
+    .toList();</code></pre>
+
+      <h3>Check-then-act race</h3>
+      <pre><code>// Wrong under concurrency
+if (!map.containsKey(id)) {
+    map.put(id, create());
+}
+
+// Depending on semantics:
+map.putIfAbsent(id, create());
+map.computeIfAbsent(id, this::create);</code></pre>
+      <p><code>putIfAbsent(id, create())</code> evaluates <code>create()</code> before the call, so it may perform unnecessary work. <code>computeIfAbsent</code> coordinates map insertion but its callback must remain suitable for an atomic map operation.</p>
+
+      <h3>Memory investigation checklist</h3>
+      <ol>
+        <li>Identify growing collection type and owning object via heap dominator tree.</li>
+        <li>Inspect element count, key cardinality, retained size, and paths to GC roots.</li>
+        <li>Determine whether growth is expected business state or missing eviction/removal.</li>
+        <li>Check large backing arrays, HashMap table capacity, queues, and duplicate-retention structures.</li>
+        <li>Add metrics: size, capacity limit, rejection count, eviction count, oldest-entry age, consumer lag.</li>
+      </ol>
+    </section>
+
+    <section id="selection">
+      <div class="kicker">17 • Decision framework</div>
+      <h2>How a senior chooses a collection</h2>
+      <div class="diagram">
+        <pre><code>Need key → value?
+├─ yes
+│  ├─ concurrent?
+│  │  ├─ unordered → ConcurrentHashMap
+│  │  └─ sorted/range → ConcurrentSkipListMap
+│  ├─ sorted/range? → TreeMap
+│  ├─ predictable insertion/access order? → LinkedHashMap
+│  └─ fastest general lookup → HashMap
+│
+└─ no
+   ├─ need uniqueness?
+   │  ├─ sorted → TreeSet
+   │  ├─ insertion order → LinkedHashSet
+   │  └─ general → HashSet
+   ├─ need priority head? → PriorityQueue
+   ├─ need FIFO/LIFO ends? → ArrayDeque
+   ├─ producer/consumer coordination? → bounded BlockingQueue
+   ├─ read-mostly concurrent list? → CopyOnWriteArrayList
+   └─ general indexed sequence → ArrayList</code></pre>
+      </div>
+
+      <h3>Production selection matrix</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Requirement</th><th>Recommended starting point</th><th>Questions before approval</th></tr></thead>
+          <tbody>
+            <tr><td>REST response list</td><td>ArrayList / unmodifiable copy</td><td>Expected size? Does caller mutate it?</td></tr>
+            <tr><td>Request deduplication</td><td>HashSet</td><td>Are equality fields immutable and correct?</td></tr>
+            <tr><td>In-memory lookup</td><td>HashMap</td><td>Single-thread ownership? Capacity known?</td></tr>
+            <tr><td>Shared in-memory lookup</td><td>ConcurrentHashMap</td><td>Are compound operations atomic? Is growth bounded?</td></tr>
+            <tr><td>Worker task queue</td><td>Bounded BlockingQueue</td><td>Backpressure/rejection policy? Consumer throughput?</td></tr>
+            <tr><td>Event listeners</td><td>CopyOnWriteArrayList</td><td>Reads ≫ writes? List size moderate?</td></tr>
+            <tr><td>Recent-access ordering</td><td>LinkedHashMap or cache library</td><td>Thread safety, TTL, weight, eviction, metrics?</td></tr>
+            <tr><td>Time/range index</td><td>TreeMap / ConcurrentSkipListMap</td><td>Comparator correctness? Mutation of keys?</td></tr>
+            <tr><td>Top K</td><td>PriorityQueue</td><td>Only head needed or fully sorted output?</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Seven questions to ask</h3>
+      <ol>
+        <li>What operations dominate: get by index, get by key, scan, range, head/tail, or sort?</li>
+        <li>Are duplicates allowed? What defines logical identity?</li>
+        <li>Is iteration order required and part of the API contract?</li>
+        <li>Who owns mutation? Can multiple threads access it?</li>
+        <li>What compound operations must be atomic?</li>
+        <li>What is the maximum cardinality and backpressure/eviction policy?</li>
+        <li>What memory overhead and latency are acceptable at realistic data size?</li>
+      </ol>
+    </section>
+
+    <section id="interview">
+      <div class="kicker">18 • Senior interview</div>
+      <h2>Interview questions and model answers</h2>
+
+      <details open>
+        <summary>1. Explain HashMap.put() internally.</summary>
+        <p>HashMap spreads the key hash, selects a bucket using <code>(n-1)&hash</code>, inserts directly if empty, otherwise checks hash and equals through a linked or tree bin, replaces the value for an equal key, and resizes after a new insertion exceeds the threshold. Heavily collided bins may treeify when capacity and thresholds allow.</p>
+      </details>
+      <details>
+        <summary>2. Why must equals and hashCode be overridden together?</summary>
+        <p>Hash-based collections choose a bucket using hashCode, then confirm equality using equals. If equal objects produce different hashes, lookup may search different buckets and fail.</p>
+      </details>
+      <details>
+        <summary>3. What happens when two keys have the same hash?</summary>
+        <p>They can land in the same bucket. HashMap compares equals; equal keys replace the existing value, while unequal keys coexist in a linked or tree bin.</p>
+      </details>
+      <details>
+        <summary>4. Why is HashMap capacity a power of two?</summary>
+        <p>It enables efficient bucket selection with a bit mask and efficient low/high bin splitting when capacity doubles.</p>
+      </details>
+      <details>
+        <summary>5. What is load factor?</summary>
+        <p>It controls the density threshold before resizing: roughly capacity multiplied by load factor. A lower value uses more memory for fewer collisions; a higher value saves table space but increases bucket density.</p>
+      </details>
+      <details>
+        <summary>6. ArrayList vs LinkedList?</summary>
+        <p>ArrayList offers O(1) indexed access, compact storage, and good locality. LinkedList has O(n) indexed access and node overhead; O(1) insertion only applies when the node position is already known. ArrayList is the general default.</p>
+      </details>
+      <details>
+        <summary>7. Why is ArrayDeque often better than LinkedList for queues?</summary>
+        <p>ArrayDeque uses a compact circular array, avoiding one node object and two links per element. Operations at both ends are efficient and iteration has better locality.</p>
+      </details>
+      <details>
+        <summary>8. HashSet internals?</summary>
+        <p>HashSet delegates storage to a HashMap, storing each set element as a map key and using one shared dummy object as the value. Uniqueness follows hashCode and equals.</p>
+      </details>
+      <details>
+        <summary>9. HashMap vs TreeMap?</summary>
+        <p>HashMap gives expected O(1) key operations and no order guarantee. TreeMap gives O(log n) operations, sorted order, and range/navigation methods.</p>
+      </details>
+      <details>
+        <summary>10. Fail-fast vs fail-safe?</summary>
+        <p>Fail-fast iterators detect some structural changes using modification counts and may throw CME on a best-effort basis. “Fail-safe” is informal; describe the actual behavior instead: CopyOnWrite uses snapshots, while ConcurrentHashMap iterators are weakly consistent.</p>
+      </details>
+      <details>
+        <summary>11. How does ConcurrentHashMap differ from HashMap?</summary>
+        <p>ConcurrentHashMap provides thread-safe retrieval/update semantics, mostly lock-free reads, CAS for empty bins, synchronized bin-level collision updates, cooperative resize, weakly consistent iteration, and atomic map methods. It forbids null keys/values.</p>
+      </details>
+      <details>
+        <summary>12. Does ConcurrentHashMap make all business operations atomic?</summary>
+        <p>No. Individual operations and specified compound methods are atomic according to their contracts, but arbitrary multi-step workflows require compute/merge, atomic values, or explicit domain locking.</p>
+      </details>
+      <details>
+        <summary>13. When should CopyOnWriteArrayList be used?</summary>
+        <p>When iteration/read frequency is much higher than writes, the list is not huge, and snapshot iteration is correct. It is poor for write-heavy or large lists because each mutation copies the array.</p>
+      </details>
+      <details>
+        <summary>14. Why is a mutable HashMap key dangerous?</summary>
+        <p>Changing a field used by hashCode/equals changes the lookup bucket or equality after insertion. The entry remains stored under its old placement and may become impossible to retrieve/remove normally.</p>
+      </details>
+      <details>
+        <summary>15. What causes ConcurrentModificationException?</summary>
+        <p>A fail-fast iterator detects that the collection was structurally modified outside the iterator. It can occur in one thread as well; the name does not require multi-threading.</p>
+      </details>
+      <details>
+        <summary>16. Why can a collection cause OOM?</summary>
+        <p>Collections strongly retain their keys/elements/values. An unbounded cache, queue, Set, map, listener registry, or large spare backing array can keep an object graph reachable indefinitely.</p>
+      </details>
+      <details>
+        <summary>17. Is PriorityQueue iteration sorted?</summary>
+        <p>No. The heap only guarantees that the head is the minimum/highest-priority element. Repeated poll returns priority order.</p>
+      </details>
+      <details>
+        <summary>18. How do you choose initial HashMap capacity?</summary>
+        <p>Estimate expected entries divided by load factor, account for power-of-two rounding, or use appropriate modern factory helpers when available. The goal is avoiding repeated resize without creating an excessively sparse table.</p>
+      </details>
+      <details>
+        <summary>19. Why can TreeSet drop a seemingly different object?</summary>
+        <p>If the comparator returns zero, TreeSet treats the objects as occupying the same sorted key position, even when equals returns false.</p>
+      </details>
+      <details>
+        <summary>20. How do you diagnose collection memory growth?</summary>
+        <p>Use heap histograms and dominator trees, inspect retained size and path to GC roots, identify the owning collection, measure its cardinality over time, and verify eviction/removal/backpressure against business lifecycle.</p>
+      </details>
+    </section>
+
+    <section id="exercises">
+      <div class="kicker">19 • Practice</div>
+      <h2>Hands-on exercises</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Exercise 1 — Mutable key</h3>
+          <p>Create a mutable key, put it into HashMap, change the hash field, then test get/remove. Explain the bucket mismatch.</p>
+        </div>
+        <div class="card">
+          <h3>Exercise 2 — Collision</h3>
+          <p>Create keys with the same hash but different equals identities. Inspect map correctness and performance as the bin grows.</p>
+        </div>
+        <div class="card">
+          <h3>Exercise 3 — Queue backpressure</h3>
+          <p>Compare an unbounded queue with ArrayBlockingQueue when producers run faster than consumers. Observe memory and rejection/blocking behavior.</p>
+        </div>
+        <div class="card">
+          <h3>Exercise 4 — Collection benchmark</h3>
+          <p>Use JMH to compare ArrayList and LinkedList iteration, random access, end insertion, and iterator-position insertion at realistic sizes.</p>
+        </div>
+      </div>
+      <h3>Code-review checklist</h3>
+      <ul>
+        <li>Is the collection implementation appropriate for the dominant operation?</li>
+        <li>Are keys/elements immutable with correct equality and comparator contracts?</li>
+        <li>Is concurrent access visible in the type and atomic workflow?</li>
+        <li>Is capacity bounded or governed by eviction/backpressure?</li>
+        <li>Does the API expose a mutable internal collection accidentally?</li>
+        <li>Can views retain a much larger source collection?</li>
+        <li>Are metrics available for size, growth, lag, eviction, and rejection?</li>
+      </ul>
+    </section>
+
+    <section id="sources">
+      <div class="kicker">References</div>
+      <h2>Official Java / OpenJDK sources</h2>
+      <ul>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-overview.html" target="_blank" rel="noreferrer">Java SE 21 Collections Framework Overview</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ArrayList.html" target="_blank" rel="noreferrer">Java SE 21 ArrayList API</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html" target="_blank" rel="noreferrer">Java SE 21 HashMap API</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html" target="_blank" rel="noreferrer">Java SE 21 ConcurrentHashMap API</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" target="_blank" rel="noreferrer">Java SE 21 List API</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Comparator.html" target="_blank" rel="noreferrer">Java SE 21 Comparator API</a></li>
+        <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java" target="_blank" rel="noreferrer">OpenJDK HashMap source</a></li>
+        <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/ArrayList.java" target="_blank" rel="noreferrer">OpenJDK ArrayList source</a></li>
+        <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/LinkedList.java" target="_blank" rel="noreferrer">OpenJDK LinkedList source</a></li>
+        <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java" target="_blank" rel="noreferrer">OpenJDK ConcurrentHashMap source</a></li>
+      </ul>
+      <p class="muted">Complexity and behavior are described for common OpenJDK/HotSpot Java 17/21 usage. Internal thresholds and algorithms are implementation details and can evolve; API contracts should remain the primary dependency.</p>
+    </section>
+
+    <footer>Java Collections Framework • Internals, Concurrency & Production • EN / VN</footer>
+  </main>
+</div>
+
+<script>
+  let langMode = 0;
+  function cycleLang() {
+    langMode = (langMode + 1) % 3;
+    document.body.classList.toggle('show-vn', langMode === 1);
+    document.body.classList.toggle('show-both', langMode === 2);
+    document.getElementById('langBtn').textContent =
+      ['English', 'Tiếng Việt', 'EN + VN'][langMode];
+  }
+  function toggleTheme() {
+    const root = document.documentElement;
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    localStorage.setItem('java-collections-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? 'Dark' : 'Light';
+  }
+  const saved = localStorage.getItem('java-collections-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('themeBtn').textContent = saved === 'dark' ? 'Dark' : 'Light';
+    });
+  }
+
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy';
+    btn.textContent = 'Copy';
+    btn.onclick = async () => {
+      const text = pre.innerText.replace(/^Copy\s*/, '');
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = 'Copy', 1200);
+    };
+    pre.appendChild(btn);
+  });
+
+  document.getElementById('search').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('main section').forEach(section => {
+      section.classList.toggle('search-hidden',
+        q && !section.innerText.toLowerCase().includes(q));
+    });
+  });
+
+  const links = [...document.querySelectorAll('nav a')];
+  const sections = [...document.querySelectorAll('main section')];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(link => link.classList.toggle(
+          'active', link.getAttribute('href') === '#' + entry.target.id
+        ));
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+  sections.forEach(section => observer.observe(section));
+
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.round(window.scrollY / max * 100) : 0;
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('progressText').textContent = pct + '% read';
+  });
+
+  document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', () => {
+    document.querySelector('aside').classList.remove('open');
+  }));
+</script>
+</body>
+</html>

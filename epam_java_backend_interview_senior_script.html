@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPAM Java Backend Interview Script — Senior Answers</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #637083;
+      --border: #dce2ea;
+      --accent: #2563eb;
+      --accent-soft: #eaf1ff;
+      --success: #0f766e;
+      --success-soft: #e6fffb;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --surface: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #60a5fa;
+      --accent-soft: #172554;
+      --success: #5eead4;
+      --success-soft: #134e4a;
+      --code-bg: #020617;
+      --code-text: #e2e8f0;
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+
+    .hero {
+      padding: 48px 24px 32px;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 36%),
+        linear-gradient(135deg, var(--surface), var(--bg));
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 18px 0 10px;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .lead {
+      max-width: 880px;
+      color: var(--muted);
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      font-size: 15px;
+    }
+
+    button, .button {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 13px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    button:hover, .button:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .layout {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .side {
+      position: sticky;
+      top: 78px;
+      align-self: start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .side h2 {
+      font-size: 15px;
+      margin: 0 0 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .side nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .side nav a {
+      text-decoration: none;
+      padding: 9px 10px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .side nav a:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-header {
+      margin: 0 0 16px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-header h2 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .qa-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .qa-head {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      min-width: 42px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .qa-head h3 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.3;
+    }
+
+    .block {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .block-title {
+      font-size: 12px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .clean {
+      background: var(--bg);
+    }
+
+    .senior {
+      background: linear-gradient(180deg, var(--success-soft), transparent);
+      position: relative;
+    }
+
+    .answer-text {
+      white-space: normal;
+    }
+
+    .copy-btn.small {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+
+    .code-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+      margin-bottom: -8px;
+    }
+
+    pre {
+      overflow: auto;
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    code {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    }
+
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .raw-text {
+      margin-top: 14px;
+      white-space: pre-wrap;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      max-height: 460px;
+      overflow: auto;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .toolbar-inner {
+        grid-template-columns: 1fr;
+      }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .side {
+        position: static;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      .toolbar, .side, .copy-btn, .code-toolbar {
+        display: none !important;
+      }
+      .layout {
+        display: block;
+        padding: 0;
+      }
+      body {
+        background: white;
+        color: black;
+      }
+      .qa-card, .section-header, details {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Java Backend Interview • EPAM • Senior Script</div>
+      <h1>Formatted Interview Script with Senior-Level Answers</h1>
+      <p class="lead">
+        This page converts the uploaded transcript into a clean study web page:
+        original script, formatted questions, senior answer scripts, practical examples, and Java/Spring code.
+      </p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <input id="search" type="search" placeholder="Search topics: HashMap, Saga, Kafka, Transactional, ACID..." />
+      <button id="toggleDark">Dark mode</button>
+      <button id="expandRaw">Toggle raw</button>
+      <button onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </div>
+
+  <main class="layout">
+    <aside class="side">
+      <h2>Navigation</h2>
+      <nav><a href="#overview">EPAM Java Backend Interview Experience — Clean Overview</a>
+<a href="#round1-coding">Round 1 — Coding Questions</a>
+<a href="#round1-technical">Round 1 — Technical Questions</a>
+<a href="#round2">Round 2 — Pure Technical Questions</a>
+<a href="#round3">Round 3 — Techno-Managerial Questions</a></nav>
+    </aside>
+
+    <div class="content">
+      <div class="stats">
+        <div class="stat"><strong>3</strong><span>Interview rounds</span></div>
+        <div class="stat"><strong>31</strong><span>Formatted questions</span></div>
+        <div class="stat"><strong>6+</strong><span>Code scripts included</span></div>
+      </div>
+
+      <details id="rawDetails">
+        <summary>Original raw transcript from uploaded text</summary>
+        <div class="raw-text" id="rawText">Format text
+Hey everyone, recently one of our subscribers Vaishnavi cracked a Java backend developer interview at EPAM, okay? And she has shared her complete interview experience with me and I&#x27;ll add her LinkedIn profile in the description, so you can confirm with her as well. And guys, along with the question, I&#x27;ll give the answers just to give you the context, okay? So basically, she applied through LinkedIn and she has around 5.
+5 year of experience, okay? And guys, if you want to watch real interview experiences, then please make sure to subscribe. So now, let&#x27;s get started. So guys, basically Vaishnavi told me that there were total three rounds. First was based on coding plus technical, second was pure technical, and third was techno-managerial, okay? So let&#x27;s discuss each round one by one.
+So basically, in the first round, interviewer first started asking coding questions. First question was, you are given a sentence and you have to fetch the longest word in that sentence by using Java stream API, okay? For example, if the sentence is this is a stream problem. So here, problem is the longest word and you have to print that, okay? Second question was, you are given employee class which consists of name, age, salary, and department, okay? So you have to fetch all employees whose salary is greater than 50,000 by using
+stream API, okay? And guys, third question was that you have to write a JUnit test case of calculating prime numbers by using JUnit 5 and Mockito framework, right? And fourth question was to write basic CRUD REST API. So guys, these were the coding problems that were asked by interviewers. And I&#x27;ll provide all the coding solutions and explanation in the description, otherwise video would be very longer, you know? Then guys, interviewer started asking some technical questions like what is garbage collection and its type.
+So basically guys, garbage collection is a feature in Java where JVM automatically cleans unused objects from memory, okay? So we don&#x27;t have to manage it manually, right? It helps prevent memory leaks and keeps the app efficient. Are you getting my point? So basically, there are mainly three types. First, minor GC for new objects, second, major GC for old objects, and then full GC which cleans the entire memory, okay? Then interviewer asked difference between array list and linked list and their real time use case. So basically,
+array list works on dynamic arrays, so reading data is super fast, but inserting or deleting in between is slow. Whereas, linked list uses nodes, so insertions and deletions are faster, but accessing elements is slower, right? So in real projects, we should use array list for frequent reads like UI data and linked list for frequent updates like quiz or task processing.
+Are you getting my point? And guys, then interviewer asked what is polymorphism? So basically, polymorphism means one thing behaving in multiple ways, right? In Java, a method can perform different actions based on input or object type. So we have compile time polymorphism using method overloading and run time polymorphism using method overriding, right? It helps makes code flexible and reusable, which is very, very important in real world applications.
+Then interviewer asked what are bean scopes in Spring Boot? So basically, bean scope defines how many instance of a bean Spring will create and how long it lives, right? The default is singleton, meaning only one instance. Are you getting my point? Then we have prototype, request, session, and application scopes, okay? Depending on our use case like per user, per request, we choose the appropriate scope, right? And guys, before moving to the next question, I would like to share one important thing with you.
+Actually, Vaishnavi prepared from our interview preparation kit, so let me tell you this kit has four main parts. First is complete interview preparation material, right? It is a step-by-step material made by me, expert, and MNCs interviewers. 99% of the questions asked in interviews are covered in it, right? Second is two real enterprise client projects code and video recorded sessions are there and you can add this in your resume.
+Third is lifetime chat support. Here you can ask your doubts anytime and fourth is referral support. Here we help you to get referred to the top MNCs, okay? So basically, the material is organized as per your experience level and covers Java, Spring Boot, Spring Security, Spring Data JPA, microservices, Kafka, Maven, Git, coding questions, stream API coding questions, and many more.
+You can buy just the complete interview preparation material or the full interview preparation kit with project supports and referrals, okay? I have added the links in the description below, so now moving to our interview experience. Guys, then interviewer asked how would you implement exception handling globally in Spring Boot, right? So basically, instead of writing try-catch everywhere, we use controller advice with exceptional handler annotation to handle the exceptions in one place, you know? We just create a global class, define methods for
+specific exceptions, and return proper responses, right? And you know, this keeps the code clean and makes error handling consistent across the entire application. Are you getting my point? So guys, this was the first round and in the second round, interviewer first spent some time understanding her background, the projects she worked on, and the technologies she used.
+Then interviewer asked, &quot;Can you please explain internal hash map?&quot; Okay? So basically, hash map stores data in key-value pairs using an array of buckets. When we put a key, it basically calculates a hash code to find the index. If multiple keys lands on the same index, collision happens, right? And they are stored using linked lists or tree.
+During get method, it again calculates hash and searches in that bucket. Guys, then interviewer asked, &quot;Why we switched from linked list to red-black tree in case of hash collision from Java 8?&quot; So basically, earlier collision were handled using linked list, as we know, which could become slow like O(n) if many elements land in the same bucket, right? But in Java 8, after a threshold, it converts into arbitrary, making search faster.
+Now it will be O(log n). This improves performance and avoids worst-case scenarios, okay? Then guys, interviewer asked, &quot;What is circular dependency and how would you fix it?&quot; So basically, circular dependencies happens when two beans dependent on each other directly or indirectly like A depends on B and B depends on A, okay? This causes issues in bean creation and we can fix it by using lazy annotation, setter injection instead of constructor injection, or redesigning the logic to break the dependency. Then interviewer asked,
+&quot;What is transactional annotation?&quot; So guys, basically, transactional annotation is used to manage database transaction in Spring, as we know, right? It ensures that a set of operations either complete fully or roll back completely if any errors occurs, right? It basically helps maintain data consistency.
+We can also control propagations, isolation, and rollback rules by using its properties, right? Then interviewer asked, &quot;How would you secure your REST API?&quot; So basically, we secure our REST API by using Spring Security. Common methods are authentications like JWT or OAuth2, authorizations like role-based access, HTTP encryptions, input validations, and rate limiting, right? JWT is widely used where a token is generated after login and sent in headers for every request to validate the users.
+Are you getting my point? Then interviewer asked, &quot;What is value annotation?&quot; So guys, basically, value annotation is used in Spring to inject values into variables from properties files, environment variables, or expressions, right? For example, we can fetch values from application.properties like database URL or API keys, right? It helps in externalizing configuration and makes application flexible, okay? Then interviewer asked, &quot;What does embedded ID annotation do?&quot; So basically, embedded ID annotation is used in JPA when we have composite
+primary key. Instead of multiple ID annotation fields, we create a separate class containing all key fields and embed it into the entity, right? It helps keep the code clean and manages complex primary keys in a structured way. Then interviewer asked, &quot;Could you please explain about facade design pattern?&quot; So basically guys, facade design patterns provides a simple interface to complex system, right? Instead of calling multiple classes or APIs, we create one facade class that handles everything internally. It hides
+complexity and makes the code easy to use. In real projects, it&#x27;s used when integrating multiple services or modules behind one clean API. Are you getting my point? Guys, then interviewer asked, &quot;What is circuit breaker pattern?&quot; So very simple question. So basically, circuit breaker pattern is used to handle failures in microservices, right? If a service is down or slow, the circuit opens and stops further calls, preventing overload, right? After some time, it tries again and it improves the system resilience and avoids cascading
+failures, right? Tools like Resilience4j are commonly used here. Guys, then interviewer asked, &quot;How would you achieve centralized logging mechanism in microservices architecture?&quot; So basically, in microservice, we use centralized logging by sending logs from all services to one place like ELK stack, Elasticsearch, Logstash, Kibana, right? Each service pushes logs and we can search and monitor everything in one dashboard.
+Basically distributed transaction in microservice architecture?&quot; Okay? So, basically, distributed transactions are handled using pattern like Saga or two-phase commit. Are you getting my point? In microservices, Saga is preferred because it avoids locking and improves scalability. Each service performs its transaction, and if something fails, compensating actions are triggered to roll back previous steps.
+Then interviewer asked, &quot;What is Saga pattern?&quot; So, basically, guys, Saga pattern is used to manage transactions across multiple services, right? Instead of one big transaction, it breaks it into the smaller steps. Each service completes its part, and if any step fails, previous steps are undone using compensating transactions.
+It ensures data consistency without using heavy locking. Okay? Then interviewer asked difference between Kafka and Q. So, basically, guys, Kafka is distributed event streaming platform where data is stored and can be consumed multiple times. Whereas, Q like RabbitMQ removes the message once consumed. Are you getting my point? Kafka is used for high-throughput real-time data streaming, while queues are used for task processing and decoupling services.
+And Kafka supports replay. Queues generally don&#x27;t support replays. Okay? Guys, then interviewer asked, &quot;What is query planning?&quot; So, basically, query planning is how a database decides the best way to execute a query. Okay? It checks different possible approaches like index, joins, and scanning methods, and then choose the most efficient one.
+Right? This basically improves performance and reduce execution time. And tools like query execution plans helps developers understand and optimize queries. Then guys, interviewer asked, &quot;Explain SOLID principle.&quot; So, basically, SOLID principle is a set of five principles to write clean and maintainable code.
+Right? S is single responsibility, O is open-closed, L is Liskov substitution, I is interface segregation, and D is dependency inversion. This principle helps in writing flexible, scalable, and loosely coupled code, right? And this is very, very important in real-world applications. So, we have to follow the SOLID principles, right? Then interviewer asked to explain the ACID properties.
+So, basically, ACID ensures reliable data transaction. A is atomicity, means all or nothing, right? C is consistency, means valid data. I is isolation, means transactions don&#x27;t interfere, right? And D is durability, means data is saved permanently. These properties ensure that even in failure cases, the database remains correct and stable.
+Okay? Then interviewer asked that you are given a singleton instance class and asked candidates to implement lazy initialization, right? So, basically, lazy initialization means creating the object only when it is needed, as we know, right? In singleton, we keep the instance null initially and create it inside get instance method when first called, right? This saves memory and improves performance.
+For thread safety, we can use synchronized block or double-checked locking. Are you getting my point? Then interviewer asked fail-fast and fail-safe iterators. So, basically, fail-fast iterators throws an exception. Uh we can say concurrent modification exception, right? If the collection is modified while iterating, we usually get this error.
+Examples are array list and hash map. Okay? Fail-safe iterators don&#x27;t throw exceptions and work on a copy of the collection like in concurrent hash map. Fail-fast is faster, while fail-safe is safe for concurrent environments. Okay? So, guys, this was a second round, and in the third round, interviewer asked some managerial questions like, &quot;Why would you want to join us? What&#x27;s the most challenging task you have faced in your last project? Did you face any conflicts with your teammates? Etc., etc.
+, right?&quot; So, guys, this is all about Vaishnavi technical interview experiences at EPAM. And if you want to watch more interview experiences, then please make sure to like and subscribe. Thank you. Bye-bye.</div>
+        <button class="copy-btn" data-copy-target="rawText">Copy original raw transcript</button>
+      </details>
+
+      <section class="section">
+        <div class="section-header">
+          <h2>Question index</h2>
+          <p>Use this index to quickly review all questions extracted and formatted from the transcript.</p>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Section</th><th>Question</th></tr>
+          </thead>
+          <tbody><tr><td>EPAM Java Backend Interview Experience — Clean Overview</td><td>Interview structure</td></tr>
+<tr><td>Round 1 — Coding Questions</td><td>Given a sentence, fetch the longest word using Java Stream API.</td></tr>
+<tr><td>Round 1 — Coding Questions</td><td>Given an Employee class with name, age, salary, and department, fetch all employees whose salary is greater than 50,000 using Stream API.</td></tr>
+<tr><td>Round 1 — Coding Questions</td><td>Write a JUnit test case for calculating prime numbers using JUnit 5 and Mockito.</td></tr>
+<tr><td>Round 1 — Coding Questions</td><td>Write a basic CRUD REST API.</td></tr>
+<tr><td>Round 1 — Technical Questions</td><td>What is garbage collection and what are its types?</td></tr>
+<tr><td>Round 1 — Technical Questions</td><td>Difference between ArrayList and LinkedList with real-time use cases.</td></tr>
+<tr><td>Round 1 — Technical Questions</td><td>What is polymorphism?</td></tr>
+<tr><td>Round 1 — Technical Questions</td><td>What are bean scopes in Spring Boot?</td></tr>
+<tr><td>Round 1 — Technical Questions</td><td>How would you implement global exception handling in Spring Boot?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Explain HashMap internal working.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Why did Java 8 switch from linked list to red-black tree in case of hash collision?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is circular dependency and how would you fix it?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is `@Transactional`?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>How would you secure your REST API?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is `@Value` annotation?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What does `@EmbeddedId` do?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Explain Facade design pattern.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is circuit breaker pattern?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>How would you achieve centralized logging in microservices?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>How do you handle distributed transactions in microservices?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is Saga pattern?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Difference between Kafka and queue.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>What is query planning?</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Explain SOLID principles.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Explain ACID properties.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Implement lazy initialization for Singleton.</td></tr>
+<tr><td>Round 2 — Pure Technical Questions</td><td>Fail-fast vs fail-safe iterators.</td></tr>
+<tr><td>Round 3 — Techno-Managerial Questions</td><td>Why do you want to join us?</td></tr>
+<tr><td>Round 3 — Techno-Managerial Questions</td><td>What is the most challenging task you faced in your last project?</td></tr>
+<tr><td>Round 3 — Techno-Managerial Questions</td><td>Did you face any conflicts with teammates? How did you handle them?</td></tr></tbody>
+        </table>
+      </section>
+
+      
+    <section id="overview" class="section">
+      <div class="section-header">
+        <h2>EPAM Java Backend Interview Experience — Clean Overview</h2>
+        <p>Formatted from the uploaded transcript into a study-ready interview script.</p>
+      </div>
+      
+    <article class="qa-card" data-search="interview structure the candidate, vaishnavi, interviewed for a java backend developer role at epam with around 5.5 years of experience. the process had three rounds: round 1 was coding plus technical, round 2 was pure technical, and round 3 was techno-managerial. i would summarize the process as three layers of evaluation. first, the interviewer checked hands-on coding ability with java streams, junit, mockito, and rest api implementation. second, they tested core backend depth: java internals, spring boot, jpa, microservices, distributed systems, kafka, sql optimization, and design principles. third, they evaluated project ownership, communication, conflict handling, and motivation for joining the company.">
+      <div class="qa-head">
+        <span class="badge">Q1</span>
+        <h3>Interview structure</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-1">The candidate, Vaishnavi, interviewed for a Java Backend Developer role at EPAM with around 5.5 years of experience. The process had three rounds: Round 1 was coding plus technical, Round 2 was pure technical, and Round 3 was techno-managerial.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-1">Copy answer</button>
+        <div id="answer-1" class="answer-text">I would summarize the process as three layers of evaluation. First, the interviewer checked hands-on coding ability with Java Streams, JUnit, Mockito, and REST API implementation. Second, they tested core backend depth: Java internals, Spring Boot, JPA, microservices, distributed systems, Kafka, SQL optimization, and design principles. Third, they evaluated project ownership, communication, conflict handling, and motivation for joining the company.</div>
+      </div>
+      
+    </article>
+    
+    </section>
+    
+    <section id="round1-coding" class="section">
+      <div class="section-header">
+        <h2>Round 1 — Coding Questions</h2>
+        <p>Java Stream API, JUnit 5, Mockito, and REST CRUD API.</p>
+      </div>
+      
+    <article class="qa-card" data-search="given a sentence, fetch the longest word using java stream api. input example: &quot;this is a stream problem&quot;. the longest word is &quot;problem&quot;. i would solve this by splitting the sentence into words, converting the array into a stream, removing empty values, and using `max()` with a comparator based on word length. in production code, i would also handle null or blank input safely instead of assuming the sentence is always valid.">
+      <div class="qa-head">
+        <span class="badge">Q2</span>
+        <h3>Given a sentence, fetch the longest word using Java Stream API.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-2">Input example: &quot;this is a stream problem&quot;. The longest word is &quot;problem&quot;.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-2">Copy answer</button>
+        <div id="answer-2" class="answer-text">I would solve this by splitting the sentence into words, converting the array into a stream, removing empty values, and using `max()` with a comparator based on word length. In production code, I would also handle null or blank input safely instead of assuming the sentence is always valid.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-2">Copy code</button>
+        </div>
+        <pre id="code-2"><code>import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
+
+public class LongestWordExample {
+
+    public static Optional&lt;String&gt; findLongestWord(String sentence) {
+        if (sentence == null || sentence.isBlank()) {
+            return Optional.empty();
+        }
+
+        return Arrays.stream(sentence.trim().split(&quot;\\s+&quot;))
+                .filter(word -&gt; !word.isBlank())
+                .max(Comparator.comparingInt(String::length));
+    }
+
+    public static void main(String[] args) {
+        String sentence = &quot;this is a stream problem&quot;;
+
+        String longestWord = findLongestWord(sentence)
+                .orElse(&quot;No word found&quot;);
+
+        System.out.println(longestWord); // problem
+    }
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="given an employee class with name, age, salary, and department, fetch all employees whose salary is greater than 50,000 using stream api. use java streams to filter employees with salary greater than 50,000. i would keep the solution simple and readable. the stream should filter by salary and collect the matching employees into a list. in a real project, if this data comes from a database, i would prefer filtering at the query level instead of fetching all rows into memory and filtering in java.">
+      <div class="qa-head">
+        <span class="badge">Q3</span>
+        <h3>Given an Employee class with name, age, salary, and department, fetch all employees whose salary is greater than 50,000 using Stream API.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-3">Use Java Streams to filter employees with salary greater than 50,000.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-3">Copy answer</button>
+        <div id="answer-3" class="answer-text">I would keep the solution simple and readable. The stream should filter by salary and collect the matching employees into a list. In a real project, if this data comes from a database, I would prefer filtering at the query level instead of fetching all rows into memory and filtering in Java.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-3">Copy code</button>
+        </div>
+        <pre id="code-3"><code>import java.math.BigDecimal;
+import java.util.List;
+
+public class EmployeeFilterExample {
+
+    record Employee(String name, int age, BigDecimal salary, String department) {}
+
+    public static List&lt;Employee&gt; findHighSalaryEmployees(List&lt;Employee&gt; employees) {
+        return employees.stream()
+                .filter(employee -&gt; employee.salary().compareTo(BigDecimal.valueOf(50_000)) &gt; 0)
+                .toList();
+    }
+
+    public static void main(String[] args) {
+        List&lt;Employee&gt; employees = List.of(
+                new Employee(&quot;An&quot;, 28, BigDecimal.valueOf(45_000), &quot;IT&quot;),
+                new Employee(&quot;Binh&quot;, 31, BigDecimal.valueOf(75_000), &quot;Finance&quot;),
+                new Employee(&quot;Chi&quot;, 26, BigDecimal.valueOf(60_000), &quot;IT&quot;)
+        );
+
+        findHighSalaryEmployees(employees)
+                .forEach(System.out::println);
+    }
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="write a junit test case for calculating prime numbers using junit 5 and mockito. the interviewer asked for unit tests using junit 5 and mockito around a prime-number calculation. for a pure prime-checking method, mockito is not always necessary because the logic is self-contained. i would use junit 5 parameterized tests for multiple inputs. if the prime calculation depends on another component, for example a repository or validator, then mockito becomes useful to isolate the class under test.">
+      <div class="qa-head">
+        <span class="badge">Q4</span>
+        <h3>Write a JUnit test case for calculating prime numbers using JUnit 5 and Mockito.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-4">The interviewer asked for unit tests using JUnit 5 and Mockito around a prime-number calculation.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-4">Copy answer</button>
+        <div id="answer-4" class="answer-text">For a pure prime-checking method, Mockito is not always necessary because the logic is self-contained. I would use JUnit 5 parameterized tests for multiple inputs. If the prime calculation depends on another component, for example a repository or validator, then Mockito becomes useful to isolate the class under test.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-4">Copy code</button>
+        </div>
+        <pre id="code-4"><code>// Production code
+public class PrimeService {
+
+    private final NumberValidator validator;
+
+    public PrimeService(NumberValidator validator) {
+        this.validator = validator;
+    }
+
+    public boolean isPrime(int number) {
+        validator.validate(number);
+
+        if (number &lt;= 1) {
+            return false;
+        }
+
+        if (number == 2) {
+            return true;
+        }
+
+        if (number % 2 == 0) {
+            return false;
+        }
+
+        for (int i = 3; i &lt;= Math.sqrt(number); i += 2) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+interface NumberValidator {
+    void validate(int number);
+}
+
+// JUnit 5 + Mockito test
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class PrimeServiceTest {
+
+    @Mock
+    private NumberValidator validator;
+
+    private PrimeService primeService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        primeService = new PrimeService(validator);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {2, 3, 5, 7, 11, 13, 17})
+    void shouldReturnTrueForPrimeNumbers(int number) {
+        assertTrue(primeService.isPrime(number));
+        verify(validator).validate(number);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1, 4, 6, 8, 9, 10})
+    void shouldReturnFalseForNonPrimeNumbers(int number) {
+        assertFalse(primeService.isPrime(number));
+        verify(validator).validate(number);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenValidatorRejectsInput() {
+        doThrow(new IllegalArgumentException(&quot;Invalid number&quot;))
+                .when(validator).validate(-10);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -&gt; primeService.isPrime(-10)
+        );
+    }
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="write a basic crud rest api. the interviewer asked for a basic crud rest api implementation. for a crud api, i would separate controller, service, repository, dto, and entity layers. the controller should only handle http concerns; business logic should stay in the service. i would return proper http status codes: `201 created` for create, `200 ok` for read/update, and `204 no content` for delete.">
+      <div class="qa-head">
+        <span class="badge">Q5</span>
+        <h3>Write a basic CRUD REST API.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-5">The interviewer asked for a basic CRUD REST API implementation.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-5">Copy answer</button>
+        <div id="answer-5" class="answer-text">For a CRUD API, I would separate controller, service, repository, DTO, and entity layers. The controller should only handle HTTP concerns; business logic should stay in the service. I would return proper HTTP status codes: `201 Created` for create, `200 OK` for read/update, and `204 No Content` for delete.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-5">Copy code</button>
+        </div>
+        <pre id="code-5"><code>// Entity
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = &quot;employees&quot;)
+public class EmployeeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String department;
+    private Double salary;
+
+    // getters and setters
+}
+
+// DTO
+public record EmployeeRequest(String name, String department, Double salary) {}
+
+public record EmployeeResponse(Long id, String name, String department, Double salary) {}
+
+// Repository
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface EmployeeRepository extends JpaRepository&lt;EmployeeEntity, Long&gt; {
+}
+
+// Service
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class EmployeeService {
+
+    private final EmployeeRepository repository;
+
+    public EmployeeService(EmployeeRepository repository) {
+        this.repository = repository;
+    }
+
+    public List&lt;EmployeeResponse&gt; findAll() {
+        return repository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public EmployeeResponse findById(Long id) {
+        EmployeeEntity employee = repository.findById(id)
+                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Employee not found: &quot; + id));
+        return toResponse(employee);
+    }
+
+    @Transactional
+    public EmployeeResponse create(EmployeeRequest request) {
+        EmployeeEntity entity = new EmployeeEntity();
+        entity.setName(request.name());
+        entity.setDepartment(request.department());
+        entity.setSalary(request.salary());
+
+        return toResponse(repository.save(entity));
+    }
+
+    @Transactional
+    public EmployeeResponse update(Long id, EmployeeRequest request) {
+        EmployeeEntity entity = repository.findById(id)
+                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Employee not found: &quot; + id));
+
+        entity.setName(request.name());
+        entity.setDepartment(request.department());
+        entity.setSalary(request.salary());
+
+        return toResponse(entity);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException(&quot;Employee not found: &quot; + id);
+        }
+        repository.deleteById(id);
+    }
+
+    private EmployeeResponse toResponse(EmployeeEntity entity) {
+        return new EmployeeResponse(
+                entity.getId(),
+                entity.getName(),
+                entity.getDepartment(),
+                entity.getSalary()
+        );
+    }
+}
+
+// Controller
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/employees&quot;)
+public class EmployeeController {
+
+    private final EmployeeService service;
+
+    public EmployeeController(EmployeeService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List&lt;EmployeeResponse&gt; findAll() {
+        return service.findAll();
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public EmployeeResponse findById(@PathVariable Long id) {
+        return service.findById(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public EmployeeResponse create(@RequestBody EmployeeRequest request) {
+        return service.create(request);
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public EmployeeResponse update(@PathVariable Long id,
+                                   @RequestBody EmployeeRequest request) {
+        return service.update(id, request);
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+}
+
+// Exception
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}</code></pre>
+        
+    </article>
+    
+    </section>
+    
+    <section id="round1-technical" class="section">
+      <div class="section-header">
+        <h2>Round 1 — Technical Questions</h2>
+        <p>Core Java and Spring Boot basics with senior-level explanation.</p>
+      </div>
+      
+    <article class="qa-card" data-search="what is garbage collection and what are its types? garbage collection is jvm memory management that removes unreachable objects from heap memory. garbage collection is the jvm mechanism for automatically reclaiming memory from objects that are no longer reachable from application roots such as thread stacks, static references, or jni references. in java, developers do not explicitly free memory, but we still need to understand object lifecycle because poor reference management can still cause memory leaks.
+
+in a generational heap, most objects are created in the young generation. a minor gc cleans young-generation objects. objects that survive several collections may be promoted to the old generation. a major gc focuses on the old generation, and a full gc can involve the whole heap and metadata areas, depending on the collector and jvm version.
+
+in production, i monitor gc pause time, allocation rate, heap usage, and promotion rate using tools like gc logs, jfr, visualvm, prometheus, or grafana. if i see frequent full gc, i check memory leaks, oversized caches, inefficient object creation, and heap sizing.">
+      <div class="qa-head">
+        <span class="badge">Q6</span>
+        <h3>What is garbage collection and what are its types?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-6">Garbage collection is JVM memory management that removes unreachable objects from heap memory.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-6">Copy answer</button>
+        <div id="answer-6" class="answer-text">Garbage collection is the JVM mechanism for automatically reclaiming memory from objects that are no longer reachable from application roots such as thread stacks, static references, or JNI references. In Java, developers do not explicitly free memory, but we still need to understand object lifecycle because poor reference management can still cause memory leaks.<br><br>In a generational heap, most objects are created in the young generation. A Minor GC cleans young-generation objects. Objects that survive several collections may be promoted to the old generation. A Major GC focuses on the old generation, and a Full GC can involve the whole heap and metadata areas, depending on the collector and JVM version.<br><br>In production, I monitor GC pause time, allocation rate, heap usage, and promotion rate using tools like GC logs, JFR, VisualVM, Prometheus, or Grafana. If I see frequent Full GC, I check memory leaks, oversized caches, inefficient object creation, and heap sizing.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="difference between arraylist and linkedlist with real-time use cases. arraylist is backed by a dynamic array. linkedlist is backed by nodes linked together. `arraylist` is usually the default choice in java because it has fast indexed access and good cpu cache locality. reading by index is o(1), appending is usually o(1) amortized, but insertion or deletion in the middle can be o(n) because elements need to shift.
+
+`linkedlist` is a doubly linked list. it is efficient for adding or removing elements if we already have the node position, but random access is o(n). it also uses more memory because each node stores previous and next references.
+
+in real projects, i use `arraylist` for lists returned by apis, ui data, reports, and most read-heavy operations. i rarely use `linkedlist` unless i specifically need queue/deque behavior, and even then i usually prefer `arraydeque` for better performance.">
+      <div class="qa-head">
+        <span class="badge">Q7</span>
+        <h3>Difference between ArrayList and LinkedList with real-time use cases.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-7">ArrayList is backed by a dynamic array. LinkedList is backed by nodes linked together.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-7">Copy answer</button>
+        <div id="answer-7" class="answer-text">`ArrayList` is usually the default choice in Java because it has fast indexed access and good CPU cache locality. Reading by index is O(1), appending is usually O(1) amortized, but insertion or deletion in the middle can be O(n) because elements need to shift.<br><br>`LinkedList` is a doubly linked list. It is efficient for adding or removing elements if we already have the node position, but random access is O(n). It also uses more memory because each node stores previous and next references.<br><br>In real projects, I use `ArrayList` for lists returned by APIs, UI data, reports, and most read-heavy operations. I rarely use `LinkedList` unless I specifically need queue/deque behavior, and even then I usually prefer `ArrayDeque` for better performance.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is polymorphism? polymorphism means one interface or method can behave differently based on the object or input. polymorphism allows code to work with abstractions while the actual behavior is decided by the concrete implementation. in java, compile-time polymorphism is method overloading, where methods share the same name but have different parameters. runtime polymorphism is method overriding, where a subclass provides its own implementation and the jvm dispatches the method call dynamically.
+
+a practical example is payment processing. the service can depend on a `paymentprovider` interface, while implementations like `creditcardpaymentprovider`, `paypalpaymentprovider`, and `banktransferpaymentprovider` handle different behavior. this makes the code extensible and supports the open/closed principle.">
+      <div class="qa-head">
+        <span class="badge">Q8</span>
+        <h3>What is polymorphism?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-8">Polymorphism means one interface or method can behave differently based on the object or input.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-8">Copy answer</button>
+        <div id="answer-8" class="answer-text">Polymorphism allows code to work with abstractions while the actual behavior is decided by the concrete implementation. In Java, compile-time polymorphism is method overloading, where methods share the same name but have different parameters. Runtime polymorphism is method overriding, where a subclass provides its own implementation and the JVM dispatches the method call dynamically.<br><br>A practical example is payment processing. The service can depend on a `PaymentProvider` interface, while implementations like `CreditCardPaymentProvider`, `PaypalPaymentProvider`, and `BankTransferPaymentProvider` handle different behavior. This makes the code extensible and supports the Open/Closed Principle.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what are bean scopes in spring boot? bean scope defines how spring creates and manages bean instances. bean scope controls the lifecycle and visibility of a spring bean. the default scope is `singleton`, meaning spring creates one instance per application context. `prototype` creates a new instance every time the bean is requested.
+
+in web applications, we also have request, session, application, and websocket scopes. `request` creates one bean per http request. `session` creates one bean per http session. `application` creates one bean per servlet context.
+
+in production, most service and repository beans are singleton because they are stateless. if a bean holds request-specific or user-specific state, i avoid singleton state and prefer request scope, method parameters, or a context holder such as spring security context.">
+      <div class="qa-head">
+        <span class="badge">Q9</span>
+        <h3>What are bean scopes in Spring Boot?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-9">Bean scope defines how Spring creates and manages bean instances.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-9">Copy answer</button>
+        <div id="answer-9" class="answer-text">Bean scope controls the lifecycle and visibility of a Spring bean. The default scope is `singleton`, meaning Spring creates one instance per application context. `prototype` creates a new instance every time the bean is requested.<br><br>In web applications, we also have request, session, application, and websocket scopes. `request` creates one bean per HTTP request. `session` creates one bean per HTTP session. `application` creates one bean per servlet context.<br><br>In production, most service and repository beans are singleton because they are stateless. If a bean holds request-specific or user-specific state, I avoid singleton state and prefer request scope, method parameters, or a context holder such as Spring Security context.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="how would you implement global exception handling in spring boot? use `@restcontrolleradvice` and `@exceptionhandler` to handle exceptions in one place. i would implement global exception handling using `@restcontrolleradvice`. this keeps controllers clean and makes error responses consistent across the application. i usually define a standard error response containing timestamp, status, error code, message, and path.
+
+for business exceptions, i return 400 or domain-specific error codes. for not-found cases, i return 404. for validation errors, i return a list of field errors. for unexpected exceptions, i log the root cause and return a generic 500 response without leaking internal details.">
+      <div class="qa-head">
+        <span class="badge">Q10</span>
+        <h3>How would you implement global exception handling in Spring Boot?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-10">Use `@RestControllerAdvice` and `@ExceptionHandler` to handle exceptions in one place.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-10">Copy answer</button>
+        <div id="answer-10" class="answer-text">I would implement global exception handling using `@RestControllerAdvice`. This keeps controllers clean and makes error responses consistent across the application. I usually define a standard error response containing timestamp, status, error code, message, and path.<br><br>For business exceptions, I return 400 or domain-specific error codes. For not-found cases, I return 404. For validation errors, I return a list of field errors. For unexpected exceptions, I log the root cause and return a generic 500 response without leaking internal details.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-10">Copy code</button>
+        </div>
+        <pre id="code-10"><code>import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.util.List;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleNotFound(ResourceNotFoundException ex,
+                                   HttpServletRequest request) {
+        return ApiError.of(404, &quot;RESOURCE_NOT_FOUND&quot;, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleValidation(MethodArgumentNotValidException ex,
+                                     HttpServletRequest request) {
+        List&lt;String&gt; details = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -&gt; error.getField() + &quot;: &quot; + error.getDefaultMessage())
+                .toList();
+
+        return ApiError.of(400, &quot;VALIDATION_ERROR&quot;, String.join(&quot;, &quot;, details), request.getRequestURI());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleUnexpected(Exception ex,
+                                     HttpServletRequest request) {
+        // log.error(&quot;Unexpected error&quot;, ex);
+        return ApiError.of(500, &quot;INTERNAL_SERVER_ERROR&quot;, &quot;Unexpected server error&quot;, request.getRequestURI());
+    }
+}
+
+record ApiError(
+        Instant timestamp,
+        int status,
+        String code,
+        String message,
+        String path
+) {
+    static ApiError of(int status, String code, String message, String path) {
+        return new ApiError(Instant.now(), status, code, message, path);
+    }
+}</code></pre>
+        
+    </article>
+    
+    </section>
+    
+    <section id="round2" class="section">
+      <div class="section-header">
+        <h2>Round 2 — Pure Technical Questions</h2>
+        <p>Java internals, Spring, microservices, database, Kafka, and design principles.</p>
+      </div>
+      
+    <article class="qa-card" data-search="explain hashmap internal working. hashmap stores key-value pairs in buckets. it uses hashcode and equals to put and get entries. `hashmap` stores entries in an internal array called a table. when we put a key-value pair, java calculates the key&#x27;s `hashcode()`, applies a hash spreading function, and maps it to a bucket index. if the bucket is empty, the entry is inserted directly. if another entry already exists in the same bucket, java handles it as a collision.
+
+for lookup, hashmap calculates the hash again, finds the bucket, and then compares keys using `equals()` to identify the exact entry. that is why if we override `equals()`, we must also override `hashcode()`.
+
+default initial capacity is 16 and default load factor is 0.75. when the number of entries exceeds capacity multiplied by load factor, hashmap resizes and redistributes entries. average put/get complexity is o(1), but bad collisions can degrade performance.">
+      <div class="qa-head">
+        <span class="badge">Q11</span>
+        <h3>Explain HashMap internal working.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-11">HashMap stores key-value pairs in buckets. It uses hashCode and equals to put and get entries.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-11">Copy answer</button>
+        <div id="answer-11" class="answer-text">`HashMap` stores entries in an internal array called a table. When we put a key-value pair, Java calculates the key&#x27;s `hashCode()`, applies a hash spreading function, and maps it to a bucket index. If the bucket is empty, the entry is inserted directly. If another entry already exists in the same bucket, Java handles it as a collision.<br><br>For lookup, HashMap calculates the hash again, finds the bucket, and then compares keys using `equals()` to identify the exact entry. That is why if we override `equals()`, we must also override `hashCode()`.<br><br>Default initial capacity is 16 and default load factor is 0.75. When the number of entries exceeds capacity multiplied by load factor, HashMap resizes and redistributes entries. Average put/get complexity is O(1), but bad collisions can degrade performance.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="why did java 8 switch from linked list to red-black tree in case of hash collision? java 8 improves collision handling by treeifying long collision chains. before java 8, entries in the same bucket were stored as a linked list. if many keys landed in the same bucket, lookup time became o(n). java 8 introduced treeification: when a bucket has many entries and the table is large enough, the bucket can be converted from a linked list to a red-black tree.
+
+this improves worst-case lookup from o(n) to o(log n). it also protects hashmap from poor hash distribution and certain collision-heavy scenarios. in java 8, treeification happens when the bucket size exceeds a threshold, commonly 8, and the table capacity is at least 64. if the table is still small, hashmap prefers resizing first instead of treeifying.">
+      <div class="qa-head">
+        <span class="badge">Q12</span>
+        <h3>Why did Java 8 switch from linked list to red-black tree in case of hash collision?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-12">Java 8 improves collision handling by treeifying long collision chains.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-12">Copy answer</button>
+        <div id="answer-12" class="answer-text">Before Java 8, entries in the same bucket were stored as a linked list. If many keys landed in the same bucket, lookup time became O(n). Java 8 introduced treeification: when a bucket has many entries and the table is large enough, the bucket can be converted from a linked list to a red-black tree.<br><br>This improves worst-case lookup from O(n) to O(log n). It also protects HashMap from poor hash distribution and certain collision-heavy scenarios. In Java 8, treeification happens when the bucket size exceeds a threshold, commonly 8, and the table capacity is at least 64. If the table is still small, HashMap prefers resizing first instead of treeifying.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is circular dependency and how would you fix it? circular dependency occurs when bean a depends on bean b and bean b depends on bean a. a circular dependency happens when two or more beans depend on each other, directly or indirectly. for example, `orderservice` depends on `paymentservice`, and `paymentservice` depends back on `orderservice`. with constructor injection, spring cannot create either bean first, so the application may fail to start.
+
+the best fix is redesigning the responsibilities because circular dependency often indicates poor separation of concerns. if redesign is not immediately possible, we can use setter injection, `@lazy`, events, or extract the shared logic into a third service.
+
+for senior-level design, i prefer breaking the cycle by introducing a domain service, event-driven communication, or an interface that reverses the dependency correctly.">
+      <div class="qa-head">
+        <span class="badge">Q13</span>
+        <h3>What is circular dependency and how would you fix it?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-13">Circular dependency occurs when bean A depends on bean B and bean B depends on bean A.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-13">Copy answer</button>
+        <div id="answer-13" class="answer-text">A circular dependency happens when two or more beans depend on each other, directly or indirectly. For example, `OrderService` depends on `PaymentService`, and `PaymentService` depends back on `OrderService`. With constructor injection, Spring cannot create either bean first, so the application may fail to start.<br><br>The best fix is redesigning the responsibilities because circular dependency often indicates poor separation of concerns. If redesign is not immediately possible, we can use setter injection, `@Lazy`, events, or extract the shared logic into a third service.<br><br>For senior-level design, I prefer breaking the cycle by introducing a domain service, event-driven communication, or an interface that reverses the dependency correctly.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is `@transactional`? `@transactional` manages database transaction boundaries in spring. `@transactional` tells spring to execute a method within a database transaction. if the method completes successfully, the transaction commits. if an unchecked exception occurs by default, the transaction rolls back.
+
+it helps maintain data consistency when multiple database operations must succeed or fail together. in real projects, i pay attention to propagation, isolation, rollback rules, read-only transactions, and proxy limitations. for example, a method calling another transactional method in the same class may bypass the spring proxy, so the transaction behavior may not apply as expected.">
+      <div class="qa-head">
+        <span class="badge">Q14</span>
+        <h3>What is `@Transactional`?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-14">`@Transactional` manages database transaction boundaries in Spring.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-14">Copy answer</button>
+        <div id="answer-14" class="answer-text">`@Transactional` tells Spring to execute a method within a database transaction. If the method completes successfully, the transaction commits. If an unchecked exception occurs by default, the transaction rolls back.<br><br>It helps maintain data consistency when multiple database operations must succeed or fail together. In real projects, I pay attention to propagation, isolation, rollback rules, read-only transactions, and proxy limitations. For example, a method calling another transactional method in the same class may bypass the Spring proxy, so the transaction behavior may not apply as expected.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="how would you secure your rest api? use spring security, authentication, authorization, https, validation, and rate limiting. i would secure a rest api in multiple layers. first, use https to protect traffic. second, implement authentication using jwt, oauth2, or oidc depending on the system. third, implement authorization using roles, scopes, or permissions. fourth, validate all input and avoid exposing sensitive error details. fifth, apply rate limiting and audit logging for sensitive operations.
+
+for jwt-based apis, the client sends `authorization: bearer &lt;token&gt;`. the backend validates signature, expiration, issuer, audience, and scopes. for enterprise systems, i prefer integrating with an identity provider such as keycloak, cognito, okta, or azure ad instead of building authentication from scratch.">
+      <div class="qa-head">
+        <span class="badge">Q15</span>
+        <h3>How would you secure your REST API?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-15">Use Spring Security, authentication, authorization, HTTPS, validation, and rate limiting.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-15">Copy answer</button>
+        <div id="answer-15" class="answer-text">I would secure a REST API in multiple layers. First, use HTTPS to protect traffic. Second, implement authentication using JWT, OAuth2, or OIDC depending on the system. Third, implement authorization using roles, scopes, or permissions. Fourth, validate all input and avoid exposing sensitive error details. Fifth, apply rate limiting and audit logging for sensitive operations.<br><br>For JWT-based APIs, the client sends `Authorization: Bearer &lt;token&gt;`. The backend validates signature, expiration, issuer, audience, and scopes. For enterprise systems, I prefer integrating with an identity provider such as Keycloak, Cognito, Okta, or Azure AD instead of building authentication from scratch.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is `@value` annotation? `@value` injects values from properties, environment variables, or spel expressions. `@value` is used to inject configuration values into spring beans. for example, we can inject `app.payment.timeout` from `application.yml`. it is useful for simple values, but for grouped configuration i prefer `@configurationproperties` because it is type-safe, easier to validate, and cleaner for large configuration sets.">
+      <div class="qa-head">
+        <span class="badge">Q16</span>
+        <h3>What is `@Value` annotation?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-16">`@Value` injects values from properties, environment variables, or SpEL expressions.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-16">Copy answer</button>
+        <div id="answer-16" class="answer-text">`@Value` is used to inject configuration values into Spring beans. For example, we can inject `app.payment.timeout` from `application.yml`. It is useful for simple values, but for grouped configuration I prefer `@ConfigurationProperties` because it is type-safe, easier to validate, and cleaner for large configuration sets.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-16">Copy code</button>
+        </div>
+        <pre id="code-16"><code>@Service
+public class PaymentClient {
+
+    @Value(&quot;${payment.timeout-ms:3000}&quot;)
+    private int timeoutMs;
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="what does `@embeddedid` do? `@embeddedid` is used in jpa for composite primary keys. `@embeddedid` allows an entity to use a composite primary key represented by a separate embeddable class. this is useful when a table is uniquely identified by multiple columns, such as `order_id` and `product_id`.
+
+the key class should be annotated with `@embeddable`, implement `serializable`, and correctly implement `equals()` and `hashcode()` because jpa uses identity comparison internally.">
+      <div class="qa-head">
+        <span class="badge">Q17</span>
+        <h3>What does `@EmbeddedId` do?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-17">`@EmbeddedId` is used in JPA for composite primary keys.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-17">Copy answer</button>
+        <div id="answer-17" class="answer-text">`@EmbeddedId` allows an entity to use a composite primary key represented by a separate embeddable class. This is useful when a table is uniquely identified by multiple columns, such as `order_id` and `product_id`.<br><br>The key class should be annotated with `@Embeddable`, implement `Serializable`, and correctly implement `equals()` and `hashCode()` because JPA uses identity comparison internally.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-17">Copy code</button>
+        </div>
+        <pre id="code-17"><code>import jakarta.persistence.*;
+import java.io.Serializable;
+import java.util.Objects;
+
+@Embeddable
+public class OrderItemId implements Serializable {
+    private Long orderId;
+    private Long productId;
+
+    // constructors, getters
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OrderItemId that)) return false;
+        return Objects.equals(orderId, that.orderId)
+                &amp;&amp; Objects.equals(productId, that.productId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(orderId, productId);
+    }
+}
+
+@Entity
+@Table(name = &quot;order_items&quot;)
+public class OrderItem {
+
+    @EmbeddedId
+    private OrderItemId id;
+
+    private Integer quantity;
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="explain facade design pattern. facade provides a simple interface over a complex subsystem. the facade pattern hides complexity by exposing one simplified entry point for multiple internal operations. in backend systems, this is useful when one api needs to coordinate multiple services, validations, and external calls.
+
+for example, an `orderfacade` can validate stock, calculate price, reserve inventory, create payment intent, and create the order. the controller calls only the facade, while the facade coordinates the internal services. this keeps controllers clean and reduces coupling between clients and internal subsystems.">
+      <div class="qa-head">
+        <span class="badge">Q18</span>
+        <h3>Explain Facade design pattern.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-18">Facade provides a simple interface over a complex subsystem.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-18">Copy answer</button>
+        <div id="answer-18" class="answer-text">The Facade pattern hides complexity by exposing one simplified entry point for multiple internal operations. In backend systems, this is useful when one API needs to coordinate multiple services, validations, and external calls.<br><br>For example, an `OrderFacade` can validate stock, calculate price, reserve inventory, create payment intent, and create the order. The controller calls only the facade, while the facade coordinates the internal services. This keeps controllers clean and reduces coupling between clients and internal subsystems.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is circuit breaker pattern? circuit breaker prevents repeated calls to a failing downstream service. the circuit breaker pattern improves resilience in microservices. when a downstream service is slow or failing, the circuit breaker stops sending more requests for a period of time. this prevents thread exhaustion, reduces cascading failures, and allows the failing service time to recover.
+
+it has three common states: closed, open, and half-open. in closed state, calls are allowed. in open state, calls fail fast or return fallback. in half-open state, a limited number of test calls are allowed to check recovery. in java, resilience4j is commonly used with spring boot.">
+      <div class="qa-head">
+        <span class="badge">Q19</span>
+        <h3>What is circuit breaker pattern?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-19">Circuit breaker prevents repeated calls to a failing downstream service.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-19">Copy answer</button>
+        <div id="answer-19" class="answer-text">The circuit breaker pattern improves resilience in microservices. When a downstream service is slow or failing, the circuit breaker stops sending more requests for a period of time. This prevents thread exhaustion, reduces cascading failures, and allows the failing service time to recover.<br><br>It has three common states: closed, open, and half-open. In closed state, calls are allowed. In open state, calls fail fast or return fallback. In half-open state, a limited number of test calls are allowed to check recovery. In Java, Resilience4j is commonly used with Spring Boot.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="how would you achieve centralized logging in microservices? collect logs from all services into a centralized platform such as elk. in microservices, centralized logging is critical because a single request may pass through many services. i would structure logs as json and include correlation id, trace id, span id, user id where allowed, service name, environment, and request path.
+
+a common setup is filebeat or fluent bit collecting logs from containers, sending them to logstash or directly to elasticsearch/opensearch, and visualizing in kibana or grafana. for tracing, i would combine logs with opentelemetry, zipkin, jaeger, or tempo. the key is being able to search one request across all services using the same correlation id.">
+      <div class="qa-head">
+        <span class="badge">Q20</span>
+        <h3>How would you achieve centralized logging in microservices?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-20">Collect logs from all services into a centralized platform such as ELK.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-20">Copy answer</button>
+        <div id="answer-20" class="answer-text">In microservices, centralized logging is critical because a single request may pass through many services. I would structure logs as JSON and include correlation ID, trace ID, span ID, user ID where allowed, service name, environment, and request path.<br><br>A common setup is Filebeat or Fluent Bit collecting logs from containers, sending them to Logstash or directly to Elasticsearch/OpenSearch, and visualizing in Kibana or Grafana. For tracing, I would combine logs with OpenTelemetry, Zipkin, Jaeger, or Tempo. The key is being able to search one request across all services using the same correlation ID.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="how do you handle distributed transactions in microservices? use saga, compensation, event-driven consistency, or rarely two-phase commit. in microservices, i avoid distributed acid transactions when possible because they reduce scalability and availability. the preferred approach is eventual consistency using the saga pattern. each service owns its local transaction and publishes an event. if a later step fails, previous services execute compensating actions.
+
+two-phase commit can provide stronger consistency, but it is blocking and tightly couples services, so it is less suitable for highly scalable microservices. for most business workflows like order-payment-inventory, saga with idempotent operations, retry, outbox pattern, and dead-letter queues is more practical.">
+      <div class="qa-head">
+        <span class="badge">Q21</span>
+        <h3>How do you handle distributed transactions in microservices?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-21">Use Saga, compensation, event-driven consistency, or rarely two-phase commit.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-21">Copy answer</button>
+        <div id="answer-21" class="answer-text">In microservices, I avoid distributed ACID transactions when possible because they reduce scalability and availability. The preferred approach is eventual consistency using the Saga pattern. Each service owns its local transaction and publishes an event. If a later step fails, previous services execute compensating actions.<br><br>Two-phase commit can provide stronger consistency, but it is blocking and tightly couples services, so it is less suitable for highly scalable microservices. For most business workflows like order-payment-inventory, Saga with idempotent operations, retry, outbox pattern, and dead-letter queues is more practical.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is saga pattern? saga splits a distributed transaction into smaller local transactions with compensating actions. saga manages long-running business transactions across services without a global lock. each step commits locally. if a step fails, the system runs compensating transactions to undo previous steps.
+
+there are two styles. in choreography, services communicate through events and there is no central coordinator. in orchestration, a central orchestrator controls the workflow. choreography is loosely coupled but harder to trace. orchestration is easier to monitor but introduces a central workflow component.
+
+for example, order creation can reserve inventory, create payment, and confirm shipment. if payment fails, the system releases the reserved inventory.">
+      <div class="qa-head">
+        <span class="badge">Q22</span>
+        <h3>What is Saga pattern?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-22">Saga splits a distributed transaction into smaller local transactions with compensating actions.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-22">Copy answer</button>
+        <div id="answer-22" class="answer-text">Saga manages long-running business transactions across services without a global lock. Each step commits locally. If a step fails, the system runs compensating transactions to undo previous steps.<br><br>There are two styles. In choreography, services communicate through events and there is no central coordinator. In orchestration, a central orchestrator controls the workflow. Choreography is loosely coupled but harder to trace. Orchestration is easier to monitor but introduces a central workflow component.<br><br>For example, order creation can reserve inventory, create payment, and confirm shipment. If payment fails, the system releases the reserved inventory.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="difference between kafka and queue. kafka is an event streaming platform. traditional queues are usually point-to-point messaging systems. kafka is designed as a distributed commit log. messages are stored in topics and partitions for a configured retention period, so multiple consumer groups can read the same data independently and replay events. it is excellent for event streaming, audit trails, analytics, and high-throughput asynchronous communication.
+
+traditional queues like rabbitmq are often used for task distribution. a message is usually consumed by one consumer and then acknowledged/removed. queues are great for work dispatching, background jobs, and request decoupling.
+
+i choose kafka when event history, replay, high throughput, and multiple independent consumers are important. i choose a queue when i need reliable task processing with simpler routing semantics.">
+      <div class="qa-head">
+        <span class="badge">Q23</span>
+        <h3>Difference between Kafka and queue.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-23">Kafka is an event streaming platform. Traditional queues are usually point-to-point messaging systems.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-23">Copy answer</button>
+        <div id="answer-23" class="answer-text">Kafka is designed as a distributed commit log. Messages are stored in topics and partitions for a configured retention period, so multiple consumer groups can read the same data independently and replay events. It is excellent for event streaming, audit trails, analytics, and high-throughput asynchronous communication.<br><br>Traditional queues like RabbitMQ are often used for task distribution. A message is usually consumed by one consumer and then acknowledged/removed. Queues are great for work dispatching, background jobs, and request decoupling.<br><br>I choose Kafka when event history, replay, high throughput, and multiple independent consumers are important. I choose a queue when I need reliable task processing with simpler routing semantics.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is query planning? query planning is how the database chooses an execution strategy. query planning is the database optimizer&#x27;s process of deciding how to execute a sql query. it evaluates possible strategies such as full table scan, index scan, join order, join algorithm, sorting, grouping, and filtering.
+
+as a backend developer, i use execution plans to identify bottlenecks. for example, if a query scans millions of rows instead of using an index, i check whether the query condition matches the index, whether statistics are updated, and whether a composite index would help. query planning is important for production performance tuning.">
+      <div class="qa-head">
+        <span class="badge">Q24</span>
+        <h3>What is query planning?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-24">Query planning is how the database chooses an execution strategy.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-24">Copy answer</button>
+        <div id="answer-24" class="answer-text">Query planning is the database optimizer&#x27;s process of deciding how to execute a SQL query. It evaluates possible strategies such as full table scan, index scan, join order, join algorithm, sorting, grouping, and filtering.<br><br>As a backend developer, I use execution plans to identify bottlenecks. For example, if a query scans millions of rows instead of using an index, I check whether the query condition matches the index, whether statistics are updated, and whether a composite index would help. Query planning is important for production performance tuning.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="explain solid principles. solid is a set of five object-oriented design principles. solid helps us design code that is maintainable, testable, and extensible.
+
+single responsibility means one class should have one reason to change. open/closed means we should add new behavior through extension instead of modifying stable code. liskov substitution means child classes must be safely replaceable for parent types. interface segregation means clients should not depend on methods they do not use. dependency inversion means high-level modules should depend on abstractions, not concrete classes.
+
+in spring boot, we apply solid by using layered architecture, interfaces for replaceable strategies, dependency injection, small focused services, and clear domain boundaries.">
+      <div class="qa-head">
+        <span class="badge">Q25</span>
+        <h3>Explain SOLID principles.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-25">SOLID is a set of five object-oriented design principles.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-25">Copy answer</button>
+        <div id="answer-25" class="answer-text">SOLID helps us design code that is maintainable, testable, and extensible.<br><br>Single Responsibility means one class should have one reason to change. Open/Closed means we should add new behavior through extension instead of modifying stable code. Liskov Substitution means child classes must be safely replaceable for parent types. Interface Segregation means clients should not depend on methods they do not use. Dependency Inversion means high-level modules should depend on abstractions, not concrete classes.<br><br>In Spring Boot, we apply SOLID by using layered architecture, interfaces for replaceable strategies, dependency injection, small focused services, and clear domain boundaries.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="explain acid properties. acid defines reliable database transaction behavior. acid stands for atomicity, consistency, isolation, and durability. atomicity means a transaction is all-or-nothing. consistency means the database moves from one valid state to another. isolation means concurrent transactions should not corrupt each other. durability means committed data must survive failures.
+
+for example, in a money transfer, deducting from one account and crediting another must happen together. if crediting fails, deduction must roll back. isolation prevents another transaction from reading inconsistent intermediate data.">
+      <div class="qa-head">
+        <span class="badge">Q26</span>
+        <h3>Explain ACID properties.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-26">ACID defines reliable database transaction behavior.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-26">Copy answer</button>
+        <div id="answer-26" class="answer-text">ACID stands for Atomicity, Consistency, Isolation, and Durability. Atomicity means a transaction is all-or-nothing. Consistency means the database moves from one valid state to another. Isolation means concurrent transactions should not corrupt each other. Durability means committed data must survive failures.<br><br>For example, in a money transfer, deducting from one account and crediting another must happen together. If crediting fails, deduction must roll back. Isolation prevents another transaction from reading inconsistent intermediate data.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="implement lazy initialization for singleton. lazy initialization creates the singleton object only when it is first needed. for singleton lazy initialization, the simplest thread-safe approach in modern java is the static holder pattern. the instance is created only when the holder class is accessed, and class loading guarantees thread safety without explicit synchronization.">
+      <div class="qa-head">
+        <span class="badge">Q27</span>
+        <h3>Implement lazy initialization for Singleton.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-27">Lazy initialization creates the singleton object only when it is first needed.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-27">Copy answer</button>
+        <div id="answer-27" class="answer-text">For singleton lazy initialization, the simplest thread-safe approach in modern Java is the static holder pattern. The instance is created only when the holder class is accessed, and class loading guarantees thread safety without explicit synchronization.</div>
+      </div>
+      
+        <div class="code-toolbar">
+          <button class="copy-btn" data-copy-target="code-27">Copy code</button>
+        </div>
+        <pre id="code-27"><code>public final class AppConfig {
+
+    private AppConfig() {
+        // prevent external instantiation
+    }
+
+    private static class Holder {
+        private static final AppConfig INSTANCE = new AppConfig();
+    }
+
+    public static AppConfig getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+
+// Alternative: double-checked locking
+public final class LazySingleton {
+
+    private static volatile LazySingleton instance;
+
+    private LazySingleton() {
+    }
+
+    public static LazySingleton getInstance() {
+        if (instance == null) {
+            synchronized (LazySingleton.class) {
+                if (instance == null) {
+                    instance = new LazySingleton();
+                }
+            }
+        }
+        return instance;
+    }
+}</code></pre>
+        
+    </article>
+    
+    <article class="qa-card" data-search="fail-fast vs fail-safe iterators. fail-fast iterators throw concurrentmodificationexception. fail-safe iterators work on a copy or weakly consistent view. fail-fast iterators detect structural modification of a collection during iteration and throw `concurrentmodificationexception`. examples include iterators from `arraylist` and `hashmap`. they are not guaranteed for concurrency control; they are mainly a bug-detection mechanism.
+
+fail-safe or weakly consistent iterators do not throw that exception during concurrent modification. examples include `concurrenthashmap` iterators and `copyonwritearraylist`. `copyonwritearraylist` iterates over a snapshot, while `concurrenthashmap` provides a weakly consistent view.
+
+in concurrent systems, i use concurrent collections instead of manually synchronizing normal collections unless i have a specific reason.">
+      <div class="qa-head">
+        <span class="badge">Q28</span>
+        <h3>Fail-fast vs fail-safe iterators.</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-28">Fail-fast iterators throw ConcurrentModificationException. Fail-safe iterators work on a copy or weakly consistent view.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-28">Copy answer</button>
+        <div id="answer-28" class="answer-text">Fail-fast iterators detect structural modification of a collection during iteration and throw `ConcurrentModificationException`. Examples include iterators from `ArrayList` and `HashMap`. They are not guaranteed for concurrency control; they are mainly a bug-detection mechanism.<br><br>Fail-safe or weakly consistent iterators do not throw that exception during concurrent modification. Examples include `ConcurrentHashMap` iterators and `CopyOnWriteArrayList`. `CopyOnWriteArrayList` iterates over a snapshot, while `ConcurrentHashMap` provides a weakly consistent view.<br><br>In concurrent systems, I use concurrent collections instead of manually synchronizing normal collections unless I have a specific reason.</div>
+      </div>
+      
+    </article>
+    
+    </section>
+    
+    <section id="round3" class="section">
+      <div class="section-header">
+        <h2>Round 3 — Techno-Managerial Questions</h2>
+        <p>Communication, ownership, project challenges, and conflict handling.</p>
+      </div>
+      
+    <article class="qa-card" data-search="why do you want to join us? the third round asked managerial and motivation questions. i want to join epam because it gives engineers exposure to enterprise-scale projects, strong engineering practices, and clients across different domains. i am looking for a place where i can contribute as a backend engineer, work on scalable java and microservices systems, and continue improving in architecture, cloud, and distributed systems.
+
+what attracts me is not only the technology stack, but also the engineering culture: code quality, delivery discipline, collaboration, and continuous learning. with my java, spring boot, microservices, and production support experience, i believe i can contribute quickly while also growing into more technical ownership.">
+      <div class="qa-head">
+        <span class="badge">Q29</span>
+        <h3>Why do you want to join us?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-29">The third round asked managerial and motivation questions.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-29">Copy answer</button>
+        <div id="answer-29" class="answer-text">I want to join EPAM because it gives engineers exposure to enterprise-scale projects, strong engineering practices, and clients across different domains. I am looking for a place where I can contribute as a backend engineer, work on scalable Java and microservices systems, and continue improving in architecture, cloud, and distributed systems.<br><br>What attracts me is not only the technology stack, but also the engineering culture: code quality, delivery discipline, collaboration, and continuous learning. With my Java, Spring Boot, microservices, and production support experience, I believe I can contribute quickly while also growing into more technical ownership.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="what is the most challenging task you faced in your last project? the interviewer asked for a real project challenge and how the candidate handled it. one challenging task i faced was improving performance in a microservice flow where multiple downstream apis were called repeatedly. the response time was high, and the issue was not only in one service but across the flow.
+
+i first analyzed logs, api timings, and database queries to identify bottlenecks. then i separated the problems: repeated external calls, missing caching, inefficient query patterns, and too much synchronous dependency between services.
+
+the solution was to introduce caching for stable data, optimize database queries and indexes, and redesign some calls to be asynchronous where real-time response was not required. i also added better logging and metrics so the team could monitor the improvement. the result was lower response time, reduced downstream load, and easier production troubleshooting.">
+      <div class="qa-head">
+        <span class="badge">Q30</span>
+        <h3>What is the most challenging task you faced in your last project?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-30">The interviewer asked for a real project challenge and how the candidate handled it.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-30">Copy answer</button>
+        <div id="answer-30" class="answer-text">One challenging task I faced was improving performance in a microservice flow where multiple downstream APIs were called repeatedly. The response time was high, and the issue was not only in one service but across the flow.<br><br>I first analyzed logs, API timings, and database queries to identify bottlenecks. Then I separated the problems: repeated external calls, missing caching, inefficient query patterns, and too much synchronous dependency between services.<br><br>The solution was to introduce caching for stable data, optimize database queries and indexes, and redesign some calls to be asynchronous where real-time response was not required. I also added better logging and metrics so the team could monitor the improvement. The result was lower response time, reduced downstream load, and easier production troubleshooting.</div>
+      </div>
+      
+    </article>
+    
+    <article class="qa-card" data-search="did you face any conflicts with teammates? how did you handle them? the interviewer checked communication and teamwork skills. yes, conflicts can happen, especially around design decisions, estimates, or implementation approaches. my approach is to keep the discussion objective and focus on facts instead of personal opinions.
+
+for example, if there are two different technical approaches, i compare them based on maintainability, performance, delivery timeline, risk, and impact on existing systems. if needed, i propose a small proof of concept or involve a senior engineer or architect for alignment.
+
+i try to listen first, explain my reasoning clearly, and agree on a decision that benefits the project. once the team decides, i support the decision even if my original idea was different.">
+      <div class="qa-head">
+        <span class="badge">Q31</span>
+        <h3>Did you face any conflicts with teammates? How did you handle them?</h3>
+      </div>
+      <div class="block clean">
+        <div class="block-title">Formatted script</div>
+        <p id="clean-31">The interviewer checked communication and teamwork skills.</p>
+      </div>
+      <div class="block senior">
+        <div class="block-title">Senior answer script</div>
+        <button class="copy-btn small" data-copy-target="answer-31">Copy answer</button>
+        <div id="answer-31" class="answer-text">Yes, conflicts can happen, especially around design decisions, estimates, or implementation approaches. My approach is to keep the discussion objective and focus on facts instead of personal opinions.<br><br>For example, if there are two different technical approaches, I compare them based on maintainability, performance, delivery timeline, risk, and impact on existing systems. If needed, I propose a small proof of concept or involve a senior engineer or architect for alignment.<br><br>I try to listen first, explain my reasoning clearly, and agree on a decision that benefits the project. Once the team decides, I support the decision even if my original idea was different.</div>
+      </div>
+      
+    </article>
+    
+    </section>
+    
+    </div>
+  </main>
+
+  <footer class="footer">
+    Built for interview practice. Tip: copy each Senior answer script and practice speaking it in 60–90 seconds.
+  </footer>
+
+  <script>
+    const body = document.body;
+    const search = document.getElementById('search');
+    const cards = Array.from(document.querySelectorAll('.qa-card'));
+
+    document.getElementById('toggleDark').addEventListener('click', () => {
+      body.classList.toggle('dark');
+      localStorage.setItem('darkMode', body.classList.contains('dark') ? '1' : '0');
+    });
+
+    if (localStorage.getItem('darkMode') === '1') {
+      body.classList.add('dark');
+    }
+
+    search.addEventListener('input', () => {
+      const term = search.value.trim().toLowerCase();
+      cards.forEach(card => {
+        const haystack = card.getAttribute('data-search') || '';
+        card.classList.toggle('hidden', term && !haystack.includes(term));
+      });
+
+      document.querySelectorAll('.section').forEach(section => {
+        const visibleCards = section.querySelectorAll('.qa-card:not(.hidden)').length;
+        const hasCards = section.querySelectorAll('.qa-card').length > 0;
+        section.classList.toggle('hidden', hasCards && visibleCards === 0 && term);
+      });
+    });
+
+    document.getElementById('expandRaw').addEventListener('click', () => {
+      const raw = document.getElementById('rawDetails');
+      raw.open = !raw.open;
+    });
+
+    document.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-copy-target]');
+      if (!button) return;
+
+      const id = button.getAttribute('data-copy-target');
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      const text = target.innerText || target.textContent;
+      await navigator.clipboard.writeText(text);
+
+      const original = button.textContent;
+      button.textContent = 'Copied!';
+      setTimeout(() => button.textContent = original, 1200);
+    });
+  </script>
+</body>
+</html>

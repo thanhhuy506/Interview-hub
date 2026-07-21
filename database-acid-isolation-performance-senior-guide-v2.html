@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database, Spring Transactions, ACID, Isolation & Performance — Senior Java Guide</title>
+<meta name="description" content="Deep practical guide for Java backend engineers covering ACID, isolation levels, locking, deadlocks, API latency investigation, slow SQL troubleshooting, optimization, and senior interview questions.">
+<style>
+:root {
+  --bg:#f4f7fb; --surface:#ffffff; --surface2:#edf2f8; --surface3:#e4ebf5;
+  --text:#172033; --muted:#5f6b7a; --border:#d9e2ee; --accent:#2457d6;
+  --accent2:#6b46c1; --soft:#eaf0ff; --green:#147d64; --greenSoft:#e7f8f2;
+  --amber:#9a5a00; --amberSoft:#fff4dd; --red:#b42318; --redSoft:#fff0ee;
+  --code:#101827; --codeText:#e8efff; --shadow:0 18px 44px rgba(24,38,65,.08);
+}
+body.dark {
+  --bg:#0c1220; --surface:#151d2c; --surface2:#1d283a; --surface3:#26344a;
+  --text:#eef3ff; --muted:#aab5c7; --border:#2c3a52; --accent:#86a9ff;
+  --accent2:#c09aff; --soft:#1c2d57; --green:#66dcb9; --greenSoft:#123a31;
+  --amber:#ffc56c; --amberSoft:#4a3213; --red:#ff938b; --redSoft:#4c211e;
+  --code:#080e19; --codeText:#e8efff; --shadow:0 20px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.72}
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:22px 18px}
+.brand{font-size:1.05rem;font-weight:850;line-height:1.35}
+.brand small{display:block;color:var(--muted);font-size:.74rem;margin-top:6px}
+.search{width:100%;margin:16px 0 12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font:inherit}
+.nav-title{margin:18px 9px 6px;text-transform:uppercase;letter-spacing:.11em;font-size:.68rem;font-weight:850;color:var(--muted)}
+.nav-link{display:block;padding:7px 10px;margin:2px 0;border-radius:9px;color:var(--text);text-decoration:none;font-size:.86rem;font-weight:680}
+.nav-link:hover,.nav-link.active{background:var(--soft);color:var(--accent)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}
+.btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:760}
+main{min-width:0;padding:34px clamp(18px,4vw,64px) 80px}
+.content{max-width:1180px;margin:auto}
+.hero,section{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:22px}
+.hero{padding:clamp(30px,6vw,66px);background:radial-gradient(circle at 92% 10%,rgba(107,70,193,.17),transparent 30%),radial-gradient(circle at 10% 92%,rgba(36,87,214,.14),transparent 33%),var(--surface)}
+.eyebrow,.badge{display:inline-flex;border-radius:999px;font-weight:850}
+.eyebrow{background:var(--soft);color:var(--accent);padding:6px 10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.badge{background:var(--surface2);color:var(--muted);padding:4px 8px;font-size:.72rem}
+h1{font-size:clamp(2.3rem,5vw,4.7rem);line-height:1.02;letter-spacing:-.05em;margin:16px 0 12px}
+h2{font-size:clamp(1.8rem,3vw,2.5rem);letter-spacing:-.03em;line-height:1.18}
+h3{font-size:1.36rem;margin-top:34px}
+h4{margin-bottom:8px}
+.hero p{max-width:920px;color:var(--muted);font-size:1.06rem}
+.stats,.grid-2,.grid-3,.grid-4{display:grid;gap:15px}
+.stats{grid-template-columns:repeat(5,1fr);margin-top:24px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat,.card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:17px}
+.stat strong{display:block;font-size:1.3rem} .stat span{color:var(--muted);font-size:.8rem}
+section{padding:clamp(24px,4vw,44px);margin:24px 0;scroll-margin-top:20px}
+.callout{border-left:4px solid var(--accent);background:var(--soft);border-radius:10px;padding:15px 17px;margin:16px 0}
+.callout.good{border-color:var(--green);background:var(--greenSoft)}
+.callout.warn{border-color:var(--amber);background:var(--amberSoft)}
+.callout.bad{border-color:var(--red);background:var(--redSoft)}
+.card.good{background:var(--greenSoft)} .card.warning{background:var(--amberSoft)} .card.danger{background:var(--redSoft)}
+pre{position:relative;overflow-x:auto;background:var(--code);color:var(--codeText);padding:20px;border-radius:14px;line-height:1.6;font-size:.86rem}
+code{font-family:"SFMono-Regular",Consolas,monospace}
+:not(pre)>code{background:var(--surface2);padding:2px 6px;border-radius:6px}
+.copy{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:white;border-radius:8px;padding:5px 9px;cursor:pointer}
+.diagram{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:17px;white-space:pre-wrap;font-family:Consolas,monospace}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid var(--border);padding:11px;vertical-align:top;text-align:left}
+th{background:var(--surface2)}
+.table-wrap{overflow-x:auto}
+.flow{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:42px 1fr;gap:12px;background:var(--surface2);padding:13px 15px;border-radius:12px}
+.step b{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff}
+.interview{background:linear-gradient(135deg,var(--soft),var(--surface));border:1px solid var(--border);border-radius:15px;padding:18px;margin-top:20px}
+details{border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin:9px 0}
+summary{cursor:pointer;font-weight:800}
+.hidden{display:none!important}
+.footer{text-align:center;color:var(--muted);padding:20px}
+@media(max-width:1080px){.layout{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}aside nav{display:flex;overflow-x:auto;gap:5px}.nav-title{display:none}.nav-link{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){main{padding:16px 10px 50px}.hero,section{border-radius:16px}.grid-2,.grid-3,.grid-4,.stats{grid-template-columns:1fr}}
+@media print{aside,.copy,.actions,.search{display:none!important}.layout{display:block}main{padding:0}.hero,section{box-shadow:none}details>*{display:block!important}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Database & Performance Deep Dive<small>ACID, isolation, locks, API latency, SQL tuning, and senior interview answers</small></div>
+  <input id="search" class="search" placeholder="Search topics...">
+  <nav>
+    <div class="nav-title">Foundation</div>
+    <a class="nav-link" href="#overview">Overview</a>
+    <a class="nav-link" href="#acid">ACID</a>
+    <a class="nav-link" href="#transactions">Transactions</a>
+    <a class="nav-link" href="#spring-transactions">Spring @Transactional</a>
+    <div class="nav-title">Concurrency</div>
+    <a class="nav-link" href="#isolation">Isolation levels</a>
+    <a class="nav-link" href="#locks">Locks & deadlocks</a>
+    <a class="nav-link" href="#project-cases">Project cases</a>
+    <div class="nav-title">Performance</div>
+    <a class="nav-link" href="#api-latency">API latency workflow</a>
+    <a class="nav-link" href="#slow-sql">Slow SQL workflow</a>
+    <a class="nav-link" href="#indexing">Indexes</a>
+    <a class="nav-link" href="#jpa">JPA / Hibernate</a>
+    <a class="nav-link" href="#connection-pool">Connection pool</a>
+    <a class="nav-link" href="#caching">Caching</a>
+    <div class="nav-title">Operations</div>
+    <a class="nav-link" href="#observability">Observability</a>
+    <a class="nav-link" href="#incident">Incident checklist</a>
+    <a class="nav-link" href="#questions">Interview Q&A</a>
+  </nav>
+  <div class="actions">
+    <button class="btn" id="theme">Toggle theme</button>
+    <button class="btn" id="expand">Expand Q&A</button>
+    <button class="btn" onclick="window.print()">Print</button>
+  </div>
+</aside>
+
+<main><div class="content">
+<header class="hero" id="overview">
+  <span class="eyebrow">Senior Java backend guide</span>
+  <h1>Database correctness first, performance second, evidence always.</h1>
+  <p>This guide explains ACID, transaction boundaries, isolation levels, concurrency anomalies, locks, deadlocks, slow API investigation, slow SQL troubleshooting, indexing, JPA/Hibernate pitfalls, connection pools, caching, observability, and production incident handling. The focus is practical: what to check, in which order, how to reason about trade-offs, and how a senior engineer should explain decisions.</p>
+  <div class="callout good"><strong>Senior principle:</strong> Do not start by changing isolation level, adding indexes, or increasing thread pools. First identify the real bottleneck and correctness requirement using traces, metrics, query plans, lock data, and reproducible evidence.</div>
+  <div class="stats">
+    <div class="stat"><strong>4</strong><span>ACID properties</span></div>
+    <div class="stat"><strong>4</strong><span>Main SQL isolation levels</span></div>
+    <div class="stat"><strong>10+</strong><span>Real project cases</span></div>
+    <div class="stat"><strong>Step-by-step</strong><span>Latency and SQL diagnosis</span></div>
+    <div class="stat"><strong>Senior</strong><span>Interview answers</span></div>
+  </div>
+</header>
+
+<section id="acid" data-search="acid atomicity consistency isolation durability">
+<span class="badge">Foundation</span><h2>1. ACID in practical systems</h2>
+
+<div class="grid-4">
+  <div class="card"><h3>Atomicity</h3><p>All operations in one transaction succeed together or fail together.</p><p><strong>Example:</strong> debit account, credit account, and write ledger entry must not partially commit.</p></div>
+  <div class="card"><h3>Consistency</h3><p>A transaction moves the database from one valid state to another valid state.</p><p><strong>Example:</strong> balance cannot become negative when the business rule forbids it.</p></div>
+  <div class="card"><h3>Isolation</h3><p>Concurrent transactions should not observe or create results that violate the selected isolation guarantees.</p><p><strong>Example:</strong> two payment requests must not both spend the same available amount.</p></div>
+  <div class="card"><h3>Durability</h3><p>After commit succeeds, data should survive process restart or system failure according to the database durability configuration.</p><p><strong>Example:</strong> a committed order should still exist after the application restarts.</p></div>
+</div>
+
+<h3>1.1 Atomicity is not distributed rollback</h3>
+<div class="diagram">Local database transaction:
+A, B, C database statements
+        ↓
+commit together or rollback together
+
+Distributed workflow:
+Order DB + Payment Provider + Inventory Service
+        ↓
+No normal local transaction can roll back all systems
+        ↓
+Use Saga, Outbox, idempotency, retries, and compensation</div>
+
+<div class="callout warn"><strong>Important:</strong> <code>@Transactional</code> protects resources managed by the same transaction manager. It does not automatically roll back an HTTP call, Kafka publish, S3 upload, or another microservice.</div>
+
+<h3>1.2 Consistency belongs to both database and application</h3>
+<ul>
+  <li>Database constraints: primary key, foreign key, unique constraint, check constraint, not-null.</li>
+  <li>Application invariants: order status transitions, payment amount rules, tenant ownership.</li>
+  <li>Transaction boundaries: related writes commit together.</li>
+  <li>Concurrency control: locking, optimistic versioning, atomic SQL.</li>
+</ul>
+
+<pre><code>ALTER TABLE payment
+ADD CONSTRAINT uk_payment_order UNIQUE (order_id);
+
+ALTER TABLE account
+ADD CONSTRAINT ck_balance_non_negative CHECK (balance &gt;= 0);</code></pre>
+
+<div class="interview"><h3>Senior interview answer</h3><p>ACID describes transaction guarantees, but I do not rely only on application checks. I protect invariants at multiple layers: transaction boundaries for atomicity, database constraints for consistency, isolation and locking for concurrent correctness, and durable storage configuration for commit persistence. For distributed workflows, I explicitly switch from ACID thinking to Saga, Outbox, idempotency, and compensation.</p></div>
+</section>
+
+<section id="transactions" data-search="transaction boundary transactional propagation rollback">
+<span class="badge">Transactions</span><h2>2. Transaction boundaries in Java and Spring</h2>
+
+<h3>2.1 Put the boundary around a business unit</h3>
+<pre><code>@Service
+public class TransferService {
+
+    @Transactional
+    public void transfer(
+            long fromAccountId,
+            long toAccountId,
+            BigDecimal amount
+    ) {
+        Account from = accountRepository.findForUpdate(fromAccountId);
+        Account to = accountRepository.findForUpdate(toAccountId);
+
+        from.debit(amount);
+        to.credit(amount);
+
+        transferRepository.save(
+                new Transfer(fromAccountId, toAccountId, amount)
+        );
+    }
+}</code></pre>
+
+<p>The transaction boundary belongs around the complete business operation, not around every repository method separately.</p>
+
+<h3>2.2 Common rollback mistakes</h3>
+<div class="grid-2">
+  <div class="card danger"><h4>Swallowing exceptions</h4>
+  <pre><code>@Transactional
+public void process() {
+    try {
+        repository.save(...);
+        externalStep();
+    } catch (Exception ex) {
+        log.error(&quot;failed&quot;, ex);
+        // Method returns normally, so Spring may commit.
+    }
+}</code></pre></div>
+  <div class="card danger"><h4>Self-invocation</h4>
+  <pre><code>@Transactional
+public void outer() {
+    innerRequiresNew(); // call does not pass through proxy
+}
+
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void innerRequiresNew() {
+}</code></pre></div>
+</div>
+
+<h3>2.3 Avoid long transactions</h3>
+<p>Do not keep a database transaction open while waiting for a slow external API unless the requirement clearly demands it. Long transactions hold locks, connections, snapshots, and memory.</p>
+
+<div class="diagram">Bad:
+Begin transaction
+  → update DB
+  → call payment API for 8 seconds
+  → update DB
+Commit
+
+Better:
+Short DB transaction stores pending state + outbox
+  → external call outside long lock window
+  → next short transaction updates final state</div>
+
+<h3>2.4 Read-only transactions</h3>
+<pre><code>@Transactional(readOnly = true)
+public OrderResponse getOrder(long id) {
+    return repository.findById(id)
+            .map(mapper::toResponse)
+            .orElseThrow(OrderNotFoundException::new);
+}</code></pre>
+
+<p><code>readOnly = true</code> is a hint to Spring, ORM, and sometimes the database driver. It does not guarantee that the database will reject all writes.</p>
+</section>
+
+
+<section id="spring-transactions" data-search="spring transactional annotation spring data jpa propagation rollback partial rollback multiple tasks requires new nested savepoint async event listener transaction template">
+<span class="badge">Spring / Spring Data</span>
+<h2>3. Spring <code>@Transactional</code> deep dive and special cases</h2>
+
+<div class="callout good">
+<strong>Main principle:</strong> <code>@Transactional</code> defines the transaction boundary and
+transaction rules for one unit of work. It does not mean that every method must have its own
+transaction, and it does not make non-database side effects rollback automatically.
+</div>
+
+<h3>3.1 What Spring does when a transactional method is called</h3>
+
+<div class="flow">
+  <div class="step"><b>1</b><div><strong>Call enters a Spring proxy</strong><br>The proxy reads transactional metadata.</div></div>
+  <div class="step"><b>2</b><div><strong>Choose a transaction manager</strong><br>For example, <code>JpaTransactionManager</code> or <code>DataSourceTransactionManager</code>.</div></div>
+  <div class="step"><b>3</b><div><strong>Create, join, suspend, or reject a transaction</strong><br>The behavior depends on propagation.</div></div>
+  <div class="step"><b>4</b><div><strong>Run the method</strong><br>Repositories and the persistence context participate in the transaction.</div></div>
+  <div class="step"><b>5</b><div><strong>Commit or roll back</strong><br>Spring applies rollback rules when the method exits.</div></div>
+  <div class="step"><b>6</b><div><strong>Release resources</strong><br>Connections, sessions, and transaction-bound resources are cleaned up.</div></div>
+</div>
+
+<div class="callout warn">
+The annotation is metadata. Transaction behavior works only when transaction management is enabled
+and the invocation passes through the relevant Spring proxy or AspectJ advice.
+</div>
+
+<h3>3.2 Default behavior</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Setting</th><th>Default</th><th>Meaning</th></tr>
+<tr><td>Propagation</td><td><code>REQUIRED</code></td><td>Join an existing transaction or create a new one.</td></tr>
+<tr><td>Isolation</td><td><code>DEFAULT</code></td><td>Use the underlying database/transaction-manager default.</td></tr>
+<tr><td>Read mode</td><td>Read-write</td><td>Normal dirty checking and flush behavior.</td></tr>
+<tr><td>Timeout</td><td>Transaction-system default</td><td>No custom method timeout unless configured.</td></tr>
+<tr><td>Rollback</td><td><code>RuntimeException</code> and <code>Error</code></td><td>Checked exceptions do not cause rollback by default.</td></tr>
+</table></div>
+
+<h3>3.3 Important annotation attributes</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr>
+<tr>
+  <td><code>propagation</code></td>
+  <td>Defines how the method relates to an existing transaction.</td>
+  <td><code>REQUIRED</code>, <code>REQUIRES_NEW</code>, <code>NESTED</code>.</td>
+</tr>
+<tr>
+  <td><code>isolation</code></td>
+  <td>Defines concurrent visibility/serialization behavior for a new transaction.</td>
+  <td><code>Isolation.SERIALIZABLE</code>.</td>
+</tr>
+<tr>
+  <td><code>readOnly</code></td>
+  <td>Provides a read-only hint to the transaction infrastructure.</td>
+  <td><code>@Transactional(readOnly = true)</code>.</td>
+</tr>
+<tr>
+  <td><code>timeout</code></td>
+  <td>Limits how long the transaction may run.</td>
+  <td><code>@Transactional(timeout = 5)</code>.</td>
+</tr>
+<tr>
+  <td><code>rollbackFor</code></td>
+  <td>Adds exception types that must trigger rollback.</td>
+  <td><code>rollbackFor = IOException.class</code>.</td>
+</tr>
+<tr>
+  <td><code>noRollbackFor</code></td>
+  <td>Specifies exceptions that should not trigger rollback.</td>
+  <td><code>noRollbackFor = BusinessWarningException.class</code>.</td>
+</tr>
+<tr>
+  <td><code>transactionManager</code></td>
+  <td>Selects a specific transaction manager.</td>
+  <td><code>transactionManager = "orderTransactionManager"</code>.</td>
+</tr>
+</table></div>
+
+<h3>3.4 Class-level and method-level configuration</h3>
+
+<pre><code>@Service
+@Transactional(readOnly = true)
+public class CustomerService {
+
+    public CustomerResponse find(long id) {
+        return load(id);
+    }
+
+    @Transactional
+    public void changeEmail(long id, String email) {
+        Customer customer = repository.findById(id).orElseThrow(...);
+        customer.changeEmail(email);
+    }
+}</code></pre>
+
+<p>
+The more specific method-level annotation overrides the class-level settings. A common style is
+class-level <code>readOnly = true</code> for a query service and method-level read-write annotations
+for commands.
+</p>
+
+<h3>3.5 Where should the transaction boundary be?</h3>
+
+<div class="grid-2">
+  <div class="card good">
+    <h4>Recommended: application/service layer</h4>
+    <pre><code>@Transactional
+public void createOrder(CreateOrderCommand command) {
+    Customer customer = customerRepository.get(command.customerId());
+    Order order = Order.create(customer, command.items());
+    orderRepository.save(order);
+    outboxRepository.save(OrderCreatedOutbox.from(order));
+}</code></pre>
+    <p>The transaction covers the complete business unit across multiple repositories.</p>
+  </div>
+  <div class="card warning">
+    <h4>Too narrow: every repository call separately</h4>
+    <pre><code>customerRepository.save(customer); // T1
+orderRepository.save(order);       // T2
+outboxRepository.save(event);      // T3</code></pre>
+    <p>A failure after T1 can leave partial business state.</p>
+  </div>
+</div>
+
+<h3>3.6 Transaction behavior in Spring Data JPA repositories</h3>
+
+<ul>
+  <li>Inherited CRUD read methods use repository transaction configuration with <code>readOnly = true</code>.</li>
+  <li>Inherited non-read CRUD methods use a normal read-write transaction.</li>
+  <li>Custom declared query methods do not automatically receive transaction configuration.</li>
+  <li>For multi-repository business work, an outer service/facade transaction should normally define the real boundary.</li>
+</ul>
+
+<h4>Custom read query</h4>
+
+<pre><code>@Transactional(readOnly = true)
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+    List&lt;User&gt; findByLastName(String lastName);
+}</code></pre>
+
+<h4>Modifying query</h4>
+
+<pre><code>@Modifying(clearAutomatically = true, flushAutomatically = true)
+@Transactional
+@Query("""
+    update User u
+       set u.active = false
+     where u.lastLoginAt &lt; :cutoff
+""")
+int deactivateInactiveUsers(Instant cutoff);</code></pre>
+
+<div class="callout warn">
+A bulk JPQL update bypasses normal entity dirty checking and can leave already-managed entities stale.
+Consider flushing before it and clearing or refreshing the persistence context afterward.
+</div>
+
+<h3>3.7 <code>readOnly = true</code> is a hint, not a security rule</h3>
+
+<p>
+It can allow JDBC or ORM optimizations. With Hibernate, it can reduce dirty-checking work. However,
+it is not a universal guarantee that all databases will reject every write.
+</p>
+
+<div class="callout bad">
+Do not rely on <code>readOnly = true</code> to enforce permissions. Authorization and database
+privileges are separate concerns.
+</div>
+
+<h3>3.8 Rollback rules</h3>
+
+<h4>Runtime exception: rolls back by default</h4>
+
+<pre><code>@Transactional
+public void createOrder() {
+    repository.save(...);
+    throw new IllegalStateException("Validation failed");
+}</code></pre>
+
+<h4>Checked exception: does not roll back by default</h4>
+
+<pre><code>@Transactional(rollbackFor = IOException.class)
+public void importOrders(Path path) throws IOException {
+    repository.save(...);
+    readFile(path);
+}</code></pre>
+
+<h4>Do not roll back for a specific exception</h4>
+
+<pre><code>@Transactional(noRollbackFor = NotificationFailedException.class)
+public void completeRegistration() {
+    userRepository.save(...);
+    notificationService.send(...);
+}</code></pre>
+
+<div class="callout warn">
+Use <code>noRollbackFor</code> carefully. Committing after an exception is correct only when the
+exception represents an acceptable secondary failure and the committed state remains valid.
+</div>
+
+<h3>3.9 Swallowed exception problem</h3>
+
+<pre><code>@Transactional
+public void process() {
+    try {
+        taskA();
+        taskB();
+    } catch (RuntimeException ex) {
+        log.error("Failed", ex);
+        // The proxy sees a normal return unless the transaction
+        // was already marked rollback-only.
+    }
+}</code></pre>
+
+<p>Safer options:</p>
+<ul>
+  <li>Rethrow when the whole transaction must fail.</li>
+  <li>Move optional work to an independent transaction.</li>
+  <li>Use a result object for expected business outcomes rather than exceptions.</li>
+  <li>Call <code>TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()</code> only when explicit programmatic rollback is genuinely required.</li>
+</ul>
+
+<h3>3.10 Multi-task case 1 — A, B, and C must all roll back</h3>
+
+<div class="diagram">executeTask() — transaction T1
+ ├── A joins T1
+ ├── B joins T1
+ │    ├── B1 joins T1
+ │    └── B2 joins T1
+ └── C joins T1
+
+Any unhandled rollback exception
+        ↓
+A + B + B1 + B2 + C all roll back</div>
+
+<pre><code>@Transactional
+public void executeTask() {
+    taskA.execute();
+    taskB.execute();
+    taskC.execute();
+}</code></pre>
+
+<p>This is the simplest and safest design when all steps form one local atomic business unit.</p>
+
+<h3>3.11 Multi-task case 2 — A and C roll back, but B remains committed</h3>
+
+<p>
+B must run in a separate physical transaction using <code>REQUIRES_NEW</code>. Put B in another
+Spring bean so the call passes through the proxy.
+</p>
+
+<pre><code>@Service
+public class TaskCoordinator {
+
+    private final IndependentBService bService;
+
+    @Transactional
+    public void execute() {
+        taskA();          // T1
+        bService.runB();  // T2
+        taskC();          // T1
+
+        throw new RuntimeException("Outer task failed");
+    }
+}
+
+@Service
+public class IndependentBService {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void runB() {
+        taskB();
+        taskB1();
+        taskB2();
+    }
+}</code></pre>
+
+<div class="diagram">T1 starts
+  A writes
+  T1 is suspended
+      T2 starts
+      B + B1 + B2 write
+      T2 commits
+  T1 resumes
+  C writes
+  outer failure
+T1 rolls back
+
+Result:
+A = rolled back
+C = rolled back
+B/B1/B2 = committed</div>
+
+<div class="callout warn">
+<code>REQUIRES_NEW</code> needs an additional database connection while the outer transaction keeps
+its resources. Heavy concurrent use can exhaust the connection pool.
+</div>
+
+<h3>3.12 Multi-task case 3 — Roll back only B, continue A and C</h3>
+
+<h4>Option A: independent B transaction</h4>
+
+<pre><code>@Transactional
+public void execute() {
+    taskA();
+
+    try {
+        independentBService.runB(); // REQUIRES_NEW
+    } catch (RuntimeException ex) {
+        log.warn("B failed; continue with C", ex);
+    }
+
+    taskC();
+}</code></pre>
+
+<p>
+If B fails, T2 rolls back. The outer T1 can continue because B's rollback-only state does not belong
+to T1.
+</p>
+
+<h4>Option B: nested savepoint</h4>
+
+<pre><code>@Transactional
+public void execute() {
+    taskA();
+
+    try {
+        nestedBService.runB(); // NESTED
+    } catch (RuntimeException ex) {
+        log.warn("Rolled back to savepoint", ex);
+    }
+
+    taskC();
+}
+
+@Transactional(propagation = Propagation.NESTED)
+public void runB() {
+    taskB();
+}</code></pre>
+
+<p>
+<code>NESTED</code> uses a savepoint inside one physical transaction. B can roll back to the
+savepoint while the outer transaction continues. If the outer transaction later rolls back,
+A, B, and C are all ultimately rolled back.
+</p>
+
+<div class="table-wrap"><table>
+<tr><th></th><th><code>REQUIRES_NEW</code></th><th><code>NESTED</code></th></tr>
+<tr><td>Physical transaction</td><td>Separate</td><td>Same physical transaction</td></tr>
+<tr><td>Can inner commit survive outer rollback?</td><td>Yes</td><td>No</td></tr>
+<tr><td>Mechanism</td><td>Suspend outer, create new transaction</td><td>Database/JDBC savepoint</td></tr>
+<tr><td>Connection usage</td><td>Usually requires another connection</td><td>Usually same connection</td></tr>
+<tr><td>Support</td><td>Common</td><td>Depends on transaction manager and savepoint support</td></tr>
+</table></div>
+
+<h3>3.13 Why catching an exception from <code>REQUIRED</code> may still fail</h3>
+
+<pre><code>@Transactional
+public void outer() {
+    try {
+        requiredService.inner(); // joins same T1
+    } catch (RuntimeException ex) {
+        log.warn("Continue", ex);
+    }
+
+    repository.save(...);
+}</code></pre>
+
+<p>
+If <code>inner()</code> marked the shared physical transaction rollback-only, catching the exception
+does not restore the transaction. The outer method may later receive
+<code>UnexpectedRollbackException</code> when it tries to commit.
+</p>
+
+<div class="callout bad">
+Catching an exception is not the same as creating a partial rollback boundary. Separate the work with
+<code>REQUIRES_NEW</code> or a supported nested savepoint when partial behavior is required.
+</div>
+
+<h3>3.14 Multi-task case 4 — Each item commits independently</h3>
+
+<p>Useful for batch jobs where one bad item should not roll back 999 successful items.</p>
+
+<pre><code>@Service
+public class BatchCoordinator {
+
+    private final ItemWorker worker;
+
+    public BatchResult process(List&lt;Item&gt; items) {
+        BatchResult result = new BatchResult();
+
+        for (Item item : items) {
+            try {
+                worker.processOne(item);
+                result.success(item);
+            } catch (RuntimeException ex) {
+                result.failure(item, ex);
+            }
+        }
+
+        return result;
+    }
+}
+
+@Service
+public class ItemWorker {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processOne(Item item) {
+        repository.save(map(item));
+    }
+}</code></pre>
+
+<p>Also consider Spring Batch chunk transactions, restartability, retry, and skip policies.</p>
+
+<h3>3.15 Multi-task case 5 — Dynamic transaction boundaries with <code>TransactionTemplate</code></h3>
+
+<p>
+Annotations are best for stable method boundaries. Programmatic transactions are clearer when a loop
+needs one transaction per item or the boundary is dynamic.
+</p>
+
+<pre><code>public class ItemProcessor {
+
+    private final TransactionTemplate transactionTemplate;
+
+    public ItemProcessor(PlatformTransactionManager transactionManager) {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    public void process(List&lt;Item&gt; items) {
+        for (Item item : items) {
+            transactionTemplate.executeWithoutResult(status -&gt; {
+                repository.save(map(item));
+            });
+        }
+    }
+}</code></pre>
+
+<h3>3.16 Propagation modes in practice</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Propagation</th><th>Behavior</th><th>Practical case</th></tr>
+<tr><td><code>REQUIRED</code></td><td>Join or create.</td><td>Normal business service method.</td></tr>
+<tr><td><code>REQUIRES_NEW</code></td><td>Suspend outer; create independent transaction.</td><td>Audit/retry record or independent batch item.</td></tr>
+<tr><td><code>NESTED</code></td><td>Create a savepoint in current physical transaction.</td><td>Partial rollback that must not survive outer rollback.</td></tr>
+<tr><td><code>SUPPORTS</code></td><td>Join if present; otherwise no transaction.</td><td>Read helper whose consistency follows caller.</td></tr>
+<tr><td><code>MANDATORY</code></td><td>Fail if no existing transaction.</td><td>Internal operation that must be called by a transactional use case.</td></tr>
+<tr><td><code>NOT_SUPPORTED</code></td><td>Suspend current transaction; run non-transactionally.</td><td>Long report/export that must not hold the business transaction.</td></tr>
+<tr><td><code>NEVER</code></td><td>Fail if a transaction exists.</td><td>Operation whose contract explicitly forbids transactional execution.</td></tr>
+</table></div>
+
+<h3>3.17 Self-invocation and proxy limitations</h3>
+
+<pre><code>@Service
+public class PaymentService {
+
+    @Transactional
+    public void outer() {
+        inner(); // this.inner(); does not enter proxy again
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void inner() {
+    }
+}</code></pre>
+
+<p>Preferred fix:</p>
+
+<pre><code>PaymentCoordinator
+        ↓ proxy call
+IndependentPaymentWorker.runInNewTransaction()</code></pre>
+
+<ul>
+  <li>Move the transactional method to another bean.</li>
+  <li>Keep transaction boundaries on externally invoked service methods.</li>
+  <li>Avoid private methods as declarative boundaries.</li>
+  <li>Do not depend on self-injection or <code>AopContext.currentProxy()</code> unless there is a strong reason.</li>
+</ul>
+
+<h3>3.18 <code>@Async</code>, threads, and transactions</h3>
+
+<p>
+Imperative Spring transactions are normally bound to the current thread. Starting asynchronous work
+does not make that work participate in the caller's transaction.
+</p>
+
+<pre><code>@Transactional
+public void createOrder() {
+    orderRepository.save(...);
+    asyncService.sendEmail(); // executes later on another thread
+}</code></pre>
+
+<p>
+The async method should define its own transaction if it performs database work. It also needs to
+handle the case where the outer transaction later rolls back.
+</p>
+
+<div class="callout good">
+For work that must occur only after a successful commit, publish a transaction-bound event or use a
+transactional outbox.
+</div>
+
+<h3>3.19 Transaction-bound events</h3>
+
+<pre><code>@Transactional
+public OrderId createOrder(CreateOrderCommand command) {
+    Order order = orderRepository.save(...);
+    eventPublisher.publishEvent(new OrderCreatedEvent(order.getId()));
+    return order.getId();
+}
+
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void afterOrderCommitted(OrderCreatedEvent event) {
+    notificationQueue.publish(event.orderId());
+}</code></pre>
+
+<div class="table-wrap"><table>
+<tr><th>Phase</th><th>Use</th></tr>
+<tr><td><code>BEFORE_COMMIT</code></td><td>Run before commit while transaction outcome is not final.</td></tr>
+<tr><td><code>AFTER_COMMIT</code></td><td>Run only after successful commit.</td></tr>
+<tr><td><code>AFTER_ROLLBACK</code></td><td>React only to rollback.</td></tr>
+<tr><td><code>AFTER_COMPLETION</code></td><td>Run after commit or rollback.</td></tr>
+</table></div>
+
+<p>
+If no transaction exists, a transactional event listener is not called by default unless
+<code>fallbackExecution = true</code>.
+</p>
+
+<h3>3.20 External API calls inside a transaction</h3>
+
+<div class="diagram">Problem:
+DB transaction starts
+  → row locks acquired
+  → call provider
+  → provider takes 10 seconds
+  → connection and locks stay occupied
+
+Consequences:
+pool exhaustion
+lock contention
+deadlocks
+timeout ambiguity
+long rollback work</div>
+
+<p>Better patterns:</p>
+<ul>
+  <li>Pending state + external call + final state in separate short transactions.</li>
+  <li>Transactional Outbox for reliable messaging.</li>
+  <li>Saga for multi-service workflows.</li>
+  <li>Provider and application idempotency keys.</li>
+  <li>Reconciliation when timeout does not reveal final provider outcome.</li>
+</ul>
+
+<h3>3.21 Multiple transaction managers and multiple databases</h3>
+
+<pre><code>@Transactional(transactionManager = "orderTransactionManager")
+public void updateOrderDatabase() {
+}
+
+@Transactional(transactionManager = "auditTransactionManager")
+public void updateAuditDatabase() {
+}</code></pre>
+
+<div class="callout warn">
+Two local transaction managers do not automatically create one atomic transaction across two
+databases. One can commit while the other fails. Use a justified distributed transaction mechanism
+or redesign with Outbox/Saga/eventual consistency.
+</div>
+
+<h3>3.22 Timeout</h3>
+
+<pre><code>@Transactional(timeout = 5)
+public void rebuildSummary() {
+    // Transaction infrastructure may abort after the configured limit.
+}</code></pre>
+
+<p>
+A transaction timeout is not a complete API timeout strategy. Also configure query, lock, HTTP-client,
+and request timeouts at the correct layers.
+</p>
+
+<h3>3.23 Isolation on inner methods</h3>
+
+<pre><code>@Transactional(isolation = Isolation.READ_COMMITTED)
+public void outer() {
+    innerSerializable(); // joins existing transaction with REQUIRED
+}
+
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public void innerSerializable() {
+}</code></pre>
+
+<p>
+The inner method cannot normally change the isolation of an already-running physical transaction.
+Use a genuinely new transaction when different isolation is required, and ensure the database and
+transaction manager support the configuration.
+</p>
+
+<h3>3.24 Special-case decision table</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Requirement</th><th>Recommended approach</th></tr>
+<tr><td>All local DB tasks must succeed together</td><td>One outer <code>REQUIRED</code> transaction.</td></tr>
+<tr><td>B must commit even if A/C roll back</td><td>B in another bean with <code>REQUIRES_NEW</code>.</td></tr>
+<tr><td>B may roll back, A/C continue, but everything must still obey final outer rollback</td><td><code>NESTED</code> savepoint when supported.</td></tr>
+<tr><td>Each batch item independently succeeds/fails</td><td>Worker method with <code>REQUIRES_NEW</code>, Spring Batch chunk, or <code>TransactionTemplate</code>.</td></tr>
+<tr><td>Checked exception must roll back</td><td><code>rollbackFor</code>.</td></tr>
+<tr><td>Expected secondary exception should still commit</td><td>Separate optional work or carefully use <code>noRollbackFor</code>.</td></tr>
+<tr><td>Run only after successful commit</td><td><code>@TransactionalEventListener(AFTER_COMMIT)</code> or Outbox.</td></tr>
+<tr><td>Long external call</td><td>Keep it outside the long DB transaction.</td></tr>
+<tr><td>Two databases must be updated</td><td>Do not assume two local managers are atomic; evaluate XA versus Saga/Outbox.</td></tr>
+<tr><td>Dynamic per-item boundaries</td><td><code>TransactionTemplate</code>.</td></tr>
+<tr><td>Async worker needs DB transaction</td><td>Start a new transaction inside the async worker.</td></tr>
+</table></div>
+
+<h3>3.25 Additional transaction interview questions</h3>
+
+<details><summary>Why is the service layer usually the best transaction boundary?</summary>
+<p>A business use case often calls multiple repositories and changes multiple aggregates or records. A service-level transaction can make those changes atomic. Repository-level transactions are usually too narrow and cannot express the complete business unit.</p></details>
+
+<details><summary>What is the difference between logical and physical transactions?</summary>
+<p>Multiple methods with <code>REQUIRED</code> can each have a logical transaction scope while sharing one physical database transaction. If an inner logical scope marks rollback-only, the shared physical transaction cannot later commit.</p></details>
+
+<details><summary>What causes <code>UnexpectedRollbackException</code>?</summary>
+<p>An inner participant in a shared transaction marks it rollback-only, but the outer caller catches the exception or otherwise attempts to commit. Spring throws the exception so the caller is not incorrectly told that commit succeeded.</p></details>
+
+<details><summary>Can Spring roll back only some statements in one transaction?</summary>
+<p>A normal transaction commits or rolls back as one physical unit. Partial rollback needs savepoints through <code>NESTED</code>, or separate physical transactions through <code>REQUIRES_NEW</code>. The two approaches have different final-rollback behavior.</p></details>
+
+<details><summary>Why is <code>REQUIRES_NEW</code> risky in high traffic?</summary>
+<p>The outer transaction retains its connection while the inner transaction obtains another connection. With many concurrent threads, the pool may be exhausted and threads can wait for connections held by each other.</p></details>
+
+<details><summary>Should every repository method have <code>@Transactional</code>?</summary>
+<p>No. Spring Data already configures inherited CRUD methods, while custom query methods may need explicit settings. More importantly, the business use-case transaction should usually be declared at the service or facade boundary.</p></details>
+
+<details><summary>Why can a modifying query make JPA entities stale?</summary>
+<p>Bulk JPQL or SQL operates directly in the database and bypasses normal per-entity dirty checking. Entities already loaded in the persistence context may still contain old values until they are cleared or refreshed.</p></details>
+
+<details><summary>Does <code>readOnly = true</code> guarantee no writes?</summary>
+<p>No. It is primarily a hint for drivers and ORM optimizations. Some databases may enforce it, but application authorization and database privileges must not depend on that assumption.</p></details>
+
+<details><summary>How do transactions behave with <code>@Async</code>?</summary>
+<p>The caller's thread-bound transaction does not automatically move to the async thread. The async worker should define its own transaction and should not assume the caller committed successfully unless the work is triggered after commit.</p></details>
+
+<details><summary>When would you use <code>TransactionTemplate</code>?</summary>
+<p>I use it when the transaction boundary is dynamic, such as one transaction per loop item, or when annotation-based method boundaries make control flow less clear. For stable service methods, declarative transactions remain simpler.</p></details>
+
+<details><summary>How do you make email or Kafka publication happen only after commit?</summary>
+<p>For local lightweight behavior, a transaction-bound event can run after commit. For reliable distributed publication, I prefer the Transactional Outbox because an in-memory event can be lost if the process stops after commit.</p></details>
+
+<div class="interview">
+<h3>Senior interview answer</h3>
+<p>
+I define Spring transactions around business units, usually in the application service, and let
+repository calls participate. I understand that <code>REQUIRED</code> methods share one physical
+transaction, so catching an inner exception does not necessarily make the transaction healthy again.
+For independent commit I use <code>REQUIRES_NEW</code>; for savepoint-based partial rollback I use
+<code>NESTED</code> only when the transaction manager supports it.
+</p>
+<p>
+I also consider proxy boundaries, checked-exception rollback rules, connection-pool impact,
+read-only semantics, JPA persistence-context staleness after bulk updates, async thread boundaries,
+and after-commit event behavior. For external systems, I do not pretend a local annotation provides
+distributed rollback; I use idempotency, Outbox, Saga, and reconciliation.
+</p>
+</div>
+
+<h3>3.26 Official Spring references</h3>
+<ul>
+  <li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html" target="_blank" rel="noopener">Spring Framework — Using @Transactional</a></li>
+  <li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html" target="_blank" rel="noopener">Spring Framework — Transaction Propagation</a></li>
+  <li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html" target="_blank" rel="noopener">Spring Framework — Rollback Rules</a></li>
+  <li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/programmatic.html" target="_blank" rel="noopener">Spring Framework — Programmatic Transaction Management</a></li>
+  <li><a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html" target="_blank" rel="noopener">Spring Framework — Transaction-bound Events</a></li>
+  <li><a href="https://docs.spring.io/spring-data/jpa/reference/jpa/transactions.html" target="_blank" rel="noopener">Spring Data JPA — Transactionality</a></li>
+</ul>
+</section>
+
+
+<section id="isolation" data-search="isolation levels dirty read non repeatable phantom lost update read committed repeatable serializable">
+<span class="badge">Concurrency</span><h2>4. Isolation levels and anomalies</h2>
+
+<h3>3.1 The main anomalies</h3>
+<div class="table-wrap"><table>
+<tr><th>Anomaly</th><th>Meaning</th><th>Project example</th></tr>
+<tr><td>Dirty Read</td><td>Transaction B reads uncommitted data written by A.</td><td>B shows a payment as completed, but A later rolls back.</td></tr>
+<tr><td>Non-repeatable Read</td><td>The same row returns different committed values inside one transaction.</td><td>Order status is PENDING at first read and CANCELLED at second read.</td></tr>
+<tr><td>Phantom Read</td><td>Repeating a range query returns additional or missing rows.</td><td>First count finds 5 active coupons; another transaction inserts one; second count finds 6.</td></tr>
+<tr><td>Lost Update</td><td>Two transactions read the same value and one overwrites the other's update.</td><td>Two requests both read stock=10, subtract 1, and both write stock=9.</td></tr>
+<tr><td>Write Skew</td><td>Transactions update different rows after reading a shared condition, breaking an invariant.</td><td>Two doctors independently go off-call, leaving no doctor available.</td></tr>
+</table></div>
+
+<h3>3.2 Isolation-level summary</h3>
+<div class="table-wrap"><table>
+<tr><th>Isolation level</th><th>Dirty read</th><th>Non-repeatable read</th><th>Phantom</th><th>Typical use</th></tr>
+<tr><td>READ UNCOMMITTED</td><td>Possible</td><td>Possible</td><td>Possible</td><td>Rare in business systems; weak correctness.</td></tr>
+<tr><td>READ COMMITTED</td><td>Prevented</td><td>Possible</td><td>Possible</td><td>Common default; good balance for many CRUD systems.</td></tr>
+<tr><td>REPEATABLE READ</td><td>Prevented</td><td>Prevented for repeated row reads</td><td>Database-specific behavior</td><td>Longer consistent reads and some concurrency protection.</td></tr>
+<tr><td>SERIALIZABLE</td><td>Prevented</td><td>Prevented</td><td>Prevented logically</td><td>Critical invariants when retry cost is acceptable.</td></tr>
+</table></div>
+
+<div class="callout warn"><strong>Database-specific behavior matters.</strong> The SQL isolation names are standard concepts, but real behavior differs by database engine and MVCC/locking implementation. Always validate against the actual database used in production.</div>
+
+<h3>3.3 READ COMMITTED</h3>
+<p>Each statement usually sees data committed before that statement begins. Two SELECT statements in one transaction may observe different committed versions.</p>
+
+<div class="diagram">T1: SELECT status → PENDING
+T2: UPDATE status = PAID; COMMIT
+T1: SELECT status → PAID</div>
+
+<h3>3.4 REPEATABLE READ</h3>
+<p>A transaction gets a more stable view. Re-reading the same row normally returns the same version. However, exact phantom and write-conflict behavior depends on the database.</p>
+
+<h3>3.5 SERIALIZABLE</h3>
+<p>The database attempts to provide a result equivalent to transactions running one at a time. This can reduce concurrency and may abort transactions that must be retried.</p>
+
+<div class="callout good"><strong>Senior approach:</strong> SERIALIZABLE is not “always safest.” It is safest only if the application correctly handles serialization failures, retries idempotently, and accepts lower concurrency.</div>
+
+<h3>3.6 Lost update is often solved explicitly</h3>
+
+<h4>Option A — Atomic SQL update</h4>
+<pre><code>UPDATE inventory
+SET quantity = quantity - :requested
+WHERE product_id = :productId
+  AND quantity &gt;= :requested;</code></pre>
+<p>If the affected-row count is 0, stock was insufficient or concurrently consumed.</p>
+
+<h4>Option B — Optimistic locking</h4>
+<pre><code>@Entity
+public class ProductStock {
+    @Id
+    private Long productId;
+
+    private int quantity;
+
+    @Version
+    private long version;
+}</code></pre>
+<p>Concurrent updates cause one transaction to fail with an optimistic locking exception. The application may retry or return a conflict.</p>
+
+<h4>Option C — Pessimistic locking</h4>
+<pre><code>@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query(&quot;select s from ProductStock s where s.productId = :id&quot;)
+ProductStock findForUpdate(@Param(&quot;id&quot;) Long id);</code></pre>
+<p>The selected row is locked for update until transaction end. This is useful for short critical sections but can reduce throughput and create deadlocks.</p>
+
+<h4>Option D — Serializable transaction</h4>
+<p>Useful for complex invariants that cannot be protected with one row lock or one atomic SQL statement, but the code must handle retries.</p>
+
+<div class="interview"><h3>Senior interview answer</h3><p>I choose isolation based on the invariant, not by selecting the highest level globally. For a counter or stock value, an atomic conditional UPDATE is often better than raising isolation. For entity edits, optimistic locking works well when conflicts are rare. For short high-contention critical sections, pessimistic locking may be appropriate. For multi-row invariants, Serializable can be correct, but I must design retry and idempotency behavior.</p></div>
+</section>
+
+<section id="locks" data-search="locking row lock table lock deadlock blocking optimistic pessimistic">
+<span class="badge">Locks</span><h2>5. Locking, blocking, and deadlocks</h2>
+
+<h3>4.1 Optimistic versus pessimistic locking</h3>
+<div class="grid-2">
+  <div class="card"><h3>Optimistic locking</h3><p>Assumes conflicts are uncommon. Transactions proceed without blocking and detect conflicts at update time using a version.</p><p><strong>Good for:</strong> user profile edits, administrative forms, low-contention records.</p></div>
+  <div class="card"><h3>Pessimistic locking</h3><p>Locks data before update because conflicts are expected or the operation must serialize.</p><p><strong>Good for:</strong> short stock reservation or balance-critical sections.</p></div>
+</div>
+
+<h3>4.2 Deadlock example</h3>
+<div class="diagram">Transaction 1:
+lock Account A
+wait for Account B
+
+Transaction 2:
+lock Account B
+wait for Account A
+
+Database detects cycle
+        ↓
+one transaction is aborted</div>
+
+<h3>4.3 How to reduce deadlocks</h3>
+<ul>
+  <li>Lock rows in a consistent order, for example smaller account ID first.</li>
+  <li>Keep transactions short.</li>
+  <li>Avoid user interaction or external API calls inside the transaction.</li>
+  <li>Use indexes so updates locate rows quickly and lock fewer records.</li>
+  <li>Reduce transaction batch size.</li>
+  <li>Retry deadlock victims with bounded backoff and idempotency.</li>
+</ul>
+
+<pre><code>long first = Math.min(fromAccountId, toAccountId);
+long second = Math.max(fromAccountId, toAccountId);
+
+Account a = repository.findForUpdate(first);
+Account b = repository.findForUpdate(second);</code></pre>
+
+<h3>4.4 Blocking is not always a deadlock</h3>
+<p>A query can be slow because it waits for another transaction's lock. The correct action is to identify the blocking session and the long-running transaction, not immediately add an index.</p>
+
+<div class="callout warn"><strong>Common mistake:</strong> Looking only at query execution time without separating CPU time, I/O time, connection-pool wait, and lock wait.</div>
+</section>
+
+<section id="project-cases" data-search="real project isolation payment inventory coupon booking account idempotency">
+<span class="badge">Real project cases</span><h2>6. Isolation problems in real projects</h2>
+
+<h3>5.1 Two payment requests charge the provider twice</h3>
+<div class="diagram">Request A: payment status is PENDING
+Request B: payment status is PENDING
+Both call payment provider
+Both update status to COMPLETED</div>
+<p><strong>Problem:</strong> isolation at the database read alone cannot undo duplicate external side effects.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+  <li>Use an idempotency key with a unique constraint.</li>
+  <li>Atomically move payment from PENDING to PROCESSING.</li>
+  <li>Only the request that updated one row may call the provider.</li>
+  <li>Use provider-side idempotency when available.</li>
+  <li>Persist provider request/result for recovery.</li>
+</ul>
+
+<pre><code>UPDATE payment
+SET status = &#x27;PROCESSING&#x27;,
+    processing_token = :token
+WHERE payment_id = :id
+  AND status = &#x27;PENDING&#x27;;</code></pre>
+
+<h3>5.2 Overselling inventory</h3>
+<p><strong>Unsafe:</strong> SELECT quantity, check in Java, then UPDATE.</p>
+<p><strong>Safer:</strong> one conditional atomic UPDATE and check affected rows.</p>
+
+<h3>5.3 Coupon claimed more times than allowed</h3>
+<p>Use a unique constraint on customer and coupon for one-time claims, plus an atomic capacity update for globally limited coupons.</p>
+
+<pre><code>CREATE UNIQUE INDEX uk_coupon_customer
+ON coupon_claim(coupon_id, customer_id);</code></pre>
+
+<h3>5.4 Duplicate order creation after timeout</h3>
+<p>The client times out and retries, while the first request may already have committed. Use an idempotency key persisted with a unique constraint and return the original result for duplicate requests.</p>
+
+<h3>5.5 Booking the same seat</h3>
+<p>Use a unique seat reservation constraint, short transaction, and either conditional insert/update or row locking. The database constraint is the final protection.</p>
+
+<h3>5.6 User profile lost update</h3>
+<p>Two admins edit the same customer. Optimistic locking with a version field prevents silent overwriting and returns a conflict for manual resolution.</p>
+
+<h3>5.7 Batch processing</h3>
+<p>Do not process 100,000 records in one transaction. Use chunks, one transaction per chunk or item, checkpoint progress, and make work idempotent.</p>
+
+<h3>5.8 Audit record must survive outer rollback</h3>
+<p>Use <code>REQUIRES_NEW</code> in another Spring bean only when the business requirement truly wants independent commit. Remember that this creates partial commit intentionally.</p>
+
+<h3>5.9 Saga workflow</h3>
+<p>Order creation, payment, inventory, and shipment across services require local transactions and compensating actions. There is no global rollback unless using a distributed transaction technology with significant trade-offs.</p>
+
+<h3>5.10 Read consistency for reports</h3>
+<p>A report that runs for several minutes may require a consistent snapshot. Depending on the database, use Repeatable Read, a replica, a reporting warehouse, or an exported snapshot rather than locking production tables.</p>
+</section>
+
+<section id="api-latency" data-search="api slow latency troubleshooting p95 p99 tracing network thread pool">
+<span class="badge">Performance workflow</span><h2>7. When an API is slow: the investigation workflow</h2>
+
+<div class="callout good"><strong>Start with scope:</strong> Is every request slow, only one endpoint, only one tenant, only one region, only writes, only peak traffic, or only after deployment?</div>
+
+<h3>6.1 Step 1 — Confirm the symptom</h3>
+<ul>
+  <li>Measure p50, p95, and p99 latency, not only average.</li>
+  <li>Check error rate, timeout rate, throughput, and saturation.</li>
+  <li>Compare before/after deployment or incident start time.</li>
+  <li>Separate client-observed latency from server processing latency.</li>
+</ul>
+
+<h3>6.2 Step 2 — Trace one slow request end to end</h3>
+<div class="diagram">Client
+  → Load Balancer
+  → API Gateway
+  → Application queue/thread wait
+  → Controller
+  → Service
+  → Database
+  → External API / Redis / Kafka
+  → Serialization
+  → Network response</div>
+
+<p>Use a correlation ID or distributed trace to identify which span consumed time.</p>
+
+<h3>6.3 Step 3 — Break latency into categories</h3>
+<div class="table-wrap"><table>
+<tr><th>Category</th><th>Evidence</th><th>Typical fix</th></tr>
+<tr><td>Connection-pool wait</td><td>High pool wait time, active connections at max</td><td>Find long queries/transactions, right-size pool, reduce connection hold time.</td></tr>
+<tr><td>Database execution</td><td>Slow-query log, plan, high DB CPU/I/O</td><td>Query/index/schema optimization.</td></tr>
+<tr><td>Lock wait</td><td>Blocked sessions, lock wait events</td><td>Shorten blockers, consistent lock order, reduce contention.</td></tr>
+<tr><td>External API</td><td>Trace span dominated by HTTP client</td><td>Timeout, retry policy, circuit breaker, caching, async design.</td></tr>
+<tr><td>Thread-pool saturation</td><td>Queue length high, active threads maxed</td><td>Remove blocking, separate pools, tune after root cause.</td></tr>
+<tr><td>GC / memory</td><td>Long pauses, allocation spike, heap pressure</td><td>Reduce allocation, fix leak, right-size heap, tune GC only with evidence.</td></tr>
+<tr><td>CPU</td><td>High process CPU, hot methods in profiler</td><td>Optimize algorithm, serialization, crypto, loops.</td></tr>
+<tr><td>Network</td><td>DNS/connect/TLS time high, packet loss</td><td>Connection reuse, keep-alive, DNS/network investigation.</td></tr>
+<tr><td>Payload size</td><td>Large response/serialization time</td><td>Pagination, projection, compression, remove unused fields.</td></tr>
+</table></div>
+
+<h3>6.4 Step 4 — Check application resources</h3>
+<ul>
+  <li>HTTP worker threads and queue.</li>
+  <li>Database pool active/idle/pending.</li>
+  <li>WebClient/HTTP client connection pool.</li>
+  <li>CPU, heap, GC pauses, direct memory.</li>
+  <li>Container throttling and memory limits.</li>
+  <li>File descriptors and socket counts.</li>
+</ul>
+
+<h3>6.5 Step 5 — Check downstream dependencies</h3>
+<ul>
+  <li>Database latency and lock waits.</li>
+  <li>Redis latency and hit ratio.</li>
+  <li>External provider latency and error codes.</li>
+  <li>Kafka producer acknowledgements or consumer lag.</li>
+  <li>DNS, TLS handshake, proxy, and network route.</li>
+</ul>
+
+<h3>6.6 Step 6 — Reproduce safely</h3>
+<ul>
+  <li>Use production-like data distribution and indexes.</li>
+  <li>Test one variable at a time.</li>
+  <li>Capture trace, plan, and resource metrics.</li>
+  <li>Do not run destructive load tests against production.</li>
+</ul>
+
+<h3>6.7 Step 7 — Apply the smallest targeted fix</h3>
+<div class="grid-3">
+  <div class="card"><h4>Database bottleneck</h4><p>Optimize query, add correct index, reduce selected rows/columns, fix transaction scope.</p></div>
+  <div class="card"><h4>External dependency</h4><p>Set timeouts, isolate pool, circuit breaker, cache stable data, redesign synchronous path.</p></div>
+  <div class="card"><h4>Application CPU</h4><p>Profile, reduce repeated mapping/serialization, improve algorithm, avoid unnecessary object creation.</p></div>
+</div>
+
+<h3>6.8 Step 8 — Verify after the fix</h3>
+<ul>
+  <li>Compare p95/p99 and throughput before/after.</li>
+  <li>Check errors and resource saturation.</li>
+  <li>Verify correctness and no new stale-data or consistency issue.</li>
+  <li>Add a regression test, dashboard, and alert.</li>
+</ul>
+
+<div class="interview"><h3>Senior interview answer</h3><p>When an API is slow, I first prove where time is spent. I use p95/p99 metrics and a distributed trace to split queue time, application time, database time, lock wait, and downstream HTTP time. I then correlate that with thread pools, connection pools, CPU, GC, and dependency metrics. I avoid blindly increasing pools or adding cache. After identifying the bottleneck, I make the smallest fix, load-test it with realistic data, and verify latency, throughput, error rate, and correctness.</p></div>
+</section>
+
+<section id="slow-sql" data-search="slow sql explain analyze query plan troubleshooting">
+<span class="badge">SQL tuning</span><h2>8. When SQL is slow: detailed troubleshooting steps</h2>
+
+<h3>7.1 Step 1 — Capture the exact SQL and bind values</h3>
+<p>Performance can depend heavily on parameter values. A query that is fast for one tenant may be slow for another due to data skew.</p>
+
+<h3>7.2 Step 2 — Measure execution and wait type</h3>
+<ul>
+  <li>Execution time.</li>
+  <li>Rows returned and rows examined.</li>
+  <li>CPU time versus I/O time.</li>
+  <li>Lock wait versus actual execution.</li>
+  <li>Temporary files, spill, sort, and hash memory usage.</li>
+</ul>
+
+<h3>7.3 Step 3 — Read the execution plan</h3>
+<div class="table-wrap"><table>
+<tr><th>Plan signal</th><th>Meaning</th><th>Question to ask</th></tr>
+<tr><td>Sequential / full table scan</td><td>Database reads a large part of the table.</td><td>Is the predicate selective? Is an index usable?</td></tr>
+<tr><td>Index scan</td><td>Index is used, possibly followed by table lookup.</td><td>How many rows are fetched? Is the index selective?</td></tr>
+<tr><td>Nested loop</td><td>Inner operation repeated for outer rows.</td><td>Is outer row count small? Is inner side indexed?</td></tr>
+<tr><td>Hash join</td><td>Builds hash table for one input.</td><td>Is memory enough? Did it spill?</td></tr>
+<tr><td>Sort</td><td>ORDER BY, GROUP BY, merge join, or window function.</td><td>Can index order help? Is result too large?</td></tr>
+<tr><td>Estimated vs actual rows mismatch</td><td>Optimizer expected very different cardinality.</td><td>Are statistics stale or data highly skewed?</td></tr>
+</table></div>
+
+<pre><code>EXPLAIN ANALYZE
+SELECT o.id, o.status, o.created_at
+FROM orders o
+WHERE o.customer_id = 123
+  AND o.status = &#x27;PENDING&#x27;
+ORDER BY o.created_at DESC
+LIMIT 20;</code></pre>
+
+<h3>7.4 Step 4 — Check cardinality and selectivity</h3>
+<p>An index helps most when it eliminates a large portion of rows. Indexing a column with very few distinct values may not help by itself.</p>
+
+<h3>7.5 Step 5 — Check predicate usability</h3>
+
+<div class="grid-2">
+  <div class="card danger"><h4>Function on indexed column</h4><pre><code>WHERE DATE(created_at) = :date</code></pre></div>
+  <div class="card good"><h4>Range predicate</h4><pre><code>WHERE created_at &gt;= :start
+  AND created_at &lt; :nextDay</code></pre></div>
+</div>
+
+<div class="grid-2">
+  <div class="card danger"><h4>Leading wildcard</h4><pre><code>WHERE name LIKE &#x27;%huy%&#x27;</code></pre></div>
+  <div class="card good"><h4>Search solution</h4><p>Use a suitable full-text index or search engine when substring search is a real requirement.</p></div>
+</div>
+
+<h3>7.6 Step 6 — Check joins</h3>
+<ul>
+  <li>Join columns have compatible types.</li>
+  <li>Foreign-key or lookup columns are indexed where needed.</li>
+  <li>No accidental many-to-many row multiplication.</li>
+  <li>Filter early when semantically correct.</li>
+  <li>Return only required columns.</li>
+</ul>
+
+<h3>7.7 Step 7 — Check sorting and pagination</h3>
+<p>Offset pagination becomes slower for deep pages because the database must find and skip many rows.</p>
+
+<pre><code>-- Offset pagination
+SELECT *
+FROM orders
+ORDER BY created_at DESC, id DESC
+OFFSET 100000 ROWS FETCH NEXT 20 ROWS ONLY;
+
+-- Keyset pagination
+SELECT *
+FROM orders
+WHERE (created_at, id) &lt; (:lastCreatedAt, :lastId)
+ORDER BY created_at DESC, id DESC
+FETCH FIRST 20 ROWS ONLY;</code></pre>
+
+<h3>7.8 Step 8 — Check aggregation</h3>
+<ul>
+  <li>Can old data be pre-aggregated?</li>
+  <li>Can a materialized view or reporting table help?</li>
+  <li>Is the query scanning operational tables for a dashboard every second?</li>
+  <li>Would a warehouse or replica be more appropriate?</li>
+</ul>
+
+<h3>7.9 Step 9 — Check statistics and plan stability</h3>
+<p>Stale statistics or highly skewed data can cause poor plans. Refresh statistics appropriately and validate with real parameter distributions.</p>
+
+<h3>7.10 Step 10 — Validate index cost</h3>
+<p>Every index increases storage and write cost. Too many indexes slow INSERT, UPDATE, DELETE, vacuum/maintenance, and backups.</p>
+
+<div class="callout warn"><strong>Senior rule:</strong> Do not add an index only because the query has a WHERE clause. Design the index from the query shape, equality predicates, range predicates, join columns, sort order, selectivity, and write workload.</div>
+
+<div class="interview"><h3>Senior interview answer</h3><p>For slow SQL, I capture the exact statement and parameter values, then inspect actual execution behavior rather than guessing. I compare estimated and actual row counts, identify scans, joins, sorts, spills, lock waits, and rows examined. I then check predicate sargability, index design, join cardinality, selected columns, pagination, and statistics. I validate the new plan and measure write overhead before adding an index.</p></div>
+</section>
+
+<section id="indexing" data-search="index btree composite covering selectivity">
+<span class="badge">Indexes</span><h2>9. Index design in real systems</h2>
+
+<h3>8.1 B-tree intuition</h3>
+<p>A B-tree keeps sorted keys in a balanced multi-level structure. The database can navigate from root to leaf with relatively few page reads.</p>
+
+<div class="diagram">Root page
+  ├── values &lt; 1000
+  ├── values 1000–5000
+  └── values &gt; 5000
+        ↓
+Intermediate page
+        ↓
+Leaf page with sorted keys and row references</div>
+
+<h3>8.2 Composite index order</h3>
+<p>For this query:</p>
+<pre><code>SELECT id, created_at
+FROM orders
+WHERE customer_id = ?
+  AND status = ?
+ORDER BY created_at DESC
+LIMIT 20;</code></pre>
+
+<p>A possible index:</p>
+<pre><code>CREATE INDEX idx_orders_customer_status_created
+ON orders(customer_id, status, created_at DESC);</code></pre>
+
+<p>Equality columns commonly come before range/sort columns, but always validate with the actual query plan and data distribution.</p>
+
+<h3>8.3 Left-prefix principle</h3>
+<p>An index on <code>(customer_id, status, created_at)</code> is naturally useful for predicates beginning with <code>customer_id</code>. It is not equally useful for a query filtering only by <code>status</code>.</p>
+
+<h3>8.4 Covering index</h3>
+<p>If all required columns are available from the index, the database may avoid table lookups. This can improve reads but makes the index larger.</p>
+
+<h3>8.5 Index anti-patterns</h3>
+<ul>
+  <li>Index every column independently.</li>
+  <li>Create many overlapping composite indexes.</li>
+  <li>Ignore write volume.</li>
+  <li>Use low-selectivity leading columns without evidence.</li>
+  <li>Keep unused indexes forever.</li>
+</ul>
+</section>
+
+<section id="jpa" data-search="jpa hibernate n+1 dirty checking fetch join batching">
+<span class="badge">Java persistence</span><h2>10. JPA and Hibernate performance problems</h2>
+
+<h3>9.1 N+1 query problem</h3>
+<pre><code>List&lt;Order&gt; orders = orderRepository.findAll();
+
+for (Order order : orders) {
+    System.out.println(order.getItems().size());
+}</code></pre>
+
+<div class="diagram">1 query loads orders
+N additional queries load items for each order
+Total = N + 1 queries</div>
+
+<h4>Possible solutions</h4>
+<ul>
+  <li>Fetch join for one specific use case.</li>
+  <li>Entity graph.</li>
+  <li>Batch fetching.</li>
+  <li>DTO projection.</li>
+  <li>Dedicated query designed for the response.</li>
+</ul>
+
+<pre><code>@Query(&quot;select distinct o from Order o left join fetch o.items &quot; +
+       &quot;where o.customerId = :customerId&quot;)
+List&lt;Order&gt; findWithItems(@Param(&quot;customerId&quot;) Long customerId);</code></pre>
+
+<div class="callout warn"><strong>Do not fetch-join every relationship.</strong> Multiple to-many joins can multiply rows and create huge result sets.</div>
+
+<h3>9.2 Loading too much data</h3>
+<p>Returning entities can load unnecessary columns and relationships. Use DTO projections for read APIs.</p>
+
+<h3>9.3 Dirty checking and large persistence context</h3>
+<p>A long transaction managing thousands of entities increases memory and flush cost. Batch work should flush and clear periodically.</p>
+
+<pre><code>for (int i = 0; i &lt; records.size(); i++) {
+    entityManager.persist(records.get(i));
+
+    if (i &gt; 0 &amp;&amp; i % 100 == 0) {
+        entityManager.flush();
+        entityManager.clear();
+    }
+}</code></pre>
+
+<h3>9.4 JDBC batching</h3>
+<p>Batch INSERT/UPDATE reduces round trips, but generated IDs, ordering, and database capabilities affect the result.</p>
+
+<h3>9.5 LazyInitializationException</h3>
+<p>This is usually a transaction and data-shaping design problem. Avoid solving it by globally enabling eager loading or keeping sessions open across the web layer.</p>
+</section>
+
+<section id="connection-pool" data-search="connection pool hikari pool size timeout">
+<span class="badge">Resources</span><h2>11. Connection-pool diagnosis</h2>
+
+<h3>10.1 A larger pool is not always faster</h3>
+<p>If the database can efficiently process 30 concurrent queries, giving the application 200 connections may create more context switching, locks, and queueing inside the database.</p>
+
+<h3>10.2 What to monitor</h3>
+<ul>
+  <li>Active connections.</li>
+  <li>Idle connections.</li>
+  <li>Pending threads waiting for a connection.</li>
+  <li>Connection acquisition time.</li>
+  <li>Connection usage duration.</li>
+  <li>Timeout count.</li>
+  <li>Database maximum connections and actual workload capacity.</li>
+</ul>
+
+<h3>10.3 Pool exhaustion causes</h3>
+<ul>
+  <li>Slow SQL.</li>
+  <li>Long transactions.</li>
+  <li>External API call inside transaction.</li>
+  <li>Connection leak.</li>
+  <li>Traffic spike.</li>
+  <li>Pool too small for proven safe database capacity.</li>
+</ul>
+
+<div class="callout good"><strong>Correct order:</strong> fix long query/transaction first, then size the pool based on database capacity and workload. Do not use pool growth to hide blocked or slow connections.</div>
+</section>
+
+<section id="caching" data-search="cache redis cache aside stampede ttl consistency">
+<span class="badge">Caching</span><h2>12. Caching without breaking correctness</h2>
+
+<h3>11.1 Cache-aside flow</h3>
+<div class="diagram">GET key
+  → cache hit → return
+  → cache miss → query DB → put cache → return</div>
+
+<h3>11.2 Questions before adding cache</h3>
+<ul>
+  <li>Is the data read frequently and changed less often?</li>
+  <li>How stale may it be?</li>
+  <li>What invalidates it?</li>
+  <li>What happens during cache outage?</li>
+  <li>Can many misses create a cache stampede?</li>
+  <li>Does caching personal or tenant data create leakage risk?</li>
+</ul>
+
+<h3>11.3 Common fixes</h3>
+<div class="grid-3">
+  <div class="card"><h4>TTL</h4><p>Bounds staleness and forgotten entries.</p></div>
+  <div class="card"><h4>Jitter</h4><p>Prevents many keys from expiring at the same moment.</p></div>
+  <div class="card"><h4>Single flight / lock</h4><p>Only one request rebuilds a hot missing value.</p></div>
+  <div class="card"><h4>Negative caching</h4><p>Temporarily caches “not found” to reduce repeated misses.</p></div>
+  <div class="card"><h4>Versioned key</h4><p>Changes key when source version changes.</p></div>
+  <div class="card"><h4>Event invalidation</h4><p>Publishes update event; accept eventual delivery trade-offs.</p></div>
+</div>
+
+<div class="callout warn"><strong>Cache is not the first answer to slow SQL.</strong> A cache can hide a bad query temporarily while adding consistency and operational complexity.</div>
+</section>
+
+<section id="observability" data-search="metrics logs traces observability database performance">
+<span class="badge">Observability</span><h2>13. What a senior engineer monitors</h2>
+
+<div class="grid-3">
+  <div class="card"><h3>API metrics</h3><ul><li>Request count</li><li>p50/p95/p99 latency</li><li>Error and timeout rate</li><li>In-flight requests</li><li>Payload size</li></ul></div>
+  <div class="card"><h3>JVM metrics</h3><ul><li>CPU</li><li>Heap and allocation rate</li><li>GC pause</li><li>Thread count</li><li>Blocked threads</li></ul></div>
+  <div class="card"><h3>Database metrics</h3><ul><li>Query latency</li><li>Rows examined</li><li>Lock waits</li><li>Deadlocks</li><li>CPU and I/O</li><li>Connections</li></ul></div>
+  <div class="card"><h3>Pool metrics</h3><ul><li>Active/idle</li><li>Pending</li><li>Acquire time</li><li>Usage time</li><li>Timeouts</li></ul></div>
+  <div class="card"><h3>Dependency metrics</h3><ul><li>HTTP latency</li><li>DNS/connect/TLS</li><li>Retry count</li><li>Circuit state</li><li>Cache hit ratio</li></ul></div>
+  <div class="card"><h3>Business metrics</h3><ul><li>Orders created</li><li>Payment success</li><li>Duplicate requests</li><li>Inventory conflicts</li><li>Queue backlog</li></ul></div>
+</div>
+
+<h3>12.1 Logs should explain the request without leaking secrets</h3>
+<ul>
+  <li>Correlation ID and trace ID.</li>
+  <li>Endpoint and safe business identifier.</li>
+  <li>Duration by major step.</li>
+  <li>Error category and retry count.</li>
+  <li>Never log passwords, tokens, card data, or full sensitive payloads.</li>
+</ul>
+</section>
+
+<section id="incident" data-search="incident checklist production slow api sql">
+<span class="badge">Production incident</span><h2>14. Production incident checklist</h2>
+
+<div class="flow">
+  <div class="step"><b>1</b><div><strong>Stabilize</strong><br>Rate limit, disable expensive feature, scale stateless tier if useful, or fail fast on unhealthy dependency.</div></div>
+  <div class="step"><b>2</b><div><strong>Define impact</strong><br>Which users, endpoints, regions, and time window are affected?</div></div>
+  <div class="step"><b>3</b><div><strong>Check recent changes</strong><br>Deployment, schema migration, index change, config, traffic pattern, dependency release.</div></div>
+  <div class="step"><b>4</b><div><strong>Trace and measure</strong><br>Find dominant latency span and saturation point.</div></div>
+  <div class="step"><b>5</b><div><strong>Inspect database</strong><br>Slow queries, blocking sessions, deadlocks, connection count, CPU, I/O, replication lag.</div></div>
+  <div class="step"><b>6</b><div><strong>Mitigate safely</strong><br>Kill confirmed blocking session, rollback release, add temporary limit, or route traffic.</div></div>
+  <div class="step"><b>7</b><div><strong>Fix root cause</strong><br>Query, index, transaction, timeout, resource leak, or architecture.</div></div>
+  <div class="step"><b>8</b><div><strong>Prevent recurrence</strong><br>Regression test, dashboard, alert, runbook, capacity plan, and postmortem.</div></div>
+</div>
+
+<div class="callout bad"><strong>Avoid dangerous emergency fixes:</strong> adding indexes without plan review, killing random sessions, globally changing isolation, increasing every pool, or enabling unlimited retries.</div>
+</section>
+
+<section id="questions" data-search="interview questions senior database acid isolation sql api latency">
+<span class="badge">Senior interview</span><h2>15. Interview questions and senior answers</h2>
+
+<details><summary>1. Explain ACID with a payment example.</summary>
+<p>Atomicity means payment state, ledger, and order update commit together in one local transaction. Consistency means constraints and business invariants remain valid. Isolation prevents concurrent payment requests from both acting on the same pending state. Durability means committed payment data survives restart. I would also clarify that the external payment provider is outside the local ACID transaction, so I need idempotency, persistent state, retry, and reconciliation.</p></details>
+
+<details><summary>2. Which isolation level do you normally use?</summary>
+<p>I usually start with the database default, often Read Committed, and solve specific concurrency problems explicitly. I do not globally move everything to Serializable. I identify the invariant and choose atomic SQL, optimistic locking, pessimistic locking, unique constraints, or Serializable only where needed.</p></details>
+
+<details><summary>3. How do you prevent lost updates?</summary>
+<p>For counters or stock, I prefer an atomic conditional UPDATE. For entity editing where conflicts are uncommon, optimistic locking with a version is effective. For short high-contention operations, pessimistic locking may be appropriate. The final choice depends on conflict frequency, retry cost, and user experience.</p></details>
+
+<details><summary>4. Optimistic versus pessimistic locking?</summary>
+<p>Optimistic locking allows concurrent work and detects conflict at commit/update time, so it is good when conflicts are rare. Pessimistic locking blocks competitors early, which can be safer for short critical sections but reduces throughput and can cause deadlocks. I never hold a pessimistic lock while calling a slow external service.</p></details>
+
+<details><summary>5. What causes a deadlock and how do you solve it?</summary>
+<p>A deadlock is a cycle of transactions waiting on each other's locks. I inspect the database deadlock graph, identify the SQL and lock order, then make lock order consistent, shorten transactions, add missing indexes, reduce batch size, and retry the aborted transaction with bounded backoff and idempotency.</p></details>
+
+<details><summary>6. An API is slow. What do you check first?</summary>
+<p>I confirm the symptom using p95/p99 and trace a slow request. I separate queue time, connection-pool wait, application CPU, database execution, lock wait, external HTTP, and serialization. Then I correlate with resource metrics. I avoid guessing from one log line or increasing pools before locating the bottleneck.</p></details>
+
+<details><summary>7. SQL is slow. What is your exact process?</summary>
+<p>I capture the exact SQL and parameters, then inspect the actual execution plan and wait type. I compare estimated and actual rows, review scans, joins, sorts, spills, and locks, check sargability and index order, reduce selected data, review pagination and statistics, then test the change with production-like distribution and measure write overhead.</p></details>
+
+<details><summary>8. Why can an index make the system slower?</summary>
+<p>Indexes improve selected reads but add storage and maintenance to every insert, update, and delete. Too many overlapping indexes increase write latency, memory pressure, vacuum/maintenance work, and backup size. I add an index only after validating the workload and query plan.</p></details>
+
+<details><summary>9. What is the N+1 problem?</summary>
+<p>One query loads parent rows, then one additional query runs for each parent's lazy relationship. I detect it using SQL count or tracing and solve it with a use-case-specific fetch join, entity graph, batch fetching, or DTO projection. I avoid making every relationship eager.</p></details>
+
+<details><summary>10. How do you size a database connection pool?</summary>
+<p>I size it from database capacity and application concurrency, not from HTTP thread count alone. I monitor acquire time, pending requests, query duration, and database saturation. If connections are always busy because queries or transactions are slow, increasing the pool can make the database worse.</p></details>
+
+<details><summary>11. How do you handle duplicate API retries?</summary>
+<p>I use an idempotency key stored with a unique constraint. The first request owns the operation; later requests return the stored result or current status. For external providers, I also use provider idempotency when supported. Timeout does not mean failure, so reconciliation is necessary.</p></details>
+
+<details><summary>12. When would you use Serializable?</summary>
+<p>I use Serializable for complex cross-row invariants that are difficult to protect correctly with narrower locks or atomic statements. I expect possible serialization failures and implement bounded idempotent retries. I evaluate throughput impact before enabling it broadly.</p></details>
+
+<details><summary>13. Why is average latency not enough?</summary>
+<p>Average hides tail latency. A service may average 100 ms while 5% of requests take several seconds. Users and upstream timeouts are affected by p95 and p99, so I monitor percentiles together with throughput, errors, and saturation.</p></details>
+
+<details><summary>14. How do you distinguish slow SQL from lock wait?</summary>
+<p>I inspect database wait events and blocking sessions. A query may have an efficient plan but spend ten seconds waiting for a row lock. The fix is the blocking transaction or contention pattern, not necessarily the query plan.</p></details>
+
+<details><summary>15. Cache or optimize SQL first?</summary>
+<p>I first understand and usually optimize the query and data access. I add cache only when the access pattern and staleness requirement justify it. Cache introduces invalidation, stampede, outage, and consistency concerns, so it should solve a measured workload problem rather than hide unknown behavior.</p></details>
+
+<details><summary>16. How would you investigate a sudden latency increase after deployment?</summary>
+<p>I compare the deployment timestamp with latency and resource metrics, review changed SQL, transaction scope, serialization, dependency calls, thread pools, and configuration. I use traces to identify the new slow span, then decide whether to roll back or mitigate. After stabilization, I reproduce and add a regression test and alert.</p></details>
+
+<div class="interview"><h3>Final senior answer</h3><p>A senior database investigation is evidence-driven. I first protect correctness with constraints, explicit transaction boundaries, and concurrency control. For performance, I decompose latency instead of guessing: queue, pool, lock, SQL, CPU, network, and dependency time. I fix the narrowest root cause, validate with realistic data, and measure both performance and correctness after the change.</p></div>
+</section>
+
+<div class="footer">Database, Spring Transactions, ACID, Isolation & Performance — standalone HTML guide</div>
+</div></main>
+</div>
+
+<script>
+const body=document.body;
+if(localStorage.getItem("db-guide-theme")==="dark") body.classList.add("dark");
+document.getElementById("theme").onclick=()=>{body.classList.toggle("dark");localStorage.setItem("db-guide-theme",body.classList.contains("dark")?"dark":"light")};
+
+document.querySelectorAll("pre").forEach(pre=>{
+  const b=document.createElement("button");
+  b.className="copy"; b.textContent="Copy";
+  b.onclick=async()=>{try{await navigator.clipboard.writeText(pre.querySelector("code").innerText);b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)}catch(e){b.textContent="Failed"}};
+  pre.appendChild(b);
+});
+
+let expanded=false;
+document.getElementById("expand").onclick=()=>{expanded=!expanded;document.querySelectorAll("details").forEach(d=>d.open=expanded);document.getElementById("expand").textContent=expanded?"Collapse Q&A":"Expand Q&A"};
+
+document.getElementById("search").addEventListener("input",e=>{
+  const q=e.target.value.trim().toLowerCase();
+  document.querySelectorAll("section").forEach(section=>{
+    const text=((section.dataset.search||"")+" "+section.innerText).toLowerCase();
+    section.classList.toggle("hidden",q && !text.includes(q));
+  });
+});
+
+const links=[...document.querySelectorAll(".nav-link")];
+const targets=links.map(l=>document.querySelector(l.getAttribute("href"))).filter(Boolean);
+const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(l=>l.classList.remove("active"));const a=document.querySelector('.nav-link[href="#'+entry.target.id+'"]');if(a)a.classList.add("active")}}),{rootMargin:"-18% 0px -68% 0px"});
+targets.forEach(t=>observer.observe(t));
+</script>
+</body>
+</html>

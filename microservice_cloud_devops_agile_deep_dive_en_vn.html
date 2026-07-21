@@ -1,0 +1,1975 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microservice, Cloud, DevOps, CI/CD, SQL Migration, Agile Scrum & Soft Skills</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #132033;
+      --muted: #667085;
+      --primary: #2563eb;
+      --primary2: #0f766e;
+      --dark: #0f172a;
+      --border: #d9e2ef;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --code-bg: #0b1120;
+      --code-text: #e5e7eb;
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.72;
+    }
+    a { color: inherit; text-decoration: none; }
+    .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 22px;
+      background: var(--dark);
+      color: #f8fafc;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand { margin-bottom: 22px; }
+    .badge {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.25);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .brand h1 { margin: 14px 0 8px; font-size: 22px; line-height: 1.25; }
+    .brand p { margin: 0; color: #cbd5e1; font-size: 14px; }
+    .toc-title {
+      margin: 24px 0 10px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    nav ul { list-style: none; padding: 0; margin: 0; }
+    nav li { margin: 4px 0; }
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 10px;
+      color: #dbeafe;
+      font-size: 14px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    nav a:hover { background: rgba(59, 130, 246, 0.18); color: #ffffff; }
+    .content { padding: 38px; max-width: 1280px; width: 100%; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111827 0%, #1e3a8a 45%, #0f766e 100%);
+      color: #ffffff;
+      border-radius: 30px;
+      padding: 44px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -90px;
+      width: 280px;
+      height: 280px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+    }
+    .hero h2 {
+      position: relative;
+      margin: 0 0 14px;
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      max-width: 980px;
+    }
+    .hero p {
+      position: relative;
+      margin: 0;
+      color: #dbeafe;
+      font-size: 17px;
+      max-width: 980px;
+    }
+    .hero-tags { position: relative; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .hero-tags span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin: 22px 0;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+    }
+    section h2 {
+      margin-top: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      color: #0f172a;
+      font-size: 28px;
+      letter-spacing: -0.025em;
+    }
+    h3 { margin-top: 28px; color: #1e3a8a; font-size: 21px; }
+    h4 { margin-top: 22px; color: #0f766e; font-size: 17px; }
+    p { margin: 12px 0; }
+    .lead { color: var(--muted); font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }
+    .mini-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .mini-card h4 { margin: 0 0 8px; color: #0f172a; }
+    .mini-card p { margin: 0; color: var(--muted); }
+    .note, .warning, .danger, .success {
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      border: 1px solid;
+    }
+    .note { background: var(--soft-blue); border-color: #bfdbfe; color: #1e3a8a; }
+    .success { background: var(--soft-green); border-color: #bbf7d0; color: #166534; }
+    .warning { background: var(--soft-yellow); border-color: #fde68a; color: #92400e; }
+    .danger { background: var(--soft-red); border-color: #fecaca; color: #991b1b; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f5f9; color: #0f172a; font-weight: 900; }
+    tr:last-child td { border-bottom: none; }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 16px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-size: 13.4px;
+      line-height: 1.6;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+    p code, li code, td code {
+      background: #eef2ff;
+      color: #3730a3;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.92em;
+    }
+    ul { margin-top: 8px; }
+    li { margin: 6px 0; }
+    .diagram {
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 16px;
+      padding: 18px;
+      margin: 18px 0;
+      overflow-x: auto;
+      color: #0f172a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13.2px;
+      white-space: pre;
+      line-height: 1.65;
+    }
+    .checklist li::marker { content: "✅ "; }
+    .avoid li::marker { content: "⚠️ "; }
+    .interview-answer { background: #0f172a; color: #e5e7eb; border: none; }
+    .interview-answer h2, .interview-answer h3 { color: #ffffff; border-color: rgba(255,255,255,0.12); }
+    .interview-answer blockquote {
+      margin: 0 0 18px;
+      padding: 20px 22px;
+      border-left: 5px solid #60a5fa;
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      color: #f8fafc;
+    }
+    .page-break { break-before: page; }
+    .footer { text-align: center; color: var(--muted); padding: 32px 0 10px; font-size: 13px; }
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; }
+      .content { padding: 22px; }
+      .grid, .grid3 { grid-template-columns: 1fr; }
+      .hero { padding: 28px; }
+      .hero h2 { font-size: 30px; }
+    }
+    @media print {
+      body { background: white; }
+      .layout { display: block; }
+      aside { display: none; }
+      .content { max-width: none; padding: 0; }
+      section, .hero { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <span class="badge">Senior Java Backend</span>
+        <h1>Microservice / Cloud / DevOps / Agile</h1>
+        <p>Deep-dive EN/VN study website with real CI/CD and SQL migration examples.</p>
+      </div>
+
+      <div class="toc-title">English</div>
+      <nav>
+        <ul>
+          <li><a href="#en-overview">Big Picture</a></li>
+          <li><a href="#en-microservice-basic">Microservice Basics</a></li>
+          <li><a href="#en-microservice-advanced">Microservice Advanced</a></li>
+          <li><a href="#en-cloud">Cloud Fundamentals</a></li>
+          <li><a href="#en-devops">DevOps Fundamentals</a></li>
+          <li><a href="#en-cicd">CI/CD Pipeline</a></li>
+          <li><a href="#en-cicd-examples">CI/CD Examples</a></li>
+          <li><a href="#en-sql">CI/CD for SQL Migration</a></li>
+          <li><a href="#en-agile">Agile & Scrum</a></li>
+          <li><a href="#en-softskills">Soft Skills</a></li>
+          <li><a href="#en-interview">Interview Answers</a></li>
+        </ul>
+      </nav>
+
+      <div class="toc-title">Vietnamese</div>
+      <nav>
+        <ul>
+          <li><a href="#vi-overview">Tổng quan</a></li>
+          <li><a href="#vi-microservice-basic">Microservice cơ bản</a></li>
+          <li><a href="#vi-microservice-advanced">Microservice nâng cao</a></li>
+          <li><a href="#vi-cloud">Cloud fundamentals</a></li>
+          <li><a href="#vi-devops">DevOps fundamentals</a></li>
+          <li><a href="#vi-cicd">CI/CD Pipeline</a></li>
+          <li><a href="#vi-cicd-examples">Ví dụ CI/CD</a></li>
+          <li><a href="#vi-sql">CI/CD cho SQL migration</a></li>
+          <li><a href="#vi-agile">Agile & Scrum</a></li>
+          <li><a href="#vi-softskills">Soft skills</a></li>
+          <li><a href="#vi-interview">Câu trả lời phỏng vấn</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="hero">
+        <h2>Microservice, Cloud, DevOps, CI/CD, SQL Migration, Agile/Scrum & Soft Skills</h2>
+        <p>
+          A deep learning website for Senior Java Backend interviews. It covers each topic from basic to advanced,
+          with practical CI/CD examples for Java Spring Boot, Docker, Kubernetes, Jenkins/GitHub Actions, and database migration.
+        </p>
+        <div class="hero-tags">
+          <span>Microservice</span>
+          <span>Cloud Native</span>
+          <span>Docker</span>
+          <span>Kubernetes</span>
+          <span>CI/CD</span>
+          <span>SQL Migration</span>
+          <span>Flyway</span>
+          <span>Agile</span>
+          <span>Scrum</span>
+          <span>Soft Skills</span>
+        </div>
+      </div>
+
+      <section id="en-overview">
+        <h2>1. Big Picture</h2>
+        <p class="lead">
+          These topics are connected. Microservices define how we split systems. Cloud provides scalable infrastructure.
+          DevOps and CI/CD define how we build, test, deploy, monitor, and operate software. Agile/Scrum defines how teams deliver value iteratively.
+        </p>
+
+        <div class="diagram">Business Requirement
+  ↓
+Agile/Scrum planning, refinement, estimation
+  ↓
+Microservice design: service boundary, API, data ownership
+  ↓
+Implementation: Java / Spring Boot / SQL / Messaging
+  ↓
+CI: build, unit test, integration test, code quality, security scan
+  ↓
+CD: Docker image, registry, Kubernetes deployment, DB migration
+  ↓
+Cloud runtime: load balancer, autoscaling, observability, reliability
+  ↓
+Feedback: monitoring, incidents, retrospectives, continuous improvement</div>
+
+        <div class="grid3">
+          <div class="mini-card">
+            <h4>Microservice</h4>
+            <p>Architecture style that structures a system as independently deployable services built around business capabilities.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Cloud / DevOps</h4>
+            <p>Infrastructure and culture to deliver reliable software frequently through automation, monitoring, and shared ownership.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Agile / Scrum</h4>
+            <p>Ways of working that help teams inspect, adapt, and deliver valuable increments continuously.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Senior mindset:</strong> Do not explain these topics separately only by definition.
+          Connect them to real delivery: requirements, architecture, code, testing, deployment, monitoring, incidents, and continuous improvement.
+        </div>
+      </section>
+
+      <section id="en-microservice-basic">
+        <h2>2. Microservice Basics</h2>
+
+        <h3>What is Microservice?</h3>
+        <p>
+          Microservice is an architectural style where a large application is built as a set of small services.
+          Each service usually owns a specific business capability, runs in its own process, communicates through lightweight protocols,
+          and can be deployed independently.
+        </p>
+
+        <table>
+          <thead>
+            <tr><th>Characteristic</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Business capability</td><td>Service is aligned with a business area.</td><td>Order Service, Payment Service, Inventory Service.</td></tr>
+            <tr><td>Independent deployment</td><td>Service can be built and released without deploying the whole system.</td><td>Deploy Payment Service without redeploying Catalog Service.</td></tr>
+            <tr><td>Decentralized data</td><td>Each service owns its data and schema.</td><td>Order DB is not directly updated by Payment Service.</td></tr>
+            <tr><td>Lightweight communication</td><td>Services communicate through REST, gRPC, messaging, events.</td><td>Order calls Payment API or publishes OrderCreated event.</td></tr>
+            <tr><td>Fault isolation</td><td>Failure in one service should not bring down the whole system.</td><td>Payment timeout should not crash Order Service.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Monolith vs Microservice</h3>
+        <table>
+          <thead><tr><th>Monolith</th><th>Microservice</th></tr></thead>
+          <tbody>
+            <tr><td>One deployable application.</td><td>Many independently deployable services.</td></tr>
+            <tr><td>Simple to start, test, and deploy at small scale.</td><td>More operational complexity.</td></tr>
+            <tr><td>Shared database is common.</td><td>Database per service is preferred.</td></tr>
+            <tr><td>Strong local transactions are easier.</td><td>Distributed consistency is harder.</td></tr>
+            <tr><td>Scaling is usually all-or-nothing.</td><td>Each service can scale independently.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="warning">
+          <strong>Important:</strong> Microservice is not always better. If the team is small, domain is unclear, or operational maturity is low,
+          a modular monolith may be better than distributed complexity.
+        </div>
+
+        <h3>Typical Microservice Components</h3>
+        <div class="diagram">Client / Frontend
+  ↓
+API Gateway
+  ↓
+Service A ── Database A
+Service B ── Database B
+Service C ── Database C
+  ↓
+Message Broker / Event Bus
+  ↓
+Observability: Logs, Metrics, Traces
+  ↓
+CI/CD + Container Platform</div>
+
+        <h3>Common Communication Styles</h3>
+        <table>
+          <thead><tr><th>Style</th><th>When to Use</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>REST</td><td>Simple synchronous request/response, public APIs.</td><td>Timeouts, tight runtime dependency, versioning issues.</td></tr>
+            <tr><td>gRPC</td><td>Low-latency internal communication, strongly typed contracts.</td><td>Less human-readable, gateway/browser support needs planning.</td></tr>
+            <tr><td>Messaging</td><td>Asynchronous workflows, event-driven integration.</td><td>Eventual consistency, duplicate messages, ordering issues.</td></tr>
+            <tr><td>Event streaming</td><td>High-throughput event pipelines, audit/event history.</td><td>Schema evolution and consumer compatibility.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-microservice-advanced">
+        <h2>3. Microservice Advanced Topics</h2>
+
+        <h3>Service Boundary and Bounded Context</h3>
+        <p>
+          The hardest part of microservices is not creating many Spring Boot apps. The hardest part is choosing the right boundaries.
+          A good service boundary usually follows a business capability and owns its data.
+        </p>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4>Good Boundary</h4>
+            <p>High cohesion inside service, low coupling with other services, owns business rules and data.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Bad Boundary</h4>
+            <p>Split by technical layer such as User Controller Service, User Repository Service, or Shared Database Service.</p>
+          </div>
+        </div>
+
+        <h3>Database per Service</h3>
+        <p>
+          Each service should own its database schema. Other services should not directly read/write its tables.
+        </p>
+
+        <div class="diagram">Order Service ── owns ── order_db
+Payment Service ── owns ── payment_db
+Inventory Service ── owns ── inventory_db
+
+Order Service should not directly update payment_db.
+Payment Service should not directly update order_db.</div>
+
+        <h3>Distributed Transaction Problem</h3>
+        <p>
+          In a monolith, a single database transaction can update many tables.
+          In microservices, data is distributed, so one local transaction cannot safely update multiple services.
+        </p>
+
+        <h4>Saga Pattern</h4>
+        <div class="diagram">Create Order
+  ↓
+Reserve Stock
+  ↓
+Charge Payment
+  ↓
+Confirm Order
+
+If payment fails:
+  ↓
+Cancel Stock Reservation
+  ↓
+Cancel Order</div>
+
+        <table>
+          <thead><tr><th>Saga Type</th><th>How it works</th><th>Pros / Cons</th></tr></thead>
+          <tbody>
+            <tr><td>Choreography</td><td>Services publish/consume events without a central coordinator.</td><td>Loose coupling, but flow can become hard to understand.</td></tr>
+            <tr><td>Orchestration</td><td>A central orchestrator commands each step.</td><td>Clear process visibility, but orchestrator can become complex.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Transactional Outbox Pattern</h3>
+        <p>
+          The transactional outbox pattern solves the problem of updating database and publishing event atomically.
+          Instead of publishing directly to broker inside business logic, service writes an outbox record in the same local DB transaction.
+          A background publisher later sends it to message broker.
+        </p>
+
+        <div class="diagram">Business Transaction:
+  1. Insert order
+  2. Insert outbox_event(OrderCreated)
+  3. Commit DB transaction
+
+Background Publisher:
+  4. Read unprocessed outbox_event
+  5. Publish to Kafka/RabbitMQ
+  6. Mark event as published</div>
+
+        <pre><code>CREATE TABLE outbox_event (
+    id UUID PRIMARY KEY,
+    aggregate_type VARCHAR(100) NOT NULL,
+    aggregate_id VARCHAR(100) NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    payload JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    published_at TIMESTAMP NULL
+);</code></pre>
+
+        <h3>Idempotency</h3>
+        <p>
+          In distributed systems, clients may retry and messages may be delivered more than once.
+          Idempotency means repeating the same operation produces the same final result.
+        </p>
+
+        <pre><code>POST /api/payments
+Idempotency-Key: 0cfa0e5a-4e7d-43ab-b7b4-2e77c9e9f123
+
+{
+  "orderId": "ORD-1001",
+  "amount": 100.00
+}</code></pre>
+
+        <h3>Resilience Patterns</h3>
+        <table>
+          <thead><tr><th>Pattern</th><th>Purpose</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Timeout</td><td>Avoid waiting forever.</td><td>Payment API timeout after 2 seconds.</td></tr>
+            <tr><td>Retry</td><td>Recover from temporary failures.</td><td>Retry 3 times for network error, not for validation error.</td></tr>
+            <tr><td>Circuit Breaker</td><td>Stop calling unhealthy dependency temporarily.</td><td>Open circuit when Payment Service failure rate is high.</td></tr>
+            <tr><td>Bulkhead</td><td>Isolate resources to prevent cascading failures.</td><td>Separate thread pool for payment and inventory calls.</td></tr>
+            <tr><td>Rate Limiting</td><td>Protect service from overload.</td><td>Limit login API or public search API.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Observability</h3>
+        <p>In microservices, debugging is difficult without observability. Senior engineers should understand logs, metrics, and traces.</p>
+
+        <table>
+          <thead><tr><th>Pillar</th><th>What it answers</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Logs</td><td>What happened?</td><td>Structured JSON logs with requestId/correlationId.</td></tr>
+            <tr><td>Metrics</td><td>How often and how much?</td><td>Request latency, error rate, CPU, memory, queue lag.</td></tr>
+            <tr><td>Traces</td><td>Where did time go across services?</td><td>Distributed tracing with traceId/spanId.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Microservice Anti-Patterns</h3>
+        <ul class="avoid">
+          <li>Distributed monolith: many services but tightly coupled deployment and shared data.</li>
+          <li>Shared database between services.</li>
+          <li>Too many synchronous calls in a single user request.</li>
+          <li>No service ownership.</li>
+          <li>No observability.</li>
+          <li>No automated deployment.</li>
+          <li>Splitting services before understanding domain boundaries.</li>
+        </ul>
+      </section>
+
+      <section id="en-cloud">
+        <h2>4. Cloud Fundamentals</h2>
+
+        <h3>What is Cloud?</h3>
+        <p>
+          Cloud provides on-demand computing resources such as compute, storage, database, networking, security, and managed services.
+          For backend engineers, cloud knowledge means understanding how applications run reliably outside local machines.
+        </p>
+
+        <h3>IaaS, PaaS, SaaS</h3>
+        <table>
+          <thead><tr><th>Model</th><th>Meaning</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>IaaS</td><td>Infrastructure as a Service: VM, network, disk.</td><td>AWS EC2, Azure VM, Google Compute Engine.</td></tr>
+            <tr><td>PaaS</td><td>Platform as a Service: deploy app without managing low-level infrastructure.</td><td>Heroku, Azure App Service, AWS Elastic Beanstalk.</td></tr>
+            <tr><td>SaaS</td><td>Software as a Service: ready-to-use software.</td><td>GitHub, Jira, Gmail, Datadog.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Cloud-Native Building Blocks</h3>
+        <table>
+          <thead><tr><th>Component</th><th>Purpose</th><th>Backend Example</th></tr></thead>
+          <tbody>
+            <tr><td>Load Balancer</td><td>Distribute traffic to healthy instances.</td><td>Route traffic to multiple Spring Boot pods.</td></tr>
+            <tr><td>Auto Scaling</td><td>Scale instances/pods based on load.</td><td>Increase replicas when CPU/request count is high.</td></tr>
+            <tr><td>Managed Database</td><td>Use cloud-managed DB with backups, monitoring, failover.</td><td>RDS PostgreSQL, Cloud SQL, Azure SQL.</td></tr>
+            <tr><td>Object Storage</td><td>Store files and static assets.</td><td>S3 for reports, invoices, images.</td></tr>
+            <tr><td>Secrets Manager</td><td>Store secrets safely.</td><td>DB password, API key, JWT signing secrets.</td></tr>
+            <tr><td>Container Registry</td><td>Store Docker images.</td><td>ECR, Docker Hub, GHCR.</td></tr>
+            <tr><td>Monitoring</td><td>Observe health, performance, errors.</td><td>CloudWatch, Prometheus, Grafana, Datadog.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Well-Architected Thinking</h3>
+        <p>
+          A cloud architecture should be reviewed across operational excellence, security, reliability, performance efficiency,
+          cost optimization, and sustainability.
+        </p>
+
+        <h3>Docker Basics</h3>
+        <p>Docker packages an application and its runtime dependencies into an image. A container is a running instance of an image.</p>
+
+        <pre><code># Build image
+docker build -t order-service:1.0.0 .
+
+# Run container
+docker run -p 8080:8080 order-service:1.0.0
+
+# Push image
+docker tag order-service:1.0.0 registry.example.com/order-service:1.0.0
+docker push registry.example.com/order-service:1.0.0</code></pre>
+
+        <h3>Kubernetes Basics</h3>
+        <table>
+          <thead><tr><th>Kubernetes Object</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Pod</td><td>Smallest deployable unit; runs one or more containers.</td></tr>
+            <tr><td>Deployment</td><td>Manages replica sets and rolling updates.</td></tr>
+            <tr><td>Service</td><td>Stable network access to pods.</td></tr>
+            <tr><td>Ingress</td><td>HTTP routing from outside cluster to services.</td></tr>
+            <tr><td>ConfigMap</td><td>Non-sensitive configuration.</td></tr>
+            <tr><td>Secret</td><td>Sensitive configuration such as passwords and tokens.</td></tr>
+            <tr><td>HPA</td><td>Horizontal Pod Autoscaler.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-devops">
+        <h2>5. DevOps Fundamentals</h2>
+
+        <h3>What is DevOps?</h3>
+        <p>
+          DevOps is a culture and set of practices that brings development and operations together to deliver software faster,
+          safer, and more reliably through automation, feedback, and shared ownership.
+        </p>
+
+        <h3>DevOps Core Ideas</h3>
+        <table>
+          <thead><tr><th>Idea</th><th>Meaning</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Automation</td><td>Automate repeatable tasks.</td><td>Build, test, scan, package, deploy automatically.</td></tr>
+            <tr><td>CI/CD</td><td>Continuously integrate and deliver changes.</td><td>Every PR runs tests; merge to main deploys to staging.</td></tr>
+            <tr><td>Infrastructure as Code</td><td>Manage infrastructure by versioned code.</td><td>Terraform, CloudFormation, Kubernetes YAML, Helm.</td></tr>
+            <tr><td>Observability</td><td>Measure system health and behavior.</td><td>Logs, metrics, traces, dashboards, alerts.</td></tr>
+            <tr><td>Shift Left</td><td>Find issues earlier in development.</td><td>Unit tests, static analysis, dependency scanning in CI.</td></tr>
+            <tr><td>Shared Responsibility</td><td>Dev team also cares about running software.</td><td>You build it, you run it.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>DevOps for Java Backend</h3>
+        <div class="diagram">Developer pushes code
+  ↓
+CI:
+  - Compile Java
+  - Unit tests
+  - Integration tests
+  - Static analysis
+  - Security/dependency scan
+  - Build Docker image
+  ↓
+CD:
+  - Push image to registry
+  - Run DB migration
+  - Deploy to Kubernetes
+  - Smoke test
+  - Monitor logs/metrics
+  ↓
+Operate:
+  - Alerts
+  - Incident response
+  - Rollback / roll forward
+  - Postmortem</div>
+      </section>
+
+      <section id="en-cicd">
+        <h2>6. CI/CD Pipeline</h2>
+
+        <h3>CI vs CD</h3>
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Continuous Integration</td><td>Frequently merge code and automatically verify it.</td><td>Every PR runs build, tests, lint, Sonar, security scan.</td></tr>
+            <tr><td>Continuous Delivery</td><td>Application is always ready to deploy, but production release may need approval.</td><td>Main branch deploys to staging automatically; production needs manual approval.</td></tr>
+            <tr><td>Continuous Deployment</td><td>Every verified change is automatically deployed to production.</td><td>Merge to main automatically deploys to production.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Typical Pipeline Stages</h3>
+        <div class="diagram">1. Checkout code
+2. Setup JDK / Node / build tools
+3. Restore dependency cache
+4. Compile
+5. Unit tests
+6. Integration tests
+7. Static analysis / SonarQube
+8. Dependency vulnerability scan
+9. Build artifact / jar
+10. Build Docker image
+11. Push image to registry
+12. Run DB migration
+13. Deploy to environment
+14. Smoke test
+15. Notify team
+16. Monitor release</div>
+
+        <h3>Quality Gates</h3>
+        <ul class="checklist">
+          <li>Build must pass.</li>
+          <li>Unit tests and integration tests must pass.</li>
+          <li>Code coverage should be meaningful, not blindly 100%.</li>
+          <li>No critical/high vulnerabilities.</li>
+          <li>Sonar quality gate passed.</li>
+          <li>Docker image scan passed.</li>
+          <li>Database migration tested.</li>
+          <li>Smoke test passed after deployment.</li>
+        </ul>
+
+        <h3>Deployment Strategies</h3>
+        <table>
+          <thead><tr><th>Strategy</th><th>How it works</th><th>Pros</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Rolling Update</td><td>Gradually replace old pods with new pods.</td><td>Simple and common in Kubernetes.</td><td>Old and new versions run together; compatibility matters.</td></tr>
+            <tr><td>Blue/Green</td><td>Run blue and green environments; switch traffic.</td><td>Fast rollback by switching back.</td><td>Higher infrastructure cost.</td></tr>
+            <tr><td>Canary</td><td>Release to small percentage first, then increase traffic.</td><td>Lower risk for production releases.</td><td>Needs advanced routing and monitoring.</td></tr>
+            <tr><td>Feature Flag</td><td>Deploy code but control feature visibility by config.</td><td>Separate deploy from release.</td><td>Flag cleanup and complexity.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-cicd-examples">
+        <h2>7. Concrete CI/CD Examples</h2>
+
+        <h3>Example 1: GitHub Actions for Spring Boot + Docker + Kubernetes</h3>
+        <pre><code>name: order-service-ci-cd
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+env:
+  IMAGE_NAME: ghcr.io/my-org/order-service
+  JAVA_VERSION: "21"
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Build and test
+        run: ./gradlew clean test
+
+      - name: Run integration tests
+        run: ./gradlew integrationTest
+
+      - name: Build jar
+        run: ./gradlew bootJar
+
+      - name: Login to container registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:${{ github.sha }} \
+            -t $IMAGE_NAME:latest .
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+
+  deploy-staging:
+    needs: build-test-scan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" > ~/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/order-service \
+            order-service=$IMAGE_NAME:${{ github.sha }} \
+            -n staging
+
+          kubectl rollout status deployment/order-service -n staging
+
+      - name: Smoke test
+        run: |
+          curl -f https://staging-api.example.com/order-service/actuator/health</code></pre>
+
+        <h3>Example 2: Jenkins Declarative Pipeline</h3>
+        <pre><code>pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'registry.example.com/order-service'
+        IMAGE_TAG = "${env.GIT_COMMIT}"
+        JAVA_HOME = tool 'jdk-21'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & Unit Test') {
+            steps {
+                sh './gradlew clean test'
+            }
+            post {
+                always {
+                    junit 'build/test-results/test/*.xml'
+                }
+            }
+        }
+
+        stage('Integration Test') {
+            steps {
+                sh './gradlew integrationTest'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh './gradlew sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Deploy Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh "kubectl set image deployment/order-service order-service=${IMAGE_NAME}:${IMAGE_TAG} -n staging"
+                sh "kubectl rollout status deployment/order-service -n staging"
+            }
+        }
+    }
+
+    post {
+        success { echo 'Pipeline succeeded' }
+        failure { echo 'Pipeline failed' }
+    }
+}</code></pre>
+
+        <h3>Example 3: Production Dockerfile for Spring Boot</h3>
+        <pre><code># Stage 1: Build
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY src src
+
+RUN ./gradlew clean bootJar --no-daemon
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+
+COPY --from=build /workspace/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]</code></pre>
+
+        <h3>Example 4: Kubernetes Deployment + Service</h3>
+        <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: staging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: order-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: registry.example.com/order-service:CHANGE_ME
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: staging
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: order-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: order-db-secret
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: staging
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP</code></pre>
+
+        <div class="success">
+          <strong>Senior note:</strong> A good pipeline does not stop at building an image.
+          It should also handle quality gates, database migration, deployment health checks, rollback strategy, observability, and notifications.
+        </div>
+      </section>
+
+      <section id="en-sql">
+        <h2>8. CI/CD for SQL and Database Migration</h2>
+
+        <h3>Why SQL Migration Matters in CI/CD</h3>
+        <p>
+          Application deployment and database schema changes must be coordinated.
+          A bad SQL migration can break production even if Java code is correct.
+        </p>
+
+        <h3>Database Migration Tools</h3>
+        <table>
+          <thead><tr><th>Tool</th><th>How it works</th><th>Common File Style</th></tr></thead>
+          <tbody>
+            <tr><td>Flyway</td><td>Versioned SQL migrations. Tracks executed scripts in schema history table.</td><td><code>V1__create_table.sql</code>, <code>V2__add_column.sql</code></td></tr>
+            <tr><td>Liquibase</td><td>Changelog-based migrations in XML/YAML/JSON/SQL.</td><td><code>db.changelog-master.yaml</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Flyway Migration Example</h3>
+
+        <h4>V1__create_order_table.sql</h4>
+        <pre><code>CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_no VARCHAR(50) NOT NULL UNIQUE,
+    customer_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    total_amount NUMERIC(18, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);</code></pre>
+
+        <h4>V2__add_payment_status.sql</h4>
+        <pre><code>ALTER TABLE orders
+ADD COLUMN payment_status VARCHAR(30);
+
+UPDATE orders
+SET payment_status = 'PENDING'
+WHERE payment_status IS NULL;
+
+ALTER TABLE orders
+ALTER COLUMN payment_status SET NOT NULL;</code></pre>
+
+        <div class="warning">
+          <strong>Production warning:</strong> Adding a NOT NULL column with default to a huge table can lock or rewrite data depending on DB.
+          For large tables, use expand-contract migration with multiple releases.
+        </div>
+
+        <h3>Expand-Contract Pattern</h3>
+        <div class="diagram">Release 1 - Expand:
+  Add nullable column / new table / new index
+  Application writes both old and new fields if needed
+
+Release 2 - Migrate:
+  Backfill data safely in batches
+  Application reads from new field
+
+Release 3 - Contract:
+  Remove old column / old table only after no code uses it</div>
+
+        <h4>Example: Safe Column Rename</h4>
+        <table>
+          <thead><tr><th>Release</th><th>DB Change</th><th>Application Change</th></tr></thead>
+          <tbody>
+            <tr><td>R1 Expand</td><td>Add new column <code>customer_full_name</code> nullable.</td><td>Write both <code>customer_name</code> and <code>customer_full_name</code>.</td></tr>
+            <tr><td>R2 Backfill</td><td>Backfill old data in batches.</td><td>Read from new column, fallback to old column.</td></tr>
+            <tr><td>R3 Contract</td><td>Drop old column <code>customer_name</code>.</td><td>Remove fallback code.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>SQL Migration in GitHub Actions</h3>
+        <pre><code>jobs:
+  migrate-staging-db:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Run Flyway migration
+        env:
+          FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:5432/orderdb
+          FLYWAY_USER: ${{ secrets.DB_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          ./gradlew flywayInfo
+          ./gradlew flywayMigrate</code></pre>
+
+        <h3>SQL Review Checklist</h3>
+        <ul class="checklist">
+          <li>Is migration backward compatible with old application version?</li>
+          <li>Can it run safely on production data volume?</li>
+          <li>Does it create locks for too long?</li>
+          <li>Are indexes created for new query patterns?</li>
+          <li>Is backfill done in batches if table is large?</li>
+          <li>Is rollback or roll-forward strategy defined?</li>
+          <li>Was migration tested on staging with production-like data?</li>
+          <li>Are destructive changes separated into later release?</li>
+          <li>Is migration idempotent where needed?</li>
+          <li>Are DB credentials stored in CI secrets, not in repository?</li>
+        </ul>
+
+        <h3>Rollback Strategy for DB</h3>
+        <table>
+          <thead><tr><th>Change Type</th><th>Rollback Approach</th></tr></thead>
+          <tbody>
+            <tr><td>Add table/column/index</td><td>Usually safe to leave. Roll back application only.</td></tr>
+            <tr><td>Drop column/table</td><td>Dangerous. Avoid in same release. Use contract phase later.</td></tr>
+            <tr><td>Data transformation</td><td>Need backup or reverse script, but roll-forward is often safer.</td></tr>
+            <tr><td>Constraint added</td><td>Validate data first, add constraint after data is clean.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-agile">
+        <h2>9. Agile and Scrum</h2>
+
+        <h3>Agile Mindset</h3>
+        <p>
+          Agile is not only ceremonies. It is a mindset of delivering value early, getting feedback, adapting to change,
+          and improving continuously.
+        </p>
+
+        <h3>Scrum Roles</h3>
+        <table>
+          <thead><tr><th>Role</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td>Product Owner</td><td>Maximizes product value, manages Product Backlog, prioritizes work.</td></tr>
+            <tr><td>Scrum Master</td><td>Helps team understand Scrum, removes impediments, facilitates improvement.</td></tr>
+            <tr><td>Developers</td><td>Build the product increment, estimate work, ensure quality, self-manage delivery.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Scrum Events</h3>
+        <table>
+          <thead><tr><th>Event</th><th>Purpose</th><th>Senior Engineer Behavior</th></tr></thead>
+          <tbody>
+            <tr><td>Sprint Planning</td><td>Decide sprint goal and selected backlog items.</td><td>Clarify requirement, technical risk, dependency, testability.</td></tr>
+            <tr><td>Daily Scrum</td><td>Inspect progress toward sprint goal.</td><td>Share blockers clearly, not status theater.</td></tr>
+            <tr><td>Sprint Review</td><td>Inspect increment with stakeholders.</td><td>Demo working software and explain trade-offs.</td></tr>
+            <tr><td>Sprint Retrospective</td><td>Improve process and collaboration.</td><td>Bring concrete problems and action items.</td></tr>
+            <tr><td>Backlog Refinement</td><td>Clarify future work.</td><td>Break down stories, identify edge cases, estimate risks.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Scrum Artifacts</h3>
+        <table>
+          <thead><tr><th>Artifact</th><th>Commitment</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>Product Backlog</td><td>Product Goal</td><td>Ordered list of product work.</td></tr>
+            <tr><td>Sprint Backlog</td><td>Sprint Goal</td><td>Selected work for sprint plus plan to deliver it.</td></tr>
+            <tr><td>Increment</td><td>Definition of Done</td><td>Potentially releasable product result.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>User Story and Acceptance Criteria</h3>
+        <pre><code>As a business admin,
+I want to download monthly transaction reports,
+so that I can reconcile payment records.
+
+Acceptance Criteria:
+1. User can select month and year.
+2. System generates CSV file.
+3. CSV contains transaction ID, amount, status, created date.
+4. If no data exists, system returns empty file with header.
+5. Only users with REPORT_DOWNLOAD permission can download.</code></pre>
+
+        <h3>Definition of Ready vs Definition of Done</h3>
+        <table>
+          <thead><tr><th>Definition of Ready</th><th>Definition of Done</th></tr></thead>
+          <tbody>
+            <tr><td>Story has clear business value.</td><td>Code implemented and reviewed.</td></tr>
+            <tr><td>Acceptance criteria are clear.</td><td>Unit/integration tests passed.</td></tr>
+            <tr><td>Dependencies and risks are identified.</td><td>Security/performance impact considered.</td></tr>
+            <tr><td>Story is small enough for a sprint.</td><td>Documentation updated if needed.</td></tr>
+            <tr><td>Design/API contract is agreed if needed.</td><td>Feature deployed or ready to deploy.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-softskills">
+        <h2>10. Soft Skills for Senior Backend Engineers</h2>
+
+        <h3>Communication</h3>
+        <p>
+          Senior engineers must explain complex technical issues clearly to developers, QA, PM, clients, and non-technical stakeholders.
+        </p>
+
+        <h4>Good communication pattern</h4>
+        <pre><code>Context:
+Payment API is failing intermittently in staging.
+
+Impact:
+Order creation sometimes remains in PENDING status.
+
+Root Cause:
+The external PSP timeout is lower than our retry window.
+
+Solution:
+Adjust timeout/retry policy, add idempotency key, and improve error mapping.
+
+Next Action:
+I will prepare a fix and add integration test for timeout scenario.</code></pre>
+
+        <h3>Code Review</h3>
+        <ul class="checklist">
+          <li>Check correctness and edge cases.</li>
+          <li>Check readability and maintainability.</li>
+          <li>Check transaction boundaries and error handling.</li>
+          <li>Check performance and database query impact.</li>
+          <li>Check security: validation, authorization, sensitive data.</li>
+          <li>Check tests: meaningful unit/integration cases.</li>
+          <li>Give comments respectfully and explain why.</li>
+        </ul>
+
+        <h3>Mentoring</h3>
+        <p>Mentoring is not only giving answers. It means helping others build reasoning ability.</p>
+
+        <table>
+          <thead><tr><th>Situation</th><th>Senior Response</th></tr></thead>
+          <tbody>
+            <tr><td>Junior asks how to fix a bug.</td><td>Ask what they observed, guide them to logs, reproduce together, then explain root cause.</td></tr>
+            <tr><td>PR has poor design.</td><td>Explain trade-off and propose a simpler design instead of only saying “wrong”.</td></tr>
+            <tr><td>Team repeats same mistake.</td><td>Create guideline, checklist, or small knowledge sharing session.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Handling Conflict</h3>
+        <pre><code>Good response:
+"I understand why you prefer option A because it is faster to implement.
+My concern is that it creates coupling between Order and Payment database.
+Can we compare both options against delivery time, maintainability, and failure handling?"</code></pre>
+
+        <h3>Production Incident Communication</h3>
+        <pre><code>1. Acknowledge issue.
+2. State impact.
+3. Share current hypothesis.
+4. Assign owner.
+5. Give next update time.
+6. After fix, write postmortem:
+   - Timeline
+   - Root cause
+   - What worked
+   - What failed
+   - Prevention actions</code></pre>
+
+        <h3>STAR Method for Behavioral Interview</h3>
+        <table>
+          <thead><tr><th>Step</th><th>Meaning</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Situation</td><td>Describe context.</td><td>Production release had intermittent payment callback failures.</td></tr>
+            <tr><td>Task</td><td>Describe your responsibility.</td><td>I was responsible for investigating and stabilizing the flow.</td></tr>
+            <tr><td>Action</td><td>Explain what you did.</td><td>I checked logs, traced request IDs, added idempotency, improved retry handling.</td></tr>
+            <tr><td>Result</td><td>Show measurable outcome.</td><td>Failure rate dropped and the release was completed without data inconsistency.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-interview" class="interview-answer">
+        <h2>11. Senior Interview Answers — English</h2>
+
+        <h3>Microservice Answer</h3>
+        <blockquote>
+          Microservice is an architectural style where a system is split into small, independently deployable services aligned with business capabilities. Each service should own its data and expose behavior through APIs or events. The benefit is independent deployment, scalability, and team autonomy, but the trade-off is higher operational complexity, distributed transactions, network failures, data consistency, and observability requirements. In production, I pay special attention to service boundaries, database ownership, API versioning, resilience patterns like timeout/retry/circuit breaker, idempotency, saga, transactional outbox, and monitoring with logs, metrics, and traces.
+        </blockquote>
+
+        <h3>DevOps / CI/CD Answer</h3>
+        <blockquote>
+          CI/CD is the automation pipeline that verifies and delivers software safely. In CI, every change should be built, tested, scanned, and validated through quality gates. In CD, the artifact should be packaged as a Docker image, pushed to a registry, deployed to an environment such as Kubernetes, smoke-tested, and monitored. For database changes, I prefer versioned migrations with Flyway or Liquibase and backward-compatible expand-contract migration. A senior engineer should not only know how to deploy, but also understand rollback, health checks, secrets management, deployment strategies like rolling/blue-green/canary, and observability after release.
+        </blockquote>
+
+        <h3>Agile / Scrum / Soft Skills Answer</h3>
+        <blockquote>
+          Agile is about delivering value iteratively and adapting based on feedback. Scrum provides roles, events, and artifacts to support that. As a senior engineer, I contribute not only by coding but also by clarifying requirements, identifying technical risks, breaking down stories, improving estimates, mentoring teammates, reviewing code, communicating blockers early, and helping the team improve through retrospectives. I try to explain technical trade-offs clearly to both technical and non-technical stakeholders and take ownership from design to production support.
+        </blockquote>
+      </section>
+
+      <section id="vi-overview" class="page-break">
+        <h2>12. Tổng quan</h2>
+        <p class="lead">
+          Các chủ đề này liên quan chặt chẽ với nhau. Microservice nói về cách chia hệ thống.
+          Cloud cung cấp hạ tầng scalable. DevOps và CI/CD giúp build, test, deploy, monitor và vận hành phần mềm.
+          Agile/Scrum giúp team delivery theo hướng iterative và nhận feedback liên tục.
+        </p>
+
+        <div class="diagram">Business Requirement
+  ↓
+Agile/Scrum planning, refinement, estimation
+  ↓
+Microservice design: service boundary, API, data ownership
+  ↓
+Implementation: Java / Spring Boot / SQL / Messaging
+  ↓
+CI: build, unit test, integration test, code quality, security scan
+  ↓
+CD: Docker image, registry, Kubernetes deployment, DB migration
+  ↓
+Cloud runtime: load balancer, autoscaling, observability, reliability
+  ↓
+Feedback: monitoring, incidents, retrospective, continuous improvement</div>
+
+        <div class="note">
+          <strong>Mindset Senior:</strong> Khi trả lời phỏng vấn, không nên chỉ định nghĩa từng khái niệm.
+          Hãy kết nối chúng với delivery thực tế: requirement, architecture, code, testing, deployment, monitoring, incident và improvement.
+        </div>
+      </section>
+
+      <section id="vi-microservice-basic">
+        <h2>13. Microservice cơ bản</h2>
+
+        <h3>Microservice là gì?</h3>
+        <p>
+          Microservice là architectural style trong đó một hệ thống lớn được xây thành nhiều service nhỏ.
+          Mỗi service thường phụ trách một business capability, chạy trong process riêng, giao tiếp qua REST/gRPC/message,
+          và có thể deploy độc lập.
+        </p>
+
+        <table>
+          <thead><tr><th>Đặc điểm</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Business capability</td><td>Service align với một business area.</td><td>Order Service, Payment Service, Inventory Service.</td></tr>
+            <tr><td>Independent deployment</td><td>Service có thể build/release độc lập.</td><td>Deploy Payment Service mà không cần redeploy Catalog Service.</td></tr>
+            <tr><td>Decentralized data</td><td>Mỗi service sở hữu data/schema riêng.</td><td>Payment Service không update trực tiếp DB của Order Service.</td></tr>
+            <tr><td>Lightweight communication</td><td>Service giao tiếp qua REST, gRPC, messaging, events.</td><td>Order gọi Payment API hoặc publish OrderCreated event.</td></tr>
+            <tr><td>Fault isolation</td><td>Lỗi ở một service không nên làm sập toàn hệ thống.</td><td>Payment timeout không được crash Order Service.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Monolith vs Microservice</h3>
+        <table>
+          <thead><tr><th>Monolith</th><th>Microservice</th></tr></thead>
+          <tbody>
+            <tr><td>Một deployable application.</td><td>Nhiều service deploy độc lập.</td></tr>
+            <tr><td>Dễ bắt đầu, test, deploy khi hệ thống nhỏ.</td><td>Operational complexity cao hơn.</td></tr>
+            <tr><td>Thường dùng shared database.</td><td>Ưu tiên database per service.</td></tr>
+            <tr><td>Local transaction dễ hơn.</td><td>Distributed consistency khó hơn.</td></tr>
+            <tr><td>Scale thường theo toàn bộ app.</td><td>Mỗi service scale độc lập.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="warning">
+          <strong>Quan trọng:</strong> Microservice không phải lúc nào cũng tốt hơn.
+          Nếu team nhỏ, domain chưa rõ, hoặc vận hành chưa mature, modular monolith có thể tốt hơn distributed complexity.
+        </div>
+      </section>
+
+      <section id="vi-microservice-advanced">
+        <h2>14. Microservice nâng cao</h2>
+
+        <h3>Service Boundary và Bounded Context</h3>
+        <p>
+          Khó nhất của microservice không phải là tạo nhiều Spring Boot apps.
+          Khó nhất là chia boundary đúng. Boundary tốt thường đi theo business capability và sở hữu data riêng.
+        </p>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4>Boundary tốt</h4>
+            <p>High cohesion bên trong service, low coupling với service khác, own business rules và data.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Boundary xấu</h4>
+            <p>Chia theo technical layer như User Controller Service, User Repository Service, Shared Database Service.</p>
+          </div>
+        </div>
+
+        <h3>Database per Service</h3>
+        <div class="diagram">Order Service ── owns ── order_db
+Payment Service ── owns ── payment_db
+Inventory Service ── owns ── inventory_db
+
+Order Service không update trực tiếp payment_db.
+Payment Service không update trực tiếp order_db.</div>
+
+        <h3>Distributed Transaction Problem</h3>
+        <p>
+          Trong monolith, một database transaction có thể update nhiều table.
+          Trong microservices, data phân tán, nên một local transaction không thể update an toàn nhiều service.
+        </p>
+
+        <h4>Saga Pattern</h4>
+        <div class="diagram">Create Order
+  ↓
+Reserve Stock
+  ↓
+Charge Payment
+  ↓
+Confirm Order
+
+Nếu payment fail:
+  ↓
+Cancel Stock Reservation
+  ↓
+Cancel Order</div>
+
+        <h3>Transactional Outbox Pattern</h3>
+        <p>
+          Transactional outbox giải quyết vấn đề update database và publish event atomically.
+          Service ghi event vào outbox table trong cùng local DB transaction. Background publisher đọc outbox và publish ra broker.
+        </p>
+
+        <pre><code>CREATE TABLE outbox_event (
+    id UUID PRIMARY KEY,
+    aggregate_type VARCHAR(100) NOT NULL,
+    aggregate_id VARCHAR(100) NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    payload JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    published_at TIMESTAMP NULL
+);</code></pre>
+
+        <h3>Idempotency</h3>
+        <p>
+          Trong distributed system, client có thể retry và message có thể được deliver nhiều lần.
+          Idempotency nghĩa là gọi lại cùng operation nhiều lần vẫn cho cùng kết quả cuối.
+        </p>
+
+        <pre><code>POST /api/payments
+Idempotency-Key: 0cfa0e5a-4e7d-43ab-b7b4-2e77c9e9f123
+
+{
+  "orderId": "ORD-1001",
+  "amount": 100.00
+}</code></pre>
+
+        <h3>Resilience Patterns</h3>
+        <table>
+          <thead><tr><th>Pattern</th><th>Mục đích</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Timeout</td><td>Tránh chờ mãi.</td><td>Payment API timeout sau 2 giây.</td></tr>
+            <tr><td>Retry</td><td>Recover từ temporary failure.</td><td>Retry 3 lần cho network error, không retry validation error.</td></tr>
+            <tr><td>Circuit Breaker</td><td>Dừng gọi dependency đang lỗi tạm thời.</td><td>Open circuit khi Payment Service failure rate cao.</td></tr>
+            <tr><td>Bulkhead</td><td>Cô lập resource để tránh cascading failure.</td><td>Thread pool riêng cho payment và inventory calls.</td></tr>
+            <tr><td>Rate Limiting</td><td>Bảo vệ service khỏi overload.</td><td>Limit login API hoặc public search API.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Observability</h3>
+        <table>
+          <thead><tr><th>Pillar</th><th>Trả lời câu hỏi</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Logs</td><td>Chuyện gì đã xảy ra?</td><td>Structured JSON logs với requestId/correlationId.</td></tr>
+            <tr><td>Metrics</td><td>Xảy ra bao nhiêu lần, mức độ thế nào?</td><td>Latency, error rate, CPU, memory, queue lag.</td></tr>
+            <tr><td>Traces</td><td>Thời gian mất ở service nào?</td><td>Distributed tracing với traceId/spanId.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-cloud">
+        <h2>15. Cloud Fundamentals</h2>
+
+        <h3>Cloud là gì?</h3>
+        <p>
+          Cloud cung cấp compute, storage, database, networking, security và managed services theo nhu cầu.
+          Với backend engineer, cloud nghĩa là hiểu ứng dụng chạy ổn định ngoài local machine như thế nào.
+        </p>
+
+        <h3>IaaS, PaaS, SaaS</h3>
+        <table>
+          <thead><tr><th>Model</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>IaaS</td><td>Infrastructure as a Service: VM, network, disk.</td><td>AWS EC2, Azure VM, Google Compute Engine.</td></tr>
+            <tr><td>PaaS</td><td>Deploy app mà ít quản lý hạ tầng thấp.</td><td>Heroku, Azure App Service, AWS Elastic Beanstalk.</td></tr>
+            <tr><td>SaaS</td><td>Software dùng sẵn.</td><td>GitHub, Jira, Gmail, Datadog.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Cloud-native building blocks</h3>
+        <table>
+          <thead><tr><th>Component</th><th>Mục đích</th><th>Ví dụ backend</th></tr></thead>
+          <tbody>
+            <tr><td>Load Balancer</td><td>Distribute traffic tới healthy instances.</td><td>Route traffic tới nhiều Spring Boot pods.</td></tr>
+            <tr><td>Auto Scaling</td><td>Scale instances/pods theo load.</td><td>Tăng replicas khi CPU/request count cao.</td></tr>
+            <tr><td>Managed Database</td><td>DB được cloud manage backup, monitoring, failover.</td><td>RDS PostgreSQL, Cloud SQL, Azure SQL.</td></tr>
+            <tr><td>Object Storage</td><td>Lưu files/static assets.</td><td>S3 cho report, invoice, images.</td></tr>
+            <tr><td>Secrets Manager</td><td>Lưu secrets an toàn.</td><td>DB password, API key, JWT signing secret.</td></tr>
+            <tr><td>Container Registry</td><td>Lưu Docker images.</td><td>ECR, Docker Hub, GHCR.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Docker và Kubernetes</h3>
+        <p>
+          Docker đóng gói application và dependencies vào image. Container là instance đang chạy của image.
+          Kubernetes tự động deploy, scale và manage containerized applications.
+        </p>
+
+        <pre><code>docker build -t order-service:1.0.0 .
+docker run -p 8080:8080 order-service:1.0.0</code></pre>
+      </section>
+
+      <section id="vi-devops">
+        <h2>16. DevOps Fundamentals</h2>
+
+        <h3>DevOps là gì?</h3>
+        <p>
+          DevOps là culture và practices giúp development và operations phối hợp để deliver software nhanh hơn,
+          an toàn hơn và ổn định hơn thông qua automation, feedback và shared ownership.
+        </p>
+
+        <h3>Các ý chính của DevOps</h3>
+        <table>
+          <thead><tr><th>Ý chính</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Automation</td><td>Tự động hóa task lặp lại.</td><td>Build, test, scan, package, deploy tự động.</td></tr>
+            <tr><td>CI/CD</td><td>Continuously integrate và deliver changes.</td><td>Mỗi PR chạy test; merge main deploy staging.</td></tr>
+            <tr><td>Infrastructure as Code</td><td>Manage infrastructure bằng versioned code.</td><td>Terraform, CloudFormation, Kubernetes YAML, Helm.</td></tr>
+            <tr><td>Observability</td><td>Đo health và behavior của system.</td><td>Logs, metrics, traces, dashboards, alerts.</td></tr>
+            <tr><td>Shift Left</td><td>Tìm lỗi sớm hơn trong development.</td><td>Unit tests, static analysis, dependency scanning trong CI.</td></tr>
+            <tr><td>Shared Responsibility</td><td>Dev team cũng quan tâm việc vận hành software.</td><td>You build it, you run it.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-cicd">
+        <h2>17. CI/CD Pipeline</h2>
+
+        <h3>CI vs CD</h3>
+        <table>
+          <thead><tr><th>Thuật ngữ</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Continuous Integration</td><td>Merge code thường xuyên và verify tự động.</td><td>Mỗi PR chạy build, tests, lint, Sonar, security scan.</td></tr>
+            <tr><td>Continuous Delivery</td><td>App luôn ready để deploy, production có thể cần approval.</td><td>Main branch deploy staging tự động; production cần manual approval.</td></tr>
+            <tr><td>Continuous Deployment</td><td>Mọi verified change tự động deploy production.</td><td>Merge main tự động deploy production.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Pipeline stages phổ biến</h3>
+        <div class="diagram">1. Checkout code
+2. Setup JDK / build tools
+3. Restore dependency cache
+4. Compile
+5. Unit tests
+6. Integration tests
+7. Static analysis / SonarQube
+8. Dependency vulnerability scan
+9. Build artifact / jar
+10. Build Docker image
+11. Push image to registry
+12. Run DB migration
+13. Deploy to environment
+14. Smoke test
+15. Notify team
+16. Monitor release</div>
+
+        <h3>Quality Gates</h3>
+        <ul class="checklist">
+          <li>Build phải pass.</li>
+          <li>Unit test và integration test pass.</li>
+          <li>Coverage phải meaningful, không chạy theo 100% máy móc.</li>
+          <li>Không có critical/high vulnerabilities.</li>
+          <li>Sonar quality gate passed.</li>
+          <li>Docker image scan passed.</li>
+          <li>Database migration đã test.</li>
+          <li>Smoke test passed sau deployment.</li>
+        </ul>
+      </section>
+
+      <section id="vi-cicd-examples">
+        <h2>18. Ví dụ CI/CD cụ thể</h2>
+
+        <h3>Ví dụ 1: GitHub Actions cho Spring Boot + Docker + Kubernetes</h3>
+        <pre><code>name: order-service-ci-cd
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+env:
+  IMAGE_NAME: ghcr.io/my-org/order-service
+  JAVA_VERSION: "21"
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Build and test
+        run: ./gradlew clean test
+
+      - name: Build jar
+        run: ./gradlew bootJar
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:${{ github.sha }} \
+            -t $IMAGE_NAME:latest .
+
+  deploy-staging:
+    needs: build-test-scan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/order-service \
+            order-service=$IMAGE_NAME:${{ github.sha }} \
+            -n staging
+
+          kubectl rollout status deployment/order-service -n staging</code></pre>
+
+        <h3>Ví dụ 2: Jenkins Declarative Pipeline</h3>
+        <pre><code>pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'registry.example.com/order-service'
+        IMAGE_TAG = "${env.GIT_COMMIT}"
+    }
+
+    stages {
+        stage('Build & Unit Test') {
+            steps {
+                sh './gradlew clean test'
+            }
+            post {
+                always {
+                    junit 'build/test-results/test/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh './gradlew sonar'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Deploy Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh "kubectl set image deployment/order-service order-service=${IMAGE_NAME}:${IMAGE_TAG} -n staging"
+                sh "kubectl rollout status deployment/order-service -n staging"
+            }
+        }
+    }
+}</code></pre>
+
+        <h3>Ví dụ 3: Dockerfile cho Spring Boot</h3>
+        <pre><code>FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+COPY src src
+
+RUN ./gradlew clean bootJar --no-daemon
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+
+COPY --from=build /workspace/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]</code></pre>
+
+        <h3>Ví dụ 4: Kubernetes Deployment + Service</h3>
+        <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: staging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: order-service
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: registry.example.com/order-service:CHANGE_ME
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: staging
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP</code></pre>
+      </section>
+
+      <section id="vi-sql">
+        <h2>19. CI/CD cho SQL và Database Migration</h2>
+
+        <h3>Vì sao SQL migration quan trọng?</h3>
+        <p>
+          Application deployment và database schema changes phải được coordinate.
+          Một SQL migration sai có thể làm production lỗi dù Java code đúng.
+        </p>
+
+        <h3>Flyway Migration Example</h3>
+        <h4>V1__create_order_table.sql</h4>
+        <pre><code>CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_no VARCHAR(50) NOT NULL UNIQUE,
+    customer_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    total_amount NUMERIC(18, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);</code></pre>
+
+        <h4>V2__add_payment_status.sql</h4>
+        <pre><code>ALTER TABLE orders
+ADD COLUMN payment_status VARCHAR(30);
+
+UPDATE orders
+SET payment_status = 'PENDING'
+WHERE payment_status IS NULL;
+
+ALTER TABLE orders
+ALTER COLUMN payment_status SET NOT NULL;</code></pre>
+
+        <div class="warning">
+          <strong>Cảnh báo production:</strong> Add NOT NULL column hoặc default vào table lớn có thể lock/rewrite data tùy DB.
+          Với table lớn, nên dùng expand-contract migration qua nhiều release.
+        </div>
+
+        <h3>Expand-Contract Pattern</h3>
+        <div class="diagram">Release 1 - Expand:
+  Add nullable column / new table / new index
+  App ghi cả field cũ và mới nếu cần
+
+Release 2 - Migrate:
+  Backfill data theo batch
+  App đọc từ field mới
+
+Release 3 - Contract:
+  Xóa column/table cũ sau khi chắc chắn không còn code dùng</div>
+
+        <h3>SQL migration trong GitHub Actions</h3>
+        <pre><code>jobs:
+  migrate-staging-db:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Run Flyway migration
+        env:
+          FLYWAY_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:5432/orderdb
+          FLYWAY_USER: ${{ secrets.DB_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          ./gradlew flywayInfo
+          ./gradlew flywayMigrate</code></pre>
+
+        <h3>Checklist review SQL migration</h3>
+        <ul class="checklist">
+          <li>Migration có backward compatible với app version cũ không?</li>
+          <li>Có chạy an toàn trên production data volume không?</li>
+          <li>Có lock table quá lâu không?</li>
+          <li>Có index cho query pattern mới không?</li>
+          <li>Backfill có chạy theo batch nếu table lớn không?</li>
+          <li>Có rollback hoặc roll-forward strategy không?</li>
+          <li>Đã test ở staging với data gần production chưa?</li>
+          <li>Destructive changes có tách sang release sau chưa?</li>
+          <li>DB credentials có lưu trong CI secrets không?</li>
+        </ul>
+      </section>
+
+      <section id="vi-agile">
+        <h2>20. Agile và Scrum</h2>
+
+        <h3>Agile mindset</h3>
+        <p>
+          Agile không chỉ là ceremony. Agile là mindset delivery value sớm, nhận feedback, adapt với thay đổi và cải tiến liên tục.
+        </p>
+
+        <h3>Scrum Roles</h3>
+        <table>
+          <thead><tr><th>Role</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td>Product Owner</td><td>Maximize product value, quản lý Product Backlog, prioritize work.</td></tr>
+            <tr><td>Scrum Master</td><td>Giúp team hiểu Scrum, remove impediments, facilitate improvement.</td></tr>
+            <tr><td>Developers</td><td>Build product increment, estimate work, ensure quality, self-manage delivery.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Scrum Events</h3>
+        <table>
+          <thead><tr><th>Event</th><th>Mục đích</th><th>Hành vi Senior Engineer</th></tr></thead>
+          <tbody>
+            <tr><td>Sprint Planning</td><td>Chọn sprint goal và backlog items.</td><td>Clarify requirement, risk, dependency, testability.</td></tr>
+            <tr><td>Daily Scrum</td><td>Inspect progress toward sprint goal.</td><td>Share blocker rõ ràng, không status report máy móc.</td></tr>
+            <tr><td>Sprint Review</td><td>Inspect increment với stakeholders.</td><td>Demo working software và explain trade-offs.</td></tr>
+            <tr><td>Sprint Retrospective</td><td>Cải tiến process và collaboration.</td><td>Đưa ra problem cụ thể và action items.</td></tr>
+            <tr><td>Backlog Refinement</td><td>Làm rõ future work.</td><td>Break down stories, identify edge cases, estimate risks.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>User Story và Acceptance Criteria</h3>
+        <pre><code>As a business admin,
+I want to download monthly transaction reports,
+so that I can reconcile payment records.
+
+Acceptance Criteria:
+1. User can select month and year.
+2. System generates CSV file.
+3. CSV contains transaction ID, amount, status, created date.
+4. If no data exists, system returns empty file with header.
+5. Only users with REPORT_DOWNLOAD permission can download.</code></pre>
+      </section>
+
+      <section id="vi-softskills">
+        <h2>21. Soft Skills cho Senior Backend Engineer</h2>
+
+        <h3>Communication</h3>
+        <p>
+          Senior engineer cần giải thích vấn đề kỹ thuật phức tạp cho dev, QA, PM, client và non-technical stakeholders.
+        </p>
+
+        <pre><code>Context:
+Payment API đang fail intermittent ở staging.
+
+Impact:
+Order creation đôi khi bị kẹt ở PENDING.
+
+Root Cause:
+External PSP timeout thấp hơn retry window của mình.
+
+Solution:
+Adjust timeout/retry policy, add idempotency key, improve error mapping.
+
+Next Action:
+Em sẽ chuẩn bị fix và thêm integration test cho timeout scenario.</code></pre>
+
+        <h3>Code Review</h3>
+        <ul class="checklist">
+          <li>Check correctness và edge cases.</li>
+          <li>Check readability và maintainability.</li>
+          <li>Check transaction boundaries và error handling.</li>
+          <li>Check performance và database query impact.</li>
+          <li>Check security: validation, authorization, sensitive data.</li>
+          <li>Check tests: unit/integration cases meaningful.</li>
+          <li>Comment lịch sự và giải thích lý do.</li>
+        </ul>
+
+        <h3>Mentoring</h3>
+        <p>Mentoring không chỉ là đưa answer. Đó là giúp người khác tự xây reasoning ability.</p>
+
+        <h3>Handling Conflict</h3>
+        <pre><code>Good response:
+"I understand why you prefer option A because it is faster to implement.
+My concern is that it creates coupling between Order and Payment database.
+Can we compare both options against delivery time, maintainability, and failure handling?"</code></pre>
+
+        <h3>Production Incident Communication</h3>
+        <pre><code>1. Acknowledge issue.
+2. State impact.
+3. Share current hypothesis.
+4. Assign owner.
+5. Give next update time.
+6. After fix, write postmortem:
+   - Timeline
+   - Root cause
+   - What worked
+   - What failed
+   - Prevention actions</code></pre>
+
+        <h3>STAR Method</h3>
+        <table>
+          <thead><tr><th>Step</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td>Situation</td><td>Bối cảnh.</td><td>Production release có payment callback failure intermittent.</td></tr>
+            <tr><td>Task</td><td>Trách nhiệm của anh.</td><td>Em chịu trách nhiệm investigate và stabilize flow.</td></tr>
+            <tr><td>Action</td><td>Anh đã làm gì.</td><td>Check logs, trace request IDs, add idempotency, improve retry handling.</td></tr>
+            <tr><td>Result</td><td>Kết quả đo được.</td><td>Failure rate giảm và release hoàn tất không có data inconsistency.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-interview" class="interview-answer">
+        <h2>22. Câu trả lời phỏng vấn — Vietnamese</h2>
+
+        <h3>Microservice</h3>
+        <blockquote>
+          Microservice là architectural style chia hệ thống thành nhiều service nhỏ, deploy độc lập và align với business capability. Mỗi service nên own data riêng và expose behavior qua API hoặc events. Lợi ích là independent deployment, scalability và team autonomy, nhưng trade-off là operational complexity cao hơn, distributed transaction, network failure, data consistency và observability. Trong production, em quan tâm nhiều tới service boundary, database ownership, API versioning, resilience patterns như timeout/retry/circuit breaker, idempotency, saga, transactional outbox và monitoring bằng logs, metrics, traces.
+        </blockquote>
+
+        <h3>DevOps / CI/CD</h3>
+        <blockquote>
+          CI/CD là automation pipeline giúp verify và deliver software an toàn. Trong CI, mỗi change cần được build, test, scan và validate bằng quality gates. Trong CD, artifact được package thành Docker image, push lên registry, deploy vào environment như Kubernetes, smoke test và monitor. Với database changes, em ưu tiên versioned migration bằng Flyway hoặc Liquibase và dùng backward-compatible expand-contract migration. Senior engineer không chỉ biết deploy, mà cần hiểu rollback, health checks, secrets management, deployment strategies như rolling/blue-green/canary và observability sau release.
+        </blockquote>
+
+        <h3>Agile / Scrum / Soft Skills</h3>
+        <blockquote>
+          Agile là cách delivery value theo từng iteration và adapt dựa trên feedback. Scrum cung cấp roles, events và artifacts để hỗ trợ cách làm đó. Với vai trò senior engineer, em không chỉ coding mà còn clarify requirements, identify technical risks, break down stories, improve estimation, mentor teammates, review code, communicate blockers sớm và giúp team improve qua retrospective. Em cố gắng giải thích trade-off kỹ thuật rõ ràng cho cả technical và non-technical stakeholders, đồng thời ownership từ design đến production support.
+        </blockquote>
+      </section>
+
+      <section id="sources">
+        <h2>Sources / Nguồn tham khảo</h2>
+        <ul>
+          <li>Martin Fowler — Microservices: https://martinfowler.com/articles/microservices.html</li>
+          <li>AWS Well-Architected Framework: https://aws.amazon.com/architecture/well-architected/</li>
+          <li>AWS Reliability Pillar: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html</li>
+          <li>AWS Operational Excellence Pillar: https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html</li>
+          <li>Docker build best practices: https://docs.docker.com/build/building/best-practices/</li>
+          <li>Docker multi-stage builds: https://docs.docker.com/build/building/multi-stage/</li>
+          <li>Kubernetes official documentation: https://kubernetes.io/</li>
+          <li>GitHub Actions documentation: https://docs.github.com/actions</li>
+          <li>Jenkins Pipeline syntax: https://www.jenkins.io/doc/book/pipeline/syntax/</li>
+          <li>Flyway database migration: https://www.red-gate.com/products/flyway/community/</li>
+          <li>Scrum Guide: https://scrumguides.org/</li>
+        </ul>
+      </section>
+
+      <div class="footer">
+        Created for Senior Java Backend interview preparation — Microservice / Cloud / DevOps / CI-CD / SQL / Agile / Soft Skills EN-VN.
+      </div>
+    </main>
+  </div>
+</body>
+</html>

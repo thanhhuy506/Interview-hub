@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A senior-level guide to transaction management in microservices: Outbox, Saga, Inbox, idempotency, TCC, 2PC, Kafka transactions, compensation, testing, and interview questions." />
+  <title>Transaction Management in Microservices — Senior Engineer Guide</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --surface: #ffffff;
+      --surface-2: #eef3fb;
+      --text: #172033;
+      --muted: #59657a;
+      --line: #dce3ef;
+      --primary: #2457d6;
+      --primary-soft: #e8efff;
+      --success: #087f5b;
+      --success-soft: #e7f8f1;
+      --warning: #9a5b00;
+      --warning-soft: #fff4db;
+      --danger: #b42318;
+      --danger-soft: #feeceb;
+      --code-bg: #101828;
+      --code-text: #eef2ff;
+      --shadow: 0 10px 30px rgba(31, 45, 76, 0.08);
+      --radius: 16px;
+      --sidebar-width: 310px;
+    }
+
+    body.dark {
+      --bg: #0c111b;
+      --surface: #131b2a;
+      --surface-2: #182235;
+      --text: #edf2ff;
+      --muted: #aeb9cc;
+      --line: #2b3850;
+      --primary: #78a0ff;
+      --primary-soft: #1f3159;
+      --success: #67d6b0;
+      --success-soft: #153b31;
+      --warning: #ffd27c;
+      --warning-soft: #4a3515;
+      --danger: #ff9b93;
+      --danger-soft: #4b2525;
+      --code-bg: #090d15;
+      --code-text: #f6f7fb;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+    }
+
+    a { color: var(--primary); }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 66px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 24px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      background: linear-gradient(135deg, #2457d6, #6d5ce7);
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button, .button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font: inherit;
+      transition: 0.2s ease;
+    }
+
+    button:hover, .button:hover {
+      transform: translateY(-1px);
+      border-color: var(--primary);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      min-height: 100vh;
+      padding-top: 66px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 66px;
+      left: 0;
+      width: var(--sidebar-width);
+      bottom: 0;
+      overflow-y: auto;
+      padding: 20px 16px 28px;
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+      z-index: 30;
+    }
+
+    .search-box {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    .search-box:focus { border-color: var(--primary); }
+
+    .toc-title {
+      margin: 8px 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .toc a {
+      display: block;
+      padding: 7px 10px;
+      margin: 2px 0;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .toc a:hover, .toc a.active {
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    main {
+      grid-column: 2;
+      width: min(1180px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 38px 0 90px;
+    }
+
+    .hero {
+      padding: 38px;
+      border-radius: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 32%),
+        linear-gradient(135deg, #173d9a, #4e43b7 62%, #6b3fa0);
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      max-width: 880px;
+      margin: 0;
+      color: rgba(255,255,255,0.9);
+      font-size: 1.08rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .hero-chip {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .hero-chip strong { display: block; }
+    .hero-chip span { font-size: 0.88rem; color: rgba(255,255,255,0.78); }
+
+    section {
+      scroll-margin-top: 84px;
+      margin: 26px 0;
+      padding: 30px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    section.hidden-by-search { display: none; }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.75rem;
+      line-height: 1.25;
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 1.25rem;
+    }
+
+    h4 { margin: 20px 0 8px; }
+    p { margin: 10px 0; }
+    .muted { color: var(--muted); }
+    .lead { font-size: 1.05rem; color: var(--muted); }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--bg);
+    }
+
+    .card h3, .card h4 { margin-top: 0; }
+
+    .callout {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--primary);
+      border-radius: 10px;
+      background: var(--primary-soft);
+    }
+
+    .callout.success { border-left-color: var(--success); background: var(--success-soft); }
+    .callout.warning { border-left-color: var(--warning); background: var(--warning-soft); }
+    .callout.danger { border-left-color: var(--danger); background: var(--danger-soft); }
+
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    .term {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: var(--primary);
+      background: var(--primary-soft);
+      font-size: 0.88rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }
+
+    .flow .node {
+      min-width: 130px;
+      flex: 1 1 140px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--bg);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .flow .arrow {
+      align-self: center;
+      color: var(--muted);
+      font-size: 1.4rem;
+    }
+
+    .diagram {
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--bg);
+      overflow-x: auto;
+    }
+
+    pre {
+      margin: 14px 0;
+      padding: 18px;
+      border-radius: 13px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      overflow-x: auto;
+      line-height: 1.52;
+      font-size: 0.91rem;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    pre code { white-space: pre; }
+
+    .copy-btn {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      padding: 5px 9px;
+      font-size: 0.76rem;
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.09);
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-2);
+      font-size: 0.9rem;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    ul, ol { padding-left: 22px; }
+    li { margin: 7px 0; }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin: 12px 0;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      font-weight: 750;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "+";
+      float: right;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+    details[open] summary::after { content: "–"; }
+    details .answer { padding: 0 18px 18px; }
+
+    .comparison td:first-child, .comparison th:first-child { font-weight: 700; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      background: var(--surface-2);
+      color: var(--muted);
+    }
+
+    .badge.good { background: var(--success-soft); color: var(--success); }
+    .badge.warn { background: var(--warning-soft); color: var(--warning); }
+    .badge.bad { background: var(--danger-soft); color: var(--danger); }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+    }
+
+    .checklist li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: 900;
+      margin-right: 8px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 28px;
+    }
+
+    #progress {
+      position: fixed;
+      top: 65px;
+      left: 0;
+      height: 3px;
+      width: 0;
+      background: linear-gradient(90deg, #2457d6, #8a5cff);
+      z-index: 60;
+    }
+
+    .mobile-menu { display: none; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+        box-shadow: var(--shadow);
+      }
+      .sidebar.open { transform: translateX(0); }
+      main { grid-column: 1; width: min(100% - 28px, 980px); }
+      .mobile-menu { display: inline-flex; }
+      .hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .topbar { padding: 0 12px; }
+      .brand-title { max-width: 180px; }
+      .hero { padding: 26px 22px; }
+      section { padding: 22px 18px; }
+      .grid-2, .grid-3, .grid-4, .checklist, .hero-grid { grid-template-columns: 1fr; }
+      .flow .arrow { display: none; }
+      table { display: block; overflow-x: auto; }
+      .hide-mobile { display: none; }
+    }
+
+    @media print {
+      .topbar, .sidebar, #progress, .copy-btn { display: none !important; }
+      .layout { display: block; padding-top: 0; }
+      main { width: 100%; padding: 0; }
+      section, .hero { box-shadow: none; break-inside: avoid; }
+      details { break-inside: avoid; }
+      details .answer { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div id="progress"></div>
+  <header class="topbar">
+    <div class="brand">
+      <button class="mobile-menu" id="menuBtn" aria-label="Open navigation">☰</button>
+      <div class="brand-mark">TX</div>
+      <div class="brand-title">Microservice Transaction Management</div>
+    </div>
+    <div class="top-actions">
+      <button id="expandBtn" class="hide-mobile">Expand Q&amp;A</button>
+      <button id="themeBtn" aria-label="Toggle theme">◐</button>
+      <button onclick="window.print()" class="hide-mobile">Print</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <input id="searchInput" class="search-box" type="search" placeholder="Search topics, patterns, questions..." />
+      <div class="toc-title">Contents</div>
+      <nav class="toc" id="toc">
+        <a href="#mental-model">1. Mental model</a>
+        <a href="#local-transactions">2. Local transactions</a>
+        <a href="#distributed-problem">3. Distributed transaction problem</a>
+        <a href="#outbox">4. Transactional Outbox</a>
+        <a href="#inbox-idempotency">5. Inbox &amp; idempotency</a>
+        <a href="#saga">6. Saga pattern</a>
+        <a href="#compensation">7. Compensation design</a>
+        <a href="#tcc">8. TCC pattern</a>
+        <a href="#two-phase-commit">9. 2PC / XA</a>
+        <a href="#kafka-transactions">10. Kafka transactions</a>
+        <a href="#event-sourcing">11. Event sourcing &amp; CQRS</a>
+        <a href="#locking">12. Locking &amp; concurrency</a>
+        <a href="#end-to-end">13. End-to-end order example</a>
+        <a href="#spring-code">14. Spring implementation</a>
+        <a href="#decision-guide">15. Pattern decision guide</a>
+        <a href="#failure-handling">16. Failure handling</a>
+        <a href="#observability">17. Observability &amp; testing</a>
+        <a href="#anti-patterns">18. Common anti-patterns</a>
+        <a href="#interview">19. Senior interview Q&amp;A</a>
+        <a href="#revision">20. Revision sheet</a>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="hero">
+        <h1>Transaction Management in Microservices</h1>
+        <p>
+          A practical, senior-level guide to local transactions, Outbox, Inbox, idempotency, Saga,
+          compensation, TCC, 2PC, Kafka transactions, locking, testing, and production failure recovery.
+          The examples use clear English and Java/Spring-style implementation ideas.
+        </p>
+        <div class="hero-grid">
+          <div class="hero-chip"><strong>Core problem</strong><span>One business action, many independent services</span></div>
+          <div class="hero-chip"><strong>Main patterns</strong><span>Outbox, Saga, Inbox, TCC, 2PC</span></div>
+          <div class="hero-chip"><strong>Real examples</strong><span>Order, payment, inventory, shipping</span></div>
+          <div class="hero-chip"><strong>Interview prep</strong><span>Senior questions with strong answers</span></div>
+        </div>
+      </div>
+
+      <section id="mental-model" data-search="mental model microservices transaction consistency">
+        <h2>1. The Correct Mental Model</h2>
+        <p class="lead">
+          In a monolith, one database transaction can protect many tables. In microservices, each service normally owns its own database.
+          Therefore, one business operation becomes a sequence of independent local transactions.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Monolith</h3>
+            <div class="flow">
+              <div class="node">Order table</div><div class="arrow">+</div>
+              <div class="node">Payment table</div><div class="arrow">+</div>
+              <div class="node">Inventory table</div>
+            </div>
+            <p>One database can commit or rollback all changes together.</p>
+            <pre><code>@Transactional
+public void placeOrder() {
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+    inventoryRepository.reserve(items);
+}</code></pre>
+          </div>
+
+          <div class="card">
+            <h3>Microservices</h3>
+            <div class="flow">
+              <div class="node">Order DB</div><div class="arrow">→</div>
+              <div class="node">Payment DB</div><div class="arrow">→</div>
+              <div class="node">Inventory DB</div>
+            </div>
+            <p>Each service commits independently. A later failure cannot automatically rollback an earlier remote commit.</p>
+            <div class="callout warning">
+              <strong>Important</strong>
+              Spring <code>@Transactional</code> protects only resources participating in the same local transaction manager. It does not magically rollback another service through REST or Kafka.
+            </div>
+          </div>
+        </div>
+
+        <h3>What “transaction management” means in microservices</h3>
+        <p>It is not only about rollback. A production design must answer all of these questions:</p>
+        <ul class="checklist">
+          <li>How do we avoid losing an event after committing the database?</li>
+          <li>How do we handle partial success across services?</li>
+          <li>How do we retry without creating duplicate payments or orders?</li>
+          <li>How do we compensate a completed business step?</li>
+          <li>How do we detect timeout, stuck workflows, and poison messages?</li>
+          <li>How do we preserve ordering when it matters?</li>
+          <li>How do we trace one transaction across many services?</li>
+          <li>How do we reconcile data after an unexpected production failure?</li>
+        </ul>
+      </section>
+
+      <section id="local-transactions" data-search="local transaction ACID spring transactional isolation propagation">
+        <h2>2. Local Transactions Still Matter</h2>
+        <p>
+          Distributed patterns do not replace normal database transactions. Every service should first make its own local state change correctly.
+        </p>
+
+        <h3>ACID in one service</h3>
+        <div class="grid-4">
+          <div class="card"><h4>Atomicity</h4><p>All local database statements succeed or all rollback.</p></div>
+          <div class="card"><h4>Consistency</h4><p>Constraints and business invariants remain valid.</p></div>
+          <div class="card"><h4>Isolation</h4><p>Concurrent transactions do not corrupt each other.</p></div>
+          <div class="card"><h4>Durability</h4><p>Committed data survives restart or crash.</p></div>
+        </div>
+
+        <h3>Example: local payment state transition</h3>
+        <pre><code>@Transactional
+public void markPaymentCompleted(String paymentId, String providerReference) {
+    Payment payment = paymentRepository.findByIdForUpdate(paymentId)
+        .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+
+    if (payment.isCompleted()) {
+        return; // idempotent behavior
+    }
+
+    payment.complete(providerReference);
+    paymentRepository.save(payment);
+}</code></pre>
+
+        <div class="callout">
+          <strong>Senior design rule</strong>
+          Keep a local transaction short. Do not hold a database lock while calling a slow external API. Remote calls can timeout and keep locks open, causing contention and deadlocks.
+        </div>
+
+        <h3>Common Spring transaction pitfalls</h3>
+        <table>
+          <thead><tr><th>Pitfall</th><th>Why it happens</th><th>Better design</th></tr></thead>
+          <tbody>
+            <tr><td>Self-invocation</td><td>A method in the same class calls another <code>@Transactional</code> method, bypassing the Spring proxy.</td><td>Move the transactional method to another bean, or call through a proxy only when truly needed.</td></tr>
+            <tr><td>Checked exception does not rollback</td><td>Default rollback is usually for unchecked exceptions.</td><td>Use <code>rollbackFor</code> intentionally, or convert to a domain runtime exception.</td></tr>
+            <tr><td>Remote call inside DB transaction</td><td>The database transaction remains open while waiting for the network.</td><td>Persist intent first, commit, then call asynchronously or through a workflow.</td></tr>
+            <tr><td>Wrong isolation assumption</td><td>Two requests read the same old state and both update it.</td><td>Use optimistic locking, pessimistic locking, unique constraints, or atomic SQL.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="distributed-problem" data-search="dual write partial failure distributed transaction problem">
+        <h2>3. The Distributed Transaction Problem</h2>
+
+        <h3>Problem A: Database + message broker dual write</h3>
+        <pre><code>@Transactional
+public void createOrder(CreateOrderCommand command) {
+    Order order = orderRepository.save(Order.create(command));
+    kafkaTemplate.send("order-created", new OrderCreated(order.getId()));
+}</code></pre>
+
+        <p>This code looks simple, but the database and Kafka are separate systems.</p>
+        <table>
+          <thead><tr><th>Database result</th><th>Kafka result</th><th>Business consequence</th></tr></thead>
+          <tbody>
+            <tr><td>Commit</td><td>Publish fails</td><td>Order exists, but downstream services never receive the event.</td></tr>
+            <tr><td>Rollback</td><td>Publish succeeds</td><td>Consumers process an event for an order that does not exist.</td></tr>
+            <tr><td>Commit</td><td>Publish succeeds, acknowledgement lost</td><td>Producer may retry and publish a duplicate.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Problem B: Partial success across services</h3>
+        <div class="flow">
+          <div class="node">Order created</div><div class="arrow">→</div>
+          <div class="node">Payment charged</div><div class="arrow">→</div>
+          <div class="node">Inventory failed</div><div class="arrow">→</div>
+          <div class="node">What now?</div>
+        </div>
+
+        <p>
+          The payment is already committed in the Payment Service. A database rollback in Order Service cannot refund it.
+          The system needs an explicit business recovery action such as <span class="term">Refund Payment</span>.
+        </p>
+
+        <h3>Problem C: At-least-once delivery</h3>
+        <p>
+          Most reliable messaging designs prefer retry over message loss. This means the same event may be delivered more than once.
+          Every consumer must be safe when processing duplicates.
+        </p>
+
+        <div class="callout danger">
+          <strong>Exactly-once is often misunderstood</strong>
+          A broker may provide exactly-once behavior inside a limited boundary, but your complete business operation also touches databases, HTTP services, email providers, payment gateways, and side effects. End-to-end duplicate protection is still your responsibility.
+        </div>
+      </section>
+
+      <section id="outbox" data-search="outbox pattern CDC polling publisher dual write debounce">
+        <h2>4. Transactional Outbox Pattern</h2>
+        <p class="lead">
+          Outbox solves the dual-write problem between a service database and a message broker.
+          The business change and the outgoing message are stored in the same local database transaction.
+        </p>
+
+        <div class="diagram">
+          <div class="flow">
+            <div class="node">Business request</div><div class="arrow">→</div>
+            <div class="node">Local DB transaction<br/>Business row + Outbox row</div><div class="arrow">→</div>
+            <div class="node">Outbox publisher / CDC</div><div class="arrow">→</div>
+            <div class="node">Kafka / RabbitMQ</div>
+          </div>
+        </div>
+
+        <h3>Database structure</h3>
+        <pre><code>CREATE TABLE outbox_event (
+    id              VARCHAR(64) PRIMARY KEY,
+    aggregate_type  VARCHAR(100) NOT NULL,
+    aggregate_id    VARCHAR(100) NOT NULL,
+    event_type      VARCHAR(150) NOT NULL,
+    payload         TEXT NOT NULL,
+    status          VARCHAR(30) NOT NULL,
+    created_at      TIMESTAMP NOT NULL,
+    published_at    TIMESTAMP NULL,
+    retry_count     INTEGER NOT NULL DEFAULT 0,
+    next_retry_at   TIMESTAMP NULL
+);
+
+CREATE INDEX idx_outbox_pending
+    ON outbox_event(status, next_retry_at, created_at);</code></pre>
+
+        <h3>Write business data and event together</h3>
+        <pre><code>@Transactional
+public OrderResult createOrder(CreateOrderCommand command) {
+    Order order = Order.create(command);
+    orderRepository.save(order);
+
+    OutboxEvent event = OutboxEvent.newEvent(
+        UUID.randomUUID().toString(),
+        "ORDER",
+        order.getId(),
+        "OrderCreated",
+        jsonSerializer.serialize(new OrderCreated(order))
+    );
+    outboxRepository.save(event);
+
+    return OrderResult.from(order);
+}</code></pre>
+
+        <p>If the transaction commits, both the order and event exist. If it rolls back, neither exists.</p>
+
+        <h3>Publishing strategies</h3>
+        <table class="comparison">
+          <thead><tr><th>Strategy</th><th>How it works</th><th>Advantages</th><th>Trade-offs</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Polling publisher</td>
+              <td>A scheduled worker reads pending rows and publishes them.</td>
+              <td>Simple to understand and implement.</td>
+              <td>Polling delay, DB load, row locking, duplicate publication after crash.</td>
+            </tr>
+            <tr>
+              <td>CDC</td>
+              <td>Change Data Capture reads the database log and sends changes to the broker.</td>
+              <td>Low latency and lower query overhead.</td>
+              <td>More infrastructure and operational complexity.</td>
+            </tr>
+            <tr>
+              <td>Database notification</td>
+              <td>The DB notifies a worker that a row was inserted.</td>
+              <td>Fast signal.</td>
+              <td>Still needs durable recovery when notifications are missed.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Safe polling publisher</h3>
+        <pre><code>@Scheduled(fixedDelayString = "${outbox.publisher.delay-ms:1000}")
+public void publishBatch() {
+    List&lt;OutboxEvent&gt; events = outboxRepository.lockNextBatch(100);
+
+    for (OutboxEvent event : events) {
+        try {
+            broker.publish(event.getEventType(), event.getPayload(), event.getId());
+            outboxService.markPublished(event.getId());
+        } catch (Exception ex) {
+            outboxService.scheduleRetry(event.getId(), ex.getMessage());
+        }
+    }
+}</code></pre>
+
+        <h3>Crash scenario you must understand</h3>
+        <ol>
+          <li>Publisher sends the event successfully.</li>
+          <li>Process crashes before marking the outbox row as published.</li>
+          <li>After restart, the event is published again.</li>
+        </ol>
+        <p>Therefore, Outbox normally provides <strong>at-least-once publication</strong>, not automatic exactly-once business processing.</p>
+
+        <div class="callout success">
+          <strong>Outbox solves</strong>
+          Reliable creation of an outgoing message after a local database commit.
+        </div>
+        <div class="callout warning">
+          <strong>Outbox does not solve</strong>
+          Business compensation, consumer duplicates, long-running workflow state, or external side-effect rollback.
+        </div>
+      </section>
+
+      <section id="inbox-idempotency" data-search="inbox pattern idempotent consumer duplicate message idempotency key">
+        <h2>5. Inbox Pattern and Idempotent Consumers</h2>
+        <p class="lead">
+          Outbox protects the producer side. Inbox and idempotency protect the consumer side.
+        </p>
+
+        <h3>Inbox table</h3>
+        <pre><code>CREATE TABLE processed_message (
+    consumer_name VARCHAR(100) NOT NULL,
+    message_id    VARCHAR(100) NOT NULL,
+    processed_at  TIMESTAMP NOT NULL,
+    PRIMARY KEY (consumer_name, message_id)
+);</code></pre>
+
+        <h3>Consumer transaction</h3>
+        <pre><code>@Transactional
+public void handle(OrderCreated event, String messageId) {
+    boolean firstTime = processedMessageRepository.tryInsert(
+        "inventory-order-created-consumer",
+        messageId
+    );
+
+    if (!firstTime) {
+        return; // duplicate message
+    }
+
+    inventoryRepository.createReservation(
+        event.getOrderId(),
+        event.getItems()
+    );
+}</code></pre>
+
+        <p>
+          The unique key makes duplicate detection atomic. Do not rely only on “check then insert” without a constraint,
+          because two threads may pass the check at the same time.
+        </p>
+
+        <h3>Business-key idempotency</h3>
+        <p>Sometimes the message ID is not enough. Use a business constraint too.</p>
+        <pre><code>ALTER TABLE payment
+ADD CONSTRAINT uq_payment_order_operation
+UNIQUE(order_id, operation_type);</code></pre>
+
+        <h3>HTTP idempotency key</h3>
+        <p>For client retries, accept a stable idempotency key:</p>
+        <pre><code>POST /payments
+Idempotency-Key: 2f2a1c5c-7e90-4a8d-94bd-4e1a0d0d77a1
+
+{
+  "orderId": "ORD-1001",
+  "amount": 125.50,
+  "currency": "USD"
+}</code></pre>
+
+        <p>The service stores the key with the result. A retry returns the same result instead of charging again.</p>
+
+        <table>
+          <thead><tr><th>Technique</th><th>Best use</th><th>Typical key</th></tr></thead>
+          <tbody>
+            <tr><td>Inbox table</td><td>Broker message deduplication</td><td>Consumer name + message ID</td></tr>
+            <tr><td>Unique business constraint</td><td>Prevent duplicate domain operations</td><td>Order ID + operation type</td></tr>
+            <tr><td>HTTP idempotency key</td><td>Client/API retries</td><td>Client-generated request key</td></tr>
+            <tr><td>State transition validation</td><td>Repeated commands</td><td>Current status + allowed transition</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="saga" data-search="saga pattern choreography orchestration distributed transaction">
+        <h2>6. Saga Pattern</h2>
+        <p class="lead">
+          Saga manages a business transaction across multiple services. It divides the flow into local transactions and runs compensating transactions when a later step fails.
+        </p>
+
+        <h3>Example business flow</h3>
+        <div class="flow">
+          <div class="node">Create Order</div><div class="arrow">→</div>
+          <div class="node">Authorize Payment</div><div class="arrow">→</div>
+          <div class="node">Reserve Inventory</div><div class="arrow">→</div>
+          <div class="node">Create Shipment</div>
+        </div>
+
+        <h3>Compensation flow</h3>
+        <div class="flow">
+          <div class="node">Shipment failed</div><div class="arrow">→</div>
+          <div class="node">Release Inventory</div><div class="arrow">→</div>
+          <div class="node">Void / Refund Payment</div><div class="arrow">→</div>
+          <div class="node">Cancel Order</div>
+        </div>
+
+        <h3>Choreography Saga</h3>
+        <p>Services react to events. There is no central coordinator.</p>
+        <pre><code>Order Service      publishes OrderCreated
+Payment Service    consumes OrderCreated, publishes PaymentAuthorized
+Inventory Service  consumes PaymentAuthorized, publishes InventoryReserved
+Shipping Service   consumes InventoryReserved, publishes ShipmentCreated</code></pre>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Advantages</h4>
+            <ul>
+              <li>Loose coupling between participants.</li>
+              <li>No central orchestrator service.</li>
+              <li>Good for short and naturally event-driven flows.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Risks</h4>
+            <ul>
+              <li>The full business flow becomes difficult to understand.</li>
+              <li>Event chains create hidden dependencies.</li>
+              <li>Compensation and timeout logic become scattered.</li>
+              <li>Debugging requires strong tracing and event visibility.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Orchestration Saga</h3>
+        <p>A coordinator sends commands, receives results, stores workflow state, and decides the next action.</p>
+        <pre><code>OrderSaga Orchestrator
+  1. Send AuthorizePayment command
+  2. Wait for PaymentAuthorized or PaymentRejected
+  3. Send ReserveInventory command
+  4. Wait for InventoryReserved or InventoryRejected
+  5. Send CreateShipment command
+  6. Complete order or execute compensation</code></pre>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Advantages</h4>
+            <ul>
+              <li>Business flow is visible in one place.</li>
+              <li>Timeout, retry, and compensation are easier to control.</li>
+              <li>Useful for long-running and complex workflows.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Risks</h4>
+            <ul>
+              <li>The orchestrator can become a large “god service.”</li>
+              <li>It must be durable and highly available.</li>
+              <li>Poor design can tightly couple all participant details.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Choreography vs orchestration</h3>
+        <table class="comparison">
+          <thead><tr><th>Question</th><th>Choreography</th><th>Orchestration</th></tr></thead>
+          <tbody>
+            <tr><td>Who controls the flow?</td><td>Events and participant reactions</td><td>Central saga coordinator</td></tr>
+            <tr><td>Best for</td><td>Small, simple event chains</td><td>Complex, long-running business processes</td></tr>
+            <tr><td>Visibility</td><td>Distributed</td><td>Centralized workflow state</td></tr>
+            <tr><td>Change impact</td><td>Can be hidden across event consumers</td><td>Usually easier to reason about centrally</td></tr>
+            <tr><td>Main danger</td><td>Event spaghetti</td><td>God orchestrator</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Senior recommendation</strong>
+          Use choreography for a few stable steps. Use orchestration when the process has branching, timeout, manual review, multiple compensation paths, or must remain visible for hours or days.
+        </div>
+      </section>
+
+      <section id="compensation" data-search="compensating transaction semantic rollback saga failure">
+        <h2>7. Designing Compensating Transactions</h2>
+        <p>
+          Compensation is not a technical rollback. It is a new business operation that attempts to reverse or neutralize an earlier effect.
+        </p>
+
+        <table>
+          <thead><tr><th>Forward action</th><th>Possible compensation</th><th>Important limitation</th></tr></thead>
+          <tbody>
+            <tr><td>Authorize card payment</td><td>Void authorization</td><td>Void may be unavailable after capture.</td></tr>
+            <tr><td>Capture payment</td><td>Refund</td><td>Refund can fail or take days.</td></tr>
+            <tr><td>Reserve inventory</td><td>Release reservation</td><td>Item may already be packed or shipped.</td></tr>
+            <tr><td>Create shipment</td><td>Cancel shipment</td><td>Carrier may reject cancellation after pickup.</td></tr>
+            <tr><td>Send email</td><td>Send correction email</td><td>The original email cannot be unsent.</td></tr>
+            <tr><td>Create external account</td><td>Deactivate account</td><td>External provider may have different lifecycle rules.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Compensation design rules</h3>
+        <ol>
+          <li><strong>Make compensation idempotent.</strong> It may be retried.</li>
+          <li><strong>Record why it is running.</strong> Operations teams need audit information.</li>
+          <li><strong>Allow compensation to fail.</strong> A failed refund needs its own retry and alerting workflow.</li>
+          <li><strong>Use business states.</strong> For example, <code>REFUND_PENDING</code>, <code>REFUNDED</code>, <code>REFUND_FAILED</code>.</li>
+          <li><strong>Do not delete history.</strong> Keep the original action and the compensating action for audit.</li>
+          <li><strong>Define irreversible steps.</strong> Run them late when possible.</li>
+        </ol>
+
+        <h3>Pivot transaction concept</h3>
+        <p>
+          In many sagas, early steps are compensatable, one step is the point of no return, and later steps must be retryable rather than compensated.
+        </p>
+        <div class="flow">
+          <div class="node">Compensatable<br/>Reserve stock</div><div class="arrow">→</div>
+          <div class="node">Pivot<br/>Capture payment</div><div class="arrow">→</div>
+          <div class="node">Retryable<br/>Issue receipt</div>
+        </div>
+
+        <div class="callout warning">
+          <strong>Practical example</strong>
+          After a parcel has physically left the warehouse, “cancel shipment” may no longer be possible. The recovery action may become “create return request” instead. Compensation must follow real business rules, not database imagination.
+        </div>
+      </section>
+
+      <section id="tcc" data-search="TCC try confirm cancel reservation pattern">
+        <h2>8. Try–Confirm–Cancel (TCC)</h2>
+        <p class="lead">
+          TCC reserves resources before final confirmation. Each participant exposes three semantic operations: Try, Confirm, and Cancel.
+        </p>
+
+        <div class="flow">
+          <div class="node">TRY<br/>Reserve resources</div><div class="arrow">→</div>
+          <div class="node">CONFIRM<br/>Finalize all</div><div class="arrow">or</div>
+          <div class="node">CANCEL<br/>Release all</div>
+        </div>
+
+        <h3>Example: travel booking</h3>
+        <ul>
+          <li><strong>Try:</strong> hold a seat, hold a hotel room, authorize payment.</li>
+          <li><strong>Confirm:</strong> issue ticket, confirm hotel, capture payment.</li>
+          <li><strong>Cancel:</strong> release seat, release hotel hold, void payment authorization.</li>
+        </ul>
+
+        <h3>API example</h3>
+        <pre><code>POST /inventory/reservations/try
+POST /inventory/reservations/{reservationId}/confirm
+POST /inventory/reservations/{reservationId}/cancel</code></pre>
+
+        <h3>Advantages and trade-offs</h3>
+        <table>
+          <thead><tr><th>Advantages</th><th>Trade-offs</th></tr></thead>
+          <tbody>
+            <tr><td>Reduces risk of committing one participant while another cannot proceed.</td><td>Every service must implement reservation semantics.</td></tr>
+            <tr><td>Clear resource lifecycle.</td><td>Resources stay locked or reserved during the transaction window.</td></tr>
+            <tr><td>Good for scarce resources such as seats or inventory.</td><td>Expired reservations and cleanup jobs are required.</td></tr>
+            <tr><td>Confirm and cancel can be retried.</td><td>More APIs, states, storage, and operational complexity.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>When to prefer TCC</strong>
+          Use it when participants can naturally reserve resources and the business wants a clear prepare/commit model without database-level 2PC.
+        </div>
+      </section>
+
+      <section id="two-phase-commit" data-search="2PC XA distributed transaction coordinator prepare commit">
+        <h2>9. Two-Phase Commit (2PC / XA)</h2>
+        <p>
+          2PC coordinates multiple transactional resources so they commit or rollback together.
+        </p>
+
+        <h3>Protocol</h3>
+        <div class="flow">
+          <div class="node">Phase 1: Prepare</div><div class="arrow">→</div>
+          <div class="node">All participants vote</div><div class="arrow">→</div>
+          <div class="node">Phase 2: Commit or rollback</div>
+        </div>
+
+        <h3>Why it is uncommon in independent microservices</h3>
+        <ul>
+          <li>Participants hold locks while waiting for the coordinator.</li>
+          <li>Coordinator or network failure can block progress.</li>
+          <li>All resources must support the transaction protocol.</li>
+          <li>It reduces service autonomy and increases infrastructure coupling.</li>
+          <li>Latency and availability are worse than local transactions.</li>
+        </ul>
+
+        <h3>When it may still be reasonable</h3>
+        <ul>
+          <li>A controlled enterprise environment with a small number of compatible resources.</li>
+          <li>Strong consistency is required and latency is acceptable.</li>
+          <li>The services are not truly independent and share an operational boundary.</li>
+          <li>A legacy integration already uses XA reliably.</li>
+        </ul>
+
+        <table class="comparison">
+          <thead><tr><th>Area</th><th>2PC</th><th>Saga</th></tr></thead>
+          <tbody>
+            <tr><td>Consistency</td><td>Atomic commit across participants</td><td>Eventual consistency</td></tr>
+            <tr><td>Locks</td><td>Can hold locks across resources</td><td>Local short transactions</td></tr>
+            <tr><td>Availability</td><td>Lower during coordinator/network failure</td><td>Higher, but business state may be temporarily inconsistent</td></tr>
+            <tr><td>Recovery</td><td>Protocol-level rollback/commit</td><td>Business compensation and retry</td></tr>
+            <tr><td>Microservice autonomy</td><td>Low</td><td>Higher</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="kafka-transactions" data-search="Kafka transaction exactly once semantics consume transform produce database">
+        <h2>10. Kafka Transactions and Exactly-Once Boundaries</h2>
+        <p>
+          Kafka transactions can atomically write records to multiple Kafka partitions and can combine consumed offsets with produced records.
+          This is useful for <strong>consume → process → produce</strong> pipelines that remain inside Kafka.
+        </p>
+
+        <h3>Strong use case</h3>
+        <pre><code>Consume OrderCreated
+  → transform data
+  → produce OrderValidated
+  → commit consumed offset and produced record atomically</code></pre>
+
+        <h3>Boundary limitation</h3>
+        <p>
+          Once processing also updates PostgreSQL, calls a payment gateway, sends email, or invokes another HTTP API,
+          Kafka cannot make those external side effects part of the same atomic transaction.
+        </p>
+
+        <div class="callout danger">
+          <strong>Interview trap</strong>
+          Do not say “Kafka exactly-once means the payment can never be charged twice.” Kafka cannot control the payment provider. You still need an idempotency key, unique business constraints, and safe recovery.
+        </div>
+
+        <h3>Practical combinations</h3>
+        <table>
+          <thead><tr><th>Flow</th><th>Recommended protection</th></tr></thead>
+          <tbody>
+            <tr><td>Kafka → Kafka</td><td>Kafka transactions may provide a strong processing boundary.</td></tr>
+            <tr><td>Database → Kafka</td><td>Transactional Outbox or CDC.</td></tr>
+            <tr><td>Kafka → Database</td><td>Inbox/idempotent consumer + local transaction.</td></tr>
+            <tr><td>Kafka → payment provider</td><td>Inbox + provider idempotency key + persisted operation state.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="event-sourcing" data-search="event sourcing CQRS transaction audit state reconstruction">
+        <h2>11. Event Sourcing and CQRS</h2>
+        <h3>Event Sourcing</h3>
+        <p>
+          Event Sourcing stores domain events as the source of truth. Current state is rebuilt by replaying events.
+        </p>
+        <pre><code>OrderCreated
+ItemAdded
+PaymentAuthorized
+InventoryReserved
+OrderConfirmed</code></pre>
+
+        <h4>Advantages</h4>
+        <ul>
+          <li>Complete audit history.</li>
+          <li>Can rebuild projections and investigate how state changed.</li>
+          <li>Events naturally support integration and temporal analysis.</li>
+        </ul>
+
+        <h4>Trade-offs</h4>
+        <ul>
+          <li>Event versioning and schema evolution are difficult.</li>
+          <li>Debugging requires event-stream thinking.</li>
+          <li>Replaying side effects must be carefully separated from rebuilding state.</li>
+          <li>It is much more complex than adding an Outbox table.</li>
+        </ul>
+
+        <h3>CQRS</h3>
+        <p>
+          Command Query Responsibility Segregation separates write models from read models.
+          It is often used with event-driven architecture, but it is not itself a transaction pattern.
+        </p>
+
+        <div class="callout">
+          <strong>Relationship</strong>
+          Outbox reliably publishes events. Saga coordinates a distributed process. Event Sourcing stores domain history. CQRS separates write and read concerns. These patterns can be combined, but they solve different problems.
+        </div>
+      </section>
+
+      <section id="locking" data-search="optimistic pessimistic locking concurrency payment duplicate request">
+        <h2>12. Locking, Concurrency, and Atomic State Changes</h2>
+        <p>
+          Distributed patterns are useless if one service cannot safely handle two concurrent requests.
+        </p>
+
+        <h3>Scenario: two requests charge the same payment</h3>
+        <pre><code>Thread A: read payment status = PENDING
+Thread B: read payment status = PENDING
+Thread A: call provider
+Thread B: call provider
+Result: customer may be charged twice</code></pre>
+
+        <h3>Defense layers</h3>
+        <ol>
+          <li><strong>Database state transition:</strong> atomically change <code>PENDING → PROCESSING</code>.</li>
+          <li><strong>Unique operation key:</strong> one charge operation per order.</li>
+          <li><strong>Provider idempotency key:</strong> repeated calls return the same provider result.</li>
+          <li><strong>Persist provider request state:</strong> recover after timeout.</li>
+          <li><strong>Reconciliation:</strong> compare local state with provider records.</li>
+        </ol>
+
+        <h3>Atomic SQL approach</h3>
+        <pre><code>UPDATE payment
+SET status = 'PROCESSING', version = version + 1
+WHERE payment_id = :paymentId
+  AND status = 'PENDING';</code></pre>
+        <p>If the affected row count is zero, another request already claimed the work.</p>
+
+        <h3>Optimistic locking</h3>
+        <pre><code>@Entity
+public class Payment {
+    @Id
+    private String id;
+
+    @Version
+    private long version;
+
+    private String status;
+}</code></pre>
+
+        <h3>Pessimistic locking</h3>
+        <pre><code>@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select p from Payment p where p.id = :id")
+Optional&lt;Payment&gt; findByIdForUpdate(@Param("id") String id);</code></pre>
+
+        <table>
+          <thead><tr><th>Approach</th><th>Good when</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Atomic conditional update</td><td>Simple state claim or transition</td><td>Business logic may need extra reads</td></tr>
+            <tr><td>Optimistic locking</td><td>Conflicts are rare</td><td>Requires retry strategy</td></tr>
+            <tr><td>Pessimistic locking</td><td>Conflicts are frequent and transaction is short</td><td>Lock wait, deadlock, reduced throughput</td></tr>
+            <tr><td>Distributed lock</td><td>Cross-node coordination without a better data constraint</td><td>Lease expiry and split-brain complexity</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="end-to-end" data-search="end to end order payment inventory shipping saga outbox inbox">
+        <h2>13. End-to-End Example: Order, Payment, Inventory, Shipping</h2>
+
+        <h3>Business requirements</h3>
+        <ul>
+          <li>Create an order.</li>
+          <li>Authorize payment.</li>
+          <li>Reserve inventory.</li>
+          <li>Create shipment.</li>
+          <li>If any later step fails, recover safely.</li>
+          <li>No duplicate payment during retries.</li>
+        </ul>
+
+        <h3>Recommended architecture</h3>
+        <div class="diagram">
+          <div class="flow">
+            <div class="node">Order API</div><div class="arrow">→</div>
+            <div class="node">Order DB + Outbox</div><div class="arrow">→</div>
+            <div class="node">Message Broker</div><div class="arrow">→</div>
+            <div class="node">Saga Orchestrator</div>
+          </div>
+          <div class="flow">
+            <div class="node">Payment Service<br/>Inbox + DB + Outbox</div>
+            <div class="node">Inventory Service<br/>Inbox + DB + Outbox</div>
+            <div class="node">Shipping Service<br/>Inbox + DB + Outbox</div>
+          </div>
+        </div>
+
+        <h3>Happy path</h3>
+        <ol>
+          <li>Order Service creates <code>PENDING</code> order and an Outbox event in one transaction.</li>
+          <li>Outbox publisher sends <code>OrderCreated</code>.</li>
+          <li>Orchestrator sends <code>AuthorizePayment</code>.</li>
+          <li>Payment Service deduplicates the command, uses a provider idempotency key, and stores <code>AUTHORIZED</code>.</li>
+          <li>Payment Service publishes <code>PaymentAuthorized</code> through its Outbox.</li>
+          <li>Orchestrator sends <code>ReserveInventory</code>.</li>
+          <li>Inventory Service reserves items and publishes <code>InventoryReserved</code>.</li>
+          <li>Orchestrator sends <code>CreateShipment</code>.</li>
+          <li>Shipping Service creates the shipment.</li>
+          <li>Orchestrator marks the saga completed and Order Service marks the order <code>CONFIRMED</code>.</li>
+        </ol>
+
+        <h3>Failure path: inventory unavailable</h3>
+        <ol>
+          <li>Inventory Service publishes <code>InventoryRejected</code>.</li>
+          <li>Orchestrator sends <code>VoidPaymentAuthorization</code>.</li>
+          <li>Payment Service safely voids the authorization using an idempotent operation.</li>
+          <li>Orchestrator sends <code>CancelOrder</code>.</li>
+          <li>Order Service changes status to <code>CANCELLED</code>.</li>
+        </ol>
+
+        <h3>Timeout path: provider response unknown</h3>
+        <p>This is one of the hardest real production cases.</p>
+        <ol>
+          <li>Payment Service sends an authorization request.</li>
+          <li>The provider processes it, but the network times out before the response reaches the service.</li>
+          <li>The service must not assume failure and send a new charge with a different key.</li>
+          <li>It stores <code>AUTHORIZATION_UNKNOWN</code> and queries the provider using the original idempotency/reference key.</li>
+          <li>A reconciliation job resolves the final state.</li>
+        </ol>
+
+        <div class="callout success">
+          <strong>Pattern combination</strong>
+          Saga manages the business flow. Outbox protects outgoing messages. Inbox protects consumers. Idempotency protects retries. Local transactions and locking protect each service’s state.
+        </div>
+      </section>
+
+      <section id="spring-code" data-search="Spring Boot Java code outbox saga orchestrator retry DLQ">
+        <h2>14. Spring-Style Implementation Blueprint</h2>
+
+        <h3>Domain event envelope</h3>
+        <pre><code>public class EventEnvelope&lt;T&gt; {
+    private String eventId;
+    private String eventType;
+    private String aggregateId;
+    private String correlationId;
+    private String causationId;
+    private Instant occurredAt;
+    private int schemaVersion;
+    private T payload;
+
+    // constructors, getters, setters
+}</code></pre>
+
+        <h3>Why these fields matter</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>eventId</code></td><td>Deduplication and audit.</td></tr>
+            <tr><td><code>aggregateId</code></td><td>Partitioning and ordering for one business entity.</td></tr>
+            <tr><td><code>correlationId</code></td><td>Trace the complete business transaction.</td></tr>
+            <tr><td><code>causationId</code></td><td>Identify which command or event caused this event.</td></tr>
+            <tr><td><code>schemaVersion</code></td><td>Support event evolution.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Transactional event creation</h3>
+        <pre><code>@Service
+public class OrderApplicationService {
+    private final OrderRepository orderRepository;
+    private final OutboxRepository outboxRepository;
+    private final JsonSerializer jsonSerializer;
+
+    @Transactional
+    public String createOrder(CreateOrderCommand command) {
+        Order order = Order.create(command);
+        orderRepository.save(order);
+
+        EventEnvelope&lt;OrderCreated&gt; event = EventFactory.orderCreated(order);
+        outboxRepository.save(OutboxEvent.from(event, jsonSerializer));
+
+        return order.getId();
+    }
+}</code></pre>
+
+        <h3>Idempotent command handler</h3>
+        <pre><code>@Service
+public class AuthorizePaymentHandler {
+    private final ProcessedMessageRepository processedMessageRepository;
+    private final PaymentRepository paymentRepository;
+    private final OutboxRepository outboxRepository;
+
+    @Transactional
+    public void handle(AuthorizePayment command, MessageMetadata metadata) {
+        if (!processedMessageRepository.insertIfAbsent(
+                "authorize-payment",
+                metadata.getMessageId())) {
+            return;
+        }
+
+        Payment payment = paymentRepository.findOrCreate(command.getOrderId());
+        payment.requestAuthorization(command.getAmount());
+
+        outboxRepository.save(
+            OutboxEvent.paymentAuthorizationRequested(payment, metadata)
+        );
+    }
+}</code></pre>
+
+        <h3>Saga state table</h3>
+        <pre><code>CREATE TABLE order_saga (
+    saga_id            VARCHAR(64) PRIMARY KEY,
+    order_id           VARCHAR(64) NOT NULL UNIQUE,
+    state              VARCHAR(50) NOT NULL,
+    payment_status     VARCHAR(50),
+    inventory_status   VARCHAR(50),
+    shipping_status    VARCHAR(50),
+    version             BIGINT NOT NULL,
+    last_error          TEXT,
+    next_action_at      TIMESTAMP,
+    created_at          TIMESTAMP NOT NULL,
+    updated_at          TIMESTAMP NOT NULL
+);</code></pre>
+
+        <h3>Orchestrator state machine idea</h3>
+        <pre><code>public void onPaymentAuthorized(PaymentAuthorized event) {
+    OrderSaga saga = sagaRepository.findByOrderId(event.getOrderId());
+
+    if (!saga.canAcceptPaymentAuthorized()) {
+        return;
+    }
+
+    saga.markPaymentAuthorized();
+    commandOutbox.save(new ReserveInventoryCommand(
+        saga.getOrderId(),
+        saga.getItems(),
+        saga.getCorrelationId()
+    ));
+}
+
+public void onInventoryRejected(InventoryRejected event) {
+    OrderSaga saga = sagaRepository.findByOrderId(event.getOrderId());
+
+    saga.markInventoryRejected(event.getReason());
+    commandOutbox.save(new VoidPaymentCommand(
+        saga.getOrderId(),
+        saga.getPaymentReference(),
+        saga.getCorrelationId()
+    ));
+}</code></pre>
+
+        <h3>Retry with backoff</h3>
+        <pre><code>nextDelay = min(maxDelay, baseDelay * 2^retryCount) + randomJitter;</code></pre>
+        <p>Jitter prevents many failed messages from retrying at exactly the same time.</p>
+
+        <h3>Dead-letter handling</h3>
+        <p>
+          A Dead Letter Queue is not the end of the design. Store enough metadata to replay safely:
+          message ID, original topic, partition, offset, exception, stack trace, retry count, correlation ID, and payload version.
+        </p>
+      </section>
+
+      <section id="decision-guide" data-search="decision matrix choose outbox saga TCC 2PC event sourcing">
+        <h2>15. Pattern Decision Guide</h2>
+
+        <table class="comparison">
+          <thead><tr><th>Problem</th><th>Primary pattern</th><th>Usually combined with</th></tr></thead>
+          <tbody>
+            <tr><td>DB commit and event publish must not diverge</td><td>Transactional Outbox</td><td>Inbox and idempotent consumers</td></tr>
+            <tr><td>Multi-service business flow with compensation</td><td>Saga</td><td>Outbox, Inbox, state machine</td></tr>
+            <tr><td>Reserve scarce resources before final commit</td><td>TCC</td><td>Timeout cleanup and idempotency</td></tr>
+            <tr><td>Atomic commit across compatible controlled resources</td><td>2PC/XA</td><td>Coordinator monitoring</td></tr>
+            <tr><td>Complete domain history is the source of truth</td><td>Event Sourcing</td><td>CQRS and projections</td></tr>
+            <tr><td>Duplicate broker messages</td><td>Inbox/idempotent consumer</td><td>Unique business constraints</td></tr>
+            <tr><td>Duplicate HTTP requests</td><td>Idempotency key</td><td>Stored response and unique constraint</td></tr>
+            <tr><td>Concurrent state update</td><td>Atomic SQL / optimistic lock</td><td>Retry and conflict handling</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Simple decision questions</h3>
+        <ol>
+          <li>Does one service update its DB and publish a message? Use Outbox.</li>
+          <li>Can the same command or event arrive twice? Design idempotency and Inbox.</li>
+          <li>Does the operation cross service boundaries? Consider Saga or TCC.</li>
+          <li>Can previous steps be semantically reversed? Saga is possible.</li>
+          <li>Can resources be reserved before final confirmation? TCC may fit.</li>
+          <li>Do all participants support XA and share one operational boundary? 2PC may be considered.</li>
+          <li>Is a complete immutable history a core requirement? Consider Event Sourcing carefully.</li>
+        </ol>
+      </section>
+
+      <section id="failure-handling" data-search="retry timeout dead letter poison message ordering reconciliation">
+        <h2>16. Failure Handling in Production</h2>
+
+        <h3>Classify failures</h3>
+        <table>
+          <thead><tr><th>Failure type</th><th>Example</th><th>Response</th></tr></thead>
+          <tbody>
+            <tr><td>Transient</td><td>Broker unavailable, temporary network issue</td><td>Retry with exponential backoff and jitter</td></tr>
+            <tr><td>Business rejection</td><td>Insufficient stock, card declined</td><td>Do not blindly retry; follow compensation/business path</td></tr>
+            <tr><td>Unknown outcome</td><td>Payment timeout after provider may have processed request</td><td>Query status using same reference; reconcile</td></tr>
+            <tr><td>Permanent technical</td><td>Invalid schema, unsupported event version</td><td>DLQ, alert, fix, replay</td></tr>
+            <tr><td>Poison message</td><td>Always crashes the consumer</td><td>Stop infinite retry; isolate and inspect</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Timeout management</h3>
+        <p>Every saga waiting state should have a deadline.</p>
+        <pre><code>PAYMENT_PENDING until 2026-07-17T10:00:00Z
+INVENTORY_PENDING until 2026-07-17T10:02:00Z
+SHIPMENT_PENDING until 2026-07-17T10:05:00Z</code></pre>
+
+        <p>A scheduler scans expired states and starts a defined recovery action.</p>
+
+        <h3>Ordering</h3>
+        <p>
+          Global ordering is expensive and usually unnecessary. Preserve ordering per aggregate, such as one order ID,
+          by using the aggregate ID as the message partition key.
+        </p>
+
+        <h3>Reconciliation</h3>
+        <p>
+          Reconciliation compares systems and repairs mismatches. It is essential for payments and other external providers.
+        </p>
+        <ul>
+          <li>Compare local payment status with provider settlement records.</li>
+          <li>Find orders stuck in pending states.</li>
+          <li>Find published events without expected downstream results.</li>
+          <li>Generate repair commands or manual operation tasks.</li>
+        </ul>
+
+        <div class="callout success">
+          <strong>Senior mindset</strong>
+          Do not design only the happy path. Design the restart path, duplicate path, timeout path, compensation-failure path, and manual-repair path.
+        </div>
+      </section>
+
+      <section id="observability" data-search="observability tracing metrics testing chaos saga outbox">
+        <h2>17. Observability and Testing</h2>
+
+        <h3>Important identifiers</h3>
+        <ul>
+          <li><strong>Correlation ID:</strong> one business transaction across services.</li>
+          <li><strong>Message ID:</strong> one event or command.</li>
+          <li><strong>Causation ID:</strong> which message caused the current message.</li>
+          <li><strong>Saga ID:</strong> one workflow instance.</li>
+          <li><strong>Aggregate ID:</strong> domain entity such as Order ID.</li>
+        </ul>
+
+        <h3>Useful metrics</h3>
+        <div class="grid-3">
+          <div class="card"><h4>Outbox</h4><p>Pending count, oldest pending age, publish latency, retry count.</p></div>
+          <div class="card"><h4>Saga</h4><p>Active count, duration, timeout count, compensation count, stuck state count.</p></div>
+          <div class="card"><h4>Consumer</h4><p>Lag, duplicate count, processing latency, DLQ rate, failure rate.</p></div>
+        </div>
+
+        <h3>Testing pyramid</h3>
+        <ol>
+          <li><strong>Unit tests:</strong> state transitions, compensation decisions, idempotent behavior.</li>
+          <li><strong>Repository tests:</strong> unique constraints, locking, transaction rollback.</li>
+          <li><strong>Contract tests:</strong> event schemas and API behavior.</li>
+          <li><strong>Integration tests:</strong> database + broker + consumer.</li>
+          <li><strong>Failure injection:</strong> crash after publish, timeout before acknowledgement, duplicate delivery.</li>
+          <li><strong>End-to-end tests:</strong> happy path and compensation path.</li>
+        </ol>
+
+        <h3>Critical failure test cases</h3>
+        <ul class="checklist">
+          <li>Crash after DB commit but before event publication.</li>
+          <li>Crash after broker publish but before outbox status update.</li>
+          <li>Duplicate event arrives while first processing is still running.</li>
+          <li>Compensation command is delivered twice.</li>
+          <li>Provider times out after processing the request.</li>
+          <li>Saga orchestrator restarts in the middle of the workflow.</li>
+          <li>Out-of-order events arrive for the same aggregate.</li>
+          <li>DLQ message is replayed after the code is fixed.</li>
+        </ul>
+      </section>
+
+      <section id="anti-patterns" data-search="anti patterns distributed transaction mistakes">
+        <h2>18. Common Anti-Patterns</h2>
+
+        <details open>
+          <summary>1. Calling Kafka directly after a database save</summary>
+          <div class="answer">
+            <p>This creates the dual-write problem. Use Outbox or another atomic integration strategy.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>2. Assuming retry is always safe</summary>
+          <div class="answer">
+            <p>Retrying a charge, shipment creation, or email can duplicate a side effect. Add idempotency before retry.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>3. Treating compensation as delete</summary>
+          <div class="answer">
+            <p>A real business action may already be visible externally. Record a new compensating operation and keep audit history.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>4. Keeping a DB transaction open during an external API call</summary>
+          <div class="answer">
+            <p>This increases lock time and failure coupling. Persist intent, commit, then execute the remote operation through a durable workflow when possible.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>5. Building a Saga without persisted state</summary>
+          <div class="answer">
+            <p>In-memory workflow state is lost on restart. Store saga state durably and make transitions idempotent.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>6. Using distributed locks as the first solution</summary>
+          <div class="answer">
+            <p>Prefer database constraints, atomic state transitions, partitioning, or idempotency. Distributed locks add lease and failure complexity.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>7. Sending sensitive private data in events</summary>
+          <div class="answer">
+            <p>Events are copied into brokers, logs, retries, and archives. Publish only needed data, encrypt where required, and apply retention controls.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>8. No reconciliation process</summary>
+          <div class="answer">
+            <p>External systems can always create unknown outcomes. Payment systems especially require periodic reconciliation and manual repair support.</p>
+          </div>
+        </details>
+      </section>
+
+      <section id="interview" data-search="senior interview questions answers transaction microservices outbox saga">
+        <h2>19. Senior Interview Questions and Answers</h2>
+        <p class="lead">Open each question to see a senior-level answer with trade-offs and practical reasoning.</p>
+
+        <details>
+          <summary>1. Why does @Transactional not solve a transaction across microservices?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> <code>@Transactional</code> normally controls one local transaction manager, such as one relational database connection. A REST call, Kafka publish, payment provider, or another service database is outside that boundary. Once another service commits, the caller cannot rollback it with a local exception. For cross-service consistency, I use local transactions combined with patterns such as Outbox, Saga, TCC, and idempotent consumers.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>2. What problem does the Outbox Pattern solve?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Outbox solves the dual-write problem between a service database and a message broker. I save the business change and an outgoing event in the same local database transaction. A separate publisher or CDC process sends the event later. If the business transaction commits, the event is durable. However, publication is normally at least once, so consumers must still be idempotent.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>3. Can Outbox guarantee exactly-once processing?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Not by itself. The publisher can crash after sending the message but before marking the row as published, so the message can be sent again. Outbox gives reliable publication, usually at least once. Exactly-once business behavior requires idempotent consumers, unique constraints, stable business keys, and safe external API handling.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>4. What is the difference between Outbox and Saga?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Outbox handles reliable message publication from one service. Saga manages a multi-service business transaction and decides the next step or compensation. They are commonly used together: Saga controls the workflow, while Outbox ensures saga commands and events are not lost.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>5. Choreography or orchestration: which would you choose?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I choose based on flow complexity. Choreography is good for a small number of stable event reactions. For branching, timeout, manual review, long-running steps, or complex compensation, I prefer orchestration because the workflow state and decision logic are visible. I also avoid putting all domain logic into the orchestrator; participants still own their domain rules.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>6. What makes a good compensating transaction?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> It must be a valid business operation, idempotent, auditable, and retryable. It should represent the real reverse action, such as refund instead of deleting a payment row. I also design states for compensation progress and failure because compensation itself may fail.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>7. How would you prevent duplicate payment when messages are retried?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I use multiple layers: an Inbox table for message deduplication, a unique database constraint for one payment operation per order, an atomic state transition from PENDING to PROCESSING, and the payment provider’s idempotency key. I also persist the provider request reference so a timeout can be reconciled instead of creating a new charge.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>8. What is the Inbox Pattern?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Inbox stores the processed message ID in the same local transaction as the consumer’s business update. A unique key prevents processing the same message twice. It is the consumer-side partner of Outbox.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>9. When would you use TCC instead of Saga?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I use TCC when participants can naturally reserve resources before final confirmation, such as seats, rooms, or inventory. Try reserves, Confirm finalizes, and Cancel releases. It gives a clearer reservation model than a normal Saga, but each participant must support extra lifecycle states and timeout cleanup.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>10. Why is 2PC often avoided in microservices?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> 2PC increases coupling, requires compatible transactional resources, may hold locks while waiting for the coordinator, and can reduce availability during failures. It can be valid in controlled enterprise systems, but for independent services I usually prefer local transactions and eventual consistency.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>11. How do Kafka transactions help, and where do they stop helping?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Kafka transactions are strong for consume-process-produce flows inside Kafka because produced records and consumed offsets can commit together. They do not make PostgreSQL updates, REST calls, payment operations, or emails atomic with Kafka. For those boundaries, I still use Outbox, Inbox, and idempotency.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>12. How do you handle an unknown payment outcome after timeout?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I do not immediately retry with a new request ID because the provider may already have charged the customer. I store an UNKNOWN or PENDING_CONFIRMATION state, keep the original idempotency/reference key, query the provider, and run reconciliation. The system should only retry the same logical operation with the same idempotency identity.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>13. How would you design retry?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> First I classify the failure. Transient technical failures can use exponential backoff and jitter. Business rejections should not be retried blindly. Unknown outcomes need status inquiry. Permanent schema or validation errors go to a DLQ. Every retried operation must be idempotent, and retries need maximum attempts, observability, and a manual recovery path.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>14. What data should a saga orchestrator persist?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Saga ID, business aggregate ID, current state, participant results, correlation ID, retry counters, deadlines, last error, compensation progress, and version for concurrency control. This state must be durable so the orchestrator can restart safely.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>15. How do you preserve event ordering?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I avoid requiring global ordering. I partition by aggregate ID to preserve order for one entity, include aggregate version numbers, reject or delay stale events, and make handlers idempotent. If strict ordering is a hard business requirement, I document its throughput and availability cost.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>16. How do you prevent two requests from executing the same operation?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I prefer data-level guarantees: unique constraints, atomic conditional updates, optimistic locking, or short pessimistic locks. For external APIs I add a stable idempotency key. A distributed lock is not my first choice because it adds lease and failure complexity and still does not replace database constraints.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>17. What is eventual consistency, and how do you explain it to business users?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> It means different services may temporarily show different states while the workflow is still running, but the system has a defined path to converge. I expose clear statuses such as PAYMENT_PENDING or CANCELLATION_IN_PROGRESS instead of pretending the operation finished immediately. I also define expected completion time and recovery behavior.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>18. How do you test an Outbox implementation?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I test transaction atomicity, publisher retry, duplicate publication, crash after send but before status update, concurrent publishers, stale lock recovery, payload versioning, and consumer idempotency. I also monitor oldest pending row age because a growing age is a production failure signal.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>19. What is the biggest mistake when implementing Saga?</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> Designing only the successful sequence. A correct Saga must define compensation, compensation failure, timeout, duplicate message, out-of-order message, orchestrator restart, and manual repair. Without these paths, it is only a distributed happy-path script.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>20. Describe a production-ready transaction strategy for an order system.</summary>
+          <div class="answer">
+            <p><strong>Senior answer:</strong> I would use local ACID transactions in each service, Outbox for reliable event publication, Inbox and unique business keys for duplicate protection, an orchestrated Saga for payment-inventory-shipping flow, idempotency keys for payment and carrier APIs, optimistic or atomic state transitions for concurrency, deadlines and retries for transient failures, DLQ for poison messages, and reconciliation for unknown external outcomes. I would also add correlation IDs, saga metrics, pending-age alerts, and replay tooling.</p>
+          </div>
+        </details>
+      </section>
+
+      <section id="revision" data-search="revision summary cheat sheet outbox saga inbox TCC 2PC">
+        <h2>20. Quick Revision Sheet</h2>
+
+        <table class="comparison">
+          <thead><tr><th>Pattern</th><th>One-sentence meaning</th><th>Does not solve</th></tr></thead>
+          <tbody>
+            <tr><td>Local transaction</td><td>Atomically updates one service’s local database.</td><td>Remote service rollback.</td></tr>
+            <tr><td>Outbox</td><td>Stores business data and outgoing event in one transaction.</td><td>Consumer duplication and compensation.</td></tr>
+            <tr><td>Inbox</td><td>Stores processed message IDs with the consumer update.</td><td>Producer-side message loss.</td></tr>
+            <tr><td>Idempotency key</td><td>Makes repeated logical requests return the same effect.</td><td>All concurrency problems by itself.</td></tr>
+            <tr><td>Saga</td><td>Coordinates local transactions and compensation across services.</td><td>Atomic technical rollback.</td></tr>
+            <tr><td>TCC</td><td>Reserve, confirm, or cancel resources.</td><td>Services without reservation semantics.</td></tr>
+            <tr><td>2PC</td><td>Coordinates atomic commit across compatible resources.</td><td>High availability and service autonomy.</td></tr>
+            <tr><td>Kafka transaction</td><td>Atomically handles Kafka offsets and Kafka output records.</td><td>External databases and provider side effects.</td></tr>
+            <tr><td>Event Sourcing</td><td>Stores events as the source of truth.</td><td>Simple system design.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Best senior summary</h3>
+        <div class="callout success">
+          <strong>Use the right pattern for the right boundary</strong>
+          Local transaction protects one database. Outbox protects outgoing messages. Inbox and idempotency protect retries. Saga or TCC manages the multi-service business flow. Reconciliation repairs unknown external outcomes. Observability makes the entire process operable.
+        </div>
+
+        <h3>Production checklist</h3>
+        <ul class="checklist">
+          <li>Every external side effect has an idempotency strategy.</li>
+          <li>Every waiting state has a timeout.</li>
+          <li>Every compensation can be retried safely.</li>
+          <li>Every message has a stable ID and correlation ID.</li>
+          <li>Every consumer has duplicate protection.</li>
+          <li>Every Outbox has pending-age monitoring.</li>
+          <li>Every DLQ has a review and replay procedure.</li>
+          <li>Every external provider has reconciliation.</li>
+          <li>Every state transition is concurrency-safe.</li>
+          <li>Every workflow can recover after restart.</li>
+        </ul>
+      </section>
+
+      <p class="footer-note">Standalone learning document — no external libraries required.</p>
+    </main>
+  </div>
+
+  <script>
+    const body = document.body;
+    const themeBtn = document.getElementById('themeBtn');
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const searchInput = document.getElementById('searchInput');
+    const expandBtn = document.getElementById('expandBtn');
+    const sections = Array.from(document.querySelectorAll('main section'));
+    const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+
+    const savedTheme = localStorage.getItem('tx-theme');
+    if (savedTheme === 'dark') body.classList.add('dark');
+
+    themeBtn.addEventListener('click', () => {
+      body.classList.toggle('dark');
+      localStorage.setItem('tx-theme', body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+    tocLinks.forEach(link => link.addEventListener('click', () => sidebar.classList.remove('open')));
+
+    let allExpanded = false;
+    expandBtn.addEventListener('click', () => {
+      allExpanded = !allExpanded;
+      document.querySelectorAll('details').forEach(d => d.open = allExpanded);
+      expandBtn.textContent = allExpanded ? 'Collapse Q&A' : 'Expand Q&A';
+    });
+
+    searchInput.addEventListener('input', event => {
+      const query = event.target.value.toLowerCase().trim();
+      sections.forEach(section => {
+        const haystack = (section.innerText + ' ' + (section.dataset.search || '')).toLowerCase();
+        section.classList.toggle('hidden-by-search', query && !haystack.includes(query));
+      });
+    });
+
+    document.querySelectorAll('pre').forEach(pre => {
+      const button = document.createElement('button');
+      button.className = 'copy-btn';
+      button.textContent = 'Copy';
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(pre.innerText.replace(/^Copy\n/, ''));
+        button.textContent = 'Copied';
+        setTimeout(() => button.textContent = 'Copy', 1200);
+      });
+      pre.appendChild(button);
+    });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id));
+        }
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+
+    sections.forEach(section => observer.observe(section));
+
+    window.addEventListener('scroll', () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      const percent = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+      document.getElementById('progress').style.width = percent + '%';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Introduction - Java Backend Engineer</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --primary: #1f4e79;
+      --primary-light: #e8f1fb;
+      --accent: #0f766e;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d8e0ea;
+      --code-bg: #0f172a;
+      --code-text: #e5e7eb;
+      --warning-bg: #fff7ed;
+      --warning-border: #fed7aa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #eef5ff 0%, #f8fafc 45%, #eefdf9 100%);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary), #0f766e);
+      color: #fff;
+      border-radius: 24px;
+      padding: 38px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: 36px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      max-width: 850px;
+      margin: 0;
+      color: #e8f4ff;
+      font-size: 17px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 24px;
+      line-height: 1.3;
+    }
+
+    .card h3 {
+      color: var(--accent);
+      margin-top: 26px;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .num {
+      width: 34px;
+      height: 34px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .script {
+      background: #fbfdff;
+      border-left: 5px solid var(--primary);
+      border-radius: 14px;
+      padding: 20px;
+      font-size: 16px;
+    }
+
+    .script p {
+      margin: 0 0 16px;
+    }
+
+    .script p:last-child {
+      margin-bottom: 0;
+    }
+
+    .keyword-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .keyword-list li {
+      background: var(--primary-light);
+      border: 1px solid #cfe1f6;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 600;
+      color: #214666;
+      font-size: 14px;
+    }
+
+    .note {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .note strong {
+      color: #9a3412;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .answer-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 18px;
+      padding: 22px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.75;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .mini-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .flow-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .flow-item span {
+      display: block;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table th {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 32px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        padding: 26px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .grid,
+      .mini-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .keyword-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .hero,
+      .card {
+        box-shadow: none;
+      }
+
+      .page {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>Java Backend Engineer Interview Introduction</h1>
+      <p>
+        A polished interview script combining your self-introduction and the most challenging part of your recent project.
+        Use this page to practice speaking naturally and confidently.
+      </p>
+      <div class="badge-row">
+        <span class="badge">Java Backend Engineer</span>
+        <span class="badge">Team Leader</span>
+        <span class="badge">Spring Boot</span>
+        <span class="badge">AWS Cognito</span>
+        <span class="badge">Security</span>
+        <span class="badge">Payment</span>
+        <span class="badge">Production Support</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="section-title">
+          <span class="num">1</span>
+          <h2>Self Introduction</h2>
+        </div>
+
+        <div class="script">
+          <p>
+            I have around nine years of experience as a Java backend engineer.
+            My main technical stack includes Java, Spring Boot, REST APIs, JPA/Hibernate,
+            SQL databases, unit testing, and architecture design.
+          </p>
+          <p>
+            Currently, I am working as a Java team leader, leading a team of seven members.
+          </p>
+          <p>
+            In my recent project, I worked on a commercial SIM card management system for ANA airline.
+            The project was built from scratch. The backend was developed using Java and Spring Boot,
+            the frontend used Next.js, and the database was PostgreSQL.
+            We also used several AWS cloud services such as SQS, Lambda, Cognito, and other related services.
+          </p>
+          <p>
+            I was responsible for analyzing requirements, designing the backend architecture, preparing the codebase,
+            implementing core features, reviewing code, supporting the production release, tracing logs,
+            and fixing critical issues in production.
+          </p>
+          <p>
+            From a technical perspective, I focused on clean architecture, transaction management, API design,
+            data consistency, exception handling, logging, and maintainability.
+            I also supported team members through code reviews, technical discussions, and guidance during implementation.
+          </p>
+        </div>
+
+        <h3>Keywords to remember</h3>
+        <ul class="keyword-list">
+          <li>9 years Java backend</li>
+          <li>Team leader, 7 members</li>
+          <li>Built from scratch</li>
+          <li>ANA commercial SIM system</li>
+          <li>Java / Spring Boot / Next.js</li>
+          <li>PostgreSQL / AWS services</li>
+          <li>Architecture and codebase</li>
+          <li>Production release support</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <div class="section-title">
+          <span class="num">2</span>
+          <h2>Biggest Challenge</h2>
+        </div>
+
+        <div class="script">
+          <p>
+            The biggest challenge in my project was related to security.
+          </p>
+          <p>
+            In this project, I worked on several important features such as building the codebase from scratch,
+            implementing security, and integrating payment. However, I think the most challenging part was
+            the security design and implementation, because it was the first time I applied AWS Cognito and AVP
+            for authentication and authorization across the whole project, including the application, my page,
+            and admin modules.
+          </p>
+          <p>
+            For the application and my page, we used the same authentication mechanism with AWS Cognito custom authentication,
+            including login and two-factor authentication using OTP sent via email.
+          </p>
+          <p>
+            For the admin module, we also used AWS Cognito, but with a different two-factor authentication mechanism
+            using a TOTP authenticator application.
+          </p>
+          <p>
+            In addition, we used AWS Verified Permissions to control whether a user is allowed to access specific APIs or screens.
+            We also applied Spring AOP to ensure that users with the USER role can only access their own resources
+            and cannot access resources belonging to other users.
+          </p>
+          <p>
+            As a result, the security implementation passed multiple security scanning tools from the client side
+            and has been working well in production until now.
+          </p>
+        </div>
+
+        <h3>Keywords to remember</h3>
+        <ul class="keyword-list">
+          <li>Security was the biggest challenge</li>
+          <li>AWS Cognito custom auth</li>
+          <li>OTP via email</li>
+          <li>Admin TOTP authenticator</li>
+          <li>AWS Verified Permissions</li>
+          <li>API and screen authorization</li>
+          <li>Spring AOP resource ownership</li>
+          <li>Passed client security scans</li>
+        </ul>
+      </article>
+
+      <article class="card full">
+        <div class="section-title">
+          <span class="num">3</span>
+          <h2>Recommended Full Answer</h2>
+        </div>
+
+        <div class="answer-box">I have around nine years of experience as a Java backend engineer. My main technical stack includes Java, Spring Boot, REST APIs, JPA/Hibernate, SQL databases, unit testing, and architecture design. Currently, I am working as a Java team leader, leading a team of seven members.
+
+In my recent project, I worked on a commercial SIM card management system for ANA airline. This project was built from scratch. The backend was developed using Java and Spring Boot, the frontend used Next.js, and the database was PostgreSQL. We also used several AWS cloud services such as SQS, Lambda, Cognito, and other related services.
+
+I was responsible for analyzing requirements, designing the backend architecture, preparing the codebase, implementing core features, reviewing code, supporting the production release, tracing logs, and fixing critical issues in production.
+
+From a technical perspective, I focused on clean architecture, transaction management, API design, data consistency, exception handling, logging, and maintainability. I also supported team members through code reviews, technical discussions, and guidance during implementation.
+
+One of the biggest challenges in this project was security. Although I worked on several important areas such as the codebase, security, and payment integration, security was the most challenging part because it was the first time I applied AWS Cognito and AWS Verified Permissions for authentication and authorization across the whole project, including the application, my page, and admin modules.
+
+For the application and my page, we used AWS Cognito custom authentication, including login and two-factor authentication using OTP sent via email. For the admin module, we also used AWS Cognito, but with a different two-factor authentication mechanism using a TOTP authenticator application.
+
+In addition, we used AWS Verified Permissions to control whether a user is allowed to access specific APIs or screens. We also applied Spring AOP to ensure that users with the USER role can only access their own resources and cannot access resources belonging to other users.
+
+As a result, the security implementation passed multiple security scanning tools from the client side and has been working well in production until now.</div>
+      </article>
+
+      <article class="card full">
+        <div class="section-title">
+          <span class="num">4</span>
+          <h2>How to Speak It Naturally</h2>
+        </div>
+
+        <div class="mini-flow">
+          <div class="flow-item">Experience<span>9 years + team leader</span></div>
+          <div class="flow-item">Project<span>ANA SIM management</span></div>
+          <div class="flow-item">Responsibility<span>Architecture, codebase, core features</span></div>
+          <div class="flow-item">Challenge<span>Security with Cognito + AVP</span></div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Part</th>
+              <th>Main idea</th>
+              <th>Simple speaking sentence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Opening</td>
+              <td>Introduce experience and role</td>
+              <td>I have around nine years of experience as a Java backend engineer, and currently I am leading a Java team of seven members.</td>
+            </tr>
+            <tr>
+              <td>Project context</td>
+              <td>Explain what the project is</td>
+              <td>My recent project was a commercial SIM card management system for ANA airline, built from scratch.</td>
+            </tr>
+            <tr>
+              <td>Responsibility</td>
+              <td>Show ownership</td>
+              <td>I was responsible for requirement analysis, backend architecture, codebase preparation, core features, code review, and production support.</td>
+            </tr>
+            <tr>
+              <td>Challenge</td>
+              <td>Go deep technically</td>
+              <td>The most challenging part was security, because we used AWS Cognito and AWS Verified Permissions for authentication and authorization.</td>
+            </tr>
+            <tr>
+              <td>Result</td>
+              <td>Show impact</td>
+              <td>The implementation passed multiple client security scans and has been working well in production.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Interview tip:</strong>
+          Do not speak too fast. Start with your experience, then project context, then your responsibilities,
+          and finally go deeper into the security challenge. This structure makes you sound senior and organized.
+        </div>
+      </article>
+    </section>
+
+    <p class="footer">
+      Prepared for Java Backend / Senior Engineer interview practice.
+    </p>
+  </main>
+</body>
+</html>

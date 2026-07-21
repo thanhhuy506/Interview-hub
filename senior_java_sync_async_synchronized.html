@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Senior Java Backend — Synchronous vs Asynchronous vs synchronized</title><style>
+:root{--bg:#f5f7fb;--card:#fff;--card2:#eef3f9;--text:#172033;--muted:#5d6b82;--border:#dbe4ef;--brand:#2563eb;--brand2:#7c3aed;--code:#0b1020;--codeText:#e5e7eb;--shadow:0 16px 36px rgba(15,23,42,.08)}
+[data-theme="dark"]{--bg:#0b1020;--card:#111827;--card2:#182235;--text:#e5e7eb;--muted:#aab4c8;--border:#2b3548;--brand:#60a5fa;--brand2:#a78bfa;--code:#020617;--codeText:#f8fafc;--shadow:0 16px 36px rgba(0,0,0,.35)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65}.layout{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;overflow:auto;padding:22px;background:var(--card);border-right:1px solid var(--border)}main{max-width:1180px;width:100%;margin:0 auto;padding:30px}.brand{display:flex;gap:12px;align-items:center;margin-bottom:18px}.logo{width:44px;height:44px;border-radius:15px;color:#fff;font-weight:900;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand2))}h1{font-size:21px;line-height:1.2;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}.tools{display:grid;gap:10px;margin:18px 0}input{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);outline:none}.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}button{border:1px solid var(--border);background:var(--card2);color:var(--text);padding:9px 10px;border-radius:10px;cursor:pointer;font-weight:750}button:hover{border-color:var(--brand);color:var(--brand)}nav{display:grid;gap:7px;margin-top:18px}nav a{color:var(--muted);text-decoration:none;padding:9px 10px;border-radius:10px;border:1px solid transparent;font-size:14px}nav a:hover{background:var(--card2);color:var(--brand);border-color:var(--border)}.hero{background:radial-gradient(circle at top left,rgba(37,99,235,.20),transparent 32%),radial-gradient(circle at bottom right,rgba(124,58,237,.16),transparent 32%),var(--card);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:28px;padding:34px;margin-bottom:24px}.kicker{color:var(--brand);font-size:12px;text-transform:uppercase;letter-spacing:.09em;font-weight:900}.hero h1{font-size:38px;letter-spacing:-.04em;margin:8px 0 12px}.hero p{color:var(--muted);max-width:900px;margin:0}.note{margin-top:18px;padding:16px;background:var(--card2);border:1px solid var(--border);border-radius:18px;color:var(--muted)}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:20px}.flow div{text-align:center;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:16px;font-weight:850;font-size:13px}.section{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:26px;padding:28px;margin-bottom:24px}.section-top{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px}h2{font-size:29px;letter-spacing:-.035em;margin:3px 0 9px}h3{font-size:18px;margin:24px 0 12px}.summary{color:var(--muted);margin:0}.context{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:18px}.context h3{margin-top:0}.context ul{margin:0;padding-left:22px;color:var(--muted)}.concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.concept{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}.concept h4{margin:0 0 6px;color:var(--brand);font-size:16px}.concept p{margin:0;color:var(--muted)}.qa-list{display:grid;gap:12px}details.qa{border:1px solid var(--border);border-radius:18px;overflow:hidden;background:var(--card)}details.qa summary{padding:16px 18px;background:var(--card2);cursor:pointer;font-weight:900}.qa-body{padding:18px}.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--brand);margin-bottom:10px}.answer{background:var(--card2);border:1px solid var(--border);border-radius:15px;padding:16px}.copy{font-size:13px;padding:7px 10px;color:var(--brand)}.code-card{margin-top:16px;border:1px solid var(--border);border-radius:18px;padding:16px}pre{margin:0;overflow:auto;background:var(--code);color:var(--codeText);border-radius:14px;padding:16px;font-size:13px;line-height:1.55}code{font-family:"JetBrains Mono","SFMono-Regular",Consolas,monospace}.hidden{display:none!important}footer{text-align:center;color:var(--muted);font-size:13px;margin:30px 0}@media(max-width:980px){.layout{grid-template-columns:1fr}aside{position:relative;height:auto}main{padding:18px}.concept-grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}}@media print{aside,.tools,button{display:none!important}.layout{display:block}main{max-width:none;padding:0}.hero,.section{box-shadow:none;break-inside:avoid}body{background:#fff;color:#000}}
+</style></head>
+<body>
+<div class="layout" id="app" data-theme="light">
+  <aside>
+    <div class="brand"><div class="logo">S</div><div><h1>Sync / Async</h1><div class="sub">Senior Java Backend Web</div></div></div>
+    <div class="tools"><input id="search" placeholder="Search: synchronous, async, synchronized..."/><div class="btn-row"><button id="theme">Dark</button><button onclick="window.print()">Print/PDF</button></div><div class="btn-row"><button id="openAll">Open all</button><button id="closeAll">Close all</button></div></div>
+    <nav><a href="#overview">0. Big Picture: Synchronous, Asynchronous, and synchronized</a>
+<a href="#synchronous">1. Synchronous Processing</a>
+<a href="#asynchronous">2. Asynchronous Processing</a>
+<a href="#synchronized">3. Java synchronized Keyword</a>
+<a href="#comparison">4. Synchronous vs Asynchronous vs Reactive</a>
+<a href="#interview-script">5. Final Senior Interview Script</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <span class="kicker">Senior Java Backend</span>
+      <h1>Synchronous vs Asynchronous vs Java synchronized</h1>
+      <p>Web này giúp anh học và trả lời interview rõ ràng về synchronous/asynchronous processing, Java synchronized keyword, use case, trade-off, production risks và code examples.</p>
+      <div class="note"><strong>Important distinction:</strong><br/><code>synchronous/asynchronous</code> là execution model. <code>synchronized</code> là Java locking keyword. Đây là hai nhóm khái niệm khác nhau nhưng rất dễ bị nhầm trong interview.</div>
+      <div class="flow"><div>Context</div><div>Concept</div><div>Use case</div><div>Trade-off</div><div>Senior answer</div></div>
+    </section>
+    
+    <section class="section" id="overview">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>0. Big Picture: Synchronous, Asynchronous, and synchronized</h2><p class="summary">Ba khái niệm dễ bị nhầm: synchronous/asynchronous là execution model; synchronized là Java keyword để lock critical section.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Trong interview, interviewer có thể hỏi synchronous vs asynchronous processing, hoặc hỏi synchronized keyword trong Java multithreading.</li><li>Senior cần phân biệt rõ: sync/async nói về cách flow chạy và chờ kết quả; synchronized nói về thread-safety và locking.</li><li>Backend production thường kết hợp cả ba: request/response synchronous, event processing asynchronous, và critical section có thể cần synchronized/lock.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Synchronous</h4><p>Caller gửi request và chờ kết quả trả về rồi mới tiếp tục.</p></article><article class="concept"><h4>Asynchronous</h4><p>Caller không cần chờ task hoàn thành ngay; task có thể chạy background hoặc xử lý qua callback/event/message.</p></article><article class="concept"><h4>synchronized</h4><p>Java keyword dùng intrinsic monitor lock để bảo vệ shared mutable state khỏi race condition.</p></article><article class="concept"><h4>Blocking</h4><p>Thread bị giữ lại trong lúc chờ I/O hoặc kết quả.</p></article><article class="concept"><h4>Non-blocking</h4><p>Thread không bị giữ trong lúc chờ; thường dùng callback/event-loop/reactive model.</p></article><article class="concept"><h4>Concurrency</h4><p>Nhiều task được xử lý overlap về thời gian, không nhất thiết chạy đúng cùng một lúc.</p></article><article class="concept"><h4>Parallelism</h4><p>Nhiều task thực sự chạy cùng lúc trên nhiều CPU core.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>Synchronous, asynchronous, and synchronized khác nhau thế nào?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-1">Copy answer</button></div>
+            <div class="answer" id="answer-1">Synchronous and asynchronous describe how an execution flow waits for a result.<br><br>Synchronous means the caller waits until the operation completes.<br>Asynchronous means the caller does not need to wait immediately. The task can run in the background, through another thread, message queue, callback, or event.<br><br>synchronized is different. It is a Java keyword used for thread-safety. It ensures only one thread can enter a critical section protected by the same lock at a time.<br><br>So:<br>- synchronous/asynchronous are about execution flow<br>- synchronized is about locking and shared data protection<br><br>For example, a REST API call to process payment is usually synchronous because the user needs the result immediately. Sending email after payment can be asynchronous. Updating a shared in-memory counter may need synchronized, AtomicInteger, or another thread-safe mechanism.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Code example</strong><button class="copy" data-target="code-2">Copy code</button></div>
+          <pre><code id="code-2">// Synchronous call: caller waits for result
+PaymentResult result = paymentClient.pay(request);
+
+// Asynchronous call: caller does not wait immediately
+CompletableFuture.runAsync(() -&gt; emailService.sendPaymentEmail(orderId));
+
+// synchronized: protects shared mutable state
+public synchronized void increment() {
+    count++;
+}</code></pre>
+        </div>
+    </section>
+    <section class="section" id="synchronous">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>1. Synchronous Processing</h2><p class="summary">Synchronous flow đơn giản, dễ hiểu, dễ debug. Caller chờ operation hoàn thành rồi mới tiếp tục.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Phù hợp khi business cần kết quả ngay, ví dụ login, payment authorization, validation, search API, read detail API.</li><li>Dễ implement và trace request hơn async.</li><li>Nhược điểm là caller bị block, latency phụ thuộc vào downstream service, dễ bị thread exhaustion nếu gọi external service chậm.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Request-response</h4><p>Client gửi request và chờ response.</p></article><article class="concept"><h4>Blocking I/O</h4><p>Thread chờ trong lúc database/external API trả kết quả.</p></article><article class="concept"><h4>Timeout</h4><p>Bắt buộc cần timeout để tránh thread chờ vô hạn.</p></article><article class="concept"><h4>Circuit breaker</h4><p>Ngăn gọi liên tục tới downstream service đang fail.</p></article><article class="concept"><h4>Bulkhead</h4><p>Cô lập resource để một dependency chậm không làm sập toàn hệ thống.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>What is synchronous processing?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-3">Copy answer</button></div>
+            <div class="answer" id="answer-3">Synchronous processing means the caller waits until the operation is completed and receives the result before moving to the next step.<br><br>It is simple and predictable. It is suitable when the user or upstream service needs the result immediately.<br><br>For example, login should usually be synchronous because the client needs a token immediately. Payment authorization is also usually synchronous because the user needs to know whether the payment succeeded or failed.<br><br>The trade-off is that the calling thread is blocked while waiting. If the downstream service or database is slow, the caller also becomes slow. Therefore, in production, synchronous calls must have timeout, retry policy, circuit breaker, and proper monitoring.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>When should we use synchronous communication between services?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-4">Copy answer</button></div>
+            <div class="answer" id="answer-4">I use synchronous communication when the result is required immediately to continue the business flow.<br><br>Examples:<br>- user login and token generation<br>- checking permission before accessing resource<br>- payment authorization<br>- validating inventory before confirming order<br>- fetching detail data for UI<br><br>However, I avoid chaining too many synchronous calls across microservices because it increases latency and coupling. If Service A calls B, B calls C, and C calls D synchronously, the whole request becomes slow and fragile.<br><br>For non-critical side effects, I prefer asynchronous processing.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What are common production risks of synchronous calls?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-5">Copy answer</button></div>
+            <div class="answer" id="answer-5">Common risks include:<br>- high latency if downstream is slow<br>- thread pool exhaustion<br>- cascading failure<br>- retry storm<br>- tight coupling between services<br>- poor user experience if no timeout is configured<br><br>To reduce risk, I configure:<br>- connection timeout<br>- read timeout<br>- circuit breaker<br>- retry with backoff only for safe operations<br>- fallback if business allows<br>- monitoring for latency and error rate<br><br>A senior engineer should never call an external service synchronously without timeout.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Code example</strong><button class="copy" data-target="code-6">Copy code</button></div>
+          <pre><code id="code-6">// WebClient synchronous-style API should still have timeout.
+public Mono&lt;PaymentResult&gt; pay(PaymentRequest request) {
+    return webClient.post()
+        .uri(&quot;/payments&quot;)
+        .bodyValue(request)
+        .retrieve()
+        .bodyToMono(PaymentResult.class)
+        .timeout(Duration.ofSeconds(3));
+}</code></pre>
+        </div>
+    </section>
+    <section class="section" id="asynchronous">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>2. Asynchronous Processing</h2><p class="summary">Asynchronous flow giúp decouple, giảm response time và xử lý background task. Nhưng cần quan tâm retry, idempotency, ordering và observability.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Phù hợp cho task không cần trả kết quả ngay: email, notification, audit log, report generation, data sync, event processing.</li><li>Có thể implement bằng CompletableFuture, @Async, message queue như Kafka/RabbitMQ/SQS, scheduled job hoặc reactive pipeline.</li><li>Async không làm hệ thống đơn giản hơn; nó chuyển complexity sang retry, duplicate message, failure handling, tracing.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Fire-and-forget</h4><p>Gửi task đi và không chờ kết quả trực tiếp.</p></article><article class="concept"><h4>Callback</h4><p>Xử lý tiếp khi task hoàn thành.</p></article><article class="concept"><h4>Future/CompletableFuture</h4><p>Đại diện cho kết quả sẽ có trong tương lai.</p></article><article class="concept"><h4>Message queue</h4><p>Tách producer và consumer bằng queue/topic.</p></article><article class="concept"><h4>At-least-once delivery</h4><p>Message có thể được xử lý hơn một lần, nên consumer phải idempotent.</p></article><article class="concept"><h4>Idempotency</h4><p>Cùng một request/message chạy nhiều lần vẫn cho kết quả cuối giống nhau.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>What is asynchronous processing?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-7">Copy answer</button></div>
+            <div class="answer" id="answer-7">Asynchronous processing means the caller does not need to wait for the task to complete immediately.<br><br>The task can be processed in another thread, message queue, callback, or event-driven flow. This improves responsiveness and decouples systems.<br><br>For example, after an order is created, sending confirmation email, publishing audit log, or updating analytics can be asynchronous.<br><br>However, async processing introduces new challenges:<br>- retry<br>- duplicate processing<br>- message ordering<br>- idempotency<br>- error handling<br>- monitoring and tracing<br><br>So I use async when the business flow can tolerate eventual completion and does not require immediate result.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>When should we use asynchronous communication?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-8">Copy answer</button></div>
+            <div class="answer" id="answer-8">I use asynchronous communication when the caller does not need the result immediately or when I want to decouple services.<br><br>Good use cases:<br>- sending email or SMS<br>- audit logging<br>- notification<br>- report generation<br>- data synchronization<br>- event-driven microservices<br>- heavy background processing<br><br>For example, after creating an order, Order Service can publish OrderCreated event. Inventory Service, Notification Service, and Analytics Service can consume the event independently.<br><br>This reduces direct dependency between services and improves scalability.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What are the risks of asynchronous processing?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-9">Copy answer</button></div>
+            <div class="answer" id="answer-9">The main risk is that the flow becomes eventually consistent and harder to debug.<br><br>Common risks:<br>- duplicate messages<br>- out-of-order messages<br>- lost messages if not configured properly<br>- retry storm<br>- poison messages<br>- no immediate error feedback to user<br>- difficult tracing across services<br><br>To handle this, I design:<br>- idempotent consumers<br>- retry topic and dead letter topic<br>- correlation ID<br>- proper offset/ack handling<br>- monitoring and alerting<br>- business status tracking<br><br>For example, if payment event is consumed twice, the consumer should check transactionId and avoid double processing.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>CompletableFuture vs message queue?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-10">Copy answer</button></div>
+            <div class="answer" id="answer-10">CompletableFuture is useful for asynchronous processing inside the same application process. It is good for parallelizing independent tasks during one request.<br><br>Message queue is used for asynchronous communication between services or for durable background processing.<br><br>CompletableFuture is not durable. If the application crashes, the task may be lost.<br>Message queue is durable if configured properly, so it is better for business-critical async workflows.<br><br>Example:<br>- Use CompletableFuture to call user-service and order-service in parallel.<br>- Use Kafka/SQS/RabbitMQ to process OrderCreated event asynchronously across services.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Code example</strong><button class="copy" data-target="code-11">Copy code</button></div>
+          <pre><code id="code-11">// CompletableFuture: async inside same service
+CompletableFuture&lt;User&gt; userFuture =
+    CompletableFuture.supplyAsync(() -&gt; userClient.getUser(userId), executor);
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; orderFuture =
+    CompletableFuture.supplyAsync(() -&gt; orderClient.getOrders(userId), executor);
+
+UserProfile profile = userFuture
+    .thenCombine(orderFuture, UserProfile::new)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(ex -&gt; UserProfile.empty())
+    .join();
+
+// Message-driven async example
+@KafkaListener(topics = &quot;order-created&quot;)
+public void handle(OrderCreatedEvent event) {
+    if (processedEventRepository.exists(event.eventId())) {
+        return; // idempotency
+    }
+    notificationService.sendOrderEmail(event.orderId());
+    processedEventRepository.save(event.eventId());
+}</code></pre>
+        </div>
+    </section>
+    <section class="section" id="synchronized">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>3. Java synchronized Keyword</h2><p class="summary">synchronized là Java locking mechanism để bảo vệ critical section. Nó giải quyết race condition nhưng có trade-off về performance và lock contention.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Spring service là singleton mặc định, nếu lưu shared mutable state trong field thì nhiều request/thread có thể cùng sửa data.</li><li>synchronized đảm bảo mutual exclusion và visibility.</li><li>Nhưng synchronized chỉ lock trong cùng JVM. Nó không giải quyết distributed race condition giữa nhiều instances/pods.</li><li>Trong microservices nhiều instance, cần DB lock, Redis atomic operation, distributed lock hoặc message serialization tùy use case.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Intrinsic lock / monitor lock</h4><p>Mỗi Java object có monitor lock. synchronized dùng lock này.</p></article><article class="concept"><h4>Synchronized method</h4><p>Lock toàn bộ method dựa trên this hoặc Class object nếu static method.</p></article><article class="concept"><h4>Synchronized block</h4><p>Lock một block cụ thể, scope nhỏ hơn method.</p></article><article class="concept"><h4>Mutual exclusion</h4><p>Chỉ một thread giữ lock và chạy critical section tại một thời điểm.</p></article><article class="concept"><h4>Visibility</h4><p>Khi thread release lock, changes được visible cho thread khác acquire cùng lock.</p></article><article class="concept"><h4>Lock contention</h4><p>Nhiều thread tranh lock làm giảm throughput.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>What is synchronized in Java?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-12">Copy answer</button></div>
+            <div class="answer" id="answer-12">synchronized is a Java keyword used to control access to a critical section.<br><br>It ensures that only one thread can execute a synchronized block or method protected by the same lock at a time.<br><br>It provides two important guarantees:<br>1. Mutual exclusion: only one thread enters the critical section.<br>2. Visibility: changes made by one thread before releasing the lock are visible to another thread after acquiring the same lock.<br><br>I use synchronized for simple in-memory thread-safety problems. But I avoid using it for long-running operations or distributed coordination.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>synchronized method vs synchronized block?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-13">Copy answer</button></div>
+            <div class="answer" id="answer-13">A synchronized method locks the entire method.<br><br>For an instance method, it locks on this.<br>For a static method, it locks on the Class object.<br><br>A synchronized block locks only a specific block of code and can use a specific lock object.<br><br>I usually prefer synchronized block when I want a smaller lock scope. Smaller lock scope reduces contention and improves performance.<br><br>Senior point: never lock more code than necessary.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>Can synchronized solve all concurrency problems?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-14">Copy answer</button></div>
+            <div class="answer" id="answer-14">No.<br><br>synchronized only works inside the same JVM process. If the application runs on multiple instances or Kubernetes pods, each instance has its own memory and its own lock.<br><br>For distributed systems, synchronized cannot protect shared database records or shared Redis keys across instances.<br><br>For those cases, I use:<br>- database locking<br>- optimistic locking with @Version<br>- Redis atomic operation<br>- distributed lock with caution<br>- Kafka partition ordering<br>- single writer pattern<br><br>So synchronized is useful, but only for local JVM critical sections.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What are the drawbacks of synchronized?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-15">Copy answer</button></div>
+            <div class="answer" id="answer-15">Drawbacks:<br>- lock contention can reduce throughput<br>- long synchronized blocks can block many threads<br>- risk of deadlock if multiple locks are acquired in inconsistent order<br>- not suitable for distributed locking<br>- harder to tune than some higher-level concurrency utilities<br><br>For counters, I prefer AtomicInteger or LongAdder.<br>For maps, I prefer ConcurrentHashMap.<br>For advanced locking, I may use ReentrantLock.<br>For database consistency, I use DB locking instead of JVM locking.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Code example</strong><button class="copy" data-target="code-16">Copy code</button></div>
+          <pre><code id="code-16">public class Counter {
+    private int count = 0;
+
+    // synchronized method: locks on this
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int getCount() {
+        return count;
+    }
+}
+
+// Better for high-concurrency counter
+public class SafeCounter {
+    private final LongAdder counter = new LongAdder();
+
+    public void increment() {
+        counter.increment();
+    }
+
+    public long getCount() {
+        return counter.sum();
+    }
+}</code></pre>
+        </div>
+    </section>
+    <section class="section" id="comparison">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>4. Synchronous vs Asynchronous vs Reactive</h2><p class="summary">Senior cần biết chọn model đúng, không dùng async/reactive chỉ vì công nghệ mới.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Synchronous phù hợp request cần kết quả ngay.</li><li>Asynchronous phù hợp side-effect/background task/event-driven communication.</li><li>Reactive phù hợp high-concurrency I/O-bound system với non-blocking stack.</li><li>Sai lầm thường gặp là dùng reactive nhưng bên trong vẫn block, hoặc async nhưng không có retry/idempotency.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Synchronous</h4><p>Simple, direct, immediate result, but blocking.</p></article><article class="concept"><h4>Asynchronous</h4><p>Decoupled, background processing, eventual consistency.</p></article><article class="concept"><h4>Reactive</h4><p>Non-blocking stream/event model, efficient for I/O-heavy high concurrency.</p></article><article class="concept"><h4>Eventual consistency</h4><p>Data không nhất thiết consistent ngay lập tức nhưng sẽ consistent sau một khoảng thời gian.</p></article><article class="concept"><h4>Backpressure</h4><p>Consumer kiểm soát tốc độ producer trong reactive stream.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>How do you choose between synchronous, asynchronous, and reactive?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-17">Copy answer</button></div>
+            <div class="answer" id="answer-17">I choose based on business requirement and system characteristics.<br><br>If the caller needs the result immediately, I use synchronous processing.<br>Example: login, permission check, payment authorization.<br><br>If the task can happen later or should be decoupled, I use asynchronous processing.<br>Example: email, notification, audit log, event-driven integration.<br><br>If the system is I/O-heavy and needs to handle high concurrency with fewer threads, I consider reactive.<br>Example: API gateway, streaming, external API aggregation with non-blocking clients.<br><br>I do not choose async or reactive just because it is modern. I consider complexity, team skill, observability, failure handling, and whether the whole stack supports it.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>Give a real order processing example using sync and async.</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-18">Copy answer</button></div>
+            <div class="answer" id="answer-18">In an order flow, I usually keep critical user-facing steps synchronous and non-critical side effects asynchronous.<br><br>Synchronous:<br>1. Validate request.<br>2. Check product availability.<br>3. Create order.<br>4. Authorize payment or return payment status.<br><br>Asynchronous:<br>1. Send confirmation email.<br>2. Publish OrderCreated event.<br>3. Update analytics.<br>4. Notify warehouse.<br>5. Generate invoice if it does not need immediate response.<br><br>This keeps the user response fast while still allowing downstream systems to process events independently.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Code example</strong><button class="copy" data-target="code-19">Copy code</button></div>
+          <pre><code id="code-19">// Synchronous critical flow
+@PostMapping(&quot;/orders&quot;)
+public ResponseEntity&lt;OrderResponse&gt; createOrder(@RequestBody OrderRequest request) {
+    OrderResponse response = orderService.createOrder(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+}
+
+// Async side effect after order created
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void onOrderCreated(OrderCreatedEvent event) {
+    eventPublisher.publish(event); // Kafka/SQS/RabbitMQ
+}</code></pre>
+        </div>
+    </section>
+    <section class="section" id="interview-script">
+      <div class="section-top"><span class="kicker">Senior Topic</span><h2>5. Final Senior Interview Script</h2><p class="summary">Một script ngắn gọn để anh trả lời khi interviewer hỏi về synchronize/asynchronize.</p></div>
+      <div class="context"><h3>Context — why this matters</h3><ul><li>Dùng khi interviewer hỏi: synchronous vs asynchronous là gì, khi nào dùng, trade-off là gì.</li><li>Có thể dùng để mở đầu câu trả lời rồi follow-up sâu vào CompletableFuture, Kafka, WebFlux hoặc synchronized keyword.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Answer structure</h4><p>Definition → use case → trade-off → production example → caution.</p></article><article class="concept"><h4>Senior signal</h4><p>Nói được timeout, retry, idempotency, thread pool, connection pool, distributed system limitation.</p></article></div>
+      <h3>Common interview questions</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>Senior answer: Explain synchronous and asynchronous processing.</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-20">Copy answer</button></div>
+            <div class="answer" id="answer-20">Synchronous processing means the caller waits for the operation to complete before continuing. It is simple and suitable when the result is required immediately, such as login, permission check, or payment authorization.<br><br>Asynchronous processing means the caller does not need to wait immediately. The task can be processed in another thread, message queue, event, or callback. It is suitable for email, notification, audit logging, report generation, and event-driven communication.<br><br>The trade-off is that asynchronous processing improves responsiveness and decoupling, but it introduces complexity: retry, duplicate handling, idempotency, ordering, failure tracking, and observability.<br><br>In production, I usually keep critical user-facing decisions synchronous and move non-critical side effects asynchronous. For example, in order creation, payment authorization can be synchronous, but email notification and analytics update can be asynchronous.<br><br>Also, synchronous/asynchronous should not be confused with Java synchronized. synchronized is a locking mechanism used to protect shared mutable state inside the same JVM. It does not solve distributed concurrency across multiple service instances.</div>
+          </div>
+        </details></div>
+      
+    </section>
+    <footer>Generated for Senior Java Backend Interview Practice · 2026-07-09 16:27</footer>
+  </main>
+</div>
+<script>
+const app=document.getElementById('app');const theme=document.getElementById('theme');const search=document.getElementById('search');
+theme.addEventListener('click',()=>{const current=app.getAttribute('data-theme');const next=current==='dark'?'light':'dark';app.setAttribute('data-theme',next);theme.textContent=next==='dark'?'Light':'Dark';});
+document.querySelectorAll('.copy').forEach(btn=>{btn.addEventListener('click',async()=>{const target=document.getElementById(btn.dataset.target);if(!target)return;await navigator.clipboard.writeText(target.innerText);const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,900);});});
+document.getElementById('openAll').addEventListener('click',()=>{document.querySelectorAll('details').forEach(d=>d.open=true);});
+document.getElementById('closeAll').addEventListener('click',()=>{document.querySelectorAll('details').forEach(d=>d.open=false);});
+search.addEventListener('input',()=>{const kw=search.value.trim().toLowerCase();document.querySelectorAll('.section').forEach(sec=>{sec.classList.toggle('hidden',kw&&!sec.innerText.toLowerCase().includes(kw));});});
+</script>
+</body></html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Senior Java Interview Study — 3 Rounds</title>
+<style>
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f0f4ff;
+  --text: #172033;
+  --muted: #667085;
+  --brand: #2563eb;
+  --brand-2: #0f766e;
+  --danger: #b42318;
+  --warning-bg: #fff7ed;
+  --good-bg: #ecfdf3;
+  --bad-bg: #fff1f3;
+  --border: #d9e0ee;
+  --code-bg: #101828;
+  --code-text: #e6edf3;
+  --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+}
+body.dark {
+  --bg: #0b1020;
+  --surface: #121a2f;
+  --surface-2: #19233d;
+  --text: #e7edf9;
+  --muted: #a5b4cf;
+  --brand: #7aa2ff;
+  --brand-2: #5eead4;
+  --border: #2b3654;
+  --warning-bg: #2b2113;
+  --good-bg: #122b1e;
+  --bad-bg: #33191d;
+  --code-bg: #080c16;
+  --code-text: #e6edf3;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+a { color: var(--brand); text-decoration: none; }
+.hero { padding: 42px 24px 28px; background: linear-gradient(135deg, #1d4ed8, #0f766e); color: white; }
+.hero-inner { max-width: 1180px; margin: auto; }
+.hero h1 { margin: 0; font-size: clamp(30px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.04em; }
+.hero p { max-width: 900px; font-size: 18px; opacity: .95; }
+.hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
+.stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); border-radius: 18px; padding: 16px; backdrop-filter: blur(8px); }
+.stat strong { display:block; font-size: 28px; }
+.layout { max-width: 1240px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 270px 1fr; gap: 24px; }
+.sidebar { position: sticky; top: 16px; align-self: start; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); max-height: calc(100vh - 32px); overflow: auto; }
+.sidebar h2 { margin: 0 0 12px; font-size: 16px; }
+.nav a { display: block; padding: 9px 10px; border-radius: 10px; color: var(--text); font-weight: 600; }
+.nav a:hover { background: var(--surface-2); color: var(--brand); }
+.controls { display: grid; gap: 10px; margin-top: 16px; }
+.search { width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+button, .button { cursor: pointer; border: 0; border-radius: 12px; padding: 10px 12px; font-weight: 800; background: var(--brand); color: white; }
+button.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+main { min-width: 0; }
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; margin-bottom: 24px; padding: 24px; box-shadow: var(--shadow); }
+.section h2 { margin-top: 0; font-size: 28px; letter-spacing: -0.02em; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.mini-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
+.qa-card, .code-card, .raw-block { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin: 16px 0; }
+.qa-card h3, .code-card h3 { margin: 10px 0 12px; font-size: 22px; line-height: 1.28; }
+.qa-card h4 { margin-bottom: 6px; color: var(--brand); }
+.qa-top { display:flex; gap:8px; flex-wrap: wrap; align-items:center; }
+.badge { display:inline-flex; padding: 5px 10px; background: var(--brand); color: white; border-radius: 999px; font-size: 12px; font-weight: 900; }
+.chip { display:inline-flex; padding: 5px 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; font-weight: 800; color: var(--text); }
+.note { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); margin: 12px 0; }
+.note.bad { background: var(--bad-bg); }
+.note.good { background: var(--good-bg); }
+.example { background: var(--warning-bg); border: 1px solid var(--border); padding: 12px 14px; border-radius: 14px; }
+pre { margin: 0; white-space: pre-wrap; word-break: break-word; background: var(--code-bg); color: var(--code-text); padding: 18px; border-radius: 16px; overflow: auto; font-size: 14px; line-height: 1.55; }
+code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+.code-toolbar { display:flex; justify-content:flex-end; margin: -4px 0 8px; }
+.copy-code, .copy-answer { background: var(--brand-2); padding: 8px 10px; font-size: 13px; margin-top: 8px; }
+.hidden-copy { position:absolute; left:-9999px; width:1px; height:1px; }
+details summary { cursor: pointer; font-weight: 900; font-size: 18px; }
+.raw-block pre { margin-top: 14px; max-height: 520px; overflow: auto; }
+table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 14px; }
+th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+ul.tight li { margin: 8px 0; }
+.footer { text-align:center; color: var(--muted); padding: 28px; }
+mark { background: #fef08a; color: #111827; padding: 0 2px; border-radius: 4px; }
+.no-results { display:none; padding: 18px; background: var(--bad-bg); border-radius: 14px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; }
+  .hero-grid, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+@media print {
+  .sidebar, .controls, button, .hero { display:none !important; }
+  .layout { display:block; padding: 0; }
+  .section, .qa-card, .code-card { box-shadow:none; border: 1px solid #ddd; break-inside: avoid; }
+  body { background:white; color:black; }
+  pre { background:#f4f4f4; color:#111; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Senior Java Backend Interview Study Website</h1>
+    <p>Cleaned and improved study pack for 3 interview rounds. Includes original raw scripts, senior-level answer scripts, practical examples, Java/SQL code, and a practice checklist.</p>
+    <div class="hero-grid">
+      <div class="stat"><strong>3</strong>Interview rounds</div>
+      <div class="stat"><strong>20</strong>Senior answer cards</div>
+      <div class="stat"><strong>10</strong>Code / SQL scripts</div>
+      <div class="stat"><strong>Raw</strong>Original transcripts included</div>
+    </div>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar">
+    <h2>Navigation</h2>
+    <nav class="nav">
+      <a href="#overview">Overview</a>
+      <a href="#weak-points">Weak Points</a>
+      <a href="#senior-answers">Senior Answers</a>
+      <a href="#coding-scripts">Coding Scripts</a>
+      <a href="#original-scripts">Original Scripts</a>
+      <a href="#practice-plan">7-Day Plan</a>
+    </nav>
+    <div class="controls">
+      <input id="searchInput" class="search" placeholder="Search: Kafka, SOLID, HashMap..." />
+      <button id="toggleDark" class="secondary">Toggle dark mode</button>
+      <button id="expandAll" class="secondary">Expand raw scripts</button>
+      <button id="collapseAll" class="secondary">Collapse raw scripts</button>
+      <button onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </aside>
+  <main>
+    <section id="overview" class="section searchable">
+      <h2>How to use this website</h2>
+      <div class="grid-3">
+        <div class="mini-card"><h3>1. Read senior answer</h3><p>Use the answer script as your base. It is written to sound more senior, structured, and practical.</p></div>
+        <div class="mini-card"><h3>2. Add example</h3><p>For every topic, include one concrete production example. This makes your answer stronger and more believable.</p></div>
+        <div class="mini-card"><h3>3. Practice aloud</h3><p>Each answer should be spoken in 60–90 seconds. For deep topics, extend to 2 minutes with the example.</p></div>
+      </div>
+      <div class="note good"><strong>Senior interview rule:</strong> Do not only define the concept. Always explain: what it is, why it matters, when to use it, trade-off, and one real project example.</div>
+    </section>
+
+    <section id="weak-points" class="section searchable">
+      <h2>Main weak points from the original interviews</h2>
+      <ul class="tight"><li><strong>AWS Lambda:</strong> Do not only say “I used Lambda a little”. Add possible triggers: API Gateway, S3, SQS, EventBridge, SNS, DynamoDB Streams.</li><li><strong>HashMap:</strong> Avoid saying Java uses FNV hash or primitive-specific details. Focus on hashCode, equals, bucket, collision, treeification, resize.</li><li><strong>GC:</strong> Use correct terms: Young Gen, Eden, Survivor S0/S1, Old Gen, Minor GC, Major/Full GC, GC logs.</li><li><strong>Kafka:</strong> Mention acks=all, replication, min.insync.replicas, idempotent producer, manual offset commit, DLQ/retry topic.</li><li><strong>Microservices transaction:</strong> Do not only list Saga/CQRS/2PC. Explain local transaction + compensation with order/payment/inventory example.</li><li><strong>Coding:</strong> Before coding, restate input/output, edge cases, complexity. Then implement with clean variable names.</li></ul>
+    </section>
+
+    <section id="senior-answers" class="section">
+      <h2>Senior-level answer scripts with examples</h2>
+      <div class="no-results" id="noResults">No matching content found.</div>
+      
+    <article class="qa-card searchable" data-round="Round 1" data-category="Core Java">
+      <div class="qa-top">
+        <span class="badge">Round 1</span>
+        <span class="chip">Core Java</span>
+      </div>
+      <h3>1. Which Java version do you use? Do you have Java 8 experience?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was too short. It answered the version but did not show Java 8 compatibility experience.</div>
+      <h4>Senior answer script</h4>
+      <p>To test a catch block, I do not test Java try-catch itself. I test the business behavior when a dependency fails.</p><p>With Mockito, I make a collaborator throw an exception using when(...).thenThrow(...) or doThrow(...).when(...). Then I assert what the service should do: return a fallback response, wrap and rethrow a custom exception, update status, save audit information, or call a recovery method.</p><p>A good test also verifies the important side effects and avoids swallowing errors silently. For senior-level code, the catch block should usually add context, preserve the cause, and make the failure observable through logs, metrics, or business state.</p>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>If paymentClient.charge throws TimeoutException, I would assert that the order becomes PAYMENT_PENDING or PAYMENT_FAILED, the audit record is saved, and the service returns the expected error response or throws PaymentUnavailableException with the original cause attached.</p></div>
+      <button class="copy-answer" data-copy-target="answer-1">Copy answer</button>
+      <textarea id="answer-1" class="hidden-copy">Currently my main production stack is Java 17, but I have strong Java 8 experience because most modern Java backend code still builds on the Java 8 foundation.
+
+In day-to-day work I use lambda expressions, functional interfaces, Stream API, Optional, default methods, Date/Time API, and CompletableFuture. Even when the runtime is Java 17, these features are still the normal way to write clean service-layer and data-transformation code.
+
+For a senior role, I also pay attention to when not to overuse them. For example, streams are excellent for readable transformations, but for very complex logic, debugging, or heavy side effects, a simple loop can be clearer. Optional is good as a return type from service methods, but I avoid using it as an entity field or method parameter.
+
+Example:
+In one backend flow, I used Stream API to filter active accounts, group them by status, and map them into response DTOs. For independent remote calls, I used CompletableFuture with a controlled executor to call profile, entitlement, and billing services in parallel, then combined the result with proper timeout and error fallback.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 1" data-category="OOP / Design">
+      <div class="qa-top">
+        <span class="badge">Round 1</span>
+        <span class="chip">OOP / Design</span>
+      </div>
+      <h3>2. Explain SOLID principles.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer mentioned the principles but sounded unclear and mixed Spring DI with dependency inversion too early.</div>
+      <h4>Senior answer script</h4>
+      <p>SOLID is a set of object-oriented design principles that helps us build maintainable, testable, and extensible software.</p><p>S — Single Responsibility Principle: a class should have one reason to change. For example, a UserService should handle user business logic, while UserRepository should handle database access. We should not mix validation, persistence, email sending, and logging all in one class.</p><p>O — Open/Closed Principle: code should be open for extension but closed for modification. For example, if we support multiple payment methods, we can define a PaymentProcessor interface and add CreditCardPaymentProcessor, BankTransferPaymentProcessor, or WalletPaymentProcessor without modifying the existing checkout flow.</p><p>L — Liskov Substitution Principle: subclasses or implementations should be replaceable by their parent type without breaking behavior. For example, if we have a NotificationSender interface, EmailSender and SmsSender should both follow the expected contract of send().</p><p>I — Interface Segregation Principle: clients should not be forced to depend on methods they do not use. Instead of one large UserOperation interface with createUser(), approveLoan(), generateReport(), and exportCsv(), we split it into smaller interfaces.</p><p>D — Dependency Inversion Principle: high-level modules should depend on abstractions, not concrete implementations. In Spring, we usually depend on interfaces and let the container inject the actual implementation.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Payment example:<br>PaymentService depends on PaymentProcessor, not directly on VisaPaymentProcessor. Tomorrow, if we add MomoPaymentProcessor or PayPalPaymentProcessor, we add a new implementation without changing the core service.</p></div>
+      <button class="copy-answer" data-copy-target="answer-2">Copy answer</button>
+      <textarea id="answer-2" class="hidden-copy">SOLID is a set of design principles that helps keep object-oriented code maintainable, testable, and extensible as the system grows.
+
+Single Responsibility means one class should have one reason to change. Open/Closed means we extend behavior through abstractions instead of changing stable code. Liskov Substitution means an implementation must respect the contract of its parent type. Interface Segregation means we prefer small client-specific interfaces instead of forcing classes to implement methods they do not need. Dependency Inversion means high-level business code depends on abstractions, not concrete infrastructure classes.
+
+In real projects, I use SOLID pragmatically. I do not create interfaces everywhere, but I do introduce them around business policies, external integrations, payment providers, notification channels, and places where testing or future variation matters.
+
+Example:
+For payment processing, CheckoutService should depend on a PaymentProcessor interface. CardPaymentProcessor, WalletPaymentProcessor, and BankTransferPaymentProcessor can be added without rewriting checkout logic. That gives us easier testing, cleaner ownership, and lower regression risk.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 1" data-category="Java Streams">
+      <div class="qa-top">
+        <span class="badge">Round 1</span>
+        <span class="chip">Java Streams</span>
+      </div>
+      <h3>3. Intermediate vs terminal operations and lazy evaluation in Stream API.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer had the right idea but wording was confusing. It should explain laziness with a small example.</div>
+      <h4>Senior answer script</h4>
+      <p>In Stream API, intermediate operations return another Stream and are lazy. They do not execute immediately. Examples are filter(), map(), sorted(), distinct(), and flatMap().</p><p>Terminal operations produce a final result or side effect and trigger the whole pipeline. Examples are collect(), forEach(), count(), reduce(), findFirst(), and anyMatch().</p><p>Lazy evaluation means Java does not process the stream until a terminal operation is called. This is important for performance because Java can combine operations and stop early for short-circuit operations such as findFirst(), anyMatch(), or limit().</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>list.stream()<br>    .filter(x -&gt; x &gt; 10)   // not executed yet<br>    .map(x -&gt; x * 2)       // not executed yet<br>    .findFirst();          // terminal operation triggers execution</p><p>If the first matching element is found, Java does not process the rest of the list.</p></div>
+      <button class="copy-answer" data-copy-target="answer-3">Copy answer</button>
+      <textarea id="answer-3" class="hidden-copy">In Java Stream API, intermediate operations return another Stream and are lazy. Examples are filter, map, flatMap, sorted, distinct, limit, and peek. They describe the pipeline but do not execute it immediately.
+
+Terminal operations trigger execution and produce a result or side effect. Examples are collect, toList, forEach, count, reduce, findFirst, anyMatch, and allMatch.
+
+Lazy evaluation matters because the JVM can process elements one by one through the pipeline and can stop early for short-circuit operations. A senior answer should also mention that streams should be side-effect free as much as possible, especially for parallel streams, because shared mutable state can introduce race conditions.
+
+Example:
+If I run users.stream().filter(User::isActive).map(User::getEmail).findFirst(), Java does not filter and map the whole list first. It evaluates elements until the first active user is found, maps only that element, then stops.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 1" data-category="Java Collections">
+      <div class="qa-top">
+        <span class="badge">Round 1</span>
+        <span class="chip">Java Collections</span>
+      </div>
+      <h3>4. How does HashMap work internally?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer mentioned hash and bucket but included inaccurate details about primitive keys and hash functions.</div>
+      <h4>Senior answer script</h4>
+      <p>HashMap stores data as key-value pairs. Internally, it uses an array of buckets. When we put a key-value pair, HashMap calculates the key hashCode(), applies an internal hash spreading function, and maps it to a bucket index using the array capacity.</p><p>If the bucket is empty, the entry is stored there. If another key already exists in the same bucket, a collision happens. HashMap then compares keys using equals(). If the key is equal, the value is replaced. If not, the new entry is added to that bucket.</p><p>Before Java 8, collisions were handled using a linked list. From Java 8 onward, when a bucket has many entries and the capacity is large enough, the linked list can be converted to a red-black tree. This improves worst-case lookup from O(n) to O(log n) for that bucket.</p><p>Default initial capacity is 16 and default load factor is 0.75. When size exceeds capacity × load factor, HashMap resizes and redistributes entries.</p><p>Average time complexity for put/get is O(1), but it depends on good hashCode() distribution and proper equals()/hashCode() implementation.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Interview example:<br>If two different keys have the same hashCode or map to the same bucket, HashMap stores them in the same bucket and uses equals() to identify the exact key.</p><p>That is why if we override equals(), we must override hashCode() too.</p></div>
+      <button class="copy-answer" data-copy-target="answer-4">Copy answer</button>
+      <textarea id="answer-4" class="hidden-copy">HashMap stores key-value pairs in an internal array of buckets. For put, it calculates the key hashCode, applies a hash spreading function, and maps the result to a bucket index based on the current table capacity.
+
+If the bucket is empty, the node is inserted. If the bucket already has entries, HashMap compares keys with equals. If the same key is found, it replaces the value. If not, it appends a new node to that bucket. Since Java 8, when collisions in one bucket become high and the table is large enough, the linked list can be treeified into a red-black tree to improve worst-case lookup.
+
+Default capacity is 16 and default load factor is 0.75. When size exceeds threshold, HashMap resizes, usually doubling capacity, and redistributes nodes. Average get and put are O(1), but poor hashCode distribution, mutable keys, or incorrect equals/hashCode can cause serious bugs. HashMap is not thread-safe; for concurrent access, I use ConcurrentHashMap or external synchronization.
+
+Example:
+If I use a custom Employee object as a key, I must implement equals and hashCode consistently and avoid mutating fields used by those methods after insertion. Otherwise, the object may become impossible to find in the map.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 1" data-category="Algorithms">
+      <div class="qa-top">
+        <span class="badge">Round 1</span>
+        <span class="chip">Algorithms</span>
+      </div>
+      <h3>5. Find the smallest positive missing integer.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original approach using Set was good. The answer should state complexity and edge cases.</div>
+      <h4>Senior answer script</h4>
+      <p>A simple and reliable approach is to store all positive numbers in a HashSet, then check from 1 upward until we find the first number that is not present.</p><p>This handles duplicates, negative numbers, zero, and unsorted input.</p><p>Time complexity is O(n), because we insert n numbers into the set and then check at most n + 1 candidates. Space complexity is O(n).</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Input: [1, 2, 3, 4, 6]<br>Set contains 1,2,3,4,6. We check 1,2,3,4 and then 5 is missing, so return 5.</p><p>Input: [-3, -1, 0, 2]<br>1 is missing, so return 1.</p></div>
+      <button class="copy-answer" data-copy-target="answer-5">Copy answer</button>
+      <textarea id="answer-5" class="hidden-copy">First I clarify the requirement: we need the smallest missing positive integer, so zero and negative numbers do not matter. The input may be unsorted and may contain duplicates.
+
+A clean solution is to put all positive numbers into a HashSet, then check from 1 to n + 1 and return the first value not present. This is easy to explain, handles edge cases, and runs in O(n) time with O(n) space.
+
+If the interviewer asks for O(1) extra space, I would use the index-placement approach: for each value x in range 1..n, place it at index x - 1 by swapping, then scan for the first index where nums[i] != i + 1. That is also O(n), but it mutates the array and is more error-prone.
+
+Example:
+For [3, 4, -1, 1], the set approach stores 3, 4, and 1. We check 1 exists, 2 is missing, so return 2. For [1, 2, 3], return 4.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="AWS">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">AWS</span>
+      </div>
+      <h3>6. Do you have AWS experience? Which service triggered Lambda?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer sounded weak. It is okay to be honest, but should show understanding of Lambda triggers and learning ability.</div>
+      <h4>Senior answer script</h4>
+      <p>I have basic hands-on exposure to AWS Lambda through a proof of concept. The POC was focused on exploring serverless computing, so it did not become a full production implementation.</p><p>In Lambda, the trigger depends on the use case. Common triggers include API Gateway for HTTP APIs, S3 events for file upload processing, EventBridge for scheduled or event-driven jobs, SQS for queue-based processing, SNS for pub/sub notifications, and DynamoDB Streams for reacting to data changes.</p><p>For example, if we build an image upload workflow, S3 can trigger Lambda when a file is uploaded. If we build a REST endpoint, API Gateway can trigger Lambda. If we build asynchronous order processing, SQS can trigger Lambda.</p><p>Although my production exposure is stronger in Java/Spring microservices, I understand the Lambda execution model, stateless design, cold start consideration, IAM permissions, logging through CloudWatch, and event-driven integration patterns.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Better interview phrasing:<br>“In my POC, Lambda was mainly evaluated as a serverless compute option. If I design it for production, I would choose the trigger based on the business event, such as API Gateway for synchronous APIs or SQS/EventBridge for asynchronous workflows.”</p></div>
+      <button class="copy-answer" data-copy-target="answer-6">Copy answer</button>
+      <textarea id="answer-6" class="hidden-copy">My strongest production experience is Java and Spring backend, and I have basic hands-on exposure to AWS Lambda through POCs and event-driven design discussions. I would be clear about that in an interview, but also show that I understand the model.
+
+Lambda is stateless compute triggered by events. Common triggers are API Gateway for HTTP APIs, S3 object events for file processing, SQS for queue-based async work, SNS for pub/sub, EventBridge for scheduled or domain events, DynamoDB Streams for data-change events, and CloudWatch events for operational automation.
+
+For production, I would consider IAM least privilege, timeout, retry behavior, DLQ, idempotency, cold start, CloudWatch logs/metrics, and whether Lambda is the right fit versus a long-running Spring service. Lambda is great for event-driven, bursty, short-running workloads; it is not always the best choice for heavy long-running processing.
+
+Example:
+For file upload, S3 can trigger Lambda to validate metadata and publish a message to SQS. For synchronous REST, API Gateway can trigger Lambda. For order processing, I would prefer SQS/EventBridge trigger plus idempotent handling so retries do not duplicate business actions.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Java 8">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Java 8</span>
+      </div>
+      <h3>7. Explain CompletableFuture.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer mentioned async but did not explain Future limitation and real use cases clearly.</div>
+      <h4>Senior answer script</h4>
+      <p>CompletableFuture is a Java 8 API for asynchronous, non-blocking programming. It improves the older Future API because Future.get() is blocking and Future does not support easy chaining or composition.</p><p>With CompletableFuture, we can run tasks asynchronously using supplyAsync() or runAsync(), transform the result using thenApply(), consume the result using thenAccept(), compose dependent async calls using thenCompose(), combine independent async calls using thenCombine(), and handle errors using exceptionally() or handle().</p><p>It is useful when we have independent I/O operations, such as calling multiple external services in parallel. Instead of calling service A, then B, then C sequentially, we can call them concurrently and combine the results.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example use case:<br>For a customer profile page, we need customer detail, order summary, and reward points. These calls are independent, so we can call them in parallel using CompletableFuture and combine the result to reduce response time.</p></div>
+      <button class="copy-answer" data-copy-target="answer-7">Copy answer</button>
+      <textarea id="answer-7" class="hidden-copy">CompletableFuture is a Java 8 API for asynchronous programming and task composition. It improves the old Future API because Future.get blocks and Future does not provide a clean way to chain, combine, or recover from async steps.
+
+With CompletableFuture, I can use supplyAsync or runAsync to start work, thenApply to transform, thenCompose for dependent async calls, thenCombine or allOf for independent calls, and exceptionally or handle for failure handling.
+
+In production, I avoid using the common ForkJoinPool blindly for blocking I/O. I normally pass a dedicated Executor with a controlled thread pool, set timeouts, handle partial failure, and avoid making the code harder to trace than necessary.
+
+Example:
+For a customer dashboard, customer profile, reward points, and latest orders can be fetched in parallel. I start three CompletableFutures, combine them, apply timeout/fallback rules, and return one response faster than sequential calls.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="JVM">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">JVM</span>
+      </div>
+      <h3>8. How does garbage collection work in heap memory?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer used unclear terms. It should describe generations, minor/full GC, and object lifecycle.</div>
+      <h4>Senior answer script</h4>
+      <p>Java garbage collection automatically reclaims heap memory used by objects that are no longer reachable.</p><p>The heap is commonly divided into Young Generation and Old Generation. New objects are usually created in Eden space. When Eden becomes full, Minor GC runs. Live objects are copied to Survivor spaces. Objects that survive multiple GC cycles are promoted to the Old Generation.</p><p>Old Generation stores long-lived objects. When it becomes full, Major GC or Full GC may occur, depending on the collector. Full GC is usually more expensive because it may scan a larger part of the heap and can cause longer pauses.</p><p>Modern JVMs provide different collectors such as G1 GC, ZGC, and Shenandoah. In production, we monitor GC logs, pause time, heap usage, allocation rate, and memory leaks using tools such as Actuator, Prometheus, Grafana, VisualVM, JFR, or APM tools.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Production example:<br>If response time suddenly increases, I check GC pause time and heap usage. If Old Gen keeps growing and never drops after GC, it may indicate a memory leak or objects retained by cache/static references.</p></div>
+      <button class="copy-answer" data-copy-target="answer-8">Copy answer</button>
+      <textarea id="answer-8" class="hidden-copy">Garbage collection automatically reclaims heap memory used by objects that are no longer reachable from GC roots such as thread stacks, static references, JNI references, or active classloaders.
+
+In a typical generational model, most new objects are allocated in the young generation, especially Eden. When Eden fills, a Minor GC copies live objects to Survivor spaces, and objects that survive enough cycles may be promoted to the old generation. Old generation collection is more expensive and may cause longer pauses depending on the collector.
+
+As a senior engineer, I do not only define GC. I check allocation rate, GC logs, heap usage, pause time, object retention, thread dumps, and memory dumps. Common issues include memory leaks through static maps, unbounded caches, large result sets, missing pagination, and keeping references longer than needed.
+
+Example:
+If an API gradually slows down and old-gen usage never drops after GC, I would enable GC logging, inspect heap dump with MAT or similar tooling, find the dominant retainers, and check for unbounded collections, cache keys, listeners, or ThreadLocal values not being cleared.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Concurrency">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Concurrency</span>
+      </div>
+      <h3>9. Runnable vs Callable.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer had the right idea but should be crisp and accurate.</div>
+      <h4>Senior answer script</h4>
+      <p>Runnable and Callable both represent tasks that can run in a separate thread.</p><p>Runnable has run(), returns void, and cannot throw checked exceptions directly. It is suitable when we only need to execute a task without returning a result.</p><p>Callable has call(), returns a value, and can throw checked exceptions. It is suitable when we need the result of asynchronous computation. Callable is usually submitted to ExecutorService and returns a Future.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Runnable: send an audit log asynchronously.<br>Callable&lt;Integer&gt;: calculate total amount in another thread and return the result.</p></div>
+      <button class="copy-answer" data-copy-target="answer-9">Copy answer</button>
+      <textarea id="answer-9" class="hidden-copy">Runnable and Callable are both used to represent tasks executed by threads or ExecutorService.
+
+Runnable has a run method, returns no result, and cannot throw checked exceptions directly. Callable has a call method, returns a value, and can throw checked exceptions. When submitted to an ExecutorService, Callable returns a Future of the result. Runnable can also be submitted, but the Future usually represents completion rather than a computed value.
+
+In practice, I use Runnable for fire-and-forget tasks like logging or notification dispatch where I do not need a result. I use Callable when the task computes something, calls an external service, or may fail and the caller needs to observe the result or exception.
+
+Example:
+For generating a monthly report asynchronously, Callable&lt;ReportResult&gt; is better because the caller can get the report status or exception from Future. For clearing temporary files, Runnable is usually enough.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Concurrency">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Concurrency</span>
+      </div>
+      <h3>10. synchronized vs ReentrantLock.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer admitted not remembering ReentrantLock. Better answer should compare clearly.</div>
+      <h4>Senior answer script</h4>
+      <p>synchronized is a built-in Java locking mechanism. It is simple and automatically releases the lock when the block or method exits, even if an exception occurs.</p><p>ReentrantLock is an explicit lock from java.util.concurrent.locks. It provides more control, such as tryLock(), lockInterruptibly(), fairness policy, and multiple Condition objects.</p><p>Use synchronized when locking is simple. Use ReentrantLock when we need advanced features like timeout-based lock acquisition, interruptible waiting, or multiple wait conditions.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>tryLock() is useful when a thread should not wait forever. If it cannot acquire the lock within a timeout, it can return fallback response or retry later.</p></div>
+      <button class="copy-answer" data-copy-target="answer-10">Copy answer</button>
+      <textarea id="answer-10" class="hidden-copy">synchronized is Java built-in monitor locking. It is simple, readable, and automatically releases the lock when the block exits, even if an exception occurs.
+
+ReentrantLock is a more flexible lock from java.util.concurrent.locks. It supports tryLock, timed lock attempts, interruptible locking, fairness policy, and multiple Condition objects. The trade-off is that we must release it manually in a finally block.
+
+My rule is to use synchronized for simple mutual exclusion and ReentrantLock when I need advanced behavior such as avoiding indefinite waiting, implementing timeout, separating wait conditions, or building more explicit concurrency control.
+
+Example:
+In a stock reservation flow, tryLock can prevent one request from waiting forever for a hot product lock. If the lock is not acquired within a short timeout, we can return a retryable response instead of blocking server threads.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Spring">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Spring</span>
+      </div>
+      <h3>11. Explain Spring AOP.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was okay but too long and unstructured. It should emphasize cross-cutting concerns and core terms.</div>
+      <h4>Senior answer script</h4>
+      <p>Spring AOP is used to separate cross-cutting concerns from business logic. Cross-cutting concerns are logic applied across many parts of the system, such as logging, security, transaction management, auditing, metrics, and exception handling.</p><p>Core AOP concepts:<br>- Aspect: class containing cross-cutting logic.<br>- Advice: action executed before, after, or around a method.<br>- Pointcut: expression that selects where advice applies.<br>- Join point: the actual method execution matched by the pointcut.</p><p>Spring AOP is proxy-based. It usually intercepts Spring bean method calls. It is very useful for service-layer logging, execution time measurement, and custom annotations.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>Create @LogExecutionTime annotation and an @Around advice. The advice records start time, executes the method, records end time, and logs the duration. Business code remains clean.</p></div>
+      <button class="copy-answer" data-copy-target="answer-11">Copy answer</button>
+      <textarea id="answer-11" class="hidden-copy">Spring AOP is used for cross-cutting concerns: logic that applies across many business methods but should not be duplicated inside each method. Examples are logging, metrics, transaction boundaries, security checks, auditing, and retry behavior.
+
+Core terms are aspect, advice, pointcut, and join point. In Spring AOP, the join point is usually method execution on a Spring bean. Spring creates a proxy around the bean, and the proxy executes advice before, after, or around the target method.
+
+A senior detail is that Spring AOP is proxy-based. It works for Spring-managed beans and external method calls through the proxy. Self-invocation inside the same class can bypass the proxy. For full bytecode-level weaving, AspectJ is different.
+
+Example:
+I often use @Around advice to measure execution time for service methods or to add audit logs. For transactions, @Transactional itself is also implemented through Spring AOP/proxy behavior, so understanding proxy limitations helps avoid production surprises.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Spring">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Spring</span>
+      </div>
+      <h3>12. Explain IoC / Dependency Injection.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was acceptable but should separate IoC and DI.</div>
+      <h4>Senior answer script</h4>
+      <p>Inversion of Control means the control of object creation and lifecycle is moved from application code to the Spring container.</p><p>Dependency Injection is one implementation of IoC. Instead of a class creating its own dependencies using new, Spring injects the required dependencies through constructor, setter, or field injection.</p><p>Constructor injection is generally preferred because it makes dependencies explicit, supports immutability, and is easier to test.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Bad:<br>OrderService creates new PaymentClient() internally.</p><p>Better:<br>OrderService depends on PaymentClient interface and receives it through constructor injection. In unit tests, we can inject a mock PaymentClient.</p></div>
+      <button class="copy-answer" data-copy-target="answer-12">Copy answer</button>
+      <textarea id="answer-12" class="hidden-copy">IoC means Inversion of Control: instead of application code manually creating and wiring dependencies, the Spring container manages object creation, configuration, lifecycle, and dependency wiring.
+
+Dependency Injection is the main way Spring implements IoC. A class declares what it needs, usually through constructor parameters, and Spring provides the dependencies. This makes code easier to test because we can replace real dependencies with mocks or alternative implementations.
+
+I prefer constructor injection for mandatory dependencies because it makes the object immutable after construction and exposes dependencies clearly. Field injection is convenient but weaker for testing and design clarity.
+
+Example:
+OrderService should depend on PaymentClient and OrderRepository through constructor injection. In a unit test, I can inject mocks. In production, Spring injects the real beans based on configuration, profiles, qualifiers, or primary bean rules.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Microservices">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Microservices</span>
+      </div>
+      <h3>13. How do you handle distributed transactions?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer listed patterns but did not explain when to use each.</div>
+      <h4>Senior answer script</h4>
+      <p>In microservices, distributed transactions are difficult because each service owns its own database. We usually avoid global ACID transactions across services.</p><p>Common approaches:</p><p>Two-Phase Commit: a coordinator asks all services to prepare, then commit. It provides stronger consistency but is blocking, complex, and not ideal for highly scalable microservices.</p><p>Saga Pattern: split the business process into local transactions. Each step commits locally. If a later step fails, we execute compensating actions. Saga is more common in microservices.</p><p>There are two Saga styles:<br>- Choreography: services publish and react to events.<br>- Orchestration: a central orchestrator controls the workflow.</p><p>For most business workflows like order → payment → inventory → shipment, I prefer Saga with idempotent operations, retry handling, and compensation.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>Order service creates order as PENDING.<br>Payment service charges customer.<br>Inventory service reserves stock.<br>If inventory fails, payment is refunded and order becomes CANCELLED.</p></div>
+      <button class="copy-answer" data-copy-target="answer-13">Copy answer</button>
+      <textarea id="answer-13" class="hidden-copy">In microservices, I avoid distributed ACID transactions across service databases whenever possible because they create tight coupling, blocking behavior, and operational complexity.
+
+The common production approach is Saga. Each service performs a local transaction and publishes an event or calls the next step. If a later step fails, we execute compensating actions. Saga can be choreography-based, where services react to events, or orchestration-based, where a workflow coordinator controls the process.
+
+I also design for idempotency, retries, outbox pattern, correlation IDs, clear state transitions, and observability. Two-phase commit exists, but I rarely choose it for cloud-native microservices unless there is a very specific consistency requirement and the infrastructure supports it safely.
+
+Example:
+For order creation, Order Service creates PENDING order, Payment Service charges, Inventory reserves stock, then Order becomes CONFIRMED. If inventory fails, Payment is compensated by refund and Order becomes CANCELLED. Every step must be idempotent because events or commands may be retried.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Kafka">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Kafka</span>
+      </div>
+      <h3>14. How can Kafka guarantee message delivery?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was incomplete. Need mention producer ack, idempotence, replication, offset commit.</div>
+      <h4>Senior answer script</h4>
+      <p>Kafka delivery guarantee depends on producer, broker, and consumer configuration.</p><p>Producer side:<br>- Use acks=all so the leader waits for replicas.<br>- Set proper replication.factor and min.insync.replicas.<br>- Enable retries.<br>- Enable idempotent producer to avoid duplicate writes during retry.</p><p>Consumer side:<br>- Commit offset only after processing successfully.<br>- Use manual acknowledgment when needed.<br>- Make processing idempotent because duplicates can still happen in at-least-once delivery.<br>- Use retry topics or dead-letter topics for failed messages.</p><p>Kafka commonly provides at-least-once delivery. Exactly-once is possible in some Kafka workflows using idempotent producer and transactions, but application-level idempotency is still very important.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>When processing payment events, store eventId in the database. If the same event is consumed again, skip it. This protects the system from duplicate processing.</p></div>
+      <button class="copy-answer" data-copy-target="answer-14">Copy answer</button>
+      <textarea id="answer-14" class="hidden-copy">Kafka delivery guarantee is not a single switch; it depends on producer, broker/topic, and consumer configuration plus application idempotency.
+
+On the producer side, I use acks=all, proper replication.factor, min.insync.replicas, retries, and enable.idempotence=true. For strict workflows, Kafka transactions can be used when producing to multiple partitions/topics and committing offsets as part of a transaction.
+
+On the consumer side, I commit offsets only after successful processing, often with manual acknowledgment. I design handlers to be idempotent because at-least-once delivery can create duplicates. Failed messages should go through retry topic/backoff and finally DLQ with alerting and replay strategy.
+
+Example:
+For payment events, I store eventId or business transactionId in the database with a unique constraint. If Kafka redelivers the same event after a retry or rebalance, the consumer detects it and skips duplicate charging.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 2" data-category="Database">
+      <div class="qa-top">
+        <span class="badge">Round 2</span>
+        <span class="chip">Database</span>
+      </div>
+      <h3>15. How do you optimize SQL query performance?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer listed some points but included inaccurate wording about symbols. It should be production-focused.</div>
+      <h4>Senior answer script</h4>
+      <p>To optimize SQL performance, I usually start by checking the execution plan instead of guessing.</p><p>Important practices:<br>- Select only required columns, avoid SELECT *.<br>- Add indexes for columns used in WHERE, JOIN, ORDER BY, and GROUP BY.<br>- Use composite indexes based on query patterns and column order.<br>- Avoid functions on indexed columns in WHERE because they can prevent index usage.<br>- Avoid leading wildcard LIKE &#x27;%abc&#x27; when possible because it usually cannot use a normal index efficiently.<br>- Use pagination for large result sets.<br>- Avoid N+1 queries in ORM by using fetch join, entity graph, or batch fetching.<br>- Keep table statistics updated.<br>- Avoid over-indexing because indexes slow down insert/update/delete.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>Query: WHERE status = ? AND created_at BETWEEN ? AND ? ORDER BY created_at DESC<br>A useful composite index may be (status, created_at), depending on cardinality and database optimizer.</p></div>
+      <button class="copy-answer" data-copy-target="answer-15">Copy answer</button>
+      <textarea id="answer-15" class="hidden-copy">I start SQL optimization from evidence, not guessing. First I check the slow query log, execution plan, actual row counts, index usage, join type, sort operation, and whether the query scans much more data than expected.
+
+Typical improvements are selecting only needed columns, adding the right index for WHERE/JOIN/ORDER BY/GROUP BY patterns, using composite indexes in the correct order, avoiding functions on indexed columns, avoiding leading wildcard LIKE, paginating large results, and fixing ORM N+1 queries with fetch join, entity graph, batch size, or query redesign.
+
+I also consider database design and operational trade-offs: over-indexing hurts writes, low-cardinality indexes may not help, stale statistics can mislead the optimizer, and sometimes denormalization, materialized views, caching, or async reporting tables are better than forcing one OLTP query to do everything.
+
+Example:
+For WHERE status = ? AND created_at BETWEEN ? AND ? ORDER BY created_at DESC, I would test a composite index like (status, created_at) and verify with EXPLAIN ANALYZE. I would not add it blindly; I would check cardinality, selectivity, and write overhead.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 3" data-category="Architecture">
+      <div class="qa-top">
+        <span class="badge">Round 3</span>
+        <span class="chip">Architecture</span>
+      </div>
+      <h3>16. Explain your current project architecture.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer had useful ideas but was hard to follow. It should be structured: services, gateway, security, observability, deployment.</div>
+      <h4>Senior answer script</h4>
+      <p>Our current project is based on microservices and domain-driven design. We split services by bounded context, such as User, Account, Entitlement, and Business domains. Each service owns its business logic and data access.</p><p>All external requests go through an API Gateway built on Spring Cloud Gateway. The gateway handles routing, common filters, request validation, security checks, and load balancing.</p><p>For security, we use a two-token approach. At the gateway level, we validate a short-lived nonce/JWS token to confirm that the caller is trusted. For domain service access, we use an authentication token with a longer validity, and sensitive payloads can be protected using JWE.</p><p>The benefit is layered security: the gateway validates the caller, and downstream services validate user/session authorization.</p><p>For monitoring, we expose Spring Boot Actuator health and info endpoints and integrate metrics/logs with monitoring tools such as Grafana/Prometheus or centralized logging.</p><p>For deployment, services run on Kubernetes/OpenShift using rolling deployments, readiness checks, and rollback strategy to reduce downtime.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example flow:<br>UI → API Gateway → Auth validation → User Service / Account Service → Database</p><p>If Account Service is down, health checks fail, traffic is not routed to unhealthy pods, and deployment can be rolled back.</p></div>
+      <button class="copy-answer" data-copy-target="answer-16">Copy answer</button>
+      <textarea id="answer-16" class="hidden-copy">I would explain the architecture from outside to inside. The system is a Spring Boot microservice architecture, split by business capability or bounded context. Each service owns its business logic and data access, and communicates through REST or messaging depending on whether the workflow is synchronous or asynchronous.
+
+External traffic goes through an API Gateway for routing, authentication/authorization checks, common filters, rate limiting, and request tracing. Downstream services validate user/session context and enforce domain-specific authorization. For resilience we use timeouts, retries with care, circuit breakers where appropriate, and clear fallback behavior.
+
+For operations, services run on Kubernetes/OpenShift with readiness/liveness probes, rolling deployment, config/secrets management, centralized logs, metrics via Actuator/Micrometer, and tracing/correlation IDs. For data, each service owns its schema, and cross-service consistency is handled with events/Saga rather than shared database writes.
+
+Example:
+A typical request is UI -&gt; API Gateway -&gt; Auth check -&gt; Account Service -&gt; database. If the operation affects another domain, Account Service publishes an event, and the downstream service processes it asynchronously with retry and DLQ. That keeps the user-facing API responsive and avoids tight database coupling.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 3" data-category="Architecture">
+      <div class="qa-top">
+        <span class="badge">Round 3</span>
+        <span class="chip">Architecture</span>
+      </div>
+      <h3>17. Why use DDD for microservices?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer said separation but did not explain bounded context and ownership.</div>
+      <h4>Senior answer script</h4>
+      <p>DDD helps us design microservices around business capabilities instead of technical layers.</p><p>The most important concept is bounded context. Each bounded context has its own model, rules, language, and data ownership. This prevents one large shared domain model from becoming tightly coupled.</p><p>Benefits:<br>- clear service boundaries<br>- better maintainability<br>- independent team ownership<br>- independent deployment and scaling<br>- less coupling between domains<br>- easier business rule evolution</p><p>Without DDD, teams often create microservices that are technically separated but logically coupled, causing distributed monolith problems.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>In telecom, Account, Billing, Order, User, and Entitlement may be separate bounded contexts. Billing should not directly modify Account tables. It should communicate through APIs/events.</p></div>
+      <button class="copy-answer" data-copy-target="answer-17">Copy answer</button>
+      <textarea id="answer-17" class="hidden-copy">DDD helps microservices align with business domains instead of simply splitting code by technical layers. The key concept is bounded context: inside one context, terms, rules, and models are consistent; across contexts, integration is explicit.
+
+This matters because microservices should have clear ownership of data and behavior. Without DDD, teams may create many small services that still share tables, share models, and depend on each other too much. That becomes a distributed monolith.
+
+DDD is not about adding complexity everywhere. I use it most where business rules are rich, ownership boundaries matter, and the domain changes often. For simple CRUD administration, a simpler module may be enough.
+
+Example:
+In a telecom or banking system, Account, Billing, Order, Entitlement, and Notification can be separate bounded contexts. Billing should not directly update Account tables. It should use APIs or events and translate data through an anti-corruption layer if the models differ.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 3" data-category="REST">
+      <div class="qa-top">
+        <span class="badge">Round 3</span>
+        <span class="chip">REST</span>
+      </div>
+      <h3>18. What is idempotency in REST APIs?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer mixed up POST wording. Need clarify methods and retry safety.</div>
+      <h4>Senior answer script</h4>
+      <p>Idempotency means executing the same request multiple times has the same final effect as executing it once.</p><p>GET is idempotent because it only reads data.<br>PUT is idempotent because replacing a resource with the same payload multiple times leaves the resource in the same state.<br>DELETE is idempotent because after the resource is deleted, repeating delete keeps it deleted.<br>POST is usually not idempotent because repeating it may create multiple resources.</p><p>In real systems, even POST can be made idempotent using an idempotency key. This is common in payment APIs to avoid duplicate charges during retries.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Payment example:<br>Client sends POST /payments with Idempotency-Key: abc-123.<br>If network timeout happens and client retries, server detects the same key and returns the original result instead of charging again.</p></div>
+      <button class="copy-answer" data-copy-target="answer-18">Copy answer</button>
+      <textarea id="answer-18" class="hidden-copy">Idempotency means that sending the same request multiple times has the same final effect as sending it once. It is important because clients, gateways, queues, and services may retry when there is a timeout or temporary failure.
+
+GET, PUT, and DELETE are expected to be idempotent by HTTP semantics. POST is usually not idempotent because repeating it may create multiple resources or duplicate actions, but we can design POST endpoints to be idempotent by using an idempotency key or a unique business request ID.
+
+In production, idempotency usually requires persistence. We store the idempotency key, request hash, result status, and response. If the same key is received again, we return the original result or current processing status instead of repeating the side effect.
+
+Example:
+For POST /payments, the client sends Idempotency-Key: abc-123. If the network times out after the payment succeeded, the retry uses the same key. The server finds the previous successful result and returns it without charging the customer again.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 3" data-category="JPA">
+      <div class="qa-top">
+        <span class="badge">Round 3</span>
+        <span class="chip">JPA</span>
+      </div>
+      <h3>19. Composite primary key and multiple database connection in Spring Boot.</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was mostly correct but needs exact JPA configuration terms.</div>
+      <h4>Senior answer script</h4>
+      <p>For composite primary keys in JPA, we can use @EmbeddedId with an @Embeddable key class, or @IdClass. @EmbeddedId is common because it groups key fields into a dedicated value object. The key class should implement Serializable and properly implement equals() and hashCode().</p><p>For multiple databases in Spring Boot, we usually configure separate DataSource beans, EntityManagerFactory beans, TransactionManager beans, and repository packages. One datasource can be marked @Primary. Each repository package is linked to its own entity manager and transaction manager using @EnableJpaRepositories.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>Oracle repositories under com.app.oracle.repository use oracleEntityManagerFactory.<br>Postgres repositories under com.app.postgres.repository use postgresEntityManagerFactory.</p></div>
+      <button class="copy-answer" data-copy-target="answer-19">Copy answer</button>
+      <textarea id="answer-19" class="hidden-copy">For composite primary keys in JPA, I can use @EmbeddedId with an @Embeddable key class or @IdClass. I usually prefer @EmbeddedId when the key is a meaningful value object. The key class must be Serializable and must implement equals and hashCode correctly.
+
+For multiple database connections in Spring Boot, I configure separate DataSource beans, LocalContainerEntityManagerFactoryBean instances, PlatformTransactionManager beans, entity packages, and repository packages. One set can be marked @Primary. @EnableJpaRepositories links each repository package to the correct entity manager and transaction manager.
+
+The senior concern is transaction boundaries. A normal @Transactional works with one transaction manager. If one business operation writes to two databases, we need to be explicit about consistency requirements. Often we avoid cross-database transactions and use eventual consistency or a clear compensation process.
+
+Example:
+Oracle repositories can live under com.app.oracle.repository and use oracleEntityManagerFactory plus oracleTransactionManager. Postgres repositories can live under com.app.postgres.repository and use postgresEntityManagerFactory plus postgresTransactionManager.</textarea>
+    </article>
+    <article class="qa-card searchable" data-round="Round 3" data-category="Testing">
+      <div class="qa-top">
+        <span class="badge">Round 3</span>
+        <span class="chip">Testing</span>
+      </div>
+      <h3>20. How do you test a catch block?</h3>
+      <div class="note bad"><strong>Weak point in original answer:</strong> The original answer was hard to follow. Need show Mockito exception simulation and assertions.</div>
+      <h4>Senior answer script</h4>
+      <p>To test a catch block, we intentionally make a dependency throw an exception, then verify that the service handles it correctly.</p><p>If the method catches the exception and returns an error response, we assert that response. If it wraps and rethrows a custom exception, we use assertThrows().</p><p>The important point is not to test Java try-catch itself. We test our business behavior when an exception happens.</p>
+      <h4>Concrete example to add</h4>
+      <div class="example"><p>Example:<br>when(paymentClient.charge(any())).thenThrow(new TimeoutException(&quot;timeout&quot;));</p><p>Then verify:<br>- order status becomes PAYMENT_PENDING or PAYMENT_FAILED<br>- error is logged or audit is saved<br>- expected custom exception/response is returned.</p></div>
+      <button class="copy-answer" data-copy-target="answer-20">Copy answer</button>
+      <textarea id="answer-20" class="hidden-copy">To test a catch block, I do not test Java try-catch itself. I test the business behavior when a dependency fails.
+
+With Mockito, I make a collaborator throw an exception using when(...).thenThrow(...) or doThrow(...).when(...). Then I assert what the service should do: return a fallback response, wrap and rethrow a custom exception, update status, save audit information, or call a recovery method.
+
+A good test also verifies the important side effects and avoids swallowing errors silently. For senior-level code, the catch block should usually add context, preserve the cause, and make the failure observable through logs, metrics, or business state.
+
+Example:
+If paymentClient.charge throws TimeoutException, I would assert that the order becomes PAYMENT_PENDING or PAYMENT_FAILED, the audit record is saved, and the service returns the expected error response or throws PaymentUnavailableException with the original cause attached.</textarea>
+    </article>
+    </section>
+
+    <section id="coding-scripts" class="section">
+      <h2>All Java / SQL scripts</h2>
+      <p>These are clean versions of the coding tasks that appeared across the 3 rounds.</p>
+      
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 1 — Employee Stream Tasks</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.*;
+import java.util.stream.*;
+
+public class EmployeeStreamTask {
+    static class Employee {
+        private final int id;
+        private final String name;
+        private final double salary;
+
+        public Employee(int id, String name, double salary) {
+            this.id = id;
+            this.name = name;
+            this.salary = salary;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+        public double getSalary() { return salary; }
+
+        public Employee withSalary(double newSalary) {
+            return new Employee(this.id, this.name, newSalary);
+        }
+
+        @Override
+        public String toString() {
+            return id + &quot; - &quot; + name + &quot; - &quot; + salary;
+        }
+    }
+
+    public static void main(String[] args) {
+        List&lt;Employee&gt; employees = List.of(
+            new Employee(1, &quot;Alice&quot;, 4500),
+            new Employee(2, &quot;Bob&quot;, 7000),
+            new Employee(3, &quot;Charlie&quot;, 9000)
+        );
+
+        double threshold = 5000;
+
+        // 1. Print names of employees whose salary is greater than threshold
+        employees.stream()
+            .filter(e -&gt; e.getSalary() &gt; threshold)
+            .map(Employee::getName)
+            .forEach(System.out::println);
+
+        // 2. Create a new list with 10% salary increase
+        List&lt;Employee&gt; increasedSalaryEmployees = employees.stream()
+            .map(e -&gt; e.withSalary(e.getSalary() * 1.10))
+            .collect(Collectors.toList());
+
+        // 3. Find employee with highest salary
+        Employee highestPaid = employees.stream()
+            .max(Comparator.comparingDouble(Employee::getSalary))
+            .orElseThrow(() -&gt; new NoSuchElementException(&quot;Employee list is empty&quot;));
+
+        System.out.println(&quot;After increase: &quot; + increasedSalaryEmployees);
+        System.out.println(&quot;Highest paid: &quot; + highestPaid);
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 1 — Smallest Positive Missing Number</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.*;
+
+public class SmallestPositiveMissing {
+    public static int findSmallestMissingPositive(int[] nums) {
+        Set&lt;Integer&gt; positives = new HashSet&lt;&gt;();
+
+        for (int num : nums) {
+            if (num &gt; 0) {
+                positives.add(num);
+            }
+        }
+
+        int candidate = 1;
+        while (positives.contains(candidate)) {
+            candidate++;
+        }
+        return candidate;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findSmallestMissingPositive(new int[]{1, 2, 3, 4, 6})); // 5
+        System.out.println(findSmallestMissingPositive(new int[]{-3, -1, 0, 2}));  // 1
+        System.out.println(findSmallestMissingPositive(new int[]{1, 1, 2, 2}));   // 3
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 2 — CompletableFuture Parallel Calls</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.concurrent.*;
+
+public class CompletableFutureExample {
+    public static void main(String[] args) {
+        CompletableFuture&lt;String&gt; customerFuture = CompletableFuture.supplyAsync(() -&gt; getCustomer());
+        CompletableFuture&lt;String&gt; orderFuture = CompletableFuture.supplyAsync(() -&gt; getOrders());
+        CompletableFuture&lt;String&gt; rewardFuture = CompletableFuture.supplyAsync(() -&gt; getRewards());
+
+        CompletableFuture&lt;String&gt; profileFuture = customerFuture
+            .thenCombine(orderFuture, (customer, orders) -&gt; customer + &quot; | &quot; + orders)
+            .thenCombine(rewardFuture, (profile, rewards) -&gt; profile + &quot; | &quot; + rewards)
+            .exceptionally(ex -&gt; &quot;Fallback profile because: &quot; + ex.getMessage());
+
+        System.out.println(profileFuture.join());
+    }
+
+    private static String getCustomer() { return &quot;Customer: Huy&quot;; }
+    private static String getOrders() { return &quot;Orders: 5&quot;; }
+    private static String getRewards() { return &quot;Rewards: 1200 points&quot;; }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 2 — ReentrantLock tryLock Example</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class ReentrantLockExample {
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public boolean processPayment(String paymentId) throws InterruptedException {
+        if (lock.tryLock(2, TimeUnit.SECONDS)) {
+            try {
+                System.out.println(&quot;Processing payment: &quot; + paymentId);
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        System.out.println(&quot;Could not acquire lock, retry later: &quot; + paymentId);
+        return false;
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 2 — Spring AOP Execution Time Logging</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+public class ExecutionTimeAspect {
+
+    @Around(&quot;execution(* com.example.service..*(..))&quot;)
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+        try {
+            return joinPoint.proceed();
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            System.out.println(joinPoint.getSignature() + &quot; took &quot; + duration + &quot; ms&quot;);
+        }
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 2 — Mockito Test Catch Block</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import org.junit.jupiter.api.Test;
+
+class PaymentServiceTest {
+
+    @Test
+    void shouldReturnFailedStatusWhenPaymentClientThrowsException() {
+        PaymentClient paymentClient = mock(PaymentClient.class);
+        PaymentService service = new PaymentService(paymentClient);
+
+        when(paymentClient.charge(any()))
+            .thenThrow(new RuntimeException(&quot;Gateway timeout&quot;));
+
+        PaymentResult result = service.pay(new PaymentRequest(&quot;ORDER-1&quot;, 100));
+
+        assertEquals(&quot;FAILED&quot;, result.status());
+        assertEquals(&quot;Payment provider error&quot;, result.message());
+    }
+}
+
+record PaymentRequest(String orderId, int amount) {}
+record PaymentResult(String status, String message) {}
+
+interface PaymentClient {
+    void charge(PaymentRequest request);
+}
+
+class PaymentService {
+    private final PaymentClient paymentClient;
+
+    PaymentService(PaymentClient paymentClient) {
+        this.paymentClient = paymentClient;
+    }
+
+    PaymentResult pay(PaymentRequest request) {
+        try {
+            paymentClient.charge(request);
+            return new PaymentResult(&quot;SUCCESS&quot;, &quot;Payment completed&quot;);
+        } catch (RuntimeException ex) {
+            return new PaymentResult(&quot;FAILED&quot;, &quot;Payment provider error&quot;);
+        }
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">sql</span></div>
+      <h3>Round 3 — SQL: Customers With Multiple Different Items</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name
+FROM customers c
+JOIN orders o
+    ON o.customer_id = c.customer_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name
+HAVING COUNT(DISTINCT o.item_name) &gt; 1;</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 3 — Java 8: Total Salary By Employee Descending</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.*;
+import java.util.stream.*;
+
+public class TotalSalaryByEmployee {
+    static class EmployeeSalary {
+        private final String department;
+        private final String employeeName;
+        private final int salary;
+
+        EmployeeSalary(String department, String employeeName, int salary) {
+            this.department = department;
+            this.employeeName = employeeName;
+            this.salary = salary;
+        }
+
+        public String getDepartment() { return department; }
+        public String getEmployeeName() { return employeeName; }
+        public int getSalary() { return salary; }
+    }
+
+    public static void main(String[] args) {
+        List&lt;EmployeeSalary&gt; data = List.of(
+            new EmployeeSalary(&quot;CS&quot;, &quot;Hari&quot;, 5000),
+            new EmployeeSalary(&quot;EC&quot;, &quot;Hari&quot;, 5000),
+            new EmployeeSalary(&quot;CS&quot;, &quot;Siva&quot;, 8000),
+            new EmployeeSalary(&quot;ME&quot;, &quot;Kumar&quot;, 3000),
+            new EmployeeSalary(&quot;IT&quot;, &quot;Ravi&quot;, 7000)
+        );
+
+        data.stream()
+            .collect(Collectors.groupingBy(
+                EmployeeSalary::getEmployeeName,
+                Collectors.summingInt(EmployeeSalary::getSalary)
+            ))
+            .entrySet()
+            .stream()
+            .sorted(Map.Entry.&lt;String, Integer&gt;comparingByValue().reversed())
+            .forEach(entry -&gt; System.out.println(entry.getKey() + &quot; = &quot; + entry.getValue()));
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 3 — Java: Count Repeated 2-Character Patterns</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class PatternCounter {
+    public static Map&lt;String, Long&gt; countPairs(String input) {
+        if (input == null || input.isBlank()) {
+            return Collections.emptyMap();
+        }
+
+        String[] tokens = input.trim().split(&quot;\\s+&quot;);
+
+        return Arrays.stream(tokens)
+            .collect(Collectors.groupingBy(
+                Function.identity(),
+                LinkedHashMap::new,
+                Collectors.counting()
+            ));
+    }
+
+    public static void main(String[] args) {
+        String input = &quot;xx vc ff yy vc tt xx&quot;;
+
+        countPairs(input).forEach((pattern, count) -&gt;
+            System.out.println(pattern + &quot; = &quot; + count)
+        );
+    }
+}</code></pre>
+    </section>
+    <section class="code-card searchable" data-category="code">
+      <div class="qa-top"><span class="badge">Script</span><span class="chip">java</span></div>
+      <h3>Round 3 — Spring Boot Multiple DataSources Skeleton</h3>
+      <div class="code-toolbar"><button class="copy-code">Copy code</button></div>
+      <pre><code>@Configuration
+@EnableJpaRepositories(
+    basePackages = &quot;com.example.oracle.repository&quot;,
+    entityManagerFactoryRef = &quot;oracleEntityManagerFactory&quot;,
+    transactionManagerRef = &quot;oracleTransactionManager&quot;
+)
+public class OracleJpaConfig {
+    // Define Oracle DataSource, EntityManagerFactory, and TransactionManager here
+}
+
+@Configuration
+@EnableJpaRepositories(
+    basePackages = &quot;com.example.postgres.repository&quot;,
+    entityManagerFactoryRef = &quot;postgresEntityManagerFactory&quot;,
+    transactionManagerRef = &quot;postgresTransactionManager&quot;
+)
+public class PostgresJpaConfig {
+    // Define Postgres DataSource, EntityManagerFactory, and TransactionManager here
+}</code></pre>
+    </section>
+    </section>
+
+    <section id="original-scripts" class="section">
+      <h2>Original raw scripts you sent</h2>
+      <p>These are included exactly from the uploaded transcript files so you can compare original answer vs senior improved answer.</p>
+      
+    <details class="raw-block searchable">
+      <summary>Round 1 — Java Coding + Core Java — Original raw script</summary>
+      <pre>uh which Java version do you use on your current project So currently we are using Java 17 okay nice to hear because one of our task related to Java 8 and I would like to know that you have experience with that yeah okay um so let&#x27;s start with a small question before we are moving to coding could you please describe me solid principles yes sure So So Sol it is an obervation for for writing efficient and uh and scalable code so assistant for the single responsibility princip uh do you want if I give a tool line description or do you
+want AEF description around those Concepts you know yes please a few words about each of these principles okay so thanks so uh single responsibility uh principal state that a particular class or the N should have a designated um responsibility so let&#x27;s say I should not be having uh the repository at the service l so either these two concern should be uh uh should be segregated or bated into two separate class um uh and also it deals with the abstraction as well um so it goes with the interfaces as well uh then then we
+have o stand for open and close principle uh which uh state that it the the interfaces and the class the conrete class should be open for any ex uh extension but it should be closed for modification uh which basically help us to um help us with the first Principle as well as it also uh enables uh the existing classes to um have a better uh usable usable usable code and then um we moved to um the L part and then L stand for lope substitution principal which clearly St that uh if uh if we are having any interface and then uh uh and
+then uh and the and we have a uh two interfaces which basically implemented particular interface so it should be interchangeable so basically what it says like if I place one interface with another the ex the existing property or the existing functionality of this particular interface should not uh be correct or should not be uh Now we move ahead with I so it says that interface executions uh so it generally uh it&#x27;s almost as same as like the single responsibility principle but it differs in a very slightly manner that
+it says that uh the the core responsibility of the interface should be um should be based on um should be based on uh some functionality let&#x27;s say if one group of classes only only those group of classes should be able to implement through it and and inherit all the properties and all the functionality that obstruction it does provide for particular functionality and the second interface should be uh should be basically uh uh so basically we we should not mix the responsibility of the two interfaces into one uh which help us
+in better uh design of the problem statement at hand uh then we uh go into uh the dependency inversion uh principle which specifically state that um the responsibility of managing of the beans so let&#x27;s say the object as as if I talk about the plane hold object that should not be with the application code it should be with the container rather than application uh lat than the concrete class considering it on um having its own dependency call calling part so basically it does it says like the dependency should be uh
+inverted to The Container or the context which is which basically helps in managing and injecting the beans uh at the r time and also um um I think yeah this is this is the C of the dependency thanks for your answer it&#x27;s very deep and I believe we can move to our main part it&#x27;s a coding so I am open code editor for us you can resize it on your SES as it is comfortable for you uh I will change our language to Java okay so we and you can type your code right here and I will see everything that you are typing and this
+is our first task so this task related to as I said previous and sorry to but where should iite that see any um you didn&#x27;t see any uh canvas where should I write up so you see that I open code editor uh no stay on the browser window where we have interview so in the zoom chat in the zoom chat yes is it not in not zoom chat you should have open this interesting okay do you have on the left side uh such with like code editor no I have options of fix issues reconnect leave and there&#x27;s one timer going on that&#x27;s Zoom check
+still [Applause] don&#x27;t okay give me a moment then please interesting one can I drink water is it okay maybe do you can share our your screen yeah yeah of course you can doink water could you please share your screen I would like to see um yeah yeah sure your browser window yes let me know if so I will share my entire screen so that in case if you want to see [Applause] anything okay uh hope you&#x27;re able to see it okay I&#x27;m give a moment I think open for you okay could you please try to reconnect like use reconnect B let&#x27;s check our first task
+it&#x27;s related to employee processing with this stream so we need to create a program to process list of employees using Java a feature especially stream API for that we need to Define employee class with the attributes ID name and saling this part I will provide for you you will start from the next one it&#x27;s create a list of employees so you should create Leist and add there for example three employee it will be enough for us then we will uh uh manipulate with this list and we need to cover three subtask first of
+them it&#x27;s print the name of employees whose salary more than provided threshold Let It Be 5,000 then we will need to create a new list containing the employee uh with a salary increase of 10 percentage and then we need to find the employee with the highest salary I will provide for you more details when you will start working on each of these task and for now I want to add you this employee class you see we have S um attributes ID name and salary all arguments Constructor and gets so you can start with creating a
+list okay um okay all
+conru okay so should [Music] me 10,000 uh um
+[Music] let me just wait okay um for setup for
+a list [Music] of let me check so yeah you see in task we need only Z names uh what we can do if for have not the list of employees list of names in your Sor okay the name of name of [Applause] [Applause] three
+[Applause] yeah okay it should work let&#x27;s move on uh and create a new list containing the the employee with a salary increase of 10% so here in the result you should have list of employees Le where employee will be the same as in first one but what salary for each of them should increase [Applause] [Applause] what for [Applause]
+[Applause] [Applause] [Applause] f the list the list [Applause]
+[Applause] [Music] so ni [Applause] oh sorry so sorry um
+[Music] for first for the second one I agree just find first return optional for which purposes do we need optional uh I was thinking like uh maybe we can find the first one and then we&#x27;ll get the so it will be a two line of cod that first of so this solution correct but I asking for which purposes do we need optional for which purpose I&#x27;m doing option yeah uh in general not on your task in general for which purposes do we
+need optional uh optional let&#x27;s say uh if uh uh if we are getting uh uh to basically resolve uh the N pointer exception uh we basically use optional so let&#x27;s say if in C condition we don&#x27;t know that uh this might uh the the program which we have written might cause problem on the N Point exception so we zap it around in the from the optional class uh we can use different method are like off the label off and and then we can do our calculation so this way we can eliminate the need to specifically mentioning like if this
+varable is not so okay so how to get exact value from optional if we have optional of some object how we can get that exact object uh by using get could you please edit okay um yeah and let&#x27;s return back to the previous task where we need to find the new list of employee you use map map uses for transformation from one object to another so you transform your employee to salary and collect then in the result you will have list of doubles but we really need list of employees so what you can change in your solution to
+return list of doubles so you want list of double yeah so then I can you know yeah yeah okay let me check you need to return list of employees currently you return list of doubles even before without this map to double Sor so you need to return employees not salary okay what if we use block of code
+here it&#x27;s like idea but you need to finish this idea if you got what I mean oh so essentially we need to do like [Applause] so sh okay let&#x27;s not waste our time uh because
+we need to switch to Second task here you should return if you use block of code you for sure need to return something and return your employee then you will collect employee and not the seller and here I don&#x27;t know you really saw somewhere in Java where you can do I know using comma I I see it today second time and I don&#x27;t understand why you use comma between different operation it&#x27;s something really strange but okay uh as set set and you need to set your new value then you update your object of employees yeah and return it and then
+collect in such case this should work you was almost correct okay uh let&#x27;s before we are moving to next task while I prepare the space for us could you please tell me what&#x27;s the difference between intermediate and terminal operation in stream API so intermediate operations actually uh so result uh so basically it&#x27;s a Las operation and it does not return anything this where basically if uh uh it&#x27;s appended with the terminal operation then it will give you stream of uh the operation stream of the perimeter type of the custom type which
+you want so a example of the stream like uh function like math filter flat um and for the terminal we have find U like uh for each we have uh we have collect we have g string G and find for is on short circuit operation so uh not consider yeah okay and maybe do you hear also what does it mean lazy evaluation in stream API it&#x27;s also in the context of intermediate and terminal operation um so legation actually always associated with the intermediate operation so basically is it basically loads out the alter data but it needs
+terminal operation to empty its a stream uh so basically um it&#x27;s like having a a stream of water uh so stream of Collections and then basically if you using the intermediat operation so it will stays there but to uh basically get the output of some something then basically you need a terminal Lo so basically lazy lazily loads the lizard but it needs some terminal loation to display or to flish out it um it inside mhm yeah okay correct thank you and let&#x27;s move to our second task um I already prepared space for it and task
+we need to write a function whereas an input parameter we have array of integers and as an output we just need to return the smallest positive integer that greater than zero so just need to find the smallest positive missing number in Array let&#x27;s check together um one example oh my God not here sorry okay we will check together example and um try to understand what we need there okay we have input parameters yeah like array of in integer first of all you see that we have duplicates it&#x27;s possible to have duplicates we have one
+and one we don&#x27;t have any order of this array so and we need to find the smallest integer which missing in this array and it should be positive greater than zero so let&#x27;s check what we miss in this array uh we need to follow one by one yeah to find if something missing so let&#x27;s start with have 1 2 3 4 and then six so the smallest positive number which missing There is five uh please pay attention if uh for example zero also doesn&#x27;t present in this array correct but you have comments that it should be positive and greater
+than zero that&#x27;s why we don&#x27;t return zero and also if we return for example six you and you will have numbers like 1 2 3 4 the same the smallest integer which not present in this array it&#x27;s five okay so um you know just one question so uh in case it uh if it any of the element does contain minus one so let&#x27;s say a negative element so are we supposed to count it or we just going to let&#x27;s check for example together uh such example like minus one let it be even minus 3 we should return the smallest positive number which not present here
+you see here we missing minus 2 for example but we should return only positive integers then we here don&#x27;t present zero but you have comments it should be greater than zero then the smallest positive number which not present in your array it&#x27;s one got it okay okay so basically example even if you add two there the same result will be one because one is missing and the smallest let&#x27;s say one is there then basically we need to return yeah one is the smallest one which you can return no but I&#x27;m saying like if the if the one also contains in
+the second so do we need to then what what we will return in such case okay we are not what&#x27;s the smallest integer which not present here so for that we are nothing is it why you have some number which not present in your array is not present 3 four 5 6 10 100 all these numbers are not present in your array and you should return the smallest of them so what&#x27;s the smallest number not present in your array so I think it&#x27;s three right we should be three yeah okay sounds good MH you got it yeah I got it okay then you can start
+if you don&#x27;t have any additional questions for for [Applause] come
+m St [Applause] [Applause] [Applause]
+STI [Applause] h my last then
+[Applause] we are going to [Applause] [Applause] [Applause] it doesn&#x27;t [Applause]
+okay let&#x27;s check you add only positive numbers so [Applause] [Applause] [Applause] so [Applause]
+[Applause] uh [Music] [Applause] look just a minute H let me uh think of to the cases um that we have discussed over here [Applause] [Laughter]
+[Applause] ch for [Applause] [Applause] yeah I let&#x27;s not wasting more time I see that this should work thank you for proposed solution I like that you choose uh set for removing duplicates that you understand that you are not interesting
+in negative number all these Point very well thankks and uh before as we still have time I want to discuss with you different structures uh let&#x27;s start with the hashmap could you please explain me how hashmap Works internally yeah sure so um hmx uh hmap basically um uses Hing T function to uh indicate uh so basically hhm works on the key value here um so internally uh uh it uses H table and uh um basically uh what what really happens when we try to put an element over in the hash map so uh we internally calculate the hash
+hash uh HH value of that particular object and then basically based on the function it will try figure out the key and then basically it put down the value over there so basically it uses HH H function uh uh to figure out what the key or but the bucket it should put the value inside and with the use of the equals method uh it basically help us to retrieve the value from the HH uh hhm uh and then uh basically to figure out what the bucket uh so B internally uses so internally when we Define hashmap so it has a bucket of size
+16 and when you put an element uh since map hashmap allow one key as a null uh so whenever you passing that particular element it would put into the first bucket or the z z index bucket um and then uh and all the other cases it will implement the hash uh hash HH function and then provide so basically how hash function works is it you can provide your own implementation if you&#x27;re using custom object uh but uh for for the Primitive or the rapper classes it uses uh its own implementation like for string it uses
+the position of the characters uh for INT it uses a length of uh uh the particular C integer it uses um and also there&#x27;s some hash function which internally Java provides like uh F andv HH functions also available um so with that particularly using the HH function uh you can evaluate the key the key function is also uh uses uh the x or R operations so hash once you evaluate the hash HH code it basically uses the end operator and then n minus one so basically n is is basically the bucket uh and then enement then whatever the uh whatever the bucket
+uh in integer value it find it will put the element together so yeah yeah okay thanks for that and the last question let&#x27;s discuss least interface and to his implementation like array list and Link list what&#x27;s the difference between this two implementation uh yeah sure so um AIS is basically uh uh internally uses ER but it&#x27;s basically a dynamic and it uses a continuous uh memory allocation and it increases its size as in then the 50% of the element has been filled uh the by default size is 10 it&#x27;s basically uses
+for the for search base uh is basically uses it is good for the searching out the element since it&#x27;s based out of indexes but it is not good when it comes with insertion and deletion of the element because it internally used to shift the shift the bits in order to accommodate the new element now coming back to the link list uh it internally uses a W uh uh link list uh W Ling list and basically uh it is not a continuious memory it&#x27;s a discrete memory uh so and it is connected via via VIA pointers and it has uh three uh basically if you&#x27;re
+using the W so it uses uh its key and value and then the the position of the next mode if there&#x27;s no position it uses n uh and it is basically uses for it is better for insertion and insertion and Del at uh the uh basically it is uh it&#x27;s good for insertion delation but it&#x27;s it it is not good in uh you know in such such way scenario since it is discret memory space so it takes it takes a lot of competition in order to figure it out um other than that uh yeah I think these are the primary ones yeah okay for me it&#x27;s uh enough uh
+maybe do you have any question from your side um yeah H so um uh may I know what this particular Hing is for some product suit or is for something different or is it like what we have a plan of vanilla that we are using uh yeah for that I don&#x27;t have details about project on which you are hiring on it&#x27;s a correct point to ask this question it&#x27;s your HR CU he communicate with the team on which this position was prepared and he knows more detail about project about team and so on I just know that you are hiring on
+AWS pool uh so uh this uh like project needs AWS as a cloud knowledge so be ready for that so because uh on next interview will be more theoretical one um let&#x27;s return back a little bit uh today by the end of the day I provided my feedback to your HR and he will contact you to schedule next interview session as you see this one was more more about coding we just check the ability to write code on the flight to understand correct all requirements how you think during uh coding and so on it&#x27;s just more practical uh it doesn&#x27;t
+mean that you will use some algorithms on your project on daily routine no we just check how you think yeah and next one will be more like uh real interview where interviewer will ask you about your experience all theoretical question which needs for project and as I see that you are hiring on AWS pool be ready to have a question regarding this Cloud okay and about project you can ask your HR because he has more details sorry about that question okay then I would like to say thank you for your time I enjoy time with you
+thanks for demonstrating me your knowledge and I wish you good luck on next step of interview and hope to see you soon in our company yes thank you thank you enough thank you bye [Applause]</pre>
+    </details>
+    <details class="raw-block searchable">
+      <summary>Round 2 — Java/Spring/Microservices/Cloud — Original raw script</summary>
+      <pre>so um may know do you have any work experiments with AWS uh I had a bit of experience with AWS uh that is I have on AWS uh Lambda that is server Computing uh but it&#x27;s uh I did a p for one of uh the access one of the cent of the new panks um however that PC we are not able to move forward because of the constraint of the resources we do have so uh not a lot of exposure but yeah if given opportunity I can basically leverage my uh I can basically work on that to get a yeah for the Alda M okay so also can you let me
+know why when you&#x27;re using Lambda uh which service you are trigger to Lambda running um so Kevin I think uh um since it was a POC kind of stuff so he didn&#x27;t have the real time observability on the C so we just wanted to explore the idea of the servers this Computing uh so we have started but not fully have explored the idea of so can&#x27;t able to answer the question okay okay that okay okay okay understand thank you so okay so my next question is related to the Java so uh can you let me know what&#x27;s the new features released in Java
+8 yeah sure um so we have uh something called stream apas which we have introduced um and also functional interfaces new functional interfaces has been introduced uh also New data new uh dat time apas was introduced uh also uh involves um Lambda expression and functional programming pad uh and also there&#x27;s one new engine uh for the javv Java to understand the native Java is nesine introduced um apart from that uh uh fature uh comput computable features also was introduced um and apart from that uh okay so yes thank you so could you
+please elaborate on the completable future yeah sure so um completable future is basically uh a non-blocking uh synchronization computation uh which uh basically help us to achieve uh the result on a synchronous P um and it can be used in N numbers of way uh like it can be used with the multi context also can be used the simple concept so the major benefit over the feature which we already have in the Java 7 is basically it can chain end numbers of complete uh it can chain numbers of completable feature within it so you can basically
+chain out the different functions uh it does contain different set of function like Supply a sync then chaining uh then apply uh so it uh helps us so in a sense it helps us in not blocking asynchronous execution of any uh piece of cod uh in a a Sy MH okay thank you and uh can you let me know how the garbage collector work in h memory uh com can I let me know how does the garbage collector work uh in h memory uh also um uh if I if I talking about um the garbage C so uh there&#x27;s one two two two major areas which garbage collector
+uses this is called minor area and maor area so under minor area we have three spaces like we have spaces s z and S1 spaces and then in the major major GC we have uh actually continuious uh M over there so what happen is like when whenever we are uh whenever there&#x27;s uh so both these spaces of the minor you see basically s s and S1 works on the the agent Factor so whenever there&#x27;s a new Defence being uh is ready for the garbage garbage collector so J like the garbage collector basically capture those references or the object
+for it basically not being used it put into the ad now after some time let&#x27;s say if the scope of the application is still rning then it goes to a different space like s0 and S1 and then when it dies then eventually if it is either not Acquired and it moves to the based on some Bas S1 based on some condition and after that after that things has been closed up then it goes to the major GC where it has been taken here based on the strategy which we are using thank you yeah great yeah yeah that&#x27;s great thank you uh can
+you let me know what&#x27;s the difference uh between runable interface and colable interface okay so uh zable interfaces basically uh let&#x27;s say so basically it works on TR class uses doesn&#x27;t matter uh to start the execution of the now with the call callable basically helps you to return any value after the completion of that so it has a written type you can Define your own written type based on it so basically quable is uh uh is basically used in scenario where we wanted to capture what is the output of the particular um uh thread execution let&#x27;s
+say you can use colable inside the feature and then submit the Q so that it will takes out the inut based on setting based on the future object now with the enable you can basically return out the value uh after the thre has been completed you can store it in some way but you cannot return that okay thank you so can you let me know what&#x27;s the difference between synchronized and the retr log uh synchronized uh is basically uh it&#x27;s um it basically helps you in mulating environment where you wanted a single piece of let&#x27;s say it can be used in the
+blocks as well as in the method itself so if it is being it is being used in the class level let&#x27;s say so only one thre can execute on that particular synch uh uh on the synchronized block and the other thre will eventually wait for it for this ter uh and also it can be used within the uh within the method itself also on that particular method if you wanted some uh uh synchronizes synchronized uh fashion so that you can also use the matter now coming back to the [Music] um look I actually haven&#x27;t used it but um
+I I I have seen it in the Cod but I haven&#x27;t call although there definitely used in but not able to recall okay okay not right at all thank you uh can you let me know what&#x27;s the difference between hashmap and concurrent hashmap uh sure so hashmap uh uh basically these two both are the implementation of the M interface um uh now the major difference comes when it comes uh with the S with the computation uh with the basically HH map uh uh will give you an exception concurrent modification exception when used with
+while iterating through the hmap you are modifying the agreement of it but that is not the case with the concrete H so it does not give you an exception and basically it works on the segment level rather than locking the whole whole capacity of the H while doing uh while using in the conent environment thank you can let me know what&#x27;s the difference between AR list and Link list yes so so AR list is basically a contous uh memory allocation whereas Ling is a discrete memory allocation uh now uh link other list is
+being used uh where uh in in the scenario where you want where you have a more uh where you wanted to achieve more searching kind of functionality but it is bad for uh insert uh inserting and deletion because it has to basically shift uh the element from one place to another now this is where the link list comes in so it is better in insertion ination but it is not good with the searching part since it has to go to each and every pointer to search it uh uh and over the as it is a dispute memory um now okay yeah okay makes sense thank you
+and uh can you let me know uh the use case for S local um s local basically uh what um let&#x27;s say uh if you want uh so said local have its own memory as per say and can work on it uh on on work on its all all can work on it its own stack where it has can have its own local memory Can Can inv on private initializer uh so basically it how it segregates from the thre is like the thre basically uses it does not have it own it uses the memory of uh it uses the memory of the process and then essentially it is been defen from the from the St of that
+particular process where the thir local is quite different in that uh fashion um also it is being generally use when you have a computational uh when you wanted to achieve a better computation on the let&#x27;s say if you wanted to achieve like three uh three computation and post computation and after relation so it is essential for particular TR to have this uh kind of functionality then you can use the yeah great thank you uh can you let me know what is the spring L uh can you come again yeah uh please let me know what is
+the spring aspect oriented programming oh okay okay also uh so sping aop is basically um help us to achieve the cross cutting concern uh which is different from the business which you wanted to achieve across your application but it should be different from the business or the service layer uh logic so let&#x27;s say you can uh have the EOP based on logging part if you want it uh any D if you want if you are using 2DS you can also invoke theop now it has uh it has has certain annotations uh like at aspect at the class level you
+can use to invoke the aspect oriented uh uh feature uh related to that particular class it can also it has advice uh point cut and Joint point so um advice uh can be like if you wanted to do any execution before the invocation of any meod or invocation of a glass you can use before at the after uh after return and then after after throw and there&#x27;s something El theate around which is being used um majorly being used at the right which help you to uh if you do want any to wanted to do any pre computation uh within the
+execution and after the execution if you want to do any kind of stuff uh related to any uh related to any meod uh you can achieve by the at the rate AR now uh point cut is basically help us to Define which segment uh of the let&#x27;s say if I wanted to let&#x27;s say uh since the repository always contain the public matterial so if you if you wanted to achieve let&#x27;s say how many how much how much time a particular reposit is taking and the matter related to it you can apply the op around it and you can point out you can have to define the uh the
+structure uh like uh you know you can a point cut and then provide the structure like Comm do the structure of the of the repository and then basically if you wanted to achieve if you wanted to call all the method of the repository CL or if you wanted to so that expression you can provide uh Rel to that great thank you okay let me know how the what can let me know what do you think of uh how do understanding for spring in version of control uh so okay so uh sping inversion of control basically uh state that uh
+you know um the the responsibility of the object creation its management and uh and uh usage and instruction can be handed by the container instead of the application code so it basically invert the it basically invert the the um the responsibility from the application code to the content and in order to achieve it you can use the at the rate auto uh to inser the beam created in the the container to inject into the beam in the any concrete class or thank you uh can you let me know how to create a St pool in Java um how to create
+thre okay so uh you can uh create a thread pool uh by calling executor to this you can Define like four kind of like you can create like execut do new fixed set you can also create uh new um cash uh new you can also create one so there&#x27;s one class like it&#x27;s a single I don&#x27;t recall the method name but I think okay okay so so uh in terms of the St pool uh can you let me know what&#x27;s the difference between C size and the maximum of P size uh can you come C size yeah yeah C size and the maximum size okay okay that&#x27;s also so
+essentially uh it takes the idea of uh the basically the pool why we create pool it takes the idea of the uses of the say similar type of s the pools uh if you wanted to use now you need to Define like how much maximum tool you wanted uh it to have after which it will again go to uh going to the all the all the levels of entity manager and transaction manager if you if you wanted to reduce the call to set out those parameters again and again for each and every you can create a pool out of it and then you can Define like how much
+maximum TR tool will be required for the application and what is the cool tool it should be using initially to basically start the execution on on basically if you wanted to achieve the multi functionality then can start with this particular pool uh initial pool size and then maximum you can do go to this if the maximum exceeded then basically you have to create uh starting from the you know entity again goes to that M yeah wonderful uh can you let me know do you know how to use Swagger yeah okay uh uh can you let me know how
+how&#x27;s the rest for API looks like uh sure so um okay so uh uh so the so the uh the back test should be like you should be using uh uh the the nouns in of the vers uh for your entrant um and then there should be a proper example uh you have to given you have to get uh for every each and every AP and which each and every scenario with the Q parameters or if there&#x27;s any uh uh request parameter you are giving and uh apart from that it has to contain the uh the the right set of status code like uh under which scenario it can
+throw like 200 2001 under which scenario should throw 400 C under under which scenario should thow 5 um ideally it is better to segregate out the controllers based on the tag names uh for your functionality let&#x27;s say if my functionality is for a different purpose then it is better to segregate out those um the the controller part now currently we are doing with the use of so Editor to if edit if you were to edit any um specs great thank you uh can I let me know what design patterns you are familiar with uh s yeah can I let me know what design PS
+you are familiar with okay so in the context of the micros service or in the context of normal Java design in Java in Java oh in Java um I was we of for the sing uh Factory um decoror I&#x27;m a but we haven&#x27;t implemented it uh and observer design pattern okay so okay let me know how do you use how did you use the observe design pattern in your project um so essentially what uh we have uh so I will give you a use case butr we have we using so Observer design pattern basically state that so in general like design pattern generally deals with the
+interfaces and class and how we can make a better use of the uses so obser design pattern basically says like you know there&#x27;s one observable object and there Observer so basically when the Observer basically wants an regular update from the obser observable activity then in that case basically uses uh the observable uh The Observer design pattern so now uh let&#x27;s take an example of uh uh uh uh the magazine and the subscriber so the subscriber get to know like you know what is the latest magazine it the magazine publisher basically is uh you
+know publish so he will get the notification of it uh via SMS or via Ma so basically in ense the Observer need to need to have some sort of mechanism under which it can get the regular update um on uh of the observable object now it can be a scenario like where you can have a like scheduled update and you can have a uh uh you can have uh like the strategy you can follow to update the uh basically update your subscribers M okay thank you uh could you please just brief what is the solidate principle uh yeah sure so it&#x27;s
+a basically a coding practice uh it&#x27;s a best coding it comes under best cing practice principles so um so it stands for it&#x27;s a basically an econom stands for assistant for single responsibility principal uh uh so basic state that uh uh the responsibility of a particular class or interface should be discrete and it should not interface with the other um responsibility of other class let&#x27;s say in our spring boot AP we also in our spring boot object we also segreg out like we have a different uh package for repository we have a different package
+for entity we have a different package for service layer we have a different package for uh you know the helper and all so it basically uh basically we are doing the segregation uh the single responsibility that particular this class responsible responsible for this now coming back to the O uh o STS for open for extension and closed for modification so which basically stands for like once you have introduced a layer of a layer of extraction at the start of the application then essentially let&#x27;s say one interface should be open for the
+extension but close modification because the modification will will basically have an impact on the underlying or the implementing class it uh it uses basically the in class bit uses the interface it it will be uh it helps to also modified according to that so uh basically it is state that uh the interface interface should be open for the extension so you can extend out any functionality but should not uh you know uh uh change the the existing functionality to modify it to something else now I uh now L time for the lope
+substitution so which is state that you know let&#x27;s say let&#x27;s take a scenario that a interfaces like the B and C interfaces implements a interface extend a interface so basically it&#x27;s St that if if if I were to remove a a interface then basically B can be replaceable with a so essentially essentially mean that it should not break out uh break out the break out the functionality of C so basically it should be replaceable the the private the child should be replaceable of the parent respective of the change in functionality or any sort
+of Behavior Uh now coming back to um I I says that interface segregation it actually does uh uh relate to the first principle and the second principle so basically it say that the the if you have end numbers of interfaces then basically each interfaces should have should be coupled with only one number functionality and uh so it is better to create n numbers of interface rather than segregating all those interfaces in uh for the better scalability of the code uh thank you yeah yeah let&#x27;s sub thank you sorry to interrupt you sorry no yeah if I get
+yeah if I get answer what I want so I will disrupt you sorry no re okay so uh can you so uh when we talking about microservices can you let me know the benefits for micro Services uh yeah sure so the first benefit uh is basically um so you can use and numbers of technological Technology stock uh to incorporate your uh microservices and also if the microservices number is small uh it is better in monitoring and loging perspective um and also uh it is also beneficial for the faster uh prod time uh faster deployment time since uh it creates a a
+single entry pod inside the kubernetes and um also um uh it uh it uh basically helps us in scalability as well uh because you can scale down and uh is a itive of the the effect it does on other microservices you can scale down better since it&#x27;s a single depl unit and uh apart from that uh you can also put down your cost cutting concern uh if you want for for it to be enabled for in any microservices not for the microservices you can also you can also version your application based on your requirement um and uh okay thank
+you thank you uh so when we using microservices um can you let me know how to handle a distributed transaction um so distributed transaction uh we can achieve by some design pattern we can use like uh we can use two-phase com um we can also use Saga design pattern uh apart from that we can also use cqrs um like command through and then um uh so this design pattern will help us to achieve the distribut transtions okay so can you let me know what&#x27;s the difference between two phas uh and the three phase design pattern uh two phase and three
+um cace I haven&#x27;t explored uh so I can give you two two is basically it is good if the if the uh if the micros service is not highly scalable because it has to wait for basically basically it has to wait for um basically it is waiting for the which is basically is a synchronous process it is waiting for the uh for the other party to let them know that it it is being done uh so then it will uh then it has a uh forwarding motion otherwise it will goes to the compensating okay thank you so and could you please elaborate on the Saga pattern
+yeah sure so uh there are uh there are two ways to achieve Saga design patter uh so first is y sttion and the second is so within the orchestration there we are using a single control which basically takes care of single transaction basically the dividing a single transaction into different entities sorry not the entities but smaller part small part transactions and uh with the when we talk about the P graphies basically each micros service should be responsible for forwarding action as well as compensating uh but with the workus data
+it is the controller responsibility to uh have the compens action and as well as not the but comp m okay thank you uh can let me know how can we deal with the distributed tracing okay distributed tracing uh we can achieve via micrometers uh by use of jipin libraries um and also currently we are using service mesh so we have in involed like Jo and uh uh basically we have invoked uh installed for that part and the same micrometers and Bally weing as a to help thank you so please uh let me know how to how to use the zip King what you
+metion um so uh related to the zipin um uh I think uh it was long time uh uh I think there are some there are some annotations uh which uh we are using um I think I I didn&#x27;t recall it okay we don&#x27;t that all yeah so I&#x27;m familiar with erk uh e for elastic search for log k for K yeah yeah we are using like elastic search in k for for logging out um uh for checking out the production issues if any uh so we have the Clusters and partitions uh with the servers uh so yeah we using okay thank you and uh uh can do you know how to use
+drink um so uh Kevin we are uh so I think uh um Jenkins is a part of light speed class uh we have migrated our part to interface so previously we are used I think two I think one and half years we are using sence but uh prior to now we are using tecton for so is being currently integrated with light sorry bid bucket so whenever we are pushing the code uh internally it picks out and basically build the image based on uh based on the stages so also we are currently using the helm chart so that&#x27;s the last stage and then basically
+artifact and the Deployable image will be created of the that before that we have certain stages as well like get get config there then after the uh yeah sorry sorry sorry give me a second yeah sorry give me a second oh I&#x27;m so sorry and my baby is crying it&#x27;s crying sorry yeah and uh so uh so may I know do you edit P of the script huh actually we Kevin we have a different stre which to that oh so okay okay
+understand in my free time I but uh any question I&#x27;m not sure able to answer okay okay understand thank you so do you off uh do you use Docker uh do you add doer file uh yeah we are using Docker file for that uh but I think internally we uh internally is being used in the cuber nettic for the uh for the image creation since it is being since we are using the head open shift that&#x27;s enter so yeah I I see the file is there uh but uh uh the script is basically okay so uh then do you know what is a do compos uh to compose um
+no okay understand uh so just now we just now you mentioned for the CES so please let me know what&#x27;s the difference between service and the deployment of thees um so uh deployment um so Services uh so deployment basically creates help us in creating the pods uh now pod is basically a simple Deployable unit um and also uh service helps us um now the service helps us in uh basically uh like the functionality like it consist since we have uh pushed into uh the service M now it is essentially being used for the
+uh for service Discovery if any inside within the within the topology um and also uh deployment also uh helps us in uh load balency um and as well as within the HPA also it comes under um whereas the service uh uh I think majorly being used for the how the traffic will flow uh like it should be on the on the currently we are using I think on fashion uh okay thank you thank you uh please let me know what is the increase of the coties uh so increase is basically work work as a front end controller uh which takes care of all
+the uh incoming request and since we are using using the service M so the functionality has more so basically internally it uh it it redirect the particular request what it comes to uh to go through the zoa and then also sorry not The Zo yeah it goes through the zaa and as well as uh it helps us for any sort of cost like it goes through the load balancing C it also goes to the uh profit controller since we also using uh blue and green deployment St uh and uh thank you yeah yeah thank you and uh can you let me know what is the
+config map of the Ku uh so config map uh generally uh we used to define any configuration uh based upon your pod uh based upon your not not a pod but the application as such so let&#x27;s say if you wanted to uh Mount any images then also can you can use the uh config map over there uh also currently we are using a config map to store binary binary Keys as well currently we are using JPS uh and also P2 file to store in the conf so that that can okay thank you uh can you let me know what&#x27;s the difference between Mo
+and spy in moo uh so uh Mo basically uh is being uh put over the object over the uh object where you wanted to use particular dependencies uh on the on the class under test uh let&#x27;s say if a has a dependency let&#x27;s say if I&#x27;m Auto wiring a uh into b class then basically we while writing the test case I to write at the mo over uh the a class class A in the instance of so that when it Mo the functionality it uses the mo object of this now coming to the spy uh spy basically uh used over the uh the object or the class under test
+for which we created the object of uh now um okay that&#x27;s what I yes thank you that&#x27;s great and uh are you familiar with cucumber cucumber I have heard of it but never have used okay thank you uh uh may I know what uh message messaging queue you are used um So currently we are using cka uh but uh in our project we haven&#x27;t started it I was talking about different project that uh was using C so yeah cka is there which we are using as a uh for [Music] the okay great uh can you let me know what is uh what is the partition and the
+topic of CAPA uh partition um so uh topic is basically uh uh every uh stream of data when it flows through uh the every stream of data when it flows to uh uh the queue uh that has a specific name around it so that the consumer and the producer can push the data to that particular uh now coming back to um partition so Kafka have a Kafka have its own server now you can have different uh partition over there spacing from vertical or horizontal partition uh and it responsibility to Great using K can you let me know how to
+guarantee message delivery um so so generally um we uses cka on the asynchronous uh where we wanted the asynchronous communication to happen between the microservices and that generally we use C so it doesn&#x27;t have to wait for uh wait for any sort of notification or something like that now uh to guarantee um uh the delivery of the messages [Music] um I think uh we can uh um okay thank you okay so do you know how to use a Kafka to implement Mage other um so you want it um so uh currently we uh so there&#x27;s a dependencies
+uh start dependency for the um and uh after that we have to Define uh C enable project we using one JPS for that which consist cons consist of the certificate then uh while uh the certificate is there then we have to on configuration to R the certificate once we have all the setups completed then we can essentially use um start using cka and then basically it can it comes under different annotation we can use okay thank you very much and uh in terms of the relational database uh can you let me know how many approach uh to
+optimize Cur performance uh yeah sure so uh so first point is like uh generally we uh we should not be use star uh Mark uh to get all the um all the all the columns it whatever is required you should be giving that uh also we should not be using any wild card um uh uh symbols like percentage which basically decreases the performance uh also we should not be using the symbolize equals we should be using like is equal is not equals also uh for the subq it&#x27;s better to write uh CT like Comm uh commentable Expressions um and also uh
+it is it is better to have the indexes whever your where Clauses contains like the uh contains which columns so it is better to have the indexes over there multi- indexes also will help um and uh okay thank you uh so okay let me know what&#x27;s the difference between index and the composite index so uh index U uh consist of the uh uh one um column whereas Composite Index can consist of uh and numbers of column so basically it is generally used to differentiate a particular Z let&#x27;s say if you have a data which for which
+one if you have table for which one column is not sufficient to differentiate would be uh the then you can go the conclusive index otherwise a normal index will M thank you uh so do you know what is the execution plan of the database um execution plan uh generally helps us to identify like uh um uh where are the uh where are the uh index is being placed on and how much uh computation it takes for each and every um predefined keyw it uses like say if I wanted a gr by Clause so that it will give us give a plan like uh you should
+be using this clause and this columns like uh to improve the performance of the C uh generally it uses for the complex Cy to understand like where exactly the bottleneck or the performance can be improved uh based on certain great thank you uh okay let me know what annotations you often used for spring GPA um spring GPA uh at entity uh at the table at theate uh columns at the join column at the one to many uh uh theate uh at the uh transaction at theate yeah enable transaction management yeah yeah great thank you
+very much and uh in comparison to relational database please let me know the benefits for noq database uh noq database like uh um the basically the main major difference is like uh the relation datase has a uh structure so it has to be have on the p colums and results whereas with the non no with the non esol it comes also comes in semi structured data or non structured data uh so you can have a uh the semi structure data and structure data isres whether you are having the columns or uh whether you don&#x27;t have the
+columns or so basically we can also set the values as we can also store the Json in the no but the Json cannot be stor into the RV also um um it generally uh with the with the Rd uh generally with the rdbms uh we can uh uh uh but theability works on a horizontal fion uh not sorry uh theability yeah thank you thank you so may I know what particular noal database you ever used uh I haven&#x27;t got the chance to oh okay okay now set so iar with red is um that is uh no I have used cost okay okay understand thank you and
+uh can you let me know uh uh what is the Sprint boot activator um so spring boot activator help us in monitoring and uh uh and uh he checks of all of our microservices like it has a different end points uh like SL Health SL info uh it can also help us to understand what are the be has been created and how much has so it has be uh coming back to the configuration uh like the management also you can have also the pesis port can also be involed hesis and then it can also displ how many um things basically uh keeps you production R
+features yeah wonderful thank uh can you let me know what is the spr starter um so springboard starter uh is a is a way by which uh we can inoke in transitive dependencies respect let&#x27;s say if I wanted to use uh uh you know uh if I wanted to create one application the web as a website web application so I didn&#x27;t have to really configure like the like I want web server like AP term that I have to like so it basically uses the concept that transactive dependencies uh where you don&#x27;t have to really worry about what
+are the dependency it will it basically work as an start package to you so whatever the functionality based on the dependency already thank you uh can let me know how to implement conditional Auto yeah sure so uh there&#x27;s a lot of flavors of sorry sorry can you come yeah how to how to implement conditional autoare conditional autoare um yeah conditional Auto wire um okay okay I think uh uh we can use uh setup uh method for that uh like uh um so generally with the seter method you can have you can also have the optional
+dependency if if it is really request you can have that and otherwise it won&#x27;t uh uh it won&#x27;t create uh the instance of it so with the with the use of the setor uh dependency injection uh injection of the auto you can use uh you can achieve that yeah are you familiar with this annotation uh yeah conditional on yeah uh so there&#x27;s a lot of flavors under it like condition on being condition on machine green condition on property uh we can achieve that so yeah if let&#x27;s say let&#x27;s take an example of uh let&#x27;s take an example of two different
+databases uh it the spring boot uses so let&#x27;s say if I&#x27;m using Oracle and let&#x27;s say if I&#x27;m using D IBM db2 so if I wanted to invoke any any of the any of the dependency so what I can do I can create one add uh condition only and then provide you know value and then uh there&#x27;s another parameter for having so we can Define the values and then if I set it as true so actually by default value is true so if I set it as true so then it will it will start the be of the orle and if I if I set it pro for the dv2 then start on the dv2 So based on
+the user uh input it will start out the bean and create the thank you very much and uh uh please let me know the uh the Ceremonies for AG methodology uh can you come yeah please let me know the Ceremonies for a methodology the ceremony such as standa meeting oh okay um so uh so um the start of the So currently we are following a Sprint of one month uh it&#x27;s basically 20s days translated to 20 um so every time um uh like uh when the Sprint ends we have a to spect after that we uh will go down to the uh to the story points which we do have a backlog
+and if there&#x27;s nothing then you can start taking out the new like requirement and then there&#x27;s a grooming sessions uh for each and every story um and then the the stories has been assigned to the developers based on the band head has uh and also in the gaming session it also be decided like how much time tentative time a particular story will take and uh after that uh uh then on the on the every uh and and and day after the ging session then we start tracking the status of the J by standing great thank you very much I
+think uh then we can move on to next part for coding task is it okay yeah yeah sure definitely give me a second let me share with you question okay give me a second let me remove some questions here [Music] okay okay so please uh do this three tasks uh in 15 minutes and uh the um requirement is you must use the streaming API to solve the problem okay okay and and also what I highlighted there there have three Ms is already defined here so you just need to implement the method oh okay okay from 6 to 63 yeah thank you yeah sure should I
+start yeah yeah please please yeah sure thank you for uh find the student with the highest okay what is the type to type
+t [Music] just school for St e for
+[Music] [Music] second e [Music]
+Akash yeah can you see me right now uh no yeah I&#x27;m so sorry maybe it&#x27;s it has some issue with our platform so please uh tell me moment let me rejoin the meeting yeah sure yeah you can continue yeah m to
+[Music] m e for
+oh it&#x27;s Sol I didn&#x27;t see that [Music] [Music]
+yeah I think uh these are the okay thank you very much uh if you confirm your answer then we can move ahead yeah yeah then we are we can move on to next part for soft skills uh my question is uh can you let me know what&#x27;s the uh what&#x27;s the challenge you faced in your project and how did you overcome it um so uh currently uh we are use uh we are facing the challenge of uh uh uh the performance fixes so uh we have that&#x27;s why we have gone with haard cost distribion um so generally currently what we are using like uh before that we
+are using the application Level C but it has not been distributed and it is not currently being uh used by the other micros Services which we basically wanted them to uh in order to in order for the load time uh response time Less in the U so part we have done also there are some design issues uh with some of the microservices uh so essentially what we have uh the authentication and operation happening uh but rather than saving the token basically in the the cashier what they are essentially doing the every time they are calling the
+token apis and basically about token is basically having aity of 10 minutes and we also have an A uh light very lightweight AP in order to check whether the token is expired or not um but this particular AP is basically not being used across the architecture so we have gone through and then have taken the session and then basically inar like it should be done um and also uh there are some apas which are liely called in the UI site so what we it is like we have core services so we have enabled those uh apis in the synchronous fashion so
+basically this particular application is basically handles the authentication uh of a particular user uh so basically it gives out the token while giving the token then internally we also enable the ass syn SC to St AP which will help uh the other microservices or the UI component to get the data as in when it requires and uh also it has some limitations because uh the data will be still for one hour uh but we have to go with this tradeoff otherwise the performance will not be as good okay thank you so that actually for
+my side I don&#x27;t have any questions do you have any question for me um yeah Kevin so I think uh I just wanted to like is this hiring is a specific project or uh I be looking out for some uh I think actually I&#x27;m not quite sure because I&#x27;m only concentrated on the technical interview I&#x27;m not uh familiar with the uh interview side because you know for different project uh the next round would be different so it depends I think okay so yeah other questions yeah I had a good discussion with okay yeah me too really nice to talk
+with you you share a lot of knowledge with me yeah that&#x27;s pretty nice thank you okay then if you don&#x27;t have any other questions I think we can close this meeting yeah thanks for sharing yeah thanks for sharing your knowledge and personal experience with me so have a good day byebye byebye have a good day to you byebye</pre>
+    </details>
+    <details class="raw-block searchable">
+      <summary>Round 3 — Architecture + SQL + Java Streams — Original raw script</summary>
+      <pre>so what can you give a brief about your current project like uh what are the Technologies used there and it&#x27;s architecture and all not in a business way I need want to understand the architecture of the current project yeah sure so um currently we we are basically buil micros services from and since it&#x27;s a domain driven services so uh so we wanted to enforce more security uh since these microservices being used by uh the UI component as well as the backend component which uses the domain uh services so our services uh basically
+different microservices with different uh domain like user domain has a different micros Services entitlement domain has a different micros Services account domain has a different micros services business domain has a different micros services so what we essentially do uh is we created uh a API Gateway and now this works as a front end controller for all the request coming from the UI component or from the backend comp and all the all the microservices this domain microservices being tagged to this particular API controll now this
+API controller is being implemented on top of uh explain Cloud Gateway um so it uses it uses itself as as a lad balancing and a toling manager now we implemented certain uh security feature uh in the in the AP controller like we use this we introduce a token called nontoken which has a validity of 10 seconds now this nontoken is basically used to identify what the consumer whether it is a is it a legit consumer or not not a legit consumer so what we did is for to achieve that is basically we uh we ask them to create pair of keys so
+private key keep it with themel in the public key you shared with the with the EP controller we call is the NG router so then what we essentially it is like they created a JW T token JWT token and then they will fire it to us now this JWT token they will create it with the help of private now once they fire once they wanted to use any of the domain services uh they basically file it to the API controller now we how we understand that is a controller that we basically validated the the JW token with the public once
+validated we will let go through the process now coming to the uh there&#x27;s another microservices which we created just for the authentication purpose so what we did is like we uh when whenever the request comes in so every time they for to access every domain Service uh application they need to have two things first is non toen and the second is token and non token is basically is been consumed at the AP level a AP level now the second token is basically token now this has a validity of 10 10 minutes this is also a JWT token now the
+difference between the two tokens like uh with APA Gateway we are using JW s now this is basically is a signed token now with the or token we are using jwe now this is an encrypted Tok so the payload is enced you cannot see the payload so uh we uses these two token for the interaction Purpose with any of the domain driven Services okay yeah so you are using domain driven design for micros Services right can you tell me why we use this one what are the advantage of using this domain D design so the advant is like it
+segre out segregated out the functionality wise like it uses de composition pattern so basically let&#x27;s say if I if the UI consumer wants to use the the user specific understanding like the apas wanted to consume user SPAC then they can simply call the user space they don&#x27;t have to call the other micros service and then internally it is following the other microservices so it basically segre the concern and the functionality across the across Thea request so which will enable the the UI in the back end component to uh to
+basically uh to bound L the service what they wanted to consum okay so how can you monitor the I mean the health of microservices so uh we are using uh uh Gana and uh also we are using um uh actually these are for trading purposes but generally we use spring actuator and as well as we are using EC uh ECB H check also now this H check is been configured by inserting so basically we have created one uh end point uh and that basically have given to the INF team so basically what they have a dashboard they created so what we did is
+like we give them the uh know actuate end points like info and health to them so basically they will config every so they will they had a test boort which uh basically hit uh the hit hit the API at inter so basically we can call it a hard a hardit the uh test you heard about the cqrs pattern uh yeah so can you tell me what it is yes so so it&#x27;s uh It generally uh seg the concern of Q and update so generally uh uh whenever there&#x27;s a fall back uh happens so what happen is like uh we don&#x27;t wanted to update uh the
+unnecessary information uh when there&#x27;s basically uh it helps us to uh segregate out the concern of cuing and updating so both these two entity cannot be inter and Interlink between them so whenever there is a need for the you know for the micros services to inct with the get or let&#x27;s say to Q some some some uh some entity from the database so they can use this and then if they wanted to update uh this particular thing then uh update entities in database they can use uh this part okay and you heard about the uh
+zero downtime deployment of micros Services right you want to deploy something do you deploy how you deploy these things so generally yeah sure so we are using current application I asking in your current application how you make sure this zero downtime deployments are happening like what are the strategies you are following there yes so so c k we are using uh light speed uh sorry light speed sorry sorry Sor uh generally we are using this interace cuber net we are using which has an ability to roll out uh if the deployment fails uh to the
+previous uh deployment so we basically we are using the roll out strategy uh for for okay rolling out strategy you are using okay so in your current project are you using any agile methodologies for development yeah yeah currently so scrum or can no it&#x27;s just we are using you using scrum what are the various scrum ceremonies you follow yeah so uh starting from uh like we have a spint review and then uh sorry Str planning and then basically we uh there&#x27;s one Str uh this every day the stand up and then after that Sprint RW and then there&#x27;s
+deployment has been complete there&#x27;s a Sprint okay retrospection okay uh you are using verion we are using okay what is the branching strategy you following it yeah sure sure sorry sorry for the inter so um uh so whenever there&#x27;s an let&#x27;s say if you if there&#x27;s an feature to be implemented so what we did is like we created uh the feature Branch now there&#x27;s an instruction uh as to how to create the uh branches so what we uh so generally the in our current organization what we did is like whenever there&#x27;s a Gesa board uh and
+under the jiza board they they have integrated B so you need to you need to create Branch from the itself and it will take you to uh the bit bucket uh dashboard so you can create the feature Branch uh if there&#x27;s any uh production issue you can create hot fix there&#x27;s a u issue you can create Buck fix and then is something called Custom Custom and zies branches now whenever we create future Branch we basically uh so basically we don&#x27;t have to give the feature Branch name it is automatically picked by the uh J description uh J title and it will
+automatically up and then we will use this okay so you do unit testing for your apas yeah which version of unit J unit you are using uh currently for so since we have uh spring three so we have to okay you I mean you do your hands on J right you do every API whichever you are developing you write your unit as well right by yourself correct correct so K what is like this also implemented like have you heard like get GitHub copilot yeah you are using giop yeah yeah also for that but uh yeah I think from the last last two or three weeks we
+started using but before that we you are writing now you are not writing you using cilet only no no no we have to write some part but it will give out the suggestions based on what object we so yeah before that we are definitely you are right can you tell me how can you test an exception blocker so we have this service we have a method it has a try block and Cat block okay so how to test the cat block so uh if uh uh you wanted to test you can do try like do exception uh or the throw exception you can do uh so it will
+implicitly throw the exception but if you basically if you wanted to throw um the exception based on the based on the real time scenario let&#x27;s say uh if I have like no such method of exception so I can use uh a method which is not there in the list and then basically uh I will uh assert and then n n so basically what what I will do I will capture that particular exception and print out that string and there I can say you know aset to so if that particular exception happens and this is the message we should so that&#x27;s how uh we are
+using okay so you are using rest apis right rest API what is this item potency concept interest so ad potency state that um generally we are using sttp verbs uh to achieve the the restfulness so uh if you consider post it&#x27;s an item forent so basically what it is like whenever there&#x27;s an request goes into it so it will create every time a resource into the database so every time you request with the same resource it will create a new resource and the request but that is not the case case with uh other bulbs like get uh patch
+Bo so basically uh it this property will uh with uh this property will basically let us let us know that whether the whether the sttp bu is the source basically utilize or not yourz okay so which version of java you are currently using a uh 17 Java 17 okay so you are comfortable with functional programming right way of writing Java yeah yeah so you have your ID available with you uh yes I do okay okay can you open it and share screen let&#x27;s go with the problem [Music] yeah uh could you just give me two minute actually intelligible take some
+time to so once it is open I okay okay justop so meanwhile intellig opens can you tell you heard about composite primary keys right yeah yeah what is composite primary key uh so when a particular column basically a particular column is not sufficient to identify a particular zo then we can go with a composite key you can use uh more than uh more than one uh columns identify a particular un row okay so in Spring you are using jpa or hyate uh we are using jpa okay so in jpa how can we implement this composite primary uh we can use uh embeddable ID
+uh for the particular ID and then uh we will create another class for that particular called embeddable so that we can uh and it should be implemented then we can use okay how can we do this multiple database connection to a spring Bo application we want to say one from one table and one table from one database another from another table another database how can we do that uh so we need to create uh two different uh uh data source be for that and uh there there are certain steps we follow so we need to configure from the
+from the property side like this thing uh uh you need to define the custom properties if you&#x27;re using two different uh databases so like a spring databases then you can Define your custom then to to pick up this property you need uh configuration for data data source and then once once the configuration is up and you are able to load up properties you will create a bean with the different data source let&#x27;s say if you wanted to use a different data source let call if I want to and if I want you to use db2 so you can create two
+different be and based on the condition you can pick up that beans like uh let&#x27;s say if I wanted to use uh like Oracle Bean you can create at the condition on bean and uh you can pick up those particular be if you wanted all the beans to be pick up you need to Define any of the any of the beans to be at primary or uh any of the this to be primary so that it will pick up first and then the second after that then you can create your own deposit uh catering to use uh databases along okay I shared a link in the code editor can you please open it
+in your browser and share your screen yeah yeah let me just I think I&#x27;ll put it in the chat then you can copy it okay chat I pasted code editor you won&#x27;t be able to copy from chat you copy uh so you have put in the code edor chat chat only you can copy paste okay so you want me to open this yeah you open that in the browser and share your ID intellig is open yeah intellig is open okay first let&#x27;s do this and then do the in can you share your screen please yeah just okay I&#x27;m sharing the
+whole let me know once you able to see okay I can see your screen you open that link okay yeah loading only wait so here you can see you have a customer table orders table and shipping table so what we need to get as an output is you need to write an SQL query to find the customers who have placed orders for multiple different items multiple different items in the sense in the first second table you can see customer four placed orders for keyboard and mouse okay different items right so the output should be like customer ID for
+first name last name you can print which who are the customers who placed multiple different orders in this case only one customer ID for John rehard okay so uh so customer who bought an ID of monitor right no no my question was okay write an SQL query to find the customers who have placed orders for multiple different items multiple different item okay more than once that&#x27;s what I telling in this case there is only one customer who placed multiple different item that is customer ID 4 got it he placed mouse and
+keyboard got it yeah so we need to print the details of that customer customer ID for first name and last name as the output got it got it got it okay can I take five minute to uh uh understand and then we like yeah you can start writing the join right there anyway you need to join two tables [Music] you are typing oh sorry sorry okay
+[Music] and customiz f
+I think okay let me [Music] let I think
+[Music] sure I think yeah execute and see run the I this is okay now you can we can move to our ID okay give me a
+okay so I am pasting a string in the code editor what we want is like say here uh the pattern xsx appears only one VC appears two FF appears one y y only one sir C appears one I have placed it in the code editor in the code edor you can see right interview c not this one go to our interview browser okay you can see in the okay and uh kushu can you uh like repeat again the problem okay so in this string you can see the this is the input output I&#x27;m expecting is is trip X appeared only once in the entire string so I have given the
+count as one appears two times in that string right there uhuh so the count is given us two FF appeared only once Y y1 tt1 is XX again appears twice so this is how we need to print that the output did you get the question oh okay okay if a pattern coming we want to know that is repeating and then how many times if it is not repeating print the count as one okay so if it is XX isting one time so set between two terms uh okay okay
+sure okay let me just copy this you can&#x27;t copy from here you can add a custom string you know what we have to do right editor yes yes I can see let me just only thing is the pattern should repeat that&#x27;s it [Music] it should should this so yeah for
+just to find test the [Music]
+St this it
+manchest so then and SC
+first this last last and this is in [Music] oh
+this uh squish you there hello uh Kush uh K there I think in between your network gone we couldn&#x27;t I couldn&#x27;t uh see you or I couldn&#x27;t hear your voice oh what so not sure can you share your screen as well screen sharing also gone I&#x27;m not sure I got like socket connection isue I&#x27;m not sure why I thought you were in the okay okay [Music] [Music]
+now this is [Music] let me just [Music]
+Akash we lost you again your screen sharing again not sure not able to see you Serv uh there a screen uh screen sharing everything again going uh can you share your screen again no actually P the point is like I&#x27;m not able to see the icons as well I just see Cod and the blank can I zconnect yeah let me know once I&#x27;m
+busy um am I visible or the screen is visible yes yes screen is visible now okay good for um can you tell me what are you trying
+to do here no actually I I thought like it is uh um I think I forgot the problem so I printed like the how many times this particular thing happened I like that uh just give me a moment uh I think I should be using for when the same cues so just to
+[Music] do this [Music] [Music] T then I&#x27;m first going to keep key key plus to
+be G to [Music] uh I think I&#x27;m not getting sorry hello sorry guys I didn&#x27;t get you I saw yeah I can hear you tell me yeah I think it will take some time for me to go to the solution okay I think you have a network problem your camera is stuck okay you are telling you need more time for this one yeah
+yeah okay then uh we go with another problem leave this one we&#x27;ll go a simple one yes and do with the java8 way of coding so here you can see in the code editor go to the code editor again so here you can see departments and employee and salary okay so here the is like a same employee can work in different departments in other EC Department same way employees are working in different different departments okay and get pay different different salaries what we need earning total and his total salary and if SAA is earning
+8,000 uh kuu uh I think I lost you uh there hello uh kushu hello hello hello we have different departments and different employees and
+the employee can work in different departments okay you can see har is working in two different departments Cs and DC right okay so what we need as an output is if the person worked in multiple we need the total salary of that person okay okay so har earned as a total 10,000 you need to print his total salary say example see earned a total salary of 8,000 you need to print that one and all employees and their total salary in the descending order of their salary that means in the top earner first then the next then the next like that did you get
+my question okay okay so I will repeat it again so like essentially what we re is like to print the name of the salary and as as salary and and they should be in the descending order with the respect to the salary yes total salary of each person not the individual so respect of the depart okay you share your screen and start writing Okay so I&#x27;m going to write the solution here in the new class for
+for for SC for stream
+don&#x27;t I can [Music] goes okay connect [Music] so to
+this this one this is [Music] so this one so once I
+got keepy is shed [Music] to it get it
+this this is [Music] out this get name is it
+executable uh I need to create an EMP CL uh let me yes you need to make it executable okay [Music] consist of Department find [Music]
+how should be okay [Music] for for [Music]
+so we have CS this change what you have
+BC this this is the Ty seven um so this is see for
+this this something for for
+[Music] d [Music] sorry uh uh sorry can you repeat [Music] again hello hello for um for
+I think Akash I think it is fine you can try it offline because it&#x27;s almost on the top of the hour and we need to wind up the interview just a minute do you have any questions for me can you give me five 5 minute only is that possible okay okay [Music] should [Music] sh
+SC okay for [Music] each [Music] okay system [Music]
+then do this e [Music] [Music] let me [Music] just so [Music] [Music]
+just run it [Music] I gu we need to wind up I just I just need to run it that&#x27;s it I just need to is almost half hour and I have another meeting just a minute I just will Lear it and then okay yeah sure um because this is not the output we
+want right we wanted to sum up the top salary yeah yeah yeah so aash you have any questions for me uh yeah kushu I just wanted to understand like is this heing is for particular uh for particular client are you looking out for specialist uh actually e has a variety of opportunities in different domains okay so once you into the system then we will propose you to the right project and there you need to do a project fitment round and get into the project got for because this particular we have Java micros Services requirement more
+than 50 plus requirement across different customers oh okay it&#x27;s not for a single one we have multiple ones available water thank you thank you for for lovely session thanks thanks it was nice talking with you I&#x27;ll share the feedback to the recruiter they will reach out to you sure sure sure thank you [Music]</pre>
+    </details>
+    </section>
+
+    <section id="practice-plan" class="section searchable">
+      <h2>7-Day focused practice plan</h2>
+      <table>
+        <thead><tr><th>Day</th><th>Focus</th><th>Done</th></tr></thead>
+        <tbody><tr><td>Day 1</td><td>Core Java: HashMap, equals/hashCode, ArrayList vs LinkedList, Optional, Java 8 Stream API.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 2</td><td>Concurrency: Runnable/Callable, Future/CompletableFuture, synchronized/ReentrantLock, ThreadLocal, thread pool.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 3</td><td>Spring: IoC, DI, AOP, Transaction, JPA, Actuator, Starter, Conditional beans.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 4</td><td>Microservices: DDD, API Gateway, Saga, CQRS, idempotency, distributed tracing.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 5</td><td>DevOps/Cloud: AWS Lambda, Kubernetes, Docker, CI/CD, rolling deployment, ConfigMap/Secret.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 6</td><td>Database/Kafka: execution plan, index, composite index, Kafka topic/partition/delivery guarantee.</td><td><input type="checkbox" class="progress-check"></td></tr><tr><td>Day 7</td><td>Mock interview: answer each question in 60–90 seconds and redo all coding tasks without looking.</td><td><input type="checkbox" class="progress-check"></td></tr></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+<footer class="footer">Built for senior Java backend interview preparation — Java, Spring Boot, Microservices, AWS, Kubernetes, Kafka, SQL, and coding tasks.</footer>
+<script>
+const searchInput = document.getElementById('searchInput');
+const noResults = document.getElementById('noResults');
+const searchableItems = () => Array.from(document.querySelectorAll('.searchable, .qa-card, .code-card, .raw-block'));
+
+function normalize(text) { return text.toLowerCase().trim(); }
+
+searchInput.addEventListener('input', () => {
+  const query = normalize(searchInput.value);
+  let visible = 0;
+  searchableItems().forEach(item => {
+    const haystack = normalize(item.innerText || item.textContent || '');
+    const match = !query || haystack.includes(query);
+    item.style.display = match ? '' : 'none';
+    if (match && (item.classList.contains('qa-card') || item.classList.contains('code-card') || item.classList.contains('raw-block'))) visible++;
+  });
+  noResults.style.display = query && visible === 0 ? 'block' : 'none';
+});
+
+document.getElementById('toggleDark').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('interview-dark-mode', document.body.classList.contains('dark'));
+});
+if (localStorage.getItem('interview-dark-mode') === 'true') document.body.classList.add('dark');
+
+document.getElementById('expandAll').addEventListener('click', () => {
+  document.querySelectorAll('#original-scripts details').forEach(d => d.open = true);
+});
+document.getElementById('collapseAll').addEventListener('click', () => {
+  document.querySelectorAll('#original-scripts details').forEach(d => d.open = false);
+});
+
+
+document.querySelectorAll('.copy-code').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const code = btn.closest('.code-card').querySelector('code').innerText;
+    await navigator.clipboard.writeText(code);
+    const old = btn.innerText;
+    btn.innerText = 'Copied!';
+    setTimeout(() => btn.innerText = old, 1200);
+  });
+});
+
+document.querySelectorAll('.copy-answer').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const target = document.getElementById(btn.dataset.copyTarget);
+    await navigator.clipboard.writeText(target.value);
+    const old = btn.innerText;
+    btn.innerText = 'Copied!';
+    setTimeout(() => btn.innerText = old, 1200);
+  });
+});
+
+document.querySelectorAll('.progress-check').forEach((box, index) => {
+  const key = 'interview-plan-' + index;
+  box.checked = localStorage.getItem(key) === 'true';
+  box.addEventListener('change', () => localStorage.setItem(key, box.checked));
+});
+</script>
+</body>
+</html>

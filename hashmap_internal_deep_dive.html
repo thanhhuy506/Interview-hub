@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HashMap Internal Working - Java Deep Dive</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111c33;
+      --card: #ffffff;
+      --card-soft: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #f97316;
+      --green: #16a34a;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.22), transparent 38%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.18), transparent 28%),
+        #eef2ff;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 22px;
+      background: linear-gradient(180deg, #0f172a, #172554);
+      color: white;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #60a5fa, #f97316);
+      box-shadow: 0 14px 36px rgba(37, 99, 235, .35);
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    .nav-title {
+      color: #93c5fd;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin: 26px 0 10px;
+      font-weight: 700;
+    }
+
+    nav a {
+      display: block;
+      padding: 10px 12px;
+      margin: 4px 0;
+      color: #e2e8f0;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: .2s;
+    }
+
+    nav a:hover {
+      background: rgba(255, 255, 255, .12);
+      transform: translateX(3px);
+    }
+
+    main {
+      padding: 34px;
+      max-width: 1180px;
+      width: 100%;
+    }
+
+    .hero {
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, .95), rgba(30, 64, 175, .92)),
+        url("data:image/svg+xml,%3Csvg width='160' height='160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.14'%3E%3Cpath d='M0 80h160M80 0v160M20 20h30v30H20zM110 20h30v30h-30zM20 110h30v30H20zM110 110h30v30h-30z'/%3E%3C/g%3E%3C/svg%3E");
+      color: white;
+      padding: 46px;
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -60px;
+      top: -80px;
+      background: radial-gradient(circle, rgba(249, 115, 22, .42), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 840px;
+    }
+
+    .hero h2 {
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      margin: 0 0 18px;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: #dbeafe;
+      max-width: 760px;
+      margin: 0 0 24px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, .12);
+      border: 1px solid rgba(255,255,255,.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      backdrop-filter: blur(6px);
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid rgba(226, 232, 240, .75);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin: 22px 0;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      font-size: 28px;
+      line-height: 1.2;
+      margin: 0 0 16px;
+      letter-spacing: -.02em;
+    }
+
+    section h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: -6px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      padding: 18px;
+      border-radius: 16px;
+    }
+
+    .card h3,
+    .card h4 {
+      margin-top: 0;
+    }
+
+    .number {
+      width: 36px;
+      height: 36px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 12px;
+      background: #dbeafe;
+      color: var(--primary);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    code {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-size: .92em;
+      background: #e0e7ff;
+      color: #1e3a8a;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 16px;
+      overflow-x: auto;
+      line-height: 1.55;
+      border: 1px solid rgba(255,255,255,.08);
+      position: relative;
+    }
+
+    pre::before {
+      content: "Java";
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      color: #94a3b8;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .diagram {
+      background: linear-gradient(180deg, #f8fafc, #eef2ff);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      overflow-x: auto;
+    }
+
+    .bucket-table {
+      display: grid;
+      gap: 10px;
+      min-width: 780px;
+    }
+
+    .bucket-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bucket-index {
+      background: #1e293b;
+      color: white;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .bucket-chain {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .node {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #dbeafe;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .node.orange {
+      background: #ffedd5;
+      color: #9a3412;
+      border-color: #fed7aa;
+    }
+
+    .node.green {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .node.purple {
+      background: #ede9fe;
+      color: #5b21b6;
+      border-color: #ddd6fe;
+    }
+
+    .arrow {
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .flow-step {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 140px;
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: "→";
+      position: absolute;
+      right: -17px;
+      top: 42%;
+      color: var(--primary);
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-step strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .lang-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .lang {
+      display: none;
+    }
+
+    .lang.active {
+      display: block;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border-left: 5px solid var(--primary);
+      background: #eff6ff;
+      margin: 16px 0;
+    }
+
+    .callout.warn {
+      border-color: var(--accent);
+      background: #fff7ed;
+    }
+
+    .callout.danger {
+      border-color: var(--red);
+      background: #fef2f2;
+    }
+
+    .callout.success {
+      border-color: var(--green);
+      background: #f0fdf4;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: white;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .playground {
+      background: #0f172a;
+      color: white;
+      border-radius: 22px;
+      padding: 24px;
+      margin-top: 16px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    input {
+      border: 1px solid #334155;
+      background: #020617;
+      color: white;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 4px rgba(96, 165, 250, .18);
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      transition: .2s;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #334155;
+    }
+
+    .mini-buckets {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .mini-index {
+      color: #bfdbfe;
+      font-weight: 800;
+    }
+
+    .mini-chain {
+      min-height: 42px;
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      padding: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mini-node {
+      background: #1d4ed8;
+      color: white;
+      border-radius: 10px;
+      padding: 6px 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .result-box {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 14px;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #f8fafc;
+      margin: 10px 0;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    .footer {
+      padding: 32px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: relative;
+        height: auto;
+      }
+
+      nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .hero {
+        padding: 30px;
+      }
+
+      .grid-2, .grid-3, .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step::after {
+        content: "↓";
+        right: 50%;
+        top: auto;
+        bottom: -28px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <div class="brand-icon">H</div>
+        <div>
+          <h1>HashMap Internals</h1>
+          <p>Java interview deep dive</p>
+        </div>
+      </div>
+
+      <div class="nav-title">Learning Path</div>
+      <nav>
+        <a href="#overview">1. Overview</a>
+        <a href="#structure">2. Internal Structure</a>
+        <a href="#put">3. put() Flow</a>
+        <a href="#get">4. get() Flow</a>
+        <a href="#collision">5. Collision</a>
+        <a href="#resize">6. Resize</a>
+        <a href="#equals">7. equals/hashCode</a>
+        <a href="#remove">8. remove()</a>
+        <a href="#thread">9. Thread Safety</a>
+        <a href="#playground">10. Playground</a>
+        <a href="#questions">11. Interview Q&A</a>
+        <a href="#vietnamese">12. Vietnamese Summary</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <div class="hero-content">
+          <h2>How HashMap Works Internally</h2>
+          <p>
+            A detailed visual guide to understand Java HashMap from basic to advanced:
+            buckets, nodes, hash spreading, collision handling, treeification, resizing,
+            time complexity, and common interview traps.
+          </p>
+          <div class="pill-row">
+            <span class="pill">Java 8+</span>
+            <span class="pill">Array + Linked List + Red-Black Tree</span>
+            <span class="pill">hashCode() + equals()</span>
+            <span class="pill">Senior Interview Ready</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p class="sub">HashMap is one of the most important Java Collection classes for backend interviews and production coding.</p>
+
+        <div class="lang-tabs">
+          <button class="tab-btn active" onclick="showLang('en')">English</button>
+          <button class="tab-btn" onclick="showLang('vi')">Tiếng Việt</button>
+        </div>
+
+        <div id="lang-en" class="lang active">
+          <p>
+            <code>HashMap</code> stores data as <strong>key-value pairs</strong>.
+            It gives very fast access because it does not search all elements one by one.
+            Instead, it calculates where a key should be stored by using the key's hash.
+          </p>
+
+          <div class="grid grid-3">
+            <div class="card">
+              <h3>Purpose</h3>
+              <p>Store and retrieve values using unique keys.</p>
+              <pre><code>Map&lt;String, Integer&gt; scores = new HashMap&lt;&gt;();
+scores.put("Java", 100);
+scores.get("Java"); // 100</code></pre>
+            </div>
+            <div class="card">
+              <h3>Core Idea</h3>
+              <p>Convert key into bucket index.</p>
+              <pre><code>key
+  -> hashCode()
+  -> hash spreading
+  -> bucket index</code></pre>
+            </div>
+            <div class="card">
+              <h3>Expected Performance</h3>
+              <p>Most operations are expected <code>O(1)</code>.</p>
+              <pre><code>put()    ~ O(1)
+get()    ~ O(1)
+remove() ~ O(1)</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="lang-vi" class="lang">
+          <p>
+            <code>HashMap</code> lưu dữ liệu theo dạng <strong>key-value</strong>.
+            Nó truy xuất rất nhanh vì không cần duyệt toàn bộ phần tử.
+            Thay vào đó, nó tính toán vị trí lưu key dựa trên hash của key.
+          </p>
+
+          <div class="grid grid-3">
+            <div class="card">
+              <h3>Mục đích</h3>
+              <p>Lưu và lấy dữ liệu thông qua key duy nhất.</p>
+              <pre><code>Map&lt;String, Integer&gt; scores = new HashMap&lt;&gt;();
+scores.put("Java", 100);
+scores.get("Java"); // 100</code></pre>
+            </div>
+            <div class="card">
+              <h3>Ý tưởng chính</h3>
+              <p>Biến key thành vị trí bucket.</p>
+              <pre><code>key
+  -> hashCode()
+  -> xử lý hash
+  -> bucket index</code></pre>
+            </div>
+            <div class="card">
+              <h3>Hiệu năng mong đợi</h3>
+              <p>Hầu hết operation là <code>O(1)</code>.</p>
+              <pre><code>put()    ~ O(1)
+get()    ~ O(1)
+remove() ~ O(1)</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="structure">
+        <h2>2. Internal Structure</h2>
+        <p>
+          Internally, HashMap uses an array. Each array position is called a <strong>bucket</strong>.
+          Each bucket can hold one or more nodes.
+        </p>
+
+        <pre><code>transient Node&lt;K,V&gt;[] table;
+
+static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+    final int hash;
+    final K key;
+    V value;
+    Node&lt;K,V&gt; next;
+}</code></pre>
+
+        <div class="diagram">
+          <div class="bucket-table">
+            <div class="bucket-row">
+              <div class="bucket-index">Bucket 0</div>
+              <div class="bucket-chain"><span class="node">null key = ABC</span></div>
+            </div>
+            <div class="bucket-row">
+              <div class="bucket-index">Bucket 1</div>
+              <div class="bucket-chain"><span style="color:#94a3b8">empty</span></div>
+            </div>
+            <div class="bucket-row">
+              <div class="bucket-index">Bucket 2</div>
+              <div class="bucket-chain">
+                <span class="node green">Java = 100</span>
+                <span class="arrow">→</span>
+                <span class="node orange">Spring = 200</span>
+              </div>
+            </div>
+            <div class="bucket-row">
+              <div class="bucket-index">Bucket 3</div>
+              <div class="bucket-chain"><span class="node purple">Hibernate = 300</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Important:</strong> A bucket is not the value itself. A bucket is a position in the internal array.
+          The actual data is stored inside <code>Node</code> objects.
+        </div>
+
+        <h3>What each Node stores</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Meaning</th>
+                <th>Why it is needed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>hash</code></td>
+                <td>The processed hash value of the key.</td>
+                <td>Used to quickly compare candidate nodes before calling <code>equals()</code>.</td>
+              </tr>
+              <tr>
+                <td><code>key</code></td>
+                <td>The key object.</td>
+                <td>Used to identify the mapping.</td>
+              </tr>
+              <tr>
+                <td><code>value</code></td>
+                <td>The value object.</td>
+                <td>The actual data returned by <code>get(key)</code>.</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>Reference to the next node in the same bucket.</td>
+                <td>Used when collision happens and nodes form a linked list.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="put">
+        <h2>3. How put(key, value) Works</h2>
+        <p>
+          When you call <code>map.put(key, value)</code>, HashMap does not randomly store the pair.
+          It follows a clear algorithm.
+        </p>
+
+        <div class="flow">
+          <div class="flow-step">
+            <strong>Step 1</strong>
+            Calculate key's <code>hashCode()</code>.
+          </div>
+          <div class="flow-step">
+            <strong>Step 2</strong>
+            Apply hash spreading: <code>h ^ (h >>> 16)</code>.
+          </div>
+          <div class="flow-step">
+            <strong>Step 3</strong>
+            Calculate bucket index: <code>(n - 1) & hash</code>.
+          </div>
+          <div class="flow-step">
+            <strong>Step 4</strong>
+            Insert node if bucket is empty.
+          </div>
+          <div class="flow-step">
+            <strong>Step 5</strong>
+            If bucket is not empty, compare key and handle collision/update.
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <pre><code>Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+
+map.put("Java", 100);</code></pre>
+
+        <h3>Simplified Internal Algorithm</h3>
+        <pre><code>put(key, value) {
+    hash = hash(key);
+    index = (table.length - 1) & hash;
+
+    if (table[index] == null) {
+        table[index] = new Node(hash, key, value, null);
+    } else {
+        // Collision or same key
+        search bucket:
+            if existing key is same:
+                replace old value
+            else:
+                append new node or insert into tree
+    }
+
+    if (size > threshold) {
+        resize();
+    }
+}</code></pre>
+
+        <div class="callout warn">
+          <strong>Senior note:</strong> <code>put()</code> may either insert a new mapping or update an existing mapping.
+          If the key already exists, HashMap replaces the old value and returns the old value.
+        </div>
+      </section>
+
+      <section id="get">
+        <h2>4. How get(key) Works</h2>
+        <p>
+          <code>get(key)</code> uses the same hash calculation process to locate the bucket.
+          Then it checks the nodes inside that bucket.
+        </p>
+
+        <pre><code>Integer score = map.get("Java");</code></pre>
+
+        <h3>Simplified Internal Algorithm</h3>
+        <pre><code>get(key) {
+    hash = hash(key);
+    index = (table.length - 1) & hash;
+
+    first = table[index];
+
+    while (first != null) {
+        if (first.hash == hash &&
+           (first.key == key || key.equals(first.key))) {
+            return first.value;
+        }
+        first = first.next;
+    }
+
+    return null;
+}</code></pre>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Why check hash first?</h3>
+            <p>
+              Comparing integers is very cheap. So HashMap first checks <code>node.hash == hash</code>.
+              If the hash is different, the keys cannot be equal.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Why check equals()?</h3>
+            <p>
+              Two different keys may have the same hash or same bucket index.
+              <code>equals()</code> confirms the exact key.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <strong>Key rule:</strong> <code>hashCode()</code> helps HashMap find the bucket.
+          <code>equals()</code> helps HashMap find the exact key inside that bucket.
+        </div>
+      </section>
+
+      <section id="collision">
+        <h2>5. Collision Handling</h2>
+        <p>
+          A collision happens when two or more keys are placed into the same bucket.
+          This does not always mean their <code>hashCode()</code> is exactly the same.
+          It can also happen because different hash values produce the same bucket index.
+        </p>
+
+        <h3>Collision Example</h3>
+        <div class="diagram">
+          <div class="bucket-table">
+            <div class="bucket-row">
+              <div class="bucket-index">Bucket 5</div>
+              <div class="bucket-chain">
+                <span class="node green">Java = 100</span>
+                <span class="arrow">→</span>
+                <span class="node orange">Spring = 200</span>
+                <span class="arrow">→</span>
+                <span class="node purple">Kafka = 300</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Before Java 8</h3>
+        <p>
+          Collision nodes were stored as a linked list.
+          If many keys were placed in the same bucket, searching became slow.
+        </p>
+
+        <h3>Java 8 and Later</h3>
+        <p>
+          HashMap can convert a long linked list inside a bucket into a Red-Black Tree.
+          This is called <strong>treeification</strong>.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Condition</th>
+                <th>Value</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>TREEIFY_THRESHOLD</code></td>
+                <td>8</td>
+                <td>If a bucket has 8 or more nodes, it may be converted to a tree.</td>
+              </tr>
+              <tr>
+                <td><code>MIN_TREEIFY_CAPACITY</code></td>
+                <td>64</td>
+                <td>The table capacity must be at least 64 before treeification happens.</td>
+              </tr>
+              <tr>
+                <td><code>UNTREEIFY_THRESHOLD</code></td>
+                <td>6</td>
+                <td>If tree nodes reduce below this level during resize/removal, it may become a linked list again.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <strong>Important:</strong> If bucket size reaches 8 but table capacity is still below 64,
+          HashMap prefers resizing instead of treeifying. Why? Because better distribution may solve the collision.
+        </div>
+
+        <h3>Complexity</h3>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Normal case</h3>
+            <p><code>O(1)</code></p>
+            <p>Good hash distribution, few collisions.</p>
+          </div>
+          <div class="card">
+            <h3>Linked-list collision</h3>
+            <p><code>O(n)</code></p>
+            <p>Many nodes in one bucket.</p>
+          </div>
+          <div class="card">
+            <h3>Tree bin</h3>
+            <p><code>O(log n)</code></p>
+            <p>Java 8+ Red-Black Tree optimization.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="resize">
+        <h2>6. Resize Mechanism</h2>
+        <p>
+          HashMap does not keep the same array size forever. When the number of mappings becomes too large,
+          it resizes the internal table.
+        </p>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Default capacity</h3>
+            <p><code>16</code></p>
+            <p>The first table size when data is inserted.</p>
+          </div>
+          <div class="card">
+            <h3>Default load factor</h3>
+            <p><code>0.75</code></p>
+            <p>Controls when resizing happens.</p>
+          </div>
+          <div class="card">
+            <h3>Threshold</h3>
+            <p><code>capacity * loadFactor</code></p>
+            <p>For capacity 16, threshold is 12.</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <pre><code>capacity = 16
+loadFactor = 0.75
+threshold = 16 * 0.75 = 12
+
+When size becomes 13:
+HashMap resizes from 16 to 32.</code></pre>
+
+        <h3>What happens during resize?</h3>
+        <p>
+          The capacity doubles. After that, nodes may stay in the same bucket or move to another bucket.
+          Since the bucket index depends on capacity, changing capacity changes the possible index.
+        </p>
+
+        <div class="diagram">
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>Before resize</h3>
+              <pre><code>capacity = 16
+index = (16 - 1) & hash</code></pre>
+            </div>
+            <div class="card">
+              <h3>After resize</h3>
+              <pre><code>capacity = 32
+index = (32 - 1) & hash</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout danger">
+          <strong>Performance warning:</strong> Resize is expensive because HashMap must redistribute nodes.
+          If you know the expected number of elements, initialize HashMap with a proper capacity.
+        </div>
+
+        <h3>Better Initialization</h3>
+        <pre><code>// If you expect around 1000 elements:
+Map&lt;String, Object&gt; map = new HashMap&lt;&gt;(1340);
+
+// Why around 1340?
+// Because threshold = capacity * 0.75
+// We want threshold >= 1000</code></pre>
+      </section>
+
+      <section id="equals">
+        <h2>7. equals() and hashCode() Contract</h2>
+        <p>
+          This is one of the most important HashMap interview topics.
+          HashMap depends on both <code>hashCode()</code> and <code>equals()</code>.
+        </p>
+
+        <div class="callout success">
+          <strong>Contract:</strong> If two objects are equal by <code>equals()</code>,
+          they must return the same <code>hashCode()</code>.
+        </div>
+
+        <h3>Correct Example</h3>
+        <pre><code>class Employee {
+    private final Long id;
+    private final String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee other)) return false;
+        return Objects.equals(id, other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}</code></pre>
+
+        <h3>What happens if equals() is overridden but hashCode() is not?</h3>
+        <pre><code>Employee e1 = new Employee(1L, "John");
+Employee e2 = new Employee(1L, "John");
+
+map.put(e1, "Developer");
+
+map.get(e2); // may return null if hashCode is different</code></pre>
+
+        <p>
+          Even though <code>e1.equals(e2)</code> may be true, HashMap may look in a different bucket
+          if their hash codes are different.
+        </p>
+
+        <h3>Mutable Key Problem</h3>
+        <pre><code>Employee e = new Employee(1L, "John");
+
+map.put(e, "Developer");
+
+// Dangerous: changing field used in hashCode/equals
+e.setId(2L);
+
+map.get(e); // may return null</code></pre>
+
+        <div class="callout danger">
+          <strong>Production rule:</strong> Avoid using mutable objects as HashMap keys.
+          If a key changes after insertion, HashMap may not be able to find it again.
+        </div>
+      </section>
+
+      <section id="remove">
+        <h2>8. How remove(key) Works</h2>
+        <p>
+          <code>remove(key)</code> is similar to <code>get(key)</code>, but after finding the node,
+          HashMap unlinks it from the bucket.
+        </p>
+
+        <pre><code>map.remove("Java");</code></pre>
+
+        <h3>Simplified Algorithm</h3>
+        <pre><code>remove(key) {
+    hash = hash(key);
+    index = (table.length - 1) & hash;
+
+    search bucket:
+        if node key matches:
+            unlink node from linked list or tree
+            size--
+            return old value
+
+    return null;
+}</code></pre>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Removing first node</h3>
+            <pre><code>Bucket:
+A -> B -> C
+
+remove(A)
+
+Bucket:
+B -> C</code></pre>
+          </div>
+          <div class="card">
+            <h3>Removing middle node</h3>
+            <pre><code>Bucket:
+A -> B -> C
+
+remove(B)
+
+Bucket:
+A -> C</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="thread">
+        <h2>9. Thread Safety</h2>
+        <p>
+          <code>HashMap</code> is not thread-safe. It is designed for single-threaded access or externally synchronized access.
+        </p>
+
+        <div class="callout danger">
+          If multiple threads modify a HashMap at the same time without synchronization,
+          the data can become inconsistent.
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Map Type</th>
+                <th>Thread-safe?</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HashMap</code></td>
+                <td>No</td>
+                <td>Normal single-thread usage.</td>
+              </tr>
+              <tr>
+                <td><code>Collections.synchronizedMap()</code></td>
+                <td>Yes, with global lock</td>
+                <td>Simple synchronized wrapper, but lower concurrency.</td>
+              </tr>
+              <tr>
+                <td><code>ConcurrentHashMap</code></td>
+                <td>Yes</td>
+                <td>Preferred for high-concurrency applications.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Recommended in concurrent code</h3>
+        <pre><code>Map&lt;String, Integer&gt; map = new ConcurrentHashMap&lt;&gt;();</code></pre>
+      </section>
+
+      <section id="playground">
+        <h2>10. Small Interactive Playground</h2>
+        <p>
+          This demo uses a small simplified HashMap with 8 buckets.
+          It is not the real JDK implementation, but it helps you visualize bucket index and collisions.
+        </p>
+
+        <div class="playground">
+          <div class="controls">
+            <input id="keyInput" placeholder="Key, e.g. Java" />
+            <input id="valueInput" placeholder="Value, e.g. 100" />
+            <button onclick="putDemo()">Put</button>
+            <button class="secondary" onclick="clearDemo()">Clear</button>
+          </div>
+
+          <div id="result" class="result-box">
+            Enter a key and value, then click Put.
+          </div>
+
+          <div id="miniBuckets" class="mini-buckets"></div>
+        </div>
+      </section>
+
+      <section id="questions">
+        <h2>11. Common Interview Questions & Answers</h2>
+
+        <details open>
+          <summary>1. Why does HashMap use both hashCode() and equals()?</summary>
+          <p>
+            <code>hashCode()</code> is used to find the bucket quickly.
+            <code>equals()</code> is used to find the exact key inside that bucket.
+            Hash collisions are possible, so hash alone is not enough.
+          </p>
+        </details>
+
+        <details>
+          <summary>2. What happens if two keys have the same hashCode?</summary>
+          <p>
+            They go to the same bucket. HashMap then compares keys using <code>equals()</code>.
+            If keys are equal, the value is replaced. If not equal, a new node is stored in the same bucket.
+          </p>
+        </details>
+
+        <details>
+          <summary>3. Is collision always caused by same hashCode?</summary>
+          <p>
+            No. Collision can happen when different hash values produce the same bucket index.
+            The index is calculated using <code>(capacity - 1) & hash</code>, so many hash values can map to the same bucket.
+          </p>
+        </details>
+
+        <details>
+          <summary>4. Why is HashMap capacity always power of two?</summary>
+          <p>
+            Power-of-two capacity allows HashMap to calculate bucket index using fast bit operation:
+            <code>(capacity - 1) & hash</code>. It also helps distribution when combined with hash spreading.
+          </p>
+        </details>
+
+        <details>
+          <summary>5. Why does HashMap resize?</summary>
+          <p>
+            As the number of entries increases, collisions become more likely.
+            Resizing increases bucket count, improves distribution, and keeps average operation time near <code>O(1)</code>.
+          </p>
+        </details>
+
+        <details>
+          <summary>6. Why should we avoid mutable keys?</summary>
+          <p>
+            If a field used in <code>hashCode()</code> or <code>equals()</code> changes after insertion,
+            the key may belong to a different bucket logically. Then <code>get()</code> may not find it anymore.
+          </p>
+        </details>
+
+        <details>
+          <summary>7. What is the difference between HashMap and ConcurrentHashMap?</summary>
+          <p>
+            <code>HashMap</code> is not thread-safe. <code>ConcurrentHashMap</code> is designed for concurrent access
+            and provides better scalability than synchronizing the whole map.
+          </p>
+        </details>
+
+        <details>
+          <summary>8. Can HashMap store null?</summary>
+          <p>
+            Yes. HashMap allows one <code>null</code> key and multiple <code>null</code> values.
+            The null key is handled specially and usually goes to bucket index 0.
+          </p>
+        </details>
+      </section>
+
+      <section id="vietnamese">
+        <h2>12. Vietnamese Summary - Tóm tắt tiếng Việt</h2>
+
+        <h3>HashMap là gì?</h3>
+        <p>
+          <code>HashMap</code> là cấu trúc dữ liệu lưu dữ liệu theo dạng <strong>key-value</strong>.
+          Nó truy xuất nhanh vì dùng <code>hashCode()</code> của key để tính vị trí bucket.
+        </p>
+
+        <h3>Cấu trúc bên trong</h3>
+        <pre><code>Node&lt;K,V&gt;[] table;
+
+Node gồm:
+- hash
+- key
+- value
+- next</code></pre>
+
+        <h3>Khi put dữ liệu</h3>
+        <pre><code>map.put("Java", 100);
+
+Các bước:
+1. Tính hashCode của key
+2. Xử lý hash để phân phối đều hơn
+3. Tính bucket index
+4. Nếu bucket rỗng thì tạo Node mới
+5. Nếu bucket đã có dữ liệu thì xử lý collision
+6. Nếu size vượt threshold thì resize</code></pre>
+
+        <h3>Khi get dữ liệu</h3>
+        <pre><code>map.get("Java");
+
+Các bước:
+1. Tính hash
+2. Tính bucket index
+3. Đi vào bucket
+4. So sánh hash trước
+5. So sánh equals để tìm đúng key
+6. Trả về value nếu tìm thấy</code></pre>
+
+        <h3>Collision là gì?</h3>
+        <p>
+          Collision xảy ra khi nhiều key rơi vào cùng một bucket.
+          HashMap xử lý bằng linked list. Từ Java 8, nếu bucket quá dài,
+          linked list có thể chuyển sang Red-Black Tree.
+        </p>
+
+        <div class="callout">
+          Điều kiện treeify thường gặp:
+          bucket có từ 8 node trở lên và capacity tối thiểu là 64.
+        </div>
+
+        <h3>Resize là gì?</h3>
+        <p>
+          Khi số lượng phần tử vượt ngưỡng <code>capacity * loadFactor</code>,
+          HashMap tăng capacity gấp đôi để giảm collision.
+        </p>
+
+        <pre><code>Default capacity = 16
+Default load factor = 0.75
+Threshold = 16 * 0.75 = 12
+
+Khi size > 12:
+capacity tăng từ 16 lên 32</code></pre>
+
+        <h3>Tóm tắt dễ nhớ</h3>
+        <pre><code>HashMap = array of buckets
+
+put:
+key -> hashCode -> hash spreading -> index -> bucket -> node
+
+get:
+key -> hashCode -> index -> bucket -> compare hash -> equals -> value
+
+Collision:
+same bucket -> linked list -> red-black tree nếu quá nhiều node
+
+hashCode:
+tìm bucket
+
+equals:
+tìm đúng key trong bucket</code></pre>
+      </section>
+
+      <div class="footer">
+        Created for Java backend interview preparation.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showLang(lang) {
+      document.querySelectorAll('.lang').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('lang-' + lang).classList.add('active');
+
+      const buttons = document.querySelectorAll('.tab-btn');
+      if (lang === 'en') buttons[0].classList.add('active');
+      if (lang === 'vi') buttons[1].classList.add('active');
+    }
+
+    const demoCapacity = 8;
+    let demoMap = Array.from({ length: demoCapacity }, () => []);
+
+    function simpleHash(str) {
+      let hash = 0;
+      if (!str) return 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash = hash & hash;
+      }
+      return hash;
+    }
+
+    function spreadHash(h) {
+      return h ^ (h >>> 16);
+    }
+
+    function indexFor(hash) {
+      return (demoCapacity - 1) & hash;
+    }
+
+    function putDemo() {
+      const key = document.getElementById('keyInput').value.trim();
+      const value = document.getElementById('valueInput').value.trim();
+
+      if (!key) {
+        document.getElementById('result').innerHTML = 'Please enter a key.';
+        return;
+      }
+
+      const rawHash = simpleHash(key);
+      const hash = spreadHash(rawHash);
+      const index = indexFor(hash);
+
+      const bucket = demoMap[index];
+      const existing = bucket.find(item => item.key === key);
+
+      if (existing) {
+        existing.value = value;
+      } else {
+        bucket.push({ key, value, hash });
+      }
+
+      const collisionText = bucket.length > 1
+        ? '<br><strong>Collision:</strong> This bucket now contains ' + bucket.length + ' nodes.'
+        : '';
+
+      document.getElementById('result').innerHTML =
+        '<strong>Key:</strong> ' + escapeHtml(key) +
+        '<br><strong>Raw hash:</strong> ' + rawHash +
+        '<br><strong>Spread hash:</strong> ' + hash +
+        '<br><strong>Index:</strong> (8 - 1) & hash = ' + index +
+        collisionText;
+
+      renderBuckets();
+    }
+
+    function clearDemo() {
+      demoMap = Array.from({ length: demoCapacity }, () => []);
+      document.getElementById('result').innerHTML = 'Map cleared. Enter a key and value, then click Put.';
+      renderBuckets();
+    }
+
+    function renderBuckets() {
+      const container = document.getElementById('miniBuckets');
+      container.innerHTML = '';
+
+      demoMap.forEach((bucket, index) => {
+        const row = document.createElement('div');
+        row.className = 'mini-row';
+
+        const idx = document.createElement('div');
+        idx.className = 'mini-index';
+        idx.textContent = 'Bucket ' + index;
+
+        const chain = document.createElement('div');
+        chain.className = 'mini-chain';
+
+        if (bucket.length === 0) {
+          const empty = document.createElement('span');
+          empty.style.color = '#64748b';
+          empty.textContent = 'empty';
+          chain.appendChild(empty);
+        } else {
+          bucket.forEach((item, i) => {
+            const node = document.createElement('span');
+            node.className = 'mini-node';
+            node.textContent = item.key + '=' + item.value;
+            chain.appendChild(node);
+
+            if (i < bucket.length - 1) {
+              const arrow = document.createElement('span');
+              arrow.textContent = '→';
+              arrow.style.color = '#94a3b8';
+              arrow.style.fontWeight = '900';
+              chain.appendChild(arrow);
+            }
+          });
+        }
+
+        row.appendChild(idx);
+        row.appendChild(chain);
+        container.appendChild(row);
+      });
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    renderBuckets();
+  </script>
+</body>
+</html>

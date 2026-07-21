@@ -1,0 +1,1017 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Java Collections Deep Dive EN VN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#132033;--muted:#667085;--blue:#2563eb;--green:#0f766e;
+  --dark:#0f172a;--border:#d9e2ef;--code:#0b1120;--soft-blue:#eff6ff;--soft-green:#ecfdf5;
+  --soft-yellow:#fffbeb;--soft-red:#fef2f2
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);line-height:1.72}
+.layout{display:grid;grid-template-columns:330px 1fr;min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--dark);color:#f8fafc;padding:28px 22px}
+main{padding:38px;max-width:1320px;width:100%}
+.badge{display:inline-block;background:rgba(37,99,235,.25);color:#bfdbfe;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+h1{font-size:22px;line-height:1.25}aside p{color:#cbd5e1;font-size:14px}
+.toc-title{color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;margin:24px 0 8px;letter-spacing:.08em}
+nav ul{padding:0;margin:0;list-style:none}nav a{display:block;color:#dbeafe;padding:8px 10px;border-radius:10px;text-decoration:none;font-size:14px}
+nav a:hover{background:rgba(59,130,246,.18);color:white}
+.hero{background:linear-gradient(135deg,#111827,#1e3a8a,#0f766e);color:white;border-radius:30px;padding:42px;margin-bottom:26px;box-shadow:0 18px 40px rgba(15,23,42,.08)}
+.hero h2{font-size:40px;line-height:1.1;margin:0 0 12px;letter-spacing:-.04em}.hero p{color:#dbeafe;font-size:17px;max-width:1050px}
+.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.tags span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800}
+section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;margin:22px 0;box-shadow:0 12px 30px rgba(15,23,42,.04)}
+section h2{margin-top:0;border-bottom:1px solid var(--border);padding-bottom:12px;font-size:28px;letter-spacing:-.025em}
+h3{color:#1e3a8a;margin-top:28px;font-size:21px}h4{color:#0f766e;margin-top:22px;font-size:17px}
+.lead{color:var(--muted);font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0}
+.card{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:18px}.card h4{margin:0 0 8px;color:#0f172a}.card p{margin:0;color:var(--muted)}
+.note,.warn,.danger,.ok{border-radius:14px;padding:14px 16px;margin:16px 0;border:1px solid}
+.note{background:var(--soft-blue);border-color:#bfdbfe;color:#1e3a8a}.ok{background:var(--soft-green);border-color:#bbf7d0;color:#166534}
+.warn{background:var(--soft-yellow);border-color:#fde68a;color:#92400e}.danger{background:var(--soft-red);border-color:#fecaca;color:#991b1b}
+table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{background:#f1f5f9;color:#0f172a;font-weight:900}tr:last-child td{border-bottom:none}
+pre{background:var(--code);color:#e5e7eb;border-radius:16px;padding:18px 20px;overflow:auto;font-size:13.3px;line-height:1.6;border:1px solid rgba(255,255,255,.08)}
+code{font-family:SFMono-Regular,Consolas,monospace}p code,li code,td code{background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 6px;font-size:.92em}
+.diagram{background:#f8fafc;border:1px dashed #94a3b8;border-radius:16px;padding:18px;margin:18px 0;overflow:auto;white-space:pre;font-family:SFMono-Regular,Consolas,monospace;font-size:13.2px;line-height:1.65}
+.qa{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0}.qa strong{color:#1e3a8a}
+.interview{background:#0f172a;color:#e5e7eb}.interview h2,.interview h3{color:#fff}.interview .qa{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+.checklist li::marker{content:"✅ "}.avoid li::marker{content:"⚠️ "}
+.footer{text-align:center;color:var(--muted);padding:32px 0 10px;font-size:13px}
+@media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto}main{padding:22px}.grid,.grid3{grid-template-columns:1fr}.hero h2{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<span class="badge">Senior Java Backend</span>
+<h1>Java Collections Deep Dive</h1>
+<p>Detailed EN/VN notes for interview preparation, especially HashMap, hashing, equals and hashCode.</p>
+<div class="toc-title">English</div>
+<nav><ul>
+<li><a href="#en-overview">Big Picture</a></li>
+<li><a href="#en-hierarchy">Collection Hierarchy</a></li>
+<li><a href="#en-list">List</a></li>
+<li><a href="#en-set">Set</a></li>
+<li><a href="#en-map">Map</a></li>
+<li><a href="#en-hashmap">HashMap Internals</a></li>
+<li><a href="#en-equals">equals / hashCode</a></li>
+<li><a href="#en-queue">Queue / Deque</a></li>
+<li><a href="#en-concurrent">Concurrent Collections</a></li>
+<li><a href="#en-performance">Performance</a></li>
+<li><a href="#en-qa">Interview Q&A</a></li>
+</ul></nav>
+<div class="toc-title">Vietnamese</div>
+<nav><ul>
+<li><a href="#vi-overview">Tổng quan</a></li>
+<li><a href="#vi-hierarchy">Collection Hierarchy</a></li>
+<li><a href="#vi-list">List</a></li>
+<li><a href="#vi-set">Set</a></li>
+<li><a href="#vi-map">Map</a></li>
+<li><a href="#vi-hashmap">HashMap Internals</a></li>
+<li><a href="#vi-equals">equals / hashCode</a></li>
+<li><a href="#vi-queue">Queue / Deque</a></li>
+<li><a href="#vi-concurrent">Concurrent Collections</a></li>
+<li><a href="#vi-performance">Performance</a></li>
+<li><a href="#vi-qa">Câu hỏi phỏng vấn</a></li>
+</ul></nav>
+</aside>
+
+<main>
+<div class="hero">
+<h2>Java Collections Deep Dive: Hashing, equals/hashCode, HashMap Internals & Interview Q&A</h2>
+<p>From basic to advanced Java Collections knowledge for Senior Backend interviews. Focus on practical usage, internal mechanisms, performance, pitfalls, concurrent collections, and common interview answers in English and Vietnamese.</p>
+<div class="tags"><span>Collection</span><span>List</span><span>Set</span><span>Map</span><span>HashMap</span><span>Hashing</span><span>equals()</span><span>hashCode()</span><span>Collision</span><span>Treeify</span><span>ConcurrentHashMap</span><span>Fail-fast</span></div>
+</div>
+
+<section id="en-overview">
+<h2>1. Big Picture</h2>
+<p class="lead">Java Collections Framework is a unified architecture for storing, accessing, searching, sorting, and manipulating groups of objects.</p>
+<div class="diagram">Iterable
+  ↓
+Collection
+  ├── List
+  ├── Set
+  └── Queue / Deque
+
+Map is part of Java Collections Framework, but it does NOT extend Collection.
+Map stores key-value pairs.</div>
+<div class="grid">
+<div class="card"><h4>List</h4><p>Ordered collection, allows duplicates. Example: ArrayList, LinkedList.</p></div>
+<div class="card"><h4>Set</h4><p>No duplicate elements. Example: HashSet, LinkedHashSet, TreeSet.</p></div>
+<div class="card"><h4>Queue / Deque</h4><p>Designed for processing elements. Example: ArrayDeque, PriorityQueue, BlockingQueue.</p></div>
+<div class="card"><h4>Map</h4><p>Key-value structure. Keys are unique. Example: HashMap, LinkedHashMap, TreeMap, ConcurrentHashMap.</p></div>
+</div>
+<div class="note"><b>Senior mindset:</b> In interviews, do not only say “ArrayList is array, LinkedList is node”. Explain complexity, memory, cache locality, resizing, hashing, equality contract, iteration behavior, and thread-safety.</div>
+</section>
+
+<section id="en-hierarchy">
+<h2>2. Collection Hierarchy</h2>
+<h3>Main Interfaces</h3>
+<table>
+<thead><tr><th>Interface</th><th>Purpose</th><th>Common Implementations</th></tr></thead>
+<tbody>
+<tr><td><code>Iterable</code></td><td>Root for objects that can be iterated using for-each.</td><td>Collection</td></tr>
+<tr><td><code>Collection</code></td><td>Root interface for groups of elements.</td><td>List, Set, Queue</td></tr>
+<tr><td><code>List</code></td><td>Ordered, index-based, allows duplicates.</td><td>ArrayList, LinkedList, Vector, CopyOnWriteArrayList</td></tr>
+<tr><td><code>Set</code></td><td>No duplicates.</td><td>HashSet, LinkedHashSet, TreeSet, EnumSet</td></tr>
+<tr><td><code>Queue</code></td><td>Processing elements, usually FIFO or priority-based.</td><td>LinkedList, PriorityQueue, ArrayDeque</td></tr>
+<tr><td><code>Deque</code></td><td>Double-ended queue.</td><td>ArrayDeque, LinkedList</td></tr>
+<tr><td><code>Map</code></td><td>Key-value pairs, unique keys.</td><td>HashMap, LinkedHashMap, TreeMap, ConcurrentHashMap</td></tr>
+</tbody>
+</table>
+
+<h3>Collection vs Collections</h3>
+<table>
+<thead><tr><th>Collection</th><th>Collections</th></tr></thead>
+<tbody>
+<tr><td>An interface in Java Collections Framework.</td><td>A utility class.</td></tr>
+<tr><td>Represents a group of objects.</td><td>Provides static helper methods.</td></tr>
+<tr><td>Example: <code>List extends Collection</code>.</td><td>Example: <code>Collections.sort(list)</code>, <code>Collections.unmodifiableList(list)</code>.</td></tr>
+</tbody>
+</table>
+
+<pre><code>List&lt;String&gt; names = new ArrayList&lt;&gt;();
+names.add("Huy");
+names.add("An");
+
+Collections.sort(names);
+List&lt;String&gt; readonly = Collections.unmodifiableList(names);</code></pre>
+</section>
+
+<section id="en-list">
+<h2>3. List Deep Dive</h2>
+<h3>ArrayList</h3>
+<p><code>ArrayList</code> is backed by a dynamic array. It is usually the default choice for List because random access and iteration are fast.</p>
+<table>
+<thead><tr><th>Operation</th><th>Complexity</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>get(index)</td><td>O(1)</td><td>Direct array access.</td></tr>
+<tr><td>add(element)</td><td>Amortized O(1)</td><td>May trigger resize.</td></tr>
+<tr><td>add(index, element)</td><td>O(n)</td><td>Need shift elements.</td></tr>
+<tr><td>remove(index)</td><td>O(n)</td><td>Need shift elements.</td></tr>
+<tr><td>contains(element)</td><td>O(n)</td><td>Linear scan using equals.</td></tr>
+</tbody>
+</table>
+
+<h4>ArrayList resizing</h4>
+<p>When internal array is full, ArrayList creates a larger array and copies existing elements. This is why append is amortized O(1), not always O(1).</p>
+<pre><code>List&lt;Integer&gt; numbers = new ArrayList&lt;&gt;();
+for (int i = 0; i &lt; 1_000_000; i++) {
+    numbers.add(i);
+}
+
+// If size is known, pre-size to reduce resizing:
+List&lt;Integer&gt; optimized = new ArrayList&lt;&gt;(1_000_000);</code></pre>
+
+<h3>LinkedList</h3>
+<p><code>LinkedList</code> is a doubly linked list. Each node stores item, previous pointer, and next pointer.</p>
+<table>
+<thead><tr><th>Operation</th><th>Complexity</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>get(index)</td><td>O(n)</td><td>Must traverse nodes.</td></tr>
+<tr><td>addFirst/addLast</td><td>O(1)</td><td>Good for deque operations.</td></tr>
+<tr><td>removeFirst/removeLast</td><td>O(1)</td><td>Good for queue/deque.</td></tr>
+<tr><td>iteration</td><td>O(n)</td><td>Usually slower than ArrayList due to pointer chasing/cache locality.</td></tr>
+</tbody>
+</table>
+
+<div class="warn"><b>Interview trap:</b> Many candidates say “LinkedList is better for insert/delete”. This is only true when you already have the node position. If you insert/delete by index, finding the position is O(n).</div>
+
+<h3>ArrayList vs LinkedList</h3>
+<table>
+<thead><tr><th>Point</th><th>ArrayList</th><th>LinkedList</th></tr></thead>
+<tbody>
+<tr><td>Internal structure</td><td>Dynamic array</td><td>Doubly linked nodes</td></tr>
+<tr><td>Random access</td><td>Fast O(1)</td><td>Slow O(n)</td></tr>
+<tr><td>Memory</td><td>Lower overhead</td><td>Higher overhead because nodes store prev/next pointers</td></tr>
+<tr><td>Iteration</td><td>Usually faster due to cache locality</td><td>Usually slower due to pointer chasing</td></tr>
+<tr><td>Best use</td><td>Most general List usage</td><td>Deque-like operations when adding/removing at ends</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="en-set">
+<h2>4. Set Deep Dive</h2>
+<p><code>Set</code> stores unique elements. Uniqueness depends on implementation.</p>
+<table>
+<thead><tr><th>Implementation</th><th>Ordering</th><th>How uniqueness is determined</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>HashSet</code></td><td>No guaranteed order</td><td><code>hashCode()</code> + <code>equals()</code></td><td>Fast membership check.</td></tr>
+<tr><td><code>LinkedHashSet</code></td><td>Insertion order</td><td><code>hashCode()</code> + <code>equals()</code></td><td>Unique elements while preserving insertion order.</td></tr>
+<tr><td><code>TreeSet</code></td><td>Sorted order</td><td><code>compareTo()</code> or <code>Comparator</code></td><td>Sorted unique elements.</td></tr>
+<tr><td><code>EnumSet</code></td><td>Enum natural order</td><td>Enum identity</td><td>Very efficient set for enum values.</td></tr>
+</tbody>
+</table>
+
+<h3>HashSet Internals</h3>
+<p><code>HashSet</code> internally uses <code>HashMap</code>. The set element becomes the key, and a dummy object is used as value.</p>
+<pre><code>Set&lt;String&gt; emails = new HashSet&lt;&gt;();
+emails.add("a@example.com");
+emails.add("a@example.com"); // duplicate, not added</code></pre>
+
+<h3>TreeSet and Comparator</h3>
+<pre><code>Set&lt;Employee&gt; employees = new TreeSet&lt;&gt;(
+    Comparator.comparing(Employee::getSalary)
+              .thenComparing(Employee::getName)
+);</code></pre>
+<div class="danger"><b>Important:</b> For TreeSet, equality is based on comparison result <code>compare(a, b) == 0</code>, not necessarily <code>equals()</code>. Comparator must be consistent with equals when possible.</div>
+</section>
+
+<section id="en-map">
+<h2>5. Map Deep Dive</h2>
+<p><code>Map</code> stores key-value pairs. Keys are unique; values can be duplicated.</p>
+<table>
+<thead><tr><th>Implementation</th><th>Ordering</th><th>Null support</th><th>Thread-safe?</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>HashMap</code></td><td>No guaranteed order</td><td>One null key, multiple null values</td><td>No</td><td>General purpose key-value lookup.</td></tr>
+<tr><td><code>LinkedHashMap</code></td><td>Insertion/access order</td><td>One null key</td><td>No</td><td>LRU cache, predictable iteration order.</td></tr>
+<tr><td><code>TreeMap</code></td><td>Sorted by key</td><td>Null key depends on comparator</td><td>No</td><td>Range queries, sorted keys.</td></tr>
+<tr><td><code>Hashtable</code></td><td>No guaranteed order</td><td>No null key/value</td><td>Yes, legacy synchronized</td><td>Legacy code only.</td></tr>
+<tr><td><code>ConcurrentHashMap</code></td><td>No guaranteed order</td><td>No null key/value</td><td>Yes</td><td>High-concurrency map.</td></tr>
+</tbody>
+</table>
+
+<h3>LinkedHashMap for LRU Cache</h3>
+<pre><code>Map&lt;String, String&gt; lruCache = new LinkedHashMap&lt;&gt;(16, 0.75f, true) {
+    @Override
+    protected boolean removeEldestEntry(Map.Entry&lt;String, String&gt; eldest) {
+        return size() &gt; 100;
+    }
+};</code></pre>
+
+<h3>TreeMap for sorted/range operations</h3>
+<pre><code>NavigableMap&lt;Integer, String&gt; map = new TreeMap&lt;&gt;();
+map.put(10, "A");
+map.put(20, "B");
+map.put(30, "C");
+
+System.out.println(map.floorEntry(25)); // 20=B
+System.out.println(map.ceilingEntry(25)); // 30=C</code></pre>
+</section>
+
+<section id="en-hashmap">
+<h2>6. HashMap Internals — Most Important Interview Topic</h2>
+
+<h3>What is HashMap?</h3>
+<p><code>HashMap</code> is a hash table based implementation of <code>Map</code>. It stores entries in an internal array of buckets. Each bucket may contain zero, one, or multiple entries.</p>
+
+<div class="diagram">HashMap internal idea:
+
+table = array of buckets
+
+index 0 → null
+index 1 → Node(key1, value1)
+index 2 → Node(key2, value2) → Node(key3, value3)
+index 3 → TreeNode(...)
+...</div>
+
+<h3>HashMap put flow</h3>
+<div class="diagram">put(key, value)
+  ↓
+1. Calculate hash from key.hashCode()
+  ↓
+2. Spread hash bits to reduce poor hash distribution
+  ↓
+3. Calculate bucket index: (table.length - 1) & hash
+  ↓
+4. If bucket empty → insert new node
+  ↓
+5. If same key found by hash + equals → replace value
+  ↓
+6. If collision with different key → append node or insert into tree
+  ↓
+7. If size exceeds threshold → resize table</div>
+
+<pre><code>Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+map.put("Java", 17);
+map.put("Spring", 6);
+map.put("Java", 21); // same key, value replaced
+
+System.out.println(map.get("Java")); // 21</code></pre>
+
+<h3>How HashMap finds bucket index</h3>
+<p>HashMap does not usually use modulo directly. It uses bit operation when table length is power of two.</p>
+<pre><code>index = (table.length - 1) & hash</code></pre>
+<p>This is fast and works well when table length is power of two.</p>
+
+<h3>Load factor and threshold</h3>
+<table>
+<thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Capacity</td><td>Number of buckets in internal table.</td></tr>
+<tr><td>Load factor</td><td>How full the table can be before resizing. Default is 0.75.</td></tr>
+<tr><td>Threshold</td><td><code>capacity * loadFactor</code>. When size exceeds threshold, HashMap resizes.</td></tr>
+</tbody>
+</table>
+
+<pre><code>Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;(16, 0.75f);
+// threshold = 16 * 0.75 = 12
+// when size exceeds 12, resize happens</code></pre>
+
+<h3>Resize / Rehash</h3>
+<p>When HashMap grows beyond threshold, it creates a bigger table, usually double capacity, and redistributes entries. This operation is expensive.</p>
+<div class="warn"><b>Production tip:</b> If you know expected size, create HashMap with proper initial capacity to reduce resizing.</div>
+<pre><code>int expectedSize = 1_000_000;
+Map&lt;Long, User&gt; users = new HashMap&lt;&gt;((int) (expectedSize / 0.75f) + 1);</code></pre>
+
+<h3>Collision</h3>
+<p>A collision happens when different keys map to the same bucket index.</p>
+<div class="diagram">key A → hash → index 5
+key B → hash → index 5
+
+Bucket 5:
+Node(A) → Node(B)</div>
+
+<h3>Collision handling before and after Java 8</h3>
+<table>
+<thead><tr><th>Version</th><th>Collision Handling</th></tr></thead>
+<tbody>
+<tr><td>Before Java 8</td><td>Bucket uses linked list.</td></tr>
+<tr><td>Java 8+</td><td>Bucket starts as linked list, but can become red-black tree when collision chain is large.</td></tr>
+</tbody>
+</table>
+
+<h3>Treeification</h3>
+<p>In Java 8+, when many entries collide in the same bucket, HashMap may convert the linked list into a red-black tree to improve lookup performance.</p>
+<table>
+<thead><tr><th>Condition</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>TREEIFY_THRESHOLD = 8</code></td><td>If bucket has too many nodes, it may treeify.</td></tr>
+<tr><td><code>MIN_TREEIFY_CAPACITY = 64</code></td><td>HashMap prefers resizing instead of treeifying if table is still small.</td></tr>
+<tr><td><code>UNTREEIFY_THRESHOLD = 6</code></td><td>Tree can become list again when entries are reduced.</td></tr>
+</tbody>
+</table>
+
+<div class="note"><b>Interview answer:</b> Average HashMap get/put is O(1). In heavy collision, linked list would be O(n), but Java 8+ can treeify bucket to O(log n), assuming keys are comparable or tie-break can be handled.</div>
+
+<h3>Why HashMap is not thread-safe</h3>
+<p><code>HashMap</code> is not safe for concurrent modification. Multiple threads writing at the same time can cause lost updates, inconsistent state, or unexpected behavior.</p>
+<pre><code>Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+
+// Not safe if many threads call put at the same time
+map.put("A", 1);</code></pre>
+<div class="ok"><b>Use instead:</b> <code>ConcurrentHashMap</code>, external synchronization, or immutable map depending on use case.</div>
+
+<h3>HashMap vs Hashtable vs ConcurrentHashMap</h3>
+<table>
+<thead><tr><th>Point</th><th>HashMap</th><th>Hashtable</th><th>ConcurrentHashMap</th></tr></thead>
+<tbody>
+<tr><td>Thread-safe</td><td>No</td><td>Yes, synchronized methods</td><td>Yes, better concurrency</td></tr>
+<tr><td>Null key/value</td><td>One null key, multiple null values</td><td>No null key/value</td><td>No null key/value</td></tr>
+<tr><td>Performance</td><td>Fast single-thread</td><td>Slower due to coarse synchronization</td><td>Better for concurrent access</td></tr>
+<tr><td>Status</td><td>Common</td><td>Legacy</td><td>Preferred for concurrent map</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="en-equals">
+<h2>7. equals() and hashCode() — Critical for Hashing</h2>
+
+<h3>Why equals and hashCode matter</h3>
+<p>Hash-based collections such as <code>HashMap</code>, <code>HashSet</code>, and <code>ConcurrentHashMap</code> depend on <code>hashCode()</code> and <code>equals()</code>.</p>
+
+<div class="diagram">HashMap lookup:
+1. Use hashCode() to find bucket
+2. Use equals() to find exact key inside bucket</div>
+
+<h3>Contract</h3>
+<table>
+<thead><tr><th>Rule</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>If <code>a.equals(b)</code> is true</td><td><code>a.hashCode()</code> must equal <code>b.hashCode()</code>.</td></tr>
+<tr><td>If hashCode is same</td><td>Objects may or may not be equal. Collision is allowed.</td></tr>
+<tr><td>equals must be reflexive</td><td><code>a.equals(a)</code> is true.</td></tr>
+<tr><td>equals must be symmetric</td><td>If <code>a.equals(b)</code>, then <code>b.equals(a)</code>.</td></tr>
+<tr><td>equals must be transitive</td><td>If a equals b and b equals c, then a equals c.</td></tr>
+<tr><td>equals must be consistent</td><td>Result should not change unless fields used in equality change.</td></tr>
+</tbody>
+</table>
+
+<h3>Correct implementation example</h3>
+<pre><code>public class Employee {
+    private final Long id;
+    private final String email;
+
+    public Employee(Long id, String email) {
+        this.id = id;
+        this.email = email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee employee)) return false;
+        return Objects.equals(id, employee.id)
+            && Objects.equals(email, employee.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email);
+    }
+}</code></pre>
+
+<h3>What happens if equals is overridden but hashCode is not?</h3>
+<pre><code>Set&lt;Employee&gt; set = new HashSet&lt;&gt;();
+
+Employee e1 = new Employee(1L, "a@example.com");
+Employee e2 = new Employee(1L, "a@example.com");
+
+set.add(e1);
+set.add(e2);
+
+System.out.println(set.size()); // may be 2 if hashCode is not consistent</code></pre>
+
+<p>If two objects are logically equal but have different hash codes, HashSet/HashMap may place them into different buckets and fail to detect duplicates.</p>
+
+<h3>Mutable key problem</h3>
+<p>Never mutate fields used in <code>equals()</code> or <code>hashCode()</code> after inserting object as key into HashMap or element into HashSet.</p>
+<pre><code>class User {
+    String email;
+
+    public boolean equals(Object o) {
+        return o instanceof User u && Objects.equals(email, u.email);
+    }
+
+    public int hashCode() {
+        return Objects.hash(email);
+    }
+}
+
+User user = new User("old@example.com");
+Set&lt;User&gt; users = new HashSet&lt;&gt;();
+users.add(user);
+
+user.email = "new@example.com";
+
+System.out.println(users.contains(user)); // may be false</code></pre>
+
+<div class="danger"><b>Senior warning:</b> Mutable keys break hash-based collections because the object is stored in bucket based on old hash, but lookup uses new hash.</div>
+
+<h3>Business key vs database ID</h3>
+<p>For JPA entities, equals/hashCode is tricky. If you use generated ID, it may be null before persistence. If you use mutable business fields, hash can change.</p>
+<table>
+<thead><tr><th>Approach</th><th>Pros</th><th>Risk</th></tr></thead>
+<tbody>
+<tr><td>Use generated ID</td><td>Stable after persistence</td><td>ID is null before persist; equality changes after save.</td></tr>
+<tr><td>Use immutable business key</td><td>Works before persistence</td><td>Only safe if truly unique and immutable.</td></tr>
+<tr><td>Use default object identity</td><td>Simple</td><td>Logical duplicates may not be detected.</td></tr>
+</tbody>
+</table>
+
+<h3>Comparable vs Comparator</h3>
+<table>
+<thead><tr><th>Comparable</th><th>Comparator</th></tr></thead>
+<tbody>
+<tr><td>Natural ordering inside class.</td><td>External ordering strategy.</td></tr>
+<tr><td>Implements <code>compareTo()</code>.</td><td>Implements <code>compare()</code>.</td></tr>
+<tr><td>Only one natural order.</td><td>Multiple ordering strategies possible.</td></tr>
+</tbody>
+</table>
+<pre><code>List&lt;Employee&gt; employees = new ArrayList&lt;&gt;();
+
+employees.sort(
+    Comparator.comparing(Employee::getSalary)
+              .reversed()
+              .thenComparing(Employee::getName)
+);</code></pre>
+</section>
+
+<section id="en-queue">
+<h2>8. Queue and Deque</h2>
+<h3>Queue</h3>
+<p><code>Queue</code> is used for processing elements, commonly FIFO, but some queues use priority ordering.</p>
+<table>
+<thead><tr><th>Implementation</th><th>Behavior</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>LinkedList</code></td><td>Queue and Deque implementation</td><td>Legacy/simple queue usage</td></tr>
+<tr><td><code>ArrayDeque</code></td><td>Resizable-array deque</td><td>Stack/queue replacement, usually better than Stack/LinkedList</td></tr>
+<tr><td><code>PriorityQueue</code></td><td>Orders elements by priority</td><td>Scheduling, top K, shortest job first</td></tr>
+<tr><td><code>BlockingQueue</code></td><td>Thread-safe blocking operations</td><td>Producer-consumer</td></tr>
+</tbody>
+</table>
+
+<h3>ArrayDeque as Stack</h3>
+<pre><code>Deque&lt;String&gt; stack = new ArrayDeque&lt;&gt;();
+stack.push("A");
+stack.push("B");
+
+System.out.println(stack.pop()); // B</code></pre>
+
+<h3>PriorityQueue</h3>
+<pre><code>PriorityQueue&lt;Task&gt; queue = new PriorityQueue&lt;&gt;(
+    Comparator.comparing(Task::priority)
+);
+
+queue.offer(new Task("low", 10));
+queue.offer(new Task("high", 1));
+
+System.out.println(queue.poll().name()); // high</code></pre>
+
+<h3>BlockingQueue Producer-Consumer</h3>
+<pre><code>BlockingQueue&lt;String&gt; queue = new ArrayBlockingQueue&lt;&gt;(100);
+
+Thread producer = new Thread(() -> {
+    try {
+        queue.put("message"); // waits if full
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+});
+
+Thread consumer = new Thread(() -> {
+    try {
+        String message = queue.take(); // waits if empty
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+});</code></pre>
+</section>
+
+<section id="en-concurrent">
+<h2>9. Concurrent Collections</h2>
+<p>Normal collections such as ArrayList and HashMap are not thread-safe for concurrent modification. Java provides concurrent collections for multi-threaded environments.</p>
+<table>
+<thead><tr><th>Collection</th><th>Purpose</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>ConcurrentHashMap</code></td><td>Thread-safe map with high concurrency.</td><td>No null key/value. Prefer over Hashtable.</td></tr>
+<tr><td><code>CopyOnWriteArrayList</code></td><td>Thread-safe list optimized for many reads, few writes.</td><td>Writes copy entire array, expensive for frequent writes.</td></tr>
+<tr><td><code>BlockingQueue</code></td><td>Thread-safe producer-consumer queue.</td><td>Supports blocking put/take.</td></tr>
+<tr><td><code>ConcurrentLinkedQueue</code></td><td>Non-blocking thread-safe queue.</td><td>High-throughput queue.</td></tr>
+<tr><td><code>ConcurrentSkipListMap</code></td><td>Sorted concurrent map.</td><td>Concurrent alternative to TreeMap.</td></tr>
+</tbody>
+</table>
+
+<h3>ConcurrentHashMap atomic operations</h3>
+<pre><code>ConcurrentHashMap&lt;String, Integer&gt; counts = new ConcurrentHashMap&lt;&gt;();
+
+counts.merge("ERROR", 1, Integer::sum);
+
+counts.computeIfAbsent("user:1", key -> loadUserScore(key));</code></pre>
+
+<h3>Why ConcurrentHashMap does not allow null</h3>
+<p>In concurrent maps, null would create ambiguity. If <code>get(key)</code> returns null, it is unclear whether the key is absent or the value is actually null, especially with concurrent updates.</p>
+
+<h3>Fail-fast vs fail-safe / weakly consistent</h3>
+<table>
+<thead><tr><th>Iterator Type</th><th>Behavior</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Fail-fast</td><td>Throws <code>ConcurrentModificationException</code> when collection is structurally modified during iteration outside iterator.</td><td>ArrayList, HashMap iterators.</td></tr>
+<tr><td>Snapshot</td><td>Iterates over a copied snapshot.</td><td>CopyOnWriteArrayList.</td></tr>
+<tr><td>Weakly consistent</td><td>May reflect some concurrent changes, does not throw fail-fast exception.</td><td>ConcurrentHashMap iterator.</td></tr>
+</tbody>
+</table>
+
+<h3>ConcurrentModificationException example</h3>
+<pre><code>List&lt;String&gt; names = new ArrayList&lt;&gt;(List.of("A", "B", "C"));
+
+for (String name : names) {
+    if (name.equals("B")) {
+        names.remove(name); // may throw ConcurrentModificationException
+    }
+}</code></pre>
+
+<h3>Correct removal</h3>
+<pre><code>Iterator&lt;String&gt; iterator = names.iterator();
+while (iterator.hasNext()) {
+    if (iterator.next().equals("B")) {
+        iterator.remove();
+    }
+}
+
+// or
+names.removeIf(name -> name.equals("B"));</code></pre>
+</section>
+
+<section id="en-performance">
+<h2>10. Performance Summary</h2>
+<table>
+<thead><tr><th>Collection</th><th>get</th><th>add</th><th>remove</th><th>contains</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>ArrayList</td><td>O(1)</td><td>Amortized O(1)</td><td>O(n)</td><td>O(n)</td><td>Best general List.</td></tr>
+<tr><td>LinkedList</td><td>O(n)</td><td>O(1) at ends</td><td>O(1) at ends / O(n) by index</td><td>O(n)</td><td>Use mainly as deque, though ArrayDeque often better.</td></tr>
+<tr><td>HashSet</td><td>N/A</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>Uses HashMap internally.</td></tr>
+<tr><td>TreeSet</td><td>N/A</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted unique elements.</td></tr>
+<tr><td>HashMap</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg key lookup</td><td>Depends on good hash distribution.</td></tr>
+<tr><td>TreeMap</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted keys, range operations.</td></tr>
+<tr><td>ConcurrentHashMap</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>Thread-safe high concurrency.</td></tr>
+</tbody>
+</table>
+
+<h3>Choosing the right collection</h3>
+<ul class="checklist">
+<li>Need indexed access and fast iteration: <code>ArrayList</code>.</li>
+<li>Need uniqueness and fast lookup: <code>HashSet</code>.</li>
+<li>Need uniqueness and insertion order: <code>LinkedHashSet</code>.</li>
+<li>Need sorted unique values: <code>TreeSet</code>.</li>
+<li>Need key-value lookup: <code>HashMap</code>.</li>
+<li>Need key-value lookup with insertion/access order: <code>LinkedHashMap</code>.</li>
+<li>Need sorted keys/range query: <code>TreeMap</code>.</li>
+<li>Need concurrent key-value access: <code>ConcurrentHashMap</code>.</li>
+<li>Need stack/queue/deque: <code>ArrayDeque</code>.</li>
+<li>Need producer-consumer: <code>BlockingQueue</code>.</li>
+</ul>
+</section>
+
+<section id="en-qa" class="interview">
+<h2>11. Common Interview Questions & Answers — English</h2>
+
+<div class="qa"><p><strong>Q1. What is Java Collections Framework?</strong></p><p>A: It is a unified architecture for storing and manipulating groups of objects. It provides interfaces such as List, Set, Queue, Deque, Map and implementations such as ArrayList, HashSet, HashMap, TreeMap, ConcurrentHashMap. It also provides algorithms through the Collections utility class.</p></div>
+
+<div class="qa"><p><strong>Q2. ArrayList vs LinkedList?</strong></p><p>A: ArrayList is backed by a dynamic array. It has O(1) random access, fast iteration, and lower memory overhead. LinkedList is a doubly linked list. It has O(n) random access and higher memory overhead. LinkedList is only better for adding/removing at ends or when you already have node position. For most cases, ArrayList is preferred.</p></div>
+
+<div class="qa"><p><strong>Q3. How does HashMap work internally?</strong></p><p>A: HashMap stores entries in an array of buckets. For put/get, it computes hash from key.hashCode(), calculates bucket index using bit operation, then checks entries in the bucket using hash and equals. If bucket is empty, it inserts. If same key exists, it replaces value. If collision happens, entries are stored in a linked list or, in Java 8+, converted to a red-black tree when collision chain becomes large.</p></div>
+
+<div class="qa"><p><strong>Q4. What is a hash collision?</strong></p><p>A: Collision happens when different keys map to the same bucket index. HashMap handles collision by storing multiple entries in the bucket. Before Java 8 it used linked list. Java 8+ can treeify heavily-collided buckets into red-black trees to improve worst-case lookup.</p></div>
+
+<div class="qa"><p><strong>Q5. Why must equals and hashCode be overridden together?</strong></p><p>A: Hash-based collections first use hashCode to find a bucket, then use equals to find the exact object inside that bucket. If two objects are equal by equals but return different hash codes, they may be placed in different buckets, causing HashMap/HashSet to fail lookup or allow duplicates.</p></div>
+
+<div class="qa"><p><strong>Q6. If two objects have same hashCode, are they equal?</strong></p><p>A: Not necessarily. Same hashCode only means they may be in the same bucket. Hash collision is allowed. equals is still required to determine logical equality.</p></div>
+
+<div class="qa"><p><strong>Q7. What happens if a key is mutated after insertion into HashMap?</strong></p><p>A: If fields used in hashCode/equals are changed, the key may no longer be found because it is stored in bucket calculated from old hash, but lookup uses new hash. This is why map keys should be immutable or at least fields used for equality must not change.</p></div>
+
+<div class="qa"><p><strong>Q8. HashMap vs Hashtable vs ConcurrentHashMap?</strong></p><p>A: HashMap is not thread-safe and allows one null key. Hashtable is legacy, synchronized, and does not allow null key/value. ConcurrentHashMap is thread-safe with better concurrency and does not allow null key/value. For concurrent use, prefer ConcurrentHashMap.</p></div>
+
+<div class="qa"><p><strong>Q9. HashSet vs TreeSet?</strong></p><p>A: HashSet uses hashing, has no guaranteed order, and average O(1) add/remove/contains. TreeSet uses red-black tree, keeps sorted order, and operations are O(log n). Use HashSet for fast uniqueness and TreeSet for sorted unique elements.</p></div>
+
+<div class="qa"><p><strong>Q10. What is fail-fast iterator?</strong></p><p>A: A fail-fast iterator detects structural modification outside the iterator during iteration and throws ConcurrentModificationException. ArrayList and HashMap iterators are fail-fast. It is a bug-detection mechanism, not a thread-safety guarantee.</p></div>
+
+<div class="qa"><p><strong>Q11. Comparable vs Comparator?</strong></p><p>A: Comparable defines natural ordering inside the class using compareTo. Comparator defines external ordering using compare and allows multiple sorting strategies. Use Comparator when sorting by different fields or when you cannot modify the class.</p></div>
+
+<div class="qa"><p><strong>Q12. Why ConcurrentHashMap does not allow null?</strong></p><p>A: In concurrent context, null causes ambiguity. If get(key) returns null, it is unclear whether key is absent or value is null, especially when another thread may update the map. So ConcurrentHashMap disallows null key/value.</p></div>
+
+<div class="qa"><p><strong>Q13. What is load factor in HashMap?</strong></p><p>A: Load factor controls how full the table can be before resizing. Default is 0.75. Threshold equals capacity multiplied by load factor. Higher load factor saves memory but increases collision risk. Lower load factor reduces collisions but uses more memory.</p></div>
+
+<div class="qa"><p><strong>Q14. Why is ArrayDeque preferred over Stack?</strong></p><p>A: Stack is legacy and synchronized because it extends Vector. ArrayDeque is faster for stack/deque operations in single-threaded use and is the recommended general-purpose stack replacement.</p></div>
+
+<div class="qa"><p><strong>Q15. How do you choose a collection in production?</strong></p><p>A: I choose based on access pattern, ordering, uniqueness, sorting, concurrency, memory, and expected size. For most lists, ArrayList. For uniqueness, HashSet. For key-value lookup, HashMap. For sorted keys, TreeMap. For concurrent maps, ConcurrentHashMap. For queue/deque, ArrayDeque or BlockingQueue depending on thread-safety needs.</p></div>
+</section>
+
+<section id="vi-overview">
+<h2>12. Tổng quan</h2>
+<p class="lead">Java Collections Framework là kiến trúc thống nhất để lưu trữ, truy cập, tìm kiếm, sắp xếp và xử lý nhóm object.</p>
+<div class="diagram">Iterable
+  ↓
+Collection
+  ├── List
+  ├── Set
+  └── Queue / Deque
+
+Map thuộc Java Collections Framework, nhưng KHÔNG extends Collection.
+Map lưu key-value pairs.</div>
+<div class="note"><b>Mindset Senior:</b> Khi phỏng vấn, đừng chỉ nói “ArrayList là array, LinkedList là node”. Cần giải thích complexity, memory, cache locality, resizing, hashing, equality contract, iterator behavior và thread-safety.</div>
+</section>
+
+<section id="vi-hierarchy">
+<h2>13. Collection Hierarchy</h2>
+<table>
+<thead><tr><th>Interface</th><th>Mục đích</th><th>Implementation phổ biến</th></tr></thead>
+<tbody>
+<tr><td><code>Iterable</code></td><td>Root cho object có thể iterate bằng for-each.</td><td>Collection</td></tr>
+<tr><td><code>Collection</code></td><td>Root interface cho nhóm elements.</td><td>List, Set, Queue</td></tr>
+<tr><td><code>List</code></td><td>Có thứ tự, index-based, cho phép duplicate.</td><td>ArrayList, LinkedList, Vector, CopyOnWriteArrayList</td></tr>
+<tr><td><code>Set</code></td><td>Không cho duplicate.</td><td>HashSet, LinkedHashSet, TreeSet, EnumSet</td></tr>
+<tr><td><code>Queue</code></td><td>Xử lý elements, thường FIFO hoặc priority.</td><td>LinkedList, PriorityQueue, ArrayDeque</td></tr>
+<tr><td><code>Deque</code></td><td>Double-ended queue.</td><td>ArrayDeque, LinkedList</td></tr>
+<tr><td><code>Map</code></td><td>Key-value pairs, key unique.</td><td>HashMap, LinkedHashMap, TreeMap, ConcurrentHashMap</td></tr>
+</tbody>
+</table>
+
+<h3>Collection vs Collections</h3>
+<table>
+<thead><tr><th>Collection</th><th>Collections</th></tr></thead>
+<tbody>
+<tr><td>Là interface.</td><td>Là utility class.</td></tr>
+<tr><td>Đại diện cho nhóm object.</td><td>Cung cấp static helper methods.</td></tr>
+<tr><td>Ví dụ: <code>List extends Collection</code>.</td><td>Ví dụ: <code>Collections.sort()</code>, <code>Collections.unmodifiableList()</code>.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="vi-list">
+<h2>14. List Deep Dive</h2>
+<h3>ArrayList</h3>
+<p><code>ArrayList</code> dùng dynamic array bên trong. Thường là lựa chọn mặc định cho List vì random access và iteration nhanh.</p>
+<table>
+<thead><tr><th>Operation</th><th>Complexity</th><th>Ghi chú</th></tr></thead>
+<tbody>
+<tr><td>get(index)</td><td>O(1)</td><td>Truy cập trực tiếp array.</td></tr>
+<tr><td>add(element)</td><td>Amortized O(1)</td><td>Có thể trigger resize.</td></tr>
+<tr><td>add(index, element)</td><td>O(n)</td><td>Phải shift elements.</td></tr>
+<tr><td>remove(index)</td><td>O(n)</td><td>Phải shift elements.</td></tr>
+<tr><td>contains(element)</td><td>O(n)</td><td>Scan tuyến tính dùng equals.</td></tr>
+</tbody>
+</table>
+
+<h3>LinkedList</h3>
+<p><code>LinkedList</code> là doubly linked list. Mỗi node giữ item, previous pointer và next pointer.</p>
+<div class="warn"><b>Bẫy phỏng vấn:</b> Nói “LinkedList tốt hơn cho insert/delete” là chưa đủ. Nếu insert/delete theo index, vẫn phải tìm vị trí O(n). LinkedList chỉ lợi khi thao tác đầu/cuối hoặc đã có node position.</div>
+
+<h3>ArrayList vs LinkedList</h3>
+<table>
+<thead><tr><th>Điểm</th><th>ArrayList</th><th>LinkedList</th></tr></thead>
+<tbody>
+<tr><td>Internal structure</td><td>Dynamic array</td><td>Doubly linked nodes</td></tr>
+<tr><td>Random access</td><td>Nhanh O(1)</td><td>Chậm O(n)</td></tr>
+<tr><td>Memory</td><td>Ít overhead hơn</td><td>Nhiều overhead vì node có prev/next</td></tr>
+<tr><td>Iteration</td><td>Thường nhanh hơn do cache locality</td><td>Thường chậm hơn do pointer chasing</td></tr>
+<tr><td>Best use</td><td>Hầu hết List usage</td><td>Deque-like operations ở đầu/cuối</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="vi-set">
+<h2>15. Set Deep Dive</h2>
+<p><code>Set</code> lưu unique elements. Cách xác định unique phụ thuộc implementation.</p>
+<table>
+<thead><tr><th>Implementation</th><th>Ordering</th><th>Unique dựa vào</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>HashSet</code></td><td>Không đảm bảo order</td><td><code>hashCode()</code> + <code>equals()</code></td><td>Check tồn tại nhanh.</td></tr>
+<tr><td><code>LinkedHashSet</code></td><td>Insertion order</td><td><code>hashCode()</code> + <code>equals()</code></td><td>Unique + giữ thứ tự insert.</td></tr>
+<tr><td><code>TreeSet</code></td><td>Sorted order</td><td><code>compareTo()</code> hoặc <code>Comparator</code></td><td>Sorted unique elements.</td></tr>
+<tr><td><code>EnumSet</code></td><td>Enum natural order</td><td>Enum identity</td><td>Set rất efficient cho enum.</td></tr>
+</tbody>
+</table>
+<div class="danger"><b>Quan trọng:</b> TreeSet xác định trùng bằng <code>compare(a,b)==0</code>, không nhất thiết theo <code>equals()</code>. Comparator nên consistent với equals nếu có thể.</div>
+</section>
+
+<section id="vi-map">
+<h2>16. Map Deep Dive</h2>
+<p><code>Map</code> lưu key-value pairs. Key unique, value có thể duplicate.</p>
+<table>
+<thead><tr><th>Implementation</th><th>Ordering</th><th>Null support</th><th>Thread-safe?</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>HashMap</code></td><td>Không đảm bảo order</td><td>1 null key, nhiều null values</td><td>No</td><td>Key-value lookup phổ biến.</td></tr>
+<tr><td><code>LinkedHashMap</code></td><td>Insertion/access order</td><td>1 null key</td><td>No</td><td>LRU cache, predictable iteration.</td></tr>
+<tr><td><code>TreeMap</code></td><td>Sorted by key</td><td>Null key tùy comparator</td><td>No</td><td>Range queries, sorted keys.</td></tr>
+<tr><td><code>Hashtable</code></td><td>Không đảm bảo order</td><td>Không cho null</td><td>Yes, synchronized</td><td>Legacy code.</td></tr>
+<tr><td><code>ConcurrentHashMap</code></td><td>Không đảm bảo order</td><td>Không cho null</td><td>Yes</td><td>Concurrent map.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="vi-hashmap">
+<h2>17. HashMap Internals — Chủ đề phỏng vấn cực quan trọng</h2>
+
+<h3>HashMap là gì?</h3>
+<p><code>HashMap</code> là implementation của <code>Map</code> dựa trên hash table. Nó lưu entries trong internal array các bucket.</p>
+
+<div class="diagram">HashMap internal idea:
+
+table = array of buckets
+
+index 0 → null
+index 1 → Node(key1, value1)
+index 2 → Node(key2, value2) → Node(key3, value3)
+index 3 → TreeNode(...)
+...</div>
+
+<h3>Flow put(key, value)</h3>
+<div class="diagram">put(key, value)
+  ↓
+1. Tính hash từ key.hashCode()
+  ↓
+2. Spread hash bits để giảm phân bố xấu
+  ↓
+3. Tính bucket index: (table.length - 1) & hash
+  ↓
+4. Bucket empty → insert node mới
+  ↓
+5. Nếu same key bằng hash + equals → replace value
+  ↓
+6. Nếu collision với key khác → append node hoặc insert vào tree
+  ↓
+7. Nếu size vượt threshold → resize table</div>
+
+<h3>Bucket index</h3>
+<pre><code>index = (table.length - 1) & hash</code></pre>
+<p>HashMap dùng bit operation nhanh hơn modulo, vì capacity là power of two.</p>
+
+<h3>Load factor và threshold</h3>
+<table>
+<thead><tr><th>Term</th><th>Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td>Capacity</td><td>Số bucket trong internal table.</td></tr>
+<tr><td>Load factor</td><td>Mức độ đầy trước khi resize. Default 0.75.</td></tr>
+<tr><td>Threshold</td><td><code>capacity * loadFactor</code>. Size vượt threshold thì resize.</td></tr>
+</tbody>
+</table>
+
+<h3>Collision</h3>
+<p>Collision xảy ra khi nhiều key khác nhau map vào cùng bucket index.</p>
+<div class="diagram">key A → hash → index 5
+key B → hash → index 5
+
+Bucket 5:
+Node(A) → Node(B)</div>
+
+<h3>Collision handling</h3>
+<table>
+<thead><tr><th>Version</th><th>Cách xử lý</th></tr></thead>
+<tbody>
+<tr><td>Trước Java 8</td><td>Bucket dùng linked list.</td></tr>
+<tr><td>Java 8+</td><td>Bucket ban đầu dùng linked list, nhưng có thể chuyển thành red-black tree khi collision chain lớn.</td></tr>
+</tbody>
+</table>
+
+<h3>Treeification</h3>
+<table>
+<thead><tr><th>Condition</th><th>Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td><code>TREEIFY_THRESHOLD = 8</code></td><td>Bucket quá nhiều nodes thì có thể treeify.</td></tr>
+<tr><td><code>MIN_TREEIFY_CAPACITY = 64</code></td><td>Nếu table còn nhỏ, HashMap ưu tiên resize thay vì treeify.</td></tr>
+<tr><td><code>UNTREEIFY_THRESHOLD = 6</code></td><td>Tree có thể chuyển lại linked list khi entries giảm.</td></tr>
+</tbody>
+</table>
+
+<div class="note"><b>Câu trả lời phỏng vấn:</b> Average get/put của HashMap là O(1). Nếu collision nặng, linked list là O(n), nhưng Java 8+ có thể treeify bucket thành red-black tree để cải thiện thành O(log n).</div>
+
+<h3>HashMap không thread-safe</h3>
+<p><code>HashMap</code> không an toàn khi nhiều thread cùng modify. Có thể gây lost update, inconsistent state hoặc behavior không mong muốn.</p>
+<div class="ok"><b>Nên dùng:</b> <code>ConcurrentHashMap</code>, external synchronization, hoặc immutable map tùy use case.</div>
+</section>
+
+<section id="vi-equals">
+<h2>18. equals() và hashCode() — Quan trọng nhất cho hashing</h2>
+
+<h3>Vì sao quan trọng?</h3>
+<p>Hash-based collections như <code>HashMap</code>, <code>HashSet</code>, <code>ConcurrentHashMap</code> phụ thuộc vào <code>hashCode()</code> và <code>equals()</code>.</p>
+<div class="diagram">HashMap lookup:
+1. Dùng hashCode() để tìm bucket
+2. Dùng equals() để tìm đúng key trong bucket</div>
+
+<h3>Contract</h3>
+<table>
+<thead><tr><th>Rule</th><th>Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td>Nếu <code>a.equals(b)</code> true</td><td><code>a.hashCode()</code> phải bằng <code>b.hashCode()</code>.</td></tr>
+<tr><td>Nếu hashCode giống nhau</td><td>Object có thể bằng hoặc không bằng nhau. Collision được phép.</td></tr>
+<tr><td>equals reflexive</td><td><code>a.equals(a)</code> true.</td></tr>
+<tr><td>equals symmetric</td><td>Nếu <code>a.equals(b)</code>, thì <code>b.equals(a)</code>.</td></tr>
+<tr><td>equals transitive</td><td>Nếu a equals b và b equals c, thì a equals c.</td></tr>
+<tr><td>equals consistent</td><td>Kết quả không đổi nếu field dùng để compare không đổi.</td></tr>
+</tbody>
+</table>
+
+<h3>Ví dụ đúng</h3>
+<pre><code>public class Employee {
+    private final Long id;
+    private final String email;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee employee)) return false;
+        return Objects.equals(id, employee.id)
+            && Objects.equals(email, employee.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email);
+    }
+}</code></pre>
+
+<h3>Override equals nhưng không override hashCode</h3>
+<p>Nếu hai object logically equal nhưng hashCode khác nhau, HashSet/HashMap có thể đưa chúng vào bucket khác nhau và không detect duplicate.</p>
+
+<h3>Mutable key problem</h3>
+<p>Không nên thay đổi field dùng trong <code>equals()</code> hoặc <code>hashCode()</code> sau khi object đã được dùng làm key trong HashMap hoặc element trong HashSet.</p>
+<pre><code>User user = new User("old@example.com");
+Set&lt;User&gt; users = new HashSet&lt;&gt;();
+users.add(user);
+
+user.email = "new@example.com";
+
+System.out.println(users.contains(user)); // may be false</code></pre>
+<div class="danger"><b>Cảnh báo Senior:</b> Mutable key phá hash-based collections vì object đang nằm ở bucket theo old hash, nhưng lookup dùng new hash.</div>
+</section>
+
+<section id="vi-queue">
+<h2>19. Queue và Deque</h2>
+<table>
+<thead><tr><th>Implementation</th><th>Behavior</th><th>Use Case</th></tr></thead>
+<tbody>
+<tr><td><code>LinkedList</code></td><td>Queue và Deque implementation</td><td>Simple queue legacy usage</td></tr>
+<tr><td><code>ArrayDeque</code></td><td>Resizable-array deque</td><td>Stack/queue replacement, thường tốt hơn Stack/LinkedList</td></tr>
+<tr><td><code>PriorityQueue</code></td><td>Order theo priority</td><td>Scheduling, top K</td></tr>
+<tr><td><code>BlockingQueue</code></td><td>Thread-safe blocking operations</td><td>Producer-consumer</td></tr>
+</tbody>
+</table>
+
+<h3>ArrayDeque as Stack</h3>
+<pre><code>Deque&lt;String&gt; stack = new ArrayDeque&lt;&gt;();
+stack.push("A");
+stack.push("B");
+
+System.out.println(stack.pop()); // B</code></pre>
+</section>
+
+<section id="vi-concurrent">
+<h2>20. Concurrent Collections</h2>
+<p>Collections thường như ArrayList và HashMap không thread-safe khi concurrent modification. Java cung cấp concurrent collections cho môi trường multi-thread.</p>
+<table>
+<thead><tr><th>Collection</th><th>Mục đích</th><th>Ghi chú</th></tr></thead>
+<tbody>
+<tr><td><code>ConcurrentHashMap</code></td><td>Thread-safe map với high concurrency.</td><td>Không cho null key/value. Tốt hơn Hashtable.</td></tr>
+<tr><td><code>CopyOnWriteArrayList</code></td><td>List thread-safe tối ưu cho nhiều read, ít write.</td><td>Write copy toàn bộ array, đắt nếu write nhiều.</td></tr>
+<tr><td><code>BlockingQueue</code></td><td>Producer-consumer queue.</td><td>Hỗ trợ blocking put/take.</td></tr>
+<tr><td><code>ConcurrentLinkedQueue</code></td><td>Non-blocking thread-safe queue.</td><td>High-throughput queue.</td></tr>
+<tr><td><code>ConcurrentSkipListMap</code></td><td>Sorted concurrent map.</td><td>Concurrent alternative cho TreeMap.</td></tr>
+</tbody>
+</table>
+
+<h3>ConcurrentHashMap atomic operations</h3>
+<pre><code>ConcurrentHashMap&lt;String, Integer&gt; counts = new ConcurrentHashMap&lt;&gt;();
+
+counts.merge("ERROR", 1, Integer::sum);
+counts.computeIfAbsent("user:1", key -> loadUserScore(key));</code></pre>
+
+<h3>Fail-fast vs weakly consistent</h3>
+<table>
+<thead><tr><th>Iterator Type</th><th>Behavior</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Fail-fast</td><td>Throw <code>ConcurrentModificationException</code> khi collection bị structural modification ngoài iterator.</td><td>ArrayList, HashMap iterators.</td></tr>
+<tr><td>Snapshot</td><td>Iterate trên copied snapshot.</td><td>CopyOnWriteArrayList.</td></tr>
+<tr><td>Weakly consistent</td><td>Có thể reflect một số concurrent changes, không fail-fast.</td><td>ConcurrentHashMap iterator.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="vi-performance">
+<h2>21. Performance Summary</h2>
+<table>
+<thead><tr><th>Collection</th><th>get</th><th>add</th><th>remove</th><th>contains</th><th>Ghi chú</th></tr></thead>
+<tbody>
+<tr><td>ArrayList</td><td>O(1)</td><td>Amortized O(1)</td><td>O(n)</td><td>O(n)</td><td>Best general List.</td></tr>
+<tr><td>LinkedList</td><td>O(n)</td><td>O(1) ở đầu/cuối</td><td>O(1) ở đầu/cuối / O(n) theo index</td><td>O(n)</td><td>Ít dùng hơn ArrayList/ArrayDeque.</td></tr>
+<tr><td>HashSet</td><td>N/A</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>Dùng HashMap bên trong.</td></tr>
+<tr><td>TreeSet</td><td>N/A</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted unique elements.</td></tr>
+<tr><td>HashMap</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg key lookup</td><td>Phụ thuộc hash distribution.</td></tr>
+<tr><td>TreeMap</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted keys, range operations.</td></tr>
+<tr><td>ConcurrentHashMap</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>O(1) avg</td><td>Thread-safe high concurrency.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="vi-qa" class="interview">
+<h2>22. Tổng hợp câu hỏi phỏng vấn và trả lời — Vietnamese</h2>
+
+<div class="qa"><p><strong>Q1. Java Collections Framework là gì?</strong></p><p>A: Là kiến trúc thống nhất để lưu trữ và xử lý nhóm object. Nó cung cấp interfaces như List, Set, Queue, Deque, Map và implementations như ArrayList, HashSet, HashMap, TreeMap, ConcurrentHashMap. Ngoài ra có utility class Collections cung cấp sort, search, unmodifiable, synchronized wrapper.</p></div>
+
+<div class="qa"><p><strong>Q2. ArrayList khác LinkedList thế nào?</strong></p><p>A: ArrayList dùng dynamic array, random access O(1), iteration nhanh và ít memory overhead. LinkedList dùng doubly linked nodes, random access O(n), memory overhead cao hơn. LinkedList chỉ lợi khi thao tác đầu/cuối hoặc đã có node position. Hầu hết case nên dùng ArrayList.</p></div>
+
+<div class="qa"><p><strong>Q3. HashMap hoạt động thế nào bên trong?</strong></p><p>A: HashMap lưu entries trong array of buckets. Khi put/get, nó tính hash từ key.hashCode(), tính bucket index bằng bit operation, sau đó dùng hash và equals để tìm key trong bucket. Nếu bucket empty thì insert. Nếu key đã tồn tại thì replace value. Nếu collision thì lưu dạng linked list hoặc Java 8+ có thể chuyển sang red-black tree khi collision chain lớn.</p></div>
+
+<div class="qa"><p><strong>Q4. Hash collision là gì?</strong></p><p>A: Collision xảy ra khi nhiều key khác nhau map vào cùng bucket index. HashMap xử lý bằng cách lưu nhiều entry trong bucket. Trước Java 8 dùng linked list; Java 8+ có thể treeify bucket thành red-black tree để cải thiện lookup khi collision nặng.</p></div>
+
+<div class="qa"><p><strong>Q5. Vì sao override equals phải override hashCode?</strong></p><p>A: Hash-based collections dùng hashCode để tìm bucket trước, rồi dùng equals để tìm object chính xác trong bucket. Nếu hai object equals true nhưng hashCode khác nhau, chúng có thể nằm ở bucket khác nhau, làm HashMap/HashSet lookup sai hoặc cho duplicate.</p></div>
+
+<div class="qa"><p><strong>Q6. Hai object có cùng hashCode thì có equals không?</strong></p><p>A: Không chắc. Cùng hashCode chỉ có nghĩa là có thể cùng bucket. Collision được phép. equals mới quyết định object có logically equal hay không.</p></div>
+
+<div class="qa"><p><strong>Q7. Điều gì xảy ra nếu key bị mutate sau khi đưa vào HashMap?</strong></p><p>A: Nếu field dùng trong hashCode/equals bị thay đổi, key có thể không tìm lại được. Object đang nằm ở bucket tính theo old hash, nhưng lookup dùng new hash. Vì vậy key nên immutable hoặc field dùng cho equality không được thay đổi.</p></div>
+
+<div class="qa"><p><strong>Q8. HashMap vs Hashtable vs ConcurrentHashMap?</strong></p><p>A: HashMap không thread-safe và cho phép một null key. Hashtable là legacy, synchronized toàn bộ method, không cho null key/value. ConcurrentHashMap thread-safe với concurrency tốt hơn, không cho null key/value. Trong concurrent use case nên dùng ConcurrentHashMap.</p></div>
+
+<div class="qa"><p><strong>Q9. HashSet khác TreeSet thế nào?</strong></p><p>A: HashSet dùng hashing, không đảm bảo order, average add/remove/contains O(1). TreeSet dùng red-black tree, giữ sorted order, operation O(log n). Dùng HashSet khi cần unique nhanh; dùng TreeSet khi cần sorted unique elements.</p></div>
+
+<div class="qa"><p><strong>Q10. Fail-fast iterator là gì?</strong></p><p>A: Fail-fast iterator detect structural modification trong lúc iterate nếu modification không qua chính iterator, rồi throw ConcurrentModificationException. ArrayList và HashMap iterator là fail-fast. Đây là cơ chế detect bug, không phải đảm bảo thread-safety.</p></div>
+
+<div class="qa"><p><strong>Q11. Comparable khác Comparator thế nào?</strong></p><p>A: Comparable định nghĩa natural ordering trong chính class qua compareTo. Comparator là external ordering strategy qua compare, cho phép nhiều cách sort khác nhau và dùng được khi không sửa được class.</p></div>
+
+<div class="qa"><p><strong>Q12. Vì sao ConcurrentHashMap không cho null?</strong></p><p>A: Trong concurrent context, null gây ambiguity. Nếu get(key) trả null, không biết key absent hay value là null, nhất là khi thread khác có thể update đồng thời. Vì vậy ConcurrentHashMap cấm null key/value.</p></div>
+
+<div class="qa"><p><strong>Q13. Load factor trong HashMap là gì?</strong></p><p>A: Load factor quyết định table được phép đầy tới mức nào trước khi resize. Default là 0.75. Threshold = capacity * loadFactor. Load factor cao tiết kiệm memory nhưng tăng collision risk; thấp giảm collision nhưng tốn memory hơn.</p></div>
+
+<div class="qa"><p><strong>Q14. Vì sao ArrayDeque được khuyến nghị hơn Stack?</strong></p><p>A: Stack là legacy class vì extends Vector và synchronized. ArrayDeque nhanh hơn cho stack/deque operations trong single-thread use case và thường được khuyến nghị thay Stack.</p></div>
+
+<div class="qa"><p><strong>Q15. Chọn collection trong production như thế nào?</strong></p><p>A: Chọn dựa trên access pattern, ordering, uniqueness, sorting, concurrency, memory và expected size. List thường dùng ArrayList. Unique nhanh dùng HashSet. Key-value lookup dùng HashMap. Sorted keys dùng TreeMap. Concurrent map dùng ConcurrentHashMap. Queue/deque dùng ArrayDeque hoặc BlockingQueue nếu cần thread-safe producer-consumer.</p></div>
+</section>
+
+<section>
+<h2>Quick Senior Checklist</h2>
+<ul class="checklist">
+<li>Understand Collection hierarchy and why Map does not extend Collection.</li>
+<li>Know ArrayList resizing and LinkedList memory/cpu trade-off.</li>
+<li>Explain HashMap put/get flow clearly.</li>
+<li>Explain hashing, bucket, collision, resize, load factor, treeify.</li>
+<li>Know equals/hashCode contract and mutable key problem.</li>
+<li>Know HashMap vs Hashtable vs ConcurrentHashMap.</li>
+<li>Know HashSet internally uses HashMap.</li>
+<li>Know TreeSet/TreeMap use compareTo/Comparator.</li>
+<li>Know fail-fast iterator and safe removal.</li>
+<li>Know which collection to choose for real production use cases.</li>
+</ul>
+</section>
+
+<div class="footer">Created for Senior Java Backend interview preparation — Java Collections Deep Dive EN/VN.</div>
+</main>
+</div>
+</body>
+</html>

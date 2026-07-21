@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Backend Concepts - EN/VN Learning Guide</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #7c2d12;
+      --primary-2: #ea580c;
+      --primary-soft: #fff7ed;
+      --border: #e5e7eb;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --blue-bg: #eff6ff;
+      --blue-border: #3b82f6;
+      --green-bg: #ecfdf5;
+      --green-border: #10b981;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #f59e0b;
+      --red-bg: #fef2f2;
+      --red-border: #ef4444;
+      --purple-bg: #f5f3ff;
+      --purple-border: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      background: linear-gradient(135deg, #7c2d12, #ea580c);
+      color: white;
+      padding: 44px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: 2.35rem;
+      line-height: 1.2;
+    }
+
+    header p {
+      max-width: 1080px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+      opacity: 0.96;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    nav {
+      position: sticky;
+      top: 16px;
+      height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    nav h3 {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    nav a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.91rem;
+    }
+
+    nav a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    nav hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    main { min-width: 0; }
+
+    .language-tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(244, 247, 251, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 12px 0;
+    }
+
+    .tab-button {
+      border: none;
+      background: var(--card);
+      color: var(--primary);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .tab-button.active {
+      background: var(--primary-2);
+      color: white;
+      border-color: var(--primary-2);
+    }
+
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.65rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #111827;
+      margin-top: 28px;
+      font-size: 1.2rem;
+    }
+
+    h4 {
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .summary, .success, .warning, .danger, .note {
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .summary { background: var(--blue-bg); border-left: 5px solid var(--blue-border); }
+    .success { background: var(--green-bg); border-left: 5px solid var(--green-border); }
+    .warning { background: var(--yellow-bg); border-left: 5px solid var(--yellow-border); }
+    .danger { background: var(--red-bg); border-left: 5px solid var(--red-border); }
+    .note { background: var(--purple-bg); border-left: 5px solid var(--purple-border); }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 0.93rem;
+      line-height: 1.55;
+      border: 1px solid #374151;
+      margin: 14px 0;
+    }
+
+    code { font-family: Consolas, Monaco, "Courier New", monospace; }
+
+    p code, li code, td code {
+      background: #fff7ed;
+      color: #9a3412;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.93em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #111827;
+    }
+
+    ul, ol { padding-left: 24px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fafafa;
+    }
+
+    .mini-card h4 {
+      margin: 0 0 8px;
+      color: var(--primary);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pill {
+      background: #ffedd5;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .flow {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      padding: 14px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      margin: 14px 0;
+    }
+
+    .big-idea {
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #fff7ed, #eff6ff);
+      border: 1px solid #fed7aa;
+      padding: 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: #7c2d12;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px;
+      font-size: 0.95rem;
+    }
+
+    .small { color: var(--muted); font-size: 0.92rem; }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      nav {
+        position: static;
+        height: auto;
+      }
+
+      .grid { grid-template-columns: 1fr; }
+
+      header h1 { font-size: 1.8rem; }
+    }
+
+    @media print {
+      nav, .language-tabs { display: none; }
+      .layout { display: block; }
+      section { box-shadow: none; break-inside: avoid; }
+      .lang-section { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Advanced Backend Concepts Learning Guide</h1>
+    <p>Concept-only but detailed learning website for senior backend interviews: Java sorting/hash internals, B-tree and database indexes, isolation and locking, sync/async/reactive programming, and loose coupling design in microservices. English and Vietnamese versions included.</p>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <h3>English</h3>
+      <a href="#en-roadmap">Roadmap</a>
+      <a href="#en-sorting">Java Sorting Internals</a>
+      <a href="#en-hashmap">Java HashMap Internals</a>
+      <a href="#en-btree">B-tree & Indexes</a>
+      <a href="#en-index-design">Index Design</a>
+      <a href="#en-isolation">Isolation Levels</a>
+      <a href="#en-locking">Locking Mechanism</a>
+      <a href="#en-sync-async">Sync vs Async</a>
+      <a href="#en-reactive">Reactive Programming</a>
+      <a href="#en-loose">Loose Coupling</a>
+      <a href="#en-microservice">Microservice Design</a>
+      <a href="#en-patterns">Advanced Patterns</a>
+      <a href="#en-interview">Interview Summary</a>
+      <a href="#en-refs">References</a>
+
+      <hr />
+
+      <h3>Tiếng Việt</h3>
+      <a href="#vn-roadmap">Roadmap</a>
+      <a href="#vn-sorting">Java Sorting Internals</a>
+      <a href="#vn-hashmap">Java HashMap Internals</a>
+      <a href="#vn-btree">B-tree & Index</a>
+      <a href="#vn-index-design">Thiết kế Index</a>
+      <a href="#vn-isolation">Isolation Levels</a>
+      <a href="#vn-locking">Locking Mechanism</a>
+      <a href="#vn-sync-async">Sync vs Async</a>
+      <a href="#vn-reactive">Reactive Programming</a>
+      <a href="#vn-loose">Loose Coupling</a>
+      <a href="#vn-microservice">Microservice Design</a>
+      <a href="#vn-patterns">Advanced Patterns</a>
+      <a href="#vn-interview">Tóm tắt phỏng vấn</a>
+      <a href="#vn-refs">References</a>
+    </nav>
+
+    <main>
+      <div class="language-tabs">
+        <button class="tab-button active" onclick="showLang('en')">English Version</button>
+        <button class="tab-button" onclick="showLang('vn')">Vietnamese Version</button>
+      </div>
+
+      <div id="en" class="lang-section active">
+        <section id="en-roadmap">
+          <h2>1. Advanced Backend Roadmap</h2>
+          <div class="big-idea">Advanced backend knowledge is not only about syntax. It is about understanding how runtime, database, concurrency, and distributed systems behave under load.</div>
+
+          <h3>Recommended learning order</h3>
+          <ol>
+            <li>Java sorting internals: stable sort, quicksort, TimSort, comparator cost.</li>
+            <li>Java HashMap internals: hash, bucket, collision, resize, treeify.</li>
+            <li>Database indexes: B-tree, composite index, covering index, selectivity.</li>
+            <li>Execution plan mindset: scan type, join type, sort, filter, row estimation.</li>
+            <li>Transactions: ACID, isolation levels, anomalies.</li>
+            <li>Locking: row lock, table lock, optimistic lock, pessimistic lock, deadlock.</li>
+            <li>Sync vs async: blocking thread model, callback/Future/CompletableFuture.</li>
+            <li>Reactive programming: non-blocking I/O, backpressure, WebFlux use cases.</li>
+            <li>Loose coupling: interface, dependency inversion, ports and adapters.</li>
+            <li>Microservices: service boundary, API contract, events, saga, outbox, idempotency.</li>
+          </ol>
+
+          <h3>Mind map</h3>
+          <div class="flow">Java internals
+ ├── Sorting
+ └── HashMap
+
+Database internals
+ ├── B-tree indexes
+ ├── Query performance
+ ├── Isolation
+ └── Locking
+
+Concurrency model
+ ├── Sync
+ ├── Async
+ └── Reactive
+
+Architecture
+ ├── Loose coupling
+ ├── Microservices
+ ├── Event-driven design
+ └── Reliability patterns</div>
+        </section>
+
+        <section id="en-sorting">
+          <h2>2. Java Sorting Internals - Concept Only</h2>
+
+          <h3>2.1. What sorting means in Java</h3>
+          <p>Sorting means arranging elements based on a comparison rule. In Java, the comparison rule usually comes from either <code>Comparable</code> or <code>Comparator</code>.</p>
+
+          <pre><code>class Employee implements Comparable&lt;Employee&gt; {
+    private String name;
+    private int age;
+
+    @Override
+    public int compareTo(Employee other) {
+        return Integer.compare(this.age, other.age);
+    }
+}</code></pre>
+
+          <pre><code>employees.sort(Comparator.comparing(Employee::getName));</code></pre>
+
+          <h3>2.2. Comparable vs Comparator</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Meaning</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Comparable</code></td>
+                <td>Natural ordering defined inside the class.</td>
+                <td>User sorted by ID, Money sorted by amount, Date sorted by time.</td>
+              </tr>
+              <tr>
+                <td><code>Comparator</code></td>
+                <td>External ordering rule.</td>
+                <td>Sort employees by salary, then by name, then by department.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>2.3. Stable vs unstable sort</h3>
+          <p>A stable sort keeps the original order of equal elements.</p>
+
+          <div class="flow">Before sorting by department:
+1. Alice - IT
+2. Bob   - HR
+3. John  - IT
+4. Mary  - HR
+
+After stable sorting by department:
+2. Bob   - HR
+4. Mary  - HR
+1. Alice - IT
+3. John  - IT
+
+Bob stays before Mary.
+Alice stays before John.</div>
+
+          <div class="summary">
+            Stability matters when you sort by multiple criteria in multiple steps. For example, sort by name first, then stable-sort by department.
+          </div>
+
+          <h3>2.4. Arrays.sort for primitives</h3>
+          <p>For primitive arrays such as <code>int[]</code>, <code>long[]</code>, and <code>char[]</code>, Java documentation describes a Dual-Pivot Quicksort implementation. Conceptually, quicksort partitions data around pivots and recursively sorts partitions.</p>
+
+          <div class="flow">Dual-Pivot Quicksort concept:
+Array
+ ↓
+Choose two pivots
+ ↓
+Split data into three regions:
+  values &lt; pivot1
+  pivot1 &lt;= values &lt;= pivot2
+  values &gt; pivot2
+ ↓
+Sort each region</div>
+
+          <h3>Why use quicksort-like algorithm for primitives?</h3>
+          <ul>
+            <li>No object identity to preserve.</li>
+            <li>No need for stability because primitive values have no attached business identity.</li>
+            <li>Good memory locality.</li>
+            <li>Usually low extra memory overhead.</li>
+          </ul>
+
+          <h3>2.5. Arrays.sort for objects</h3>
+          <p>For object arrays, Java sort is required to be stable. Modern JDK documentation describes it as a stable adaptive iterative mergesort adapted from TimSort ideas.</p>
+
+          <div class="flow">TimSort / adaptive merge sort concept:
+Detect already sorted runs
+        ↓
+Sort or extend small runs if needed
+        ↓
+Merge runs efficiently
+        ↓
+Very good for partially sorted real-world data</div>
+
+          <h3>2.6. parallelSort</h3>
+          <p><code>Arrays.parallelSort()</code> can split sorting work into multiple tasks. It may help for large arrays on multi-core machines, but it is not always faster for small arrays due to thread/task overhead.</p>
+
+          <h3>Interview points</h3>
+          <ul>
+            <li>Do not say every Java sort uses the same algorithm.</li>
+            <li>Primitive arrays and object arrays may use different strategies.</li>
+            <li>Object sorting must be stable.</li>
+            <li>Comparator cost matters. If comparator calls DB/API or heavy logic, sorting becomes expensive.</li>
+            <li>For database-backed data, prefer sorting in DB when pagination/filtering is involved.</li>
+          </ul>
+
+          <div class="summary">
+            <strong>Short answer:</strong> Java sorting depends on data type. Primitive array sorting is optimized for raw values, while object sorting is stable and optimized for real-world partially sorted data. For business objects, the correctness of comparator logic is often more important than the algorithm name.
+          </div>
+        </section>
+
+        <section id="en-hashmap">
+          <h2>3. Java HashMap Internals - Concept Only</h2>
+
+          <h3>3.1. What HashMap is trying to optimize</h3>
+          <p><code>HashMap</code> is designed for fast key-value lookup. Conceptually, it converts a key into a hash value, maps that hash to a bucket, and stores the entry in that bucket.</p>
+
+          <div class="flow">put(key, value)
+   ↓
+hash = hash(key)
+   ↓
+index = hash mapped to bucket position
+   ↓
+store Node(hash, key, value, next) in bucket</div>
+
+          <h3>3.2. Basic internal structure</h3>
+          <pre><code>table[index] → Node(key, value, hash, next)
+             → Node(key, value, hash, next)
+             → Node(key, value, hash, next)</code></pre>
+
+          <p>A bucket may contain one entry, multiple entries in a linked list, or in heavy collision cases, a tree structure.</p>
+
+          <h3>3.3. How get works</h3>
+          <div class="flow">get(key)
+   ↓
+Calculate hash
+   ↓
+Find bucket index
+   ↓
+Check first node
+   ↓
+If key matches by hash and equals() → return value
+   ↓
+Otherwise traverse linked list or tree
+   ↓
+If not found → return null</div>
+
+          <h3>3.4. Why equals() and hashCode() must be consistent</h3>
+          <p>If two objects are equal by <code>equals()</code>, they must have the same <code>hashCode()</code>. Otherwise, HashMap may search in the wrong bucket.</p>
+
+          <pre><code>Map&lt;User, String&gt; map = new HashMap&lt;&gt;();
+
+User u1 = new User(1, "John");
+User u2 = new User(1, "John");
+
+map.put(u1, "A");
+System.out.println(map.get(u2));</code></pre>
+
+          <p>If <code>equals()</code> says <code>u1</code> and <code>u2</code> are same but <code>hashCode()</code> is different, <code>get(u2)</code> may fail.</p>
+
+          <h3>3.5. Collision</h3>
+          <p>A collision happens when different keys map to the same bucket.</p>
+
+          <div class="flow">Bucket 5:
+  Node("Aa", value1)
+  Node("BB", value2)
+  Node("Xy", value3)</div>
+
+          <h3>3.6. Collision handling</h3>
+          <ul>
+            <li>Initially, entries in the same bucket are linked together.</li>
+            <li>If a bucket becomes too large and the table is large enough, Java can convert that bucket into a tree.</li>
+            <li>This protects worst-case lookup from degrading too badly when many keys collide.</li>
+          </ul>
+
+          <h3>3.7. Load factor and resize</h3>
+          <p>Load factor controls how full the table can become before resizing. Default load factor is commonly <code>0.75</code>.</p>
+
+          <div class="flow">capacity = 16
+load factor = 0.75
+threshold = 16 * 0.75 = 12
+
+When size &gt; 12:
+  resize table
+  redistribute entries</div>
+
+          <h3>3.8. Why resizing is expensive</h3>
+          <p>Resize is expensive because HashMap needs to allocate a larger table and redistribute existing entries into new buckets.</p>
+
+          <div class="warning">
+            If you know the approximate number of entries, initialize HashMap with a suitable capacity to reduce resize operations.
+          </div>
+
+          <h3>3.9. HashMap vs LinkedHashMap vs TreeMap</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Map</th>
+                <th>Ordering</th>
+                <th>Typical performance</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HashMap</code></td>
+                <td>No guaranteed order</td>
+                <td>Average O(1)</td>
+                <td>Fast lookup by key.</td>
+              </tr>
+              <tr>
+                <td><code>LinkedHashMap</code></td>
+                <td>Insertion/access order</td>
+                <td>Average O(1)</td>
+                <td>Cache-like behavior, predictable iteration.</td>
+              </tr>
+              <tr>
+                <td><code>TreeMap</code></td>
+                <td>Sorted by key</td>
+                <td>O(log n)</td>
+                <td>Range query, sorted keys.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Interview points</h3>
+          <ul>
+            <li>HashMap uses hashCode to locate bucket, then equals to confirm key identity.</li>
+            <li>Good hash distribution gives near constant-time lookup.</li>
+            <li>Bad hashCode causes many collisions and slower lookup.</li>
+            <li>HashMap is not synchronized. Use ConcurrentHashMap for concurrent access.</li>
+            <li>Do not use mutable fields in hashCode/equals for keys after insertion.</li>
+          </ul>
+        </section>
+
+        <section id="en-btree">
+          <h2>4. B-tree and Database Indexes</h2>
+
+          <h3>4.1. Why indexes exist</h3>
+          <p>Without an index, the database may need to scan many rows to find matching data. An index is a separate data structure that helps the database find rows faster.</p>
+
+          <div class="flow">Without index:
+Read table rows one by one
+        ↓
+Check condition
+        ↓
+Return matching rows
+
+With index:
+Search index tree
+        ↓
+Find row pointers
+        ↓
+Fetch matching table rows</div>
+
+          <h3>4.2. B-tree concept</h3>
+          <p>A B-tree index is a balanced tree structure. It keeps keys sorted and allows efficient equality search, range search, and ordered traversal.</p>
+
+          <div class="flow">Root page
+ ├── Internal page
+ │    ├── Leaf page: key → row pointer
+ │    └── Leaf page: key → row pointer
+ └── Internal page
+      ├── Leaf page: key → row pointer
+      └── Leaf page: key → row pointer</div>
+
+          <h3>4.3. Why B-tree is good for databases</h3>
+          <ul>
+            <li>Balanced height means predictable lookup.</li>
+            <li>Each node/page contains many keys, reducing disk I/O.</li>
+            <li>Keys are sorted, so range queries are efficient.</li>
+            <li>Can support <code>ORDER BY</code> when index order matches query needs.</li>
+          </ul>
+
+          <h3>4.4. Common queries that benefit from B-tree index</h3>
+          <pre><code>WHERE user_id = ?
+WHERE created_at &gt;= ? AND created_at &lt; ?
+ORDER BY created_at DESC
+WHERE status = ? AND created_at &gt;= ?</code></pre>
+
+          <h3>4.5. Index is not free</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Benefit</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Faster reads for matching queries.</td>
+                <td>Slower writes because index must be updated.</td>
+              </tr>
+              <tr>
+                <td>Faster range queries and sorting.</td>
+                <td>More disk storage.</td>
+              </tr>
+              <tr>
+                <td>Can reduce table scans.</td>
+                <td>Too many indexes can confuse maintenance and increase write cost.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="summary">
+            <strong>Short answer:</strong> A B-tree index is like a sorted tree of keys pointing to table rows. It helps the database avoid scanning the whole table, especially for equality, range, and ordering queries.
+          </div>
+        </section>
+
+        <section id="en-index-design">
+          <h2>5. Index Design and Performance</h2>
+
+          <h3>5.1. Single-column index</h3>
+          <pre><code>CREATE INDEX idx_users_email ON users(email);</code></pre>
+
+          <p>Good for:</p>
+          <pre><code>SELECT * FROM users WHERE email = ?;</code></pre>
+
+          <h3>5.2. Composite index</h3>
+          <pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at DESC);</code></pre>
+
+          <p>Good for:</p>
+          <pre><code>SELECT *
+FROM orders
+WHERE customer_id = ?
+ORDER BY created_at DESC;</code></pre>
+
+          <h3>5.3. Leftmost prefix rule - concept</h3>
+          <p>For an index on <code>(customer_id, created_at, status)</code>, the database can efficiently use the prefix from the left side.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Query condition</th>
+                <th>Can use index well?</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>WHERE customer_id = ?</code></td>
+                <td>Yes</td>
+                <td>Uses first column.</td>
+              </tr>
+              <tr>
+                <td><code>WHERE customer_id = ? AND created_at &gt; ?</code></td>
+                <td>Yes</td>
+                <td>Uses left prefix.</td>
+              </tr>
+              <tr>
+                <td><code>WHERE created_at &gt; ?</code></td>
+                <td>Usually not well</td>
+                <td>Skips first column.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5.4. Selectivity</h3>
+          <p>Selectivity means how well a condition filters data. High selectivity means the condition returns a small percentage of rows.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Selectivity</th>
+                <th>Index usefulness</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>email</code></td>
+                <td>High</td>
+                <td>Very useful.</td>
+              </tr>
+              <tr>
+                <td><code>gender</code></td>
+                <td>Low</td>
+                <td>Often less useful alone.</td>
+              </tr>
+              <tr>
+                <td><code>status</code></td>
+                <td>Depends</td>
+                <td>Useful if combined with date/customer or if distribution is skewed.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5.5. Covering index / index-only scan concept</h3>
+          <p>If the index contains all columns needed by the query, the database may answer from the index without reading table rows.</p>
+
+          <pre><code>CREATE INDEX idx_orders_customer_created_total
+ON orders(customer_id, created_at, total_amount);</code></pre>
+
+          <pre><code>SELECT created_at, total_amount
+FROM orders
+WHERE customer_id = ?
+ORDER BY created_at DESC;</code></pre>
+
+          <h3>5.6. Index pitfalls</h3>
+          <div class="grid">
+            <div class="mini-card">
+              <h4>Function on indexed column</h4>
+              <pre><code>WHERE DATE(created_at) = '2026-07-01'</code></pre>
+              <p>May prevent normal index usage.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Leading wildcard</h4>
+              <pre><code>WHERE name LIKE '%abc'</code></pre>
+              <p>B-tree index cannot efficiently start from unknown prefix.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Too many indexes</h4>
+              <p>Read may improve, but insert/update/delete become slower.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Wrong column order</h4>
+              <p>Composite index order should match query pattern.</p>
+            </div>
+          </div>
+
+          <h3>Better date range query</h3>
+          <pre><code>WHERE created_at &gt;= '2026-07-01'
+  AND created_at &lt;  '2026-07-02'</code></pre>
+        </section>
+
+        <section id="en-isolation">
+          <h2>6. Database Isolation Levels</h2>
+
+          <h3>6.1. ACID reminder</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ACID</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Atomicity</td><td>All operations succeed or all are rolled back.</td></tr>
+              <tr><td>Consistency</td><td>Data moves from one valid state to another valid state.</td></tr>
+              <tr><td>Isolation</td><td>Concurrent transactions should not corrupt each other.</td></tr>
+              <tr><td>Durability</td><td>Committed data survives crash/restart.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>6.2. Common concurrency anomalies</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Anomaly</th>
+                <th>Meaning</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dirty read</td>
+                <td>Read uncommitted data from another transaction.</td>
+                <td>Read payment status before the payment transaction commits.</td>
+              </tr>
+              <tr>
+                <td>Non-repeatable read</td>
+                <td>Same row read twice gives different values because another transaction updated it.</td>
+                <td>Read balance = 100, later read balance = 50 in same transaction.</td>
+              </tr>
+              <tr>
+                <td>Phantom read</td>
+                <td>Same query returns different set of rows because another transaction inserted/deleted rows.</td>
+                <td>Count orders twice; second count sees new rows.</td>
+              </tr>
+              <tr>
+                <td>Lost update</td>
+                <td>Two transactions update same data and one update overwrites the other.</td>
+                <td>Two users update same inventory quantity.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>6.3. Isolation levels</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Level</th>
+                <th>Concept</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Read Uncommitted</td>
+                <td>Weakest isolation. Dirty reads may be possible depending on DB.</td>
+                <td>Rarely used in business systems.</td>
+              </tr>
+              <tr>
+                <td>Read Committed</td>
+                <td>Only committed data is visible. Common default in many DBs.</td>
+                <td>Most normal OLTP workloads.</td>
+              </tr>
+              <tr>
+                <td>Repeatable Read</td>
+                <td>Rows read earlier should remain consistent inside transaction.</td>
+                <td>Reports or logic needing stable reads.</td>
+              </tr>
+              <tr>
+                <td>Serializable</td>
+                <td>Strongest isolation. Result should be as if transactions ran one by one.</td>
+                <td>Critical consistency, but may have higher contention/retry cost.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>6.4. MVCC concept</h3>
+          <p><strong>MVCC</strong> means Multi-Version Concurrency Control. Instead of blocking every reader when a writer changes data, the database can keep multiple versions of rows so readers see a consistent snapshot.</p>
+
+          <div class="flow">Transaction A starts
+        ↓
+Sees snapshot version 1
+
+Transaction B updates row
+        ↓
+Creates version 2 and commits
+
+Transaction A may still see version 1 depending on isolation level</div>
+
+          <div class="summary">
+            <strong>Senior mindset:</strong> Isolation is a trade-off. Stronger isolation gives stronger consistency but can increase blocking, serialization failures, retries, or lower throughput.
+          </div>
+        </section>
+
+        <section id="en-locking">
+          <h2>7. Database Locking Mechanism</h2>
+
+          <h3>7.1. Why locks exist</h3>
+          <p>Locks coordinate concurrent access so that two transactions do not modify the same data in unsafe ways.</p>
+
+          <h3>7.2. Common lock types - concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Lock</th>
+                <th>Meaning</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Row lock</td>
+                <td>Locks specific rows.</td>
+                <td>Update one order.</td>
+              </tr>
+              <tr>
+                <td>Table lock</td>
+                <td>Locks table-level operations.</td>
+                <td>DDL, bulk operation, explicit lock.</td>
+              </tr>
+              <tr>
+                <td>Shared lock</td>
+                <td>Allows reads but prevents conflicting writes.</td>
+                <td>Read lock concept.</td>
+              </tr>
+              <tr>
+                <td>Exclusive lock</td>
+                <td>Prevents other conflicting reads/writes depending on DB.</td>
+                <td>Update/delete lock concept.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>7.3. SELECT FOR UPDATE</h3>
+          <pre><code>BEGIN;
+
+SELECT quantity
+FROM inventory
+WHERE product_id = 100
+FOR UPDATE;
+
+UPDATE inventory
+SET quantity = quantity - 1
+WHERE product_id = 100;
+
+COMMIT;</code></pre>
+
+          <p><code>FOR UPDATE</code> locks selected rows so other transactions cannot update them until the current transaction completes.</p>
+
+          <h3>7.4. Pessimistic locking</h3>
+          <p>Pessimistic locking assumes conflict is likely, so it locks data before update.</p>
+
+          <pre><code>@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select p from Product p where p.id = :id")
+Product findByIdForUpdate(Long id);</code></pre>
+
+          <h3>7.5. Optimistic locking</h3>
+          <p>Optimistic locking assumes conflict is not common. It does not lock first. Instead, it checks a version when updating.</p>
+
+          <pre><code>@Entity
+public class Product {
+    @Id
+    private Long id;
+
+    private int quantity;
+
+    @Version
+    private Long version;
+}</code></pre>
+
+          <div class="flow">Transaction A reads product version = 1
+Transaction B reads product version = 1
+
+A updates product where version = 1 → success, version becomes 2
+B updates product where version = 1 → fails because version is now 2</div>
+
+          <h3>7.6. Deadlock</h3>
+          <div class="flow">Transaction A locks row 1, waits for row 2
+Transaction B locks row 2, waits for row 1
+
+Database detects deadlock and aborts one transaction</div>
+
+          <h3>How to reduce deadlock risk</h3>
+          <ul>
+            <li>Access tables and rows in consistent order.</li>
+            <li>Keep transactions short.</li>
+            <li>Avoid user interaction inside transaction.</li>
+            <li>Add proper indexes so updates lock fewer rows.</li>
+            <li>Retry safely when deadlock or serialization failure occurs.</li>
+          </ul>
+        </section>
+
+        <section id="en-sync-async">
+          <h2>8. Synchronous vs Asynchronous Programming</h2>
+
+          <h3>8.1. Synchronous programming</h3>
+          <p>In synchronous programming, the caller waits until the operation completes.</p>
+
+          <pre><code>Order order = orderService.getOrder(orderId);
+Payment payment = paymentService.getPayment(order.getPaymentId());
+return buildResponse(order, payment);</code></pre>
+
+          <div class="flow">Request thread
+   ↓
+Call DB
+   ↓ wait
+Call payment API
+   ↓ wait
+Return response</div>
+
+          <h3>Best use cases</h3>
+          <ul>
+            <li>Simple CRUD APIs.</li>
+            <li>Short DB operations.</li>
+            <li>Business flow requires immediate result.</li>
+            <li>Team prefers simpler debugging and stack traces.</li>
+          </ul>
+
+          <h3>8.2. Asynchronous programming</h3>
+          <p>In asynchronous programming, the caller does not block waiting for the operation to finish. The result may come later through Future, callback, message, or event.</p>
+
+          <pre><code>CompletableFuture&lt;User&gt; userFuture =
+        CompletableFuture.supplyAsync(() -> userClient.getUser(userId));
+
+CompletableFuture&lt;Orders&gt; ordersFuture =
+        CompletableFuture.supplyAsync(() -> orderClient.getOrders(userId));
+
+CompletableFuture.allOf(userFuture, ordersFuture).join();
+
+User user = userFuture.join();
+Orders orders = ordersFuture.join();</code></pre>
+
+          <h3>Best use cases</h3>
+          <ul>
+            <li>Independent external API calls.</li>
+            <li>Sending email/notification after main transaction.</li>
+            <li>Background jobs.</li>
+            <li>Message-driven workflows.</li>
+            <li>High-latency I/O operations.</li>
+          </ul>
+
+          <h3>Sync vs Async comparison</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Point</th>
+                <th>Sync</th>
+                <th>Async</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Thread</td>
+                <td>Often blocked while waiting.</td>
+                <td>Can free caller thread or process later.</td>
+              </tr>
+              <tr>
+                <td>Complexity</td>
+                <td>Simple.</td>
+                <td>More complex error handling and tracing.</td>
+              </tr>
+              <tr>
+                <td>Use case</td>
+                <td>CRUD, simple request-response.</td>
+                <td>Independent I/O, background processing, event workflows.</td>
+              </tr>
+              <tr>
+                <td>Failure handling</td>
+                <td>Direct exception flow.</td>
+                <td>Needs callback/Future/message retry handling.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            Async does not automatically mean faster. It helps when waiting time can be overlapped or moved out of the request path.
+          </div>
+        </section>
+
+        <section id="en-reactive">
+          <h2>9. Reactive Programming and WebFlux</h2>
+
+          <h3>9.1. What reactive means</h3>
+          <p>Reactive programming is a programming model for asynchronous, non-blocking data streams with backpressure support.</p>
+
+          <div class="pill-row">
+            <span class="pill">Asynchronous</span>
+            <span class="pill">Non-blocking</span>
+            <span class="pill">Stream-based</span>
+            <span class="pill">Backpressure</span>
+            <span class="pill">Event-driven</span>
+          </div>
+
+          <h3>9.2. Blocking vs non-blocking</h3>
+          <div class="flow">Blocking:
+Thread calls external API
+Thread waits
+Thread cannot serve other work
+
+Non-blocking:
+Thread starts I/O
+Thread is released
+When data is ready, callback/event continues processing</div>
+
+          <h3>9.3. Mono and Flux concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Meaning</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Mono&lt;T&gt;</code></td>
+                <td>0 or 1 item.</td>
+                <td>Find user by ID.</td>
+              </tr>
+              <tr>
+                <td><code>Flux&lt;T&gt;</code></td>
+                <td>0 to many items.</td>
+                <td>Stream orders, events, messages.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>9.4. Example</h3>
+          <pre><code>public Mono&lt;OrderResponse&gt; getOrder(Long orderId) {
+    return orderRepository.findById(orderId)
+            .flatMap(order ->
+                    paymentClient.getPayment(order.getPaymentId())
+                            .map(payment -> buildResponse(order, payment))
+            );
+}</code></pre>
+
+          <h3>9.5. When reactive is a good fit</h3>
+          <ul>
+            <li>High-concurrency I/O-bound services.</li>
+            <li>Many slow external API calls.</li>
+            <li>Streaming data.</li>
+            <li>WebSocket/SSE/event stream.</li>
+            <li>Need backpressure-aware processing.</li>
+          </ul>
+
+          <h3>9.6. When reactive may not be a good fit</h3>
+          <ul>
+            <li>Simple CRUD service with normal traffic.</li>
+            <li>Team is not comfortable with reactive debugging.</li>
+            <li>Most dependencies are blocking JDBC or blocking SDKs.</li>
+            <li>CPU-bound computation.</li>
+            <li>Project needs simplicity more than maximum concurrency.</li>
+          </ul>
+
+          <div class="danger">
+            Mixing blocking calls inside reactive pipelines can destroy the benefit of WebFlux. If blocking is unavoidable, isolate it using appropriate bounded schedulers and understand the trade-off.
+          </div>
+
+          <h3>9.7. WebMVC vs WebFlux concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Point</th>
+                <th>Spring MVC</th>
+                <th>Spring WebFlux</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Programming model</td>
+                <td>Blocking request-response.</td>
+                <td>Reactive non-blocking.</td>
+              </tr>
+              <tr>
+                <td>Thread usage</td>
+                <td>One request usually occupies a request thread while waiting.</td>
+                <td>Small number of event-loop threads can handle many I/O operations.</td>
+              </tr>
+              <tr>
+                <td>Return type</td>
+                <td>Object, ResponseEntity, List.</td>
+                <td>Mono, Flux.</td>
+              </tr>
+              <tr>
+                <td>Best for</td>
+                <td>Most CRUD/business apps.</td>
+                <td>High concurrency, streaming, non-blocking I/O.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-loose">
+          <h2>10. Loose Coupling Design</h2>
+
+          <h3>10.1. What loose coupling means</h3>
+          <p>Loose coupling means one component depends as little as possible on the concrete implementation details of another component.</p>
+
+          <div class="summary">
+            <strong>Short version:</strong> Depend on abstraction, not concrete implementation.
+          </div>
+
+          <h3>Tight coupling example</h3>
+          <pre><code>public class OrderService {
+    private final EmailSender emailSender = new EmailSender();
+
+    public void createOrder() {
+        // create order
+        emailSender.send("Order created");
+    }
+}</code></pre>
+
+          <p>Problems:</p>
+          <ul>
+            <li><code>OrderService</code> directly creates <code>EmailSender</code>.</li>
+            <li>Hard to replace with SMS, push notification, or event publisher.</li>
+            <li>Hard to unit test.</li>
+          </ul>
+
+          <h3>Loose coupling with interface</h3>
+          <pre><code>public interface NotificationPort {
+    void notify(String message);
+}
+
+@Service
+public class EmailNotificationAdapter implements NotificationPort {
+    public void notify(String message) {
+        // send email
+    }
+}
+
+@Service
+public class OrderService {
+    private final NotificationPort notificationPort;
+
+    public OrderService(NotificationPort notificationPort) {
+        this.notificationPort = notificationPort;
+    }
+}</code></pre>
+
+          <h3>10.2. Dependency Inversion Principle</h3>
+          <p>High-level business logic should not depend on low-level infrastructure details. Both should depend on abstractions.</p>
+
+          <div class="flow">Bad:
+OrderService → MySqlOrderRepository
+OrderService → SmtpEmailSender
+
+Better:
+OrderService → OrderRepository interface
+OrderService → NotificationPort interface
+
+Infrastructure implements the interfaces.</div>
+
+          <h3>10.3. Ports and Adapters / Hexagonal Architecture</h3>
+          <div class="flow">Domain / Application Core
+   ├── Use cases
+   ├── Domain services
+   └── Ports / Interfaces
+
+Adapters
+   ├── REST Controller
+   ├── JPA Repository
+   ├── Kafka Producer
+   ├── External API Client
+   └── Email Sender</div>
+
+          <h3>Benefits</h3>
+          <ul>
+            <li>Business logic is easier to test.</li>
+            <li>Infrastructure can be replaced.</li>
+            <li>Code becomes easier to maintain.</li>
+            <li>Supports modular monolith and microservice architecture.</li>
+          </ul>
+        </section>
+
+        <section id="en-microservice">
+          <h2>11. Loose Coupling in Microservices</h2>
+
+          <h3>11.1. What loose coupling means between services</h3>
+          <p>In microservices, loose coupling means each service owns its domain logic and data, and communicates with other services through stable contracts.</p>
+
+          <div class="flow">Order Service
+  owns order data
+
+Payment Service
+  owns payment data
+
+Inventory Service
+  owns stock data
+
+They communicate through APIs or events, not by directly sharing database tables.</div>
+
+          <h3>11.2. Bad coupling between microservices</h3>
+          <ul>
+            <li>Service A directly reads Service B database.</li>
+            <li>Services require synchronized deployment.</li>
+            <li>One service knows too much about another service internal schema.</li>
+            <li>Shared domain model library becomes a hidden monolith.</li>
+            <li>Synchronous call chain becomes too long.</li>
+          </ul>
+
+          <h3>11.3. Better coupling</h3>
+          <ul>
+            <li>Use stable API contracts.</li>
+            <li>Use events for state changes.</li>
+            <li>Each service owns its database.</li>
+            <li>Use backward-compatible API changes.</li>
+            <li>Use idempotency for retries.</li>
+            <li>Use contract testing between services.</li>
+          </ul>
+
+          <h3>11.4. Synchronous communication</h3>
+          <pre><code>Order Service → Payment Service REST API</code></pre>
+
+          <p>Good when:</p>
+          <ul>
+            <li>Immediate response is required.</li>
+            <li>User cannot continue without the result.</li>
+            <li>Failure should be returned directly to caller.</li>
+          </ul>
+
+          <p>Risk:</p>
+          <ul>
+            <li>Increases latency.</li>
+            <li>Creates runtime dependency.</li>
+            <li>Can create cascading failure.</li>
+          </ul>
+
+          <h3>11.5. Asynchronous/event-driven communication</h3>
+          <pre><code>Order Created Event
+        ↓
+Payment Service consumes event
+        ↓
+Inventory Service consumes event
+        ↓
+Notification Service consumes event</code></pre>
+
+          <p>Good when:</p>
+          <ul>
+            <li>Work can happen after main request.</li>
+            <li>Multiple services react to same business event.</li>
+            <li>System needs better resilience and decoupling.</li>
+          </ul>
+
+          <p>Trade-off:</p>
+          <ul>
+            <li>Eventual consistency.</li>
+            <li>Harder debugging.</li>
+            <li>Need retry and idempotency.</li>
+          </ul>
+        </section>
+
+        <section id="en-patterns">
+          <h2>12. Advanced Backend Patterns</h2>
+
+          <h3>12.1. Idempotency</h3>
+          <p>An operation is idempotent if calling it multiple times has the same effect as calling it once.</p>
+
+          <pre><code>POST /payments
+Idempotency-Key: abc-123</code></pre>
+
+          <p>Use case:</p>
+          <ul>
+            <li>Payment API retry.</li>
+            <li>Order creation retry.</li>
+            <li>Message consumer retry.</li>
+          </ul>
+
+          <h3>12.2. Outbox Pattern</h3>
+          <p>Outbox pattern solves the problem of updating database and publishing event atomically.</p>
+
+          <div class="flow">Within same DB transaction:
+1. Save order
+2. Save event to outbox table
+3. Commit
+
+Background publisher:
+4. Read outbox event
+5. Publish to Kafka/RabbitMQ
+6. Mark event as published</div>
+
+          <h3>12.3. Saga Pattern</h3>
+          <p>Saga manages distributed transactions using multiple local transactions and compensating actions.</p>
+
+          <div class="flow">Create Order
+   ↓
+Reserve Inventory
+   ↓
+Charge Payment
+   ↓
+Confirm Order
+
+If payment fails:
+   ↓
+Release Inventory
+   ↓
+Cancel Order</div>
+
+          <h3>12.4. Circuit Breaker</h3>
+          <p>Circuit breaker protects a service from repeatedly calling a failing dependency.</p>
+
+          <div class="flow">Closed:
+ calls dependency normally
+
+Open:
+ dependency failing, fail fast
+
+Half-open:
+ allow small test traffic to check recovery</div>
+
+          <h3>12.5. Bulkhead</h3>
+          <p>Bulkhead isolates resources so one failing dependency does not consume all threads/connections.</p>
+
+          <div class="flow">Payment client thread pool
+Inventory client thread pool
+Notification client thread pool
+
+If notification is slow, payment is still protected.</div>
+
+          <h3>12.6. Retry with backoff</h3>
+          <p>Retry can help with transient failures, but retry without limit can make outage worse.</p>
+
+          <pre><code>Retry 1: after 100ms
+Retry 2: after 300ms
+Retry 3: after 900ms
+Then fail or send to DLQ</code></pre>
+
+          <h3>12.7. DLQ - Dead Letter Queue</h3>
+          <p>Messages that cannot be processed after retries can be moved to a DLQ for investigation or manual recovery.</p>
+        </section>
+
+        <section id="en-interview">
+          <h2>13. Interview Summary</h2>
+
+          <h3>Java sorting</h3>
+          <div class="summary">
+            Java sorting implementation depends on the data type. Primitive arrays are optimized differently from object arrays. Object sorting must be stable, while primitive sorting focuses on fast raw value sorting. For business code, comparator correctness and cost are very important.
+          </div>
+
+          <h3>HashMap</h3>
+          <div class="summary">
+            HashMap uses hashCode to find a bucket and equals to confirm the exact key. With good hash distribution, get and put are near O(1). Collisions are handled inside buckets, and heavy collision buckets can be treeified. Resizing is expensive, so proper capacity matters for large maps.
+          </div>
+
+          <h3>B-tree index</h3>
+          <div class="summary">
+            A B-tree index is a balanced sorted structure that helps the database find rows efficiently. It is especially useful for equality search, range conditions, and ordering. However, indexes cost storage and slow writes, so they should match real query patterns.
+          </div>
+
+          <h3>Isolation and locking</h3>
+          <div class="summary">
+            Isolation controls what one transaction can see from other concurrent transactions. Locking prevents unsafe concurrent modification. Stronger isolation improves correctness but can reduce throughput or require retries. In production, we choose isolation and locking based on business consistency requirements.
+          </div>
+
+          <h3>Sync, async, reactive</h3>
+          <div class="summary">
+            Synchronous programming is simple and good for normal CRUD flows. Async programming helps when tasks are independent or can run in background. Reactive programming is useful for high-concurrency non-blocking I/O and streaming, but it adds complexity and should not be mixed carelessly with blocking calls.
+          </div>
+
+          <h3>Loose coupling and microservices</h3>
+          <div class="summary">
+            Loose coupling means depending on stable abstractions and contracts, not concrete implementation details. In microservices, each service should own its data and communicate through APIs or events. Event-driven design improves decoupling but introduces eventual consistency and retry/idempotency requirements.
+          </div>
+        </section>
+
+        <section id="en-refs">
+          <h2>14. References</h2>
+          <ul>
+            <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html" target="_blank">Oracle Java 21 Arrays documentation</a></li>
+            <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html" target="_blank">Oracle Java 21 HashMap documentation</a></li>
+            <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java" target="_blank">OpenJDK HashMap source</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/btree.html" target="_blank">PostgreSQL B-tree index documentation</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/transaction-iso.html" target="_blank">PostgreSQL transaction isolation documentation</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/explicit-locking.html" target="_blank">PostgreSQL explicit locking documentation</a></li>
+            <li><a href="https://docs.spring.io/spring-framework/reference/web/webflux.html" target="_blank">Spring WebFlux documentation</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <div id="vn" class="lang-section">
+        <section id="vn-roadmap">
+          <h2>1. Roadmap Advanced Backend</h2>
+          <div class="big-idea">Kiến thức backend nâng cao không chỉ là syntax. Quan trọng là hiểu runtime, database, concurrency và distributed system hoạt động thế nào khi có tải thật.</div>
+
+          <h3>Thứ tự học nên theo</h3>
+          <ol>
+            <li>Java sorting internals: stable sort, quicksort, TimSort, comparator cost.</li>
+            <li>Java HashMap internals: hash, bucket, collision, resize, treeify.</li>
+            <li>Database indexes: B-tree, composite index, covering index, selectivity.</li>
+            <li>Execution plan mindset: scan type, join type, sort, filter, row estimation.</li>
+            <li>Transactions: ACID, isolation levels, anomalies.</li>
+            <li>Locking: row lock, table lock, optimistic lock, pessimistic lock, deadlock.</li>
+            <li>Sync vs async: blocking thread model, callback/Future/CompletableFuture.</li>
+            <li>Reactive programming: non-blocking I/O, backpressure, WebFlux use cases.</li>
+            <li>Loose coupling: interface, dependency inversion, ports and adapters.</li>
+            <li>Microservices: service boundary, API contract, events, saga, outbox, idempotency.</li>
+          </ol>
+
+          <h3>Mind map</h3>
+          <div class="flow">Java internals
+ ├── Sorting
+ └── HashMap
+
+Database internals
+ ├── B-tree indexes
+ ├── Query performance
+ ├── Isolation
+ └── Locking
+
+Concurrency model
+ ├── Sync
+ ├── Async
+ └── Reactive
+
+Architecture
+ ├── Loose coupling
+ ├── Microservices
+ ├── Event-driven design
+ └── Reliability patterns</div>
+        </section>
+
+        <section id="vn-sorting">
+          <h2>2. Java Sorting Internals - Concept Only</h2>
+
+          <h3>2.1. Sorting trong Java là gì?</h3>
+          <p>Sorting nghĩa là sắp xếp elements dựa trên một rule so sánh. Trong Java, rule này thường đến từ <code>Comparable</code> hoặc <code>Comparator</code>.</p>
+
+          <pre><code>class Employee implements Comparable&lt;Employee&gt; {
+    private String name;
+    private int age;
+
+    @Override
+    public int compareTo(Employee other) {
+        return Integer.compare(this.age, other.age);
+    }
+}</code></pre>
+
+          <pre><code>employees.sort(Comparator.comparing(Employee::getName));</code></pre>
+
+          <h3>2.2. Comparable vs Comparator</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Ý nghĩa</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Comparable</code></td>
+                <td>Natural ordering được định nghĩa bên trong class.</td>
+                <td>User sort theo ID, Money sort theo amount, Date sort theo time.</td>
+              </tr>
+              <tr>
+                <td><code>Comparator</code></td>
+                <td>Rule so sánh nằm bên ngoài class.</td>
+                <td>Sort employee theo salary, rồi name, rồi department.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>2.3. Stable vs unstable sort</h3>
+          <p>Stable sort giữ nguyên thứ tự ban đầu của các phần tử được xem là bằng nhau.</p>
+
+          <div class="flow">Trước khi sort theo department:
+1. Alice - IT
+2. Bob   - HR
+3. John  - IT
+4. Mary  - HR
+
+Sau khi stable sort theo department:
+2. Bob   - HR
+4. Mary  - HR
+1. Alice - IT
+3. John  - IT
+
+Bob vẫn đứng trước Mary.
+Alice vẫn đứng trước John.</div>
+
+          <div class="summary">
+            Stability quan trọng khi sort nhiều tiêu chí theo nhiều bước. Ví dụ sort theo name trước, sau đó stable-sort theo department.
+          </div>
+
+          <h3>2.4. Arrays.sort cho primitive arrays</h3>
+          <p>Với primitive arrays như <code>int[]</code>, <code>long[]</code>, <code>char[]</code>, Java documentation mô tả implementation là Dual-Pivot Quicksort. Về concept, quicksort chia data theo pivot và sort các partition.</p>
+
+          <div class="flow">Dual-Pivot Quicksort concept:
+Array
+ ↓
+Chọn hai pivots
+ ↓
+Chia data thành ba vùng:
+  values &lt; pivot1
+  pivot1 &lt;= values &lt;= pivot2
+  values &gt; pivot2
+ ↓
+Sort từng vùng</div>
+
+          <h3>Vì sao primitive dùng quicksort-like algorithm?</h3>
+          <ul>
+            <li>Primitive không có object identity cần giữ.</li>
+            <li>Không cần stability vì primitive value không mang business identity riêng.</li>
+            <li>Memory locality tốt.</li>
+            <li>Thường dùng ít extra memory.</li>
+          </ul>
+
+          <h3>2.5. Arrays.sort cho objects</h3>
+          <p>Với object arrays, Java sort phải stable. Modern JDK documentation mô tả nó là stable adaptive iterative mergesort, được adapt từ ý tưởng TimSort.</p>
+
+          <div class="flow">TimSort / adaptive merge sort concept:
+Detect các đoạn đã sort sẵn
+        ↓
+Sort hoặc extend small runs nếu cần
+        ↓
+Merge runs hiệu quả
+        ↓
+Rất tốt với real-world data đã gần sorted</div>
+
+          <h3>2.6. parallelSort</h3>
+          <p><code>Arrays.parallelSort()</code> có thể chia việc sort thành nhiều task. Nó có thể hữu ích với array lớn trên máy nhiều core, nhưng không chắc nhanh hơn với array nhỏ do overhead.</p>
+
+          <h3>Điểm phỏng vấn</h3>
+          <ul>
+            <li>Không nên nói mọi Java sort đều dùng cùng một algorithm.</li>
+            <li>Primitive arrays và object arrays có thể dùng strategy khác nhau.</li>
+            <li>Object sorting phải stable.</li>
+            <li>Comparator cost rất quan trọng. Nếu comparator gọi DB/API hoặc logic nặng, sort sẽ rất tốn.</li>
+            <li>Với data từ database, nên sort ở DB khi có pagination/filtering.</li>
+          </ul>
+
+          <div class="summary">
+            <strong>Trả lời ngắn:</strong> Java sorting phụ thuộc vào data type. Primitive array sorting tối ưu cho raw values, còn object sorting stable và tối ưu cho real-world partially sorted data. Với business objects, comparator correctness và cost thường quan trọng hơn tên algorithm.
+          </div>
+        </section>
+
+        <section id="vn-hashmap">
+          <h2>3. Java HashMap Internals - Concept Only</h2>
+
+          <h3>3.1. HashMap tối ưu cái gì?</h3>
+          <p><code>HashMap</code> được thiết kế để lookup key-value nhanh. Về concept, nó convert key thành hash value, map hash đó vào bucket, rồi lưu entry trong bucket.</p>
+
+          <div class="flow">put(key, value)
+   ↓
+hash = hash(key)
+   ↓
+index = hash mapped to bucket position
+   ↓
+store Node(hash, key, value, next) in bucket</div>
+
+          <h3>3.2. Cấu trúc internal cơ bản</h3>
+          <pre><code>table[index] → Node(key, value, hash, next)
+             → Node(key, value, hash, next)
+             → Node(key, value, hash, next)</code></pre>
+
+          <p>Một bucket có thể chứa một entry, nhiều entries dạng linked list, hoặc trong case collision nặng có thể chuyển thành tree.</p>
+
+          <h3>3.3. get hoạt động thế nào?</h3>
+          <div class="flow">get(key)
+   ↓
+Calculate hash
+   ↓
+Find bucket index
+   ↓
+Check first node
+   ↓
+If key matches by hash and equals() → return value
+   ↓
+Otherwise traverse linked list or tree
+   ↓
+If not found → return null</div>
+
+          <h3>3.4. Vì sao equals() phải đi với hashCode()?</h3>
+          <p>Nếu hai object bằng nhau theo <code>equals()</code>, chúng bắt buộc phải có cùng <code>hashCode()</code>. Nếu không, HashMap có thể tìm sai bucket.</p>
+
+          <pre><code>Map&lt;User, String&gt; map = new HashMap&lt;&gt;();
+
+User u1 = new User(1, "John");
+User u2 = new User(1, "John");
+
+map.put(u1, "A");
+System.out.println(map.get(u2));</code></pre>
+
+          <p>Nếu <code>equals()</code> nói <code>u1</code> và <code>u2</code> giống nhau nhưng <code>hashCode()</code> khác nhau, <code>get(u2)</code> có thể fail.</p>
+
+          <h3>3.5. Collision</h3>
+          <p>Collision xảy ra khi nhiều key khác nhau map vào cùng một bucket.</p>
+
+          <div class="flow">Bucket 5:
+  Node("Aa", value1)
+  Node("BB", value2)
+  Node("Xy", value3)</div>
+
+          <h3>3.6. Cách xử lý collision</h3>
+          <ul>
+            <li>Ban đầu, entries cùng bucket được nối với nhau dạng linked list.</li>
+            <li>Nếu bucket quá lớn và table đủ lớn, Java có thể chuyển bucket đó thành tree.</li>
+            <li>Việc này giúp worst-case lookup không bị degrade quá nặng khi collision nhiều.</li>
+          </ul>
+
+          <h3>3.7. Load factor và resize</h3>
+          <p>Load factor quyết định table được phép đầy tới mức nào trước khi resize. Default load factor thường là <code>0.75</code>.</p>
+
+          <div class="flow">capacity = 16
+load factor = 0.75
+threshold = 16 * 0.75 = 12
+
+Khi size &gt; 12:
+  resize table
+  redistribute entries</div>
+
+          <h3>3.8. Vì sao resize expensive?</h3>
+          <p>Resize tốn kém vì HashMap phải allocate table lớn hơn và redistribute existing entries vào bucket mới.</p>
+
+          <div class="warning">
+            Nếu biết gần đúng số lượng entries, nên khởi tạo HashMap với capacity phù hợp để giảm resize.
+          </div>
+
+          <h3>3.9. HashMap vs LinkedHashMap vs TreeMap</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Map</th>
+                <th>Ordering</th>
+                <th>Typical performance</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>HashMap</code></td>
+                <td>Không guarantee order</td>
+                <td>Average O(1)</td>
+                <td>Lookup nhanh theo key.</td>
+              </tr>
+              <tr>
+                <td><code>LinkedHashMap</code></td>
+                <td>Insertion/access order</td>
+                <td>Average O(1)</td>
+                <td>Cache-like behavior, predictable iteration.</td>
+              </tr>
+              <tr>
+                <td><code>TreeMap</code></td>
+                <td>Sorted by key</td>
+                <td>O(log n)</td>
+                <td>Range query, sorted keys.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Điểm phỏng vấn</h3>
+          <ul>
+            <li>HashMap dùng hashCode để tìm bucket, sau đó dùng equals để xác nhận đúng key.</li>
+            <li>Hash distribution tốt thì lookup gần O(1).</li>
+            <li>hashCode xấu gây nhiều collision và lookup chậm hơn.</li>
+            <li>HashMap không synchronized. Dùng ConcurrentHashMap khi concurrent access.</li>
+            <li>Không dùng field mutable trong hashCode/equals của key sau khi insert.</li>
+          </ul>
+        </section>
+
+        <section id="vn-btree">
+          <h2>4. B-tree và Database Index</h2>
+
+          <h3>4.1. Vì sao cần index?</h3>
+          <p>Nếu không có index, database có thể phải scan rất nhiều rows để tìm data. Index là data structure riêng giúp database tìm rows nhanh hơn.</p>
+
+          <div class="flow">Không có index:
+Read table rows one by one
+        ↓
+Check condition
+        ↓
+Return matching rows
+
+Có index:
+Search index tree
+        ↓
+Find row pointers
+        ↓
+Fetch matching table rows</div>
+
+          <h3>4.2. Concept B-tree</h3>
+          <p>B-tree index là balanced tree structure. Nó giữ keys theo thứ tự sorted và hỗ trợ equality search, range search và ordered traversal hiệu quả.</p>
+
+          <div class="flow">Root page
+ ├── Internal page
+ │    ├── Leaf page: key → row pointer
+ │    └── Leaf page: key → row pointer
+ └── Internal page
+      ├── Leaf page: key → row pointer
+      └── Leaf page: key → row pointer</div>
+
+          <h3>4.3. Vì sao B-tree phù hợp với database?</h3>
+          <ul>
+            <li>Balanced height giúp lookup ổn định.</li>
+            <li>Mỗi node/page chứa nhiều keys, giảm disk I/O.</li>
+            <li>Keys được sorted nên range query hiệu quả.</li>
+            <li>Có thể hỗ trợ <code>ORDER BY</code> nếu index order match query.</li>
+          </ul>
+
+          <h3>4.4. Query thường hưởng lợi từ B-tree index</h3>
+          <pre><code>WHERE user_id = ?
+WHERE created_at &gt;= ? AND created_at &lt; ?
+ORDER BY created_at DESC
+WHERE status = ? AND created_at &gt;= ?</code></pre>
+
+          <h3>4.5. Index không miễn phí</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Lợi ích</th>
+                <th>Chi phí</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Read nhanh hơn cho query phù hợp.</td>
+                <td>Write chậm hơn vì index cũng phải update.</td>
+              </tr>
+              <tr>
+                <td>Range query và sorting nhanh hơn.</td>
+                <td>Tốn thêm disk storage.</td>
+              </tr>
+              <tr>
+                <td>Giảm table scan.</td>
+                <td>Quá nhiều index làm maintenance khó và tăng write cost.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="summary">
+            <strong>Trả lời ngắn:</strong> B-tree index giống một cây sorted các key trỏ tới table rows. Nó giúp database tránh scan toàn bộ table, đặc biệt với equality, range và ordering queries.
+          </div>
+        </section>
+
+        <section id="vn-index-design">
+          <h2>5. Thiết kế Index và Performance</h2>
+
+          <h3>5.1. Single-column index</h3>
+          <pre><code>CREATE INDEX idx_users_email ON users(email);</code></pre>
+
+          <p>Tốt cho:</p>
+          <pre><code>SELECT * FROM users WHERE email = ?;</code></pre>
+
+          <h3>5.2. Composite index</h3>
+          <pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at DESC);</code></pre>
+
+          <p>Tốt cho:</p>
+          <pre><code>SELECT *
+FROM orders
+WHERE customer_id = ?
+ORDER BY created_at DESC;</code></pre>
+
+          <h3>5.3. Leftmost prefix rule - concept</h3>
+          <p>Với index <code>(customer_id, created_at, status)</code>, database thường dùng hiệu quả prefix từ bên trái.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Query condition</th>
+                <th>Dùng index tốt?</th>
+                <th>Lý do</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>WHERE customer_id = ?</code></td>
+                <td>Có</td>
+                <td>Dùng column đầu tiên.</td>
+              </tr>
+              <tr>
+                <td><code>WHERE customer_id = ? AND created_at &gt; ?</code></td>
+                <td>Có</td>
+                <td>Dùng left prefix.</td>
+              </tr>
+              <tr>
+                <td><code>WHERE created_at &gt; ?</code></td>
+                <td>Thường không tốt</td>
+                <td>Skip column đầu tiên.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5.4. Selectivity</h3>
+          <p>Selectivity nghĩa là condition lọc data tốt tới đâu. High selectivity nghĩa là condition chỉ trả về phần nhỏ rows.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Selectivity</th>
+                <th>Index usefulness</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>email</code></td>
+                <td>High</td>
+                <td>Rất hữu ích.</td>
+              </tr>
+              <tr>
+                <td><code>gender</code></td>
+                <td>Low</td>
+                <td>Thường ít hữu ích nếu đứng một mình.</td>
+              </tr>
+              <tr>
+                <td><code>status</code></td>
+                <td>Tùy case</td>
+                <td>Hữu ích nếu combine với date/customer hoặc data distribution lệch.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5.5. Covering index / index-only scan concept</h3>
+          <p>Nếu index chứa đủ columns query cần, database có thể trả kết quả từ index mà không cần đọc table rows.</p>
+
+          <pre><code>CREATE INDEX idx_orders_customer_created_total
+ON orders(customer_id, created_at, total_amount);</code></pre>
+
+          <pre><code>SELECT created_at, total_amount
+FROM orders
+WHERE customer_id = ?
+ORDER BY created_at DESC;</code></pre>
+
+          <h3>5.6. Index pitfalls</h3>
+          <div class="grid">
+            <div class="mini-card">
+              <h4>Function trên indexed column</h4>
+              <pre><code>WHERE DATE(created_at) = '2026-07-01'</code></pre>
+              <p>Có thể làm index không được dùng tốt.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Leading wildcard</h4>
+              <pre><code>WHERE name LIKE '%abc'</code></pre>
+              <p>B-tree index khó dùng vì không biết prefix bắt đầu.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Quá nhiều indexes</h4>
+              <p>Read có thể nhanh hơn, nhưng insert/update/delete chậm hơn.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Sai thứ tự column</h4>
+              <p>Composite index order nên match query pattern.</p>
+            </div>
+          </div>
+
+          <h3>Date range query tốt hơn</h3>
+          <pre><code>WHERE created_at &gt;= '2026-07-01'
+  AND created_at &lt;  '2026-07-02'</code></pre>
+        </section>
+
+        <section id="vn-isolation">
+          <h2>6. Database Isolation Levels</h2>
+
+          <h3>6.1. Nhắc lại ACID</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ACID</th>
+                <th>Ý nghĩa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Atomicity</td><td>Tất cả operations thành công hoặc rollback hết.</td></tr>
+              <tr><td>Consistency</td><td>Data chuyển từ trạng thái hợp lệ này sang trạng thái hợp lệ khác.</td></tr>
+              <tr><td>Isolation</td><td>Các transaction chạy đồng thời không được làm hỏng data của nhau.</td></tr>
+              <tr><td>Durability</td><td>Data đã commit phải tồn tại sau crash/restart.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>6.2. Các anomaly phổ biến</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Anomaly</th>
+                <th>Ý nghĩa</th>
+                <th>Ví dụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dirty read</td>
+                <td>Đọc data chưa commit từ transaction khác.</td>
+                <td>Đọc payment status trước khi payment transaction commit.</td>
+              </tr>
+              <tr>
+                <td>Non-repeatable read</td>
+                <td>Đọc cùng một row hai lần nhưng ra value khác vì transaction khác update.</td>
+                <td>Lần đầu đọc balance = 100, sau đó đọc balance = 50 trong cùng transaction.</td>
+              </tr>
+              <tr>
+                <td>Phantom read</td>
+                <td>Cùng một query nhưng trả về tập rows khác vì transaction khác insert/delete.</td>
+                <td>Count orders hai lần, lần hai thấy rows mới.</td>
+              </tr>
+              <tr>
+                <td>Lost update</td>
+                <td>Hai transaction update cùng data và một update ghi đè update kia.</td>
+                <td>Hai user cùng update inventory quantity.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>6.3. Isolation levels</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Level</th>
+                <th>Concept</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Read Uncommitted</td>
+                <td>Yếu nhất. Dirty read có thể xảy ra tùy DB.</td>
+                <td>Hiếm dùng trong business systems.</td>
+              </tr>
+              <tr>
+                <td>Read Committed</td>
+                <td>Chỉ thấy data đã commit. Là default phổ biến trong nhiều DB.</td>
+                <td>Phần lớn OLTP workloads bình thường.</td>
+              </tr>
+              <tr>
+                <td>Repeatable Read</td>
+                <td>Rows đã đọc nên ổn định trong transaction.</td>
+                <td>Report hoặc logic cần stable reads.</td>
+              </tr>
+              <tr>
+                <td>Serializable</td>
+                <td>Mạnh nhất. Kết quả như thể transactions chạy lần lượt.</td>
+                <td>Consistency critical, nhưng có thể tăng contention/retry cost.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>6.4. MVCC concept</h3>
+          <p><strong>MVCC</strong> là Multi-Version Concurrency Control. Thay vì block mọi reader khi writer thay đổi data, database giữ nhiều version của row để reader thấy consistent snapshot.</p>
+
+          <div class="flow">Transaction A starts
+        ↓
+Sees snapshot version 1
+
+Transaction B updates row
+        ↓
+Creates version 2 and commits
+
+Transaction A may still see version 1 depending on isolation level</div>
+
+          <div class="summary">
+            <strong>Senior mindset:</strong> Isolation là trade-off. Isolation mạnh hơn cho consistency tốt hơn nhưng có thể tăng blocking, serialization failures, retries hoặc giảm throughput.
+          </div>
+        </section>
+
+        <section id="vn-locking">
+          <h2>7. Database Locking Mechanism</h2>
+
+          <h3>7.1. Vì sao cần lock?</h3>
+          <p>Locks điều phối concurrent access để hai transaction không modify cùng data một cách unsafe.</p>
+
+          <h3>7.2. Các loại lock phổ biến - concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Lock</th>
+                <th>Ý nghĩa</th>
+                <th>Ví dụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Row lock</td>
+                <td>Lock các row cụ thể.</td>
+                <td>Update một order.</td>
+              </tr>
+              <tr>
+                <td>Table lock</td>
+                <td>Lock ở mức table.</td>
+                <td>DDL, bulk operation, explicit lock.</td>
+              </tr>
+              <tr>
+                <td>Shared lock</td>
+                <td>Cho đọc nhưng ngăn conflicting writes.</td>
+                <td>Read lock concept.</td>
+              </tr>
+              <tr>
+                <td>Exclusive lock</td>
+                <td>Ngăn các conflicting reads/writes tùy DB.</td>
+                <td>Update/delete lock concept.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>7.3. SELECT FOR UPDATE</h3>
+          <pre><code>BEGIN;
+
+SELECT quantity
+FROM inventory
+WHERE product_id = 100
+FOR UPDATE;
+
+UPDATE inventory
+SET quantity = quantity - 1
+WHERE product_id = 100;
+
+COMMIT;</code></pre>
+
+          <p><code>FOR UPDATE</code> lock selected rows để transaction khác không update chúng cho tới khi transaction hiện tại kết thúc.</p>
+
+          <h3>7.4. Pessimistic locking</h3>
+          <p>Pessimistic locking giả định conflict dễ xảy ra, nên lock data trước khi update.</p>
+
+          <pre><code>@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select p from Product p where p.id = :id")
+Product findByIdForUpdate(Long id);</code></pre>
+
+          <h3>7.5. Optimistic locking</h3>
+          <p>Optimistic locking giả định conflict không quá thường xuyên. Nó không lock trước, mà check version khi update.</p>
+
+          <pre><code>@Entity
+public class Product {
+    @Id
+    private Long id;
+
+    private int quantity;
+
+    @Version
+    private Long version;
+}</code></pre>
+
+          <div class="flow">Transaction A reads product version = 1
+Transaction B reads product version = 1
+
+A updates product where version = 1 → success, version becomes 2
+B updates product where version = 1 → fails because version is now 2</div>
+
+          <h3>7.6. Deadlock</h3>
+          <div class="flow">Transaction A locks row 1, waits for row 2
+Transaction B locks row 2, waits for row 1
+
+Database detects deadlock and aborts one transaction</div>
+
+          <h3>Cách giảm deadlock</h3>
+          <ul>
+            <li>Access tables và rows theo cùng thứ tự.</li>
+            <li>Giữ transaction ngắn.</li>
+            <li>Không có user interaction trong transaction.</li>
+            <li>Thêm index phù hợp để update lock ít rows hơn.</li>
+            <li>Retry an toàn khi deadlock hoặc serialization failure.</li>
+          </ul>
+        </section>
+
+        <section id="vn-sync-async">
+          <h2>8. Synchronous vs Asynchronous Programming</h2>
+
+          <h3>8.1. Synchronous programming</h3>
+          <p>Trong synchronous programming, caller chờ operation hoàn thành rồi mới đi tiếp.</p>
+
+          <pre><code>Order order = orderService.getOrder(orderId);
+Payment payment = paymentService.getPayment(order.getPaymentId());
+return buildResponse(order, payment);</code></pre>
+
+          <div class="flow">Request thread
+   ↓
+Call DB
+   ↓ wait
+Call payment API
+   ↓ wait
+Return response</div>
+
+          <h3>Use case tốt</h3>
+          <ul>
+            <li>Simple CRUD APIs.</li>
+            <li>DB operations ngắn.</li>
+            <li>Business flow cần immediate result.</li>
+            <li>Team muốn debugging và stack trace đơn giản.</li>
+          </ul>
+
+          <h3>8.2. Asynchronous programming</h3>
+          <p>Trong asynchronous programming, caller không block để chờ operation xong. Kết quả có thể đến sau qua Future, callback, message hoặc event.</p>
+
+          <pre><code>CompletableFuture&lt;User&gt; userFuture =
+        CompletableFuture.supplyAsync(() -> userClient.getUser(userId));
+
+CompletableFuture&lt;Orders&gt; ordersFuture =
+        CompletableFuture.supplyAsync(() -> orderClient.getOrders(userId));
+
+CompletableFuture.allOf(userFuture, ordersFuture).join();
+
+User user = userFuture.join();
+Orders orders = ordersFuture.join();</code></pre>
+
+          <h3>Use case tốt</h3>
+          <ul>
+            <li>Các external API calls độc lập.</li>
+            <li>Gửi email/notification sau main transaction.</li>
+            <li>Background jobs.</li>
+            <li>Message-driven workflows.</li>
+            <li>High-latency I/O operations.</li>
+          </ul>
+
+          <h3>Sync vs Async comparison</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Điểm</th>
+                <th>Sync</th>
+                <th>Async</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Thread</td>
+                <td>Thường bị block khi chờ.</td>
+                <td>Có thể giải phóng caller thread hoặc xử lý sau.</td>
+              </tr>
+              <tr>
+                <td>Complexity</td>
+                <td>Đơn giản.</td>
+                <td>Error handling và tracing phức tạp hơn.</td>
+              </tr>
+              <tr>
+                <td>Use case</td>
+                <td>CRUD, simple request-response.</td>
+                <td>Independent I/O, background processing, event workflows.</td>
+              </tr>
+              <tr>
+                <td>Failure handling</td>
+                <td>Exception flow trực tiếp.</td>
+                <td>Cần callback/Future/message retry handling.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            Async không tự động nhanh hơn. Nó hữu ích khi waiting time có thể overlap hoặc chuyển ra khỏi request path.
+          </div>
+        </section>
+
+        <section id="vn-reactive">
+          <h2>9. Reactive Programming và WebFlux</h2>
+
+          <h3>9.1. Reactive nghĩa là gì?</h3>
+          <p>Reactive programming là programming model cho asynchronous, non-blocking data streams có backpressure support.</p>
+
+          <div class="pill-row">
+            <span class="pill">Asynchronous</span>
+            <span class="pill">Non-blocking</span>
+            <span class="pill">Stream-based</span>
+            <span class="pill">Backpressure</span>
+            <span class="pill">Event-driven</span>
+          </div>
+
+          <h3>9.2. Blocking vs non-blocking</h3>
+          <div class="flow">Blocking:
+Thread calls external API
+Thread waits
+Thread cannot serve other work
+
+Non-blocking:
+Thread starts I/O
+Thread is released
+When data is ready, callback/event continues processing</div>
+
+          <h3>9.3. Mono và Flux concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Ý nghĩa</th>
+                <th>Ví dụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Mono&lt;T&gt;</code></td>
+                <td>0 hoặc 1 item.</td>
+                <td>Find user by ID.</td>
+              </tr>
+              <tr>
+                <td><code>Flux&lt;T&gt;</code></td>
+                <td>0 đến nhiều items.</td>
+                <td>Stream orders, events, messages.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>9.4. Ví dụ</h3>
+          <pre><code>public Mono&lt;OrderResponse&gt; getOrder(Long orderId) {
+    return orderRepository.findById(orderId)
+            .flatMap(order ->
+                    paymentClient.getPayment(order.getPaymentId())
+                            .map(payment -> buildResponse(order, payment))
+            );
+}</code></pre>
+
+          <h3>9.5. Khi nào reactive phù hợp?</h3>
+          <ul>
+            <li>High-concurrency I/O-bound services.</li>
+            <li>Nhiều slow external API calls.</li>
+            <li>Streaming data.</li>
+            <li>WebSocket/SSE/event stream.</li>
+            <li>Cần backpressure-aware processing.</li>
+          </ul>
+
+          <h3>9.6. Khi nào reactive có thể không phù hợp?</h3>
+          <ul>
+            <li>Simple CRUD service với traffic bình thường.</li>
+            <li>Team chưa quen reactive debugging.</li>
+            <li>Phần lớn dependencies là blocking JDBC hoặc blocking SDKs.</li>
+            <li>CPU-bound computation.</li>
+            <li>Project cần simplicity hơn maximum concurrency.</li>
+          </ul>
+
+          <div class="danger">
+            Mix blocking calls trong reactive pipeline có thể phá lợi ích của WebFlux. Nếu bắt buộc dùng blocking, cần isolate bằng bounded scheduler phù hợp và hiểu trade-off.
+          </div>
+
+          <h3>9.7. WebMVC vs WebFlux concept</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Điểm</th>
+                <th>Spring MVC</th>
+                <th>Spring WebFlux</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Programming model</td>
+                <td>Blocking request-response.</td>
+                <td>Reactive non-blocking.</td>
+              </tr>
+              <tr>
+                <td>Thread usage</td>
+                <td>Một request thường giữ request thread trong lúc chờ.</td>
+                <td>Số ít event-loop threads có thể xử lý nhiều I/O operations.</td>
+              </tr>
+              <tr>
+                <td>Return type</td>
+                <td>Object, ResponseEntity, List.</td>
+                <td>Mono, Flux.</td>
+              </tr>
+              <tr>
+                <td>Best for</td>
+                <td>Phần lớn CRUD/business apps.</td>
+                <td>High concurrency, streaming, non-blocking I/O.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-loose">
+          <h2>10. Loose Coupling Design</h2>
+
+          <h3>10.1. Loose coupling nghĩa là gì?</h3>
+          <p>Loose coupling nghĩa là một component phụ thuộc ít nhất có thể vào implementation detail cụ thể của component khác.</p>
+
+          <div class="summary">
+            <strong>Câu ngắn:</strong> Depend on abstraction, not concrete implementation.
+          </div>
+
+          <h3>Ví dụ tight coupling</h3>
+          <pre><code>public class OrderService {
+    private final EmailSender emailSender = new EmailSender();
+
+    public void createOrder() {
+        // create order
+        emailSender.send("Order created");
+    }
+}</code></pre>
+
+          <p>Vấn đề:</p>
+          <ul>
+            <li><code>OrderService</code> tự tạo <code>EmailSender</code>.</li>
+            <li>Khó thay bằng SMS, push notification hoặc event publisher.</li>
+            <li>Khó unit test.</li>
+          </ul>
+
+          <h3>Loose coupling với interface</h3>
+          <pre><code>public interface NotificationPort {
+    void notify(String message);
+}
+
+@Service
+public class EmailNotificationAdapter implements NotificationPort {
+    public void notify(String message) {
+        // send email
+    }
+}
+
+@Service
+public class OrderService {
+    private final NotificationPort notificationPort;
+
+    public OrderService(NotificationPort notificationPort) {
+        this.notificationPort = notificationPort;
+    }
+}</code></pre>
+
+          <h3>10.2. Dependency Inversion Principle</h3>
+          <p>High-level business logic không nên phụ thuộc trực tiếp vào low-level infrastructure details. Cả hai nên phụ thuộc vào abstraction.</p>
+
+          <div class="flow">Bad:
+OrderService → MySqlOrderRepository
+OrderService → SmtpEmailSender
+
+Better:
+OrderService → OrderRepository interface
+OrderService → NotificationPort interface
+
+Infrastructure implements the interfaces.</div>
+
+          <h3>10.3. Ports and Adapters / Hexagonal Architecture</h3>
+          <div class="flow">Domain / Application Core
+   ├── Use cases
+   ├── Domain services
+   └── Ports / Interfaces
+
+Adapters
+   ├── REST Controller
+   ├── JPA Repository
+   ├── Kafka Producer
+   ├── External API Client
+   └── Email Sender</div>
+
+          <h3>Lợi ích</h3>
+          <ul>
+            <li>Business logic dễ test hơn.</li>
+            <li>Infrastructure dễ thay thế hơn.</li>
+            <li>Code dễ maintain hơn.</li>
+            <li>Hỗ trợ modular monolith và microservice architecture.</li>
+          </ul>
+        </section>
+
+        <section id="vn-microservice">
+          <h2>11. Loose Coupling trong Microservices</h2>
+
+          <h3>11.1. Loose coupling giữa services nghĩa là gì?</h3>
+          <p>Trong microservices, loose coupling nghĩa là mỗi service own domain logic và data của nó, giao tiếp với service khác qua stable contracts.</p>
+
+          <div class="flow">Order Service
+  owns order data
+
+Payment Service
+  owns payment data
+
+Inventory Service
+  owns stock data
+
+They communicate through APIs or events, not by directly sharing database tables.</div>
+
+          <h3>11.2. Coupling xấu giữa microservices</h3>
+          <ul>
+            <li>Service A đọc trực tiếp database của Service B.</li>
+            <li>Các service bắt buộc deploy cùng lúc.</li>
+            <li>Một service biết quá nhiều về internal schema của service khác.</li>
+            <li>Shared domain model library biến thành hidden monolith.</li>
+            <li>Synchronous call chain quá dài.</li>
+          </ul>
+
+          <h3>11.3. Coupling tốt hơn</h3>
+          <ul>
+            <li>Dùng stable API contracts.</li>
+            <li>Dùng events cho state changes.</li>
+            <li>Mỗi service own database của nó.</li>
+            <li>Thay đổi API theo hướng backward-compatible.</li>
+            <li>Dùng idempotency cho retry.</li>
+            <li>Dùng contract testing giữa services.</li>
+          </ul>
+
+          <h3>11.4. Synchronous communication</h3>
+          <pre><code>Order Service → Payment Service REST API</code></pre>
+
+          <p>Tốt khi:</p>
+          <ul>
+            <li>Cần immediate response.</li>
+            <li>User không thể tiếp tục nếu không có result.</li>
+            <li>Failure cần trả trực tiếp cho caller.</li>
+          </ul>
+
+          <p>Rủi ro:</p>
+          <ul>
+            <li>Tăng latency.</li>
+            <li>Tạo runtime dependency.</li>
+            <li>Có thể gây cascading failure.</li>
+          </ul>
+
+          <h3>11.5. Asynchronous/event-driven communication</h3>
+          <pre><code>Order Created Event
+        ↓
+Payment Service consumes event
+        ↓
+Inventory Service consumes event
+        ↓
+Notification Service consumes event</code></pre>
+
+          <p>Tốt khi:</p>
+          <ul>
+            <li>Work có thể chạy sau main request.</li>
+            <li>Nhiều service cùng react với một business event.</li>
+            <li>System cần resilience và decoupling tốt hơn.</li>
+          </ul>
+
+          <p>Trade-off:</p>
+          <ul>
+            <li>Eventual consistency.</li>
+            <li>Debug khó hơn.</li>
+            <li>Cần retry và idempotency.</li>
+          </ul>
+        </section>
+
+        <section id="vn-patterns">
+          <h2>12. Advanced Backend Patterns</h2>
+
+          <h3>12.1. Idempotency</h3>
+          <p>Một operation là idempotent nếu gọi nhiều lần vẫn có effect giống như gọi một lần.</p>
+
+          <pre><code>POST /payments
+Idempotency-Key: abc-123</code></pre>
+
+          <p>Use case:</p>
+          <ul>
+            <li>Payment API retry.</li>
+            <li>Order creation retry.</li>
+            <li>Message consumer retry.</li>
+          </ul>
+
+          <h3>12.2. Outbox Pattern</h3>
+          <p>Outbox pattern giải quyết bài toán update database và publish event một cách atomic.</p>
+
+          <div class="flow">Trong cùng DB transaction:
+1. Save order
+2. Save event vào outbox table
+3. Commit
+
+Background publisher:
+4. Read outbox event
+5. Publish to Kafka/RabbitMQ
+6. Mark event as published</div>
+
+          <h3>12.3. Saga Pattern</h3>
+          <p>Saga quản lý distributed transaction bằng nhiều local transactions và compensating actions.</p>
+
+          <div class="flow">Create Order
+   ↓
+Reserve Inventory
+   ↓
+Charge Payment
+   ↓
+Confirm Order
+
+Nếu payment fail:
+   ↓
+Release Inventory
+   ↓
+Cancel Order</div>
+
+          <h3>12.4. Circuit Breaker</h3>
+          <p>Circuit breaker bảo vệ service khỏi việc liên tục gọi một dependency đang fail.</p>
+
+          <div class="flow">Closed:
+ gọi dependency bình thường
+
+Open:
+ dependency fail, fail fast
+
+Half-open:
+ cho một ít traffic test để kiểm tra dependency đã recover chưa</div>
+
+          <h3>12.5. Bulkhead</h3>
+          <p>Bulkhead isolate resources để một dependency fail không ăn hết threads/connections.</p>
+
+          <div class="flow">Payment client thread pool
+Inventory client thread pool
+Notification client thread pool
+
+Nếu notification chậm, payment vẫn được bảo vệ.</div>
+
+          <h3>12.6. Retry with backoff</h3>
+          <p>Retry giúp xử lý transient failures, nhưng retry không giới hạn có thể làm outage nặng hơn.</p>
+
+          <pre><code>Retry 1: after 100ms
+Retry 2: after 300ms
+Retry 3: after 900ms
+Then fail or send to DLQ</code></pre>
+
+          <h3>12.7. DLQ - Dead Letter Queue</h3>
+          <p>Messages không process được sau nhiều lần retry có thể được đưa vào DLQ để investigate hoặc recover thủ công.</p>
+        </section>
+
+        <section id="vn-interview">
+          <h2>13. Tóm tắt phỏng vấn</h2>
+
+          <h3>Java sorting</h3>
+          <div class="summary">
+            Java sorting implementation phụ thuộc data type. Primitive arrays được optimize khác với object arrays. Object sorting phải stable, còn primitive sorting tập trung sort raw value nhanh. Với business code, comparator correctness và cost rất quan trọng.
+          </div>
+
+          <h3>HashMap</h3>
+          <div class="summary">
+            HashMap dùng hashCode để tìm bucket và equals để xác nhận đúng key. Nếu hash distribution tốt, get và put gần O(1). Collision được xử lý trong bucket, và bucket collision nặng có thể chuyển thành tree. Resize tốn kém, nên capacity phù hợp rất quan trọng với map lớn.
+          </div>
+
+          <h3>B-tree index</h3>
+          <div class="summary">
+            B-tree index là balanced sorted structure giúp database tìm rows hiệu quả. Nó đặc biệt hữu ích cho equality search, range condition và ordering. Tuy nhiên index tốn storage và làm write chậm hơn, nên index phải match query pattern thực tế.
+          </div>
+
+          <h3>Isolation và locking</h3>
+          <div class="summary">
+            Isolation kiểm soát một transaction nhìn thấy gì từ transaction khác. Locking ngăn concurrent modification unsafe. Isolation mạnh hơn giúp correctness tốt hơn nhưng có thể giảm throughput hoặc cần retry. Trong production, chọn isolation và locking dựa trên business consistency requirement.
+          </div>
+
+          <h3>Sync, async, reactive</h3>
+          <div class="summary">
+            Synchronous programming đơn giản và phù hợp với CRUD flow bình thường. Async programming hữu ích khi tasks độc lập hoặc có thể chạy background. Reactive programming phù hợp với high-concurrency non-blocking I/O và streaming, nhưng tăng complexity và không nên mix bừa với blocking calls.
+          </div>
+
+          <h3>Loose coupling và microservices</h3>
+          <div class="summary">
+            Loose coupling nghĩa là phụ thuộc vào abstraction và stable contract, không phụ thuộc implementation detail. Trong microservices, mỗi service nên own data của nó và giao tiếp qua API hoặc events. Event-driven design tăng decoupling nhưng kéo theo eventual consistency, retry và idempotency requirements.
+          </div>
+        </section>
+
+        <section id="vn-refs">
+          <h2>14. References</h2>
+          <ul>
+            <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html" target="_blank">Oracle Java 21 Arrays documentation</a></li>
+            <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html" target="_blank">Oracle Java 21 HashMap documentation</a></li>
+            <li><a href="https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java" target="_blank">OpenJDK HashMap source</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/btree.html" target="_blank">PostgreSQL B-tree index documentation</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/transaction-iso.html" target="_blank">PostgreSQL transaction isolation documentation</a></li>
+            <li><a href="https://www.postgresql.org/docs/current/explicit-locking.html" target="_blank">PostgreSQL explicit locking documentation</a></li>
+            <li><a href="https://docs.spring.io/spring-framework/reference/web/webflux.html" target="_blank">Spring WebFlux documentation</a></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="footer">Advanced Backend Concepts Learning Guide - EN/VN version</div>
+
+  <script>
+    function showLang(lang) {
+      const sections = document.querySelectorAll('.lang-section');
+      const buttons = document.querySelectorAll('.tab-button');
+
+      sections.forEach(section => section.classList.remove('active'));
+      buttons.forEach(button => button.classList.remove('active'));
+
+      document.getElementById(lang).classList.add('active');
+
+      if (lang === 'en') {
+        buttons[0].classList.add('active');
+      } else {
+        buttons[1].classList.add('active');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

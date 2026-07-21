@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Design Patterns Deep Dive — Senior Interview Guide</title>
+<meta name="description" content="Detailed Java 8 design patterns guide covering all 23 GoF patterns, enterprise patterns, architecture patterns, microservice patterns, examples and senior interview answers.">
+<style>
+:root {
+  --bg:#f4f7fb; --surface:#fff; --surface2:#edf2f8; --text:#172033; --muted:#5d6978;
+  --border:#d9e2ee; --accent:#2457d6; --accent2:#673ab7; --soft:#eaf0ff;
+  --green:#147d64; --greenSoft:#e7f8f2; --amber:#995a00; --amberSoft:#fff4dd;
+  --red:#b42318; --redSoft:#fff0ee; --code:#101827; --codeText:#e8efff;
+  --shadow:0 18px 44px rgba(24,38,65,.08);
+}
+body.dark {
+  --bg:#0c1220; --surface:#151d2c; --surface2:#1d283a; --text:#eef3ff; --muted:#aab5c7;
+  --border:#2c3a52; --accent:#86a9ff; --accent2:#c09aff; --soft:#1c2d57;
+  --green:#66dcb9; --greenSoft:#123a31; --amber:#ffc56c; --amberSoft:#4a3213;
+  --red:#ff938b; --redSoft:#4c211e; --code:#080e19; --codeText:#e8efff;
+  --shadow:0 20px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.7}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px;background:var(--surface);border-right:1px solid var(--border)}
+.brand{font-size:1.05rem;font-weight:850;line-height:1.35} .brand small{display:block;color:var(--muted);font-size:.74rem;margin-top:6px}
+.search{width:100%;margin:16px 0 12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font:inherit}
+.nav-title{margin:18px 9px 6px;text-transform:uppercase;letter-spacing:.11em;font-size:.68rem;font-weight:850;color:var(--muted)}
+.nav-link{display:block;padding:7px 10px;margin:2px 0;border-radius:9px;color:var(--text);text-decoration:none;font-size:.86rem;font-weight:680}
+.nav-link:hover,.nav-link.active{background:var(--soft);color:var(--accent)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px} .btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:760}
+main{min-width:0;padding:34px clamp(18px,4vw,64px) 80px} .content{max-width:1180px;margin:auto}
+.hero,section{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:22px}
+.hero{padding:clamp(30px,6vw,66px);background:radial-gradient(circle at 90% 10%,rgba(103,58,183,.16),transparent 30%),radial-gradient(circle at 10% 90%,rgba(36,87,214,.14),transparent 32%),var(--surface)}
+.eyebrow,.badge{display:inline-flex;border-radius:999px;font-weight:850} .eyebrow{background:var(--soft);color:var(--accent);padding:6px 10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.badge{background:var(--surface2);color:var(--muted);padding:4px 8px;font-size:.72rem}
+h1{font-size:clamp(2.3rem,5vw,4.6rem);line-height:1.02;letter-spacing:-.05em;margin:16px 0 12px} h2{font-size:clamp(1.8rem,3vw,2.5rem);letter-spacing:-.03em} h3{font-size:1.35rem} h4{margin-bottom:8px}
+.hero p{max-width:900px;color:var(--muted);font-size:1.06rem}
+.stats,.grid-2,.grid-3{display:grid;gap:15px} .stats{grid-template-columns:repeat(5,1fr);margin-top:24px} .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))} .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat,.card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:17px} .stat strong{display:block;font-size:1.3rem} .stat span{color:var(--muted);font-size:.8rem}
+section{padding:clamp(24px,4vw,44px);margin:24px 0;scroll-margin-top:20px}
+.pattern-card{border-top:1px solid var(--border);padding:34px 0;scroll-margin-top:24px} .pattern-card:first-of-type{border-top:0}
+.pattern-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start} .pattern-header h3{margin:8px 0 5px;font-size:1.65rem} .intent{color:var(--accent);font-weight:800;font-size:.84rem}
+.callout{border-left:4px solid var(--accent);background:var(--soft);border-radius:10px;padding:15px 17px;margin:16px 0}
+.card.good{background:var(--greenSoft)} .card.warning{background:var(--amberSoft)} .interview{background:linear-gradient(135deg,var(--soft),var(--surface));border:1px solid var(--border);border-radius:15px;padding:18px;margin-top:20px}
+pre{position:relative;overflow-x:auto;background:var(--code);color:var(--codeText);padding:20px;border-radius:14px;line-height:1.6;font-size:.86rem} code{font-family:"SFMono-Regular",Consolas,monospace} :not(pre)>code{background:var(--surface2);padding:2px 6px;border-radius:6px}
+.copy{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:white;border-radius:8px;padding:5px 9px;cursor:pointer}
+.diagram{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:17px;white-space:pre-wrap;font-family:Consolas,monospace}
+table{width:100%;border-collapse:collapse} th,td{border:1px solid var(--border);padding:11px;vertical-align:top;text-align:left} th{background:var(--surface2)} .table-wrap{overflow-x:auto}
+details{border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin:9px 0} summary{cursor:pointer;font-weight:800}
+.hidden{display:none!important} .footer{text-align:center;color:var(--muted);padding:20px}
+@media(max-width:1080px){.layout{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}aside nav{display:flex;overflow-x:auto;gap:5px}.nav-title{display:none}.nav-link{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){main{padding:16px 10px 50px}.hero,section{border-radius:16px}.grid-2,.grid-3,.stats{grid-template-columns:1fr}.pattern-header{display:block}}
+@media print{aside,.copy,.actions,.search{display:none!important}.layout{display:block}main{padding:0}.hero,section{box-shadow:none}details>*{display:block!important}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Java Design Patterns Deep Dive<small>Java 8, Spring, architecture, microservices, and senior interview answers</small></div>
+  <input id="search" class="search" placeholder="Search patterns...">
+  <nav>
+    <div class="nav-title">Foundation</div>
+    <a class="nav-link" href="#overview">Overview</a>
+    <a class="nav-link" href="#principles">Principles</a>
+    <div class="nav-title">GoF</div>
+    <a class="nav-link" href="#creational">Creational</a>
+    <a class="nav-link" href="#structural">Structural</a>
+    <a class="nav-link" href="#behavioral">Behavioral</a>
+    <div class="nav-title">Enterprise</div>
+    <a class="nav-link" href="#enterprise">Java / Spring / DDD</a>
+    <a class="nav-link" href="#architecture">Architecture / Microservices</a>
+    <div class="nav-title">Interview</div>
+    <a class="nav-link" href="#comparisons">Pattern comparisons</a>
+    <a class="nav-link" href="#questions">Senior interview Q&A</a>
+    <a class="nav-link" href="#checklist">Selection checklist</a>
+  </nav>
+  <div class="actions">
+    <button class="btn" id="theme">Toggle theme</button>
+    <button class="btn" id="expand">Expand Q&A</button>
+    <button class="btn" onclick="window.print()">Print</button>
+  </div>
+</aside>
+
+<main><div class="content">
+<header class="hero" id="overview">
+  <span class="eyebrow">Complete practical guide</span>
+  <h1>Design patterns are reusable decisions, not code templates.</h1>
+  <p>This document covers all 23 classic Gang of Four patterns, plus the Java, Spring, DDD, architecture, data, resilience, and microservice patterns most often discussed in senior backend interviews. Every pattern explains the problem, internal idea, suitable and unsuitable cases, advantages, trade-offs, a Java 8 example, a real project scenario, and a senior-level interview answer.</p>
+  <div class="callout"><strong>Senior mindset:</strong> Do not start with “Which pattern can I use?” Start with the problem, forces, failure behavior, rate of change, and simplest design. A pattern is useful only when it makes those decisions clearer.</div>
+  <div class="stats">
+    <div class="stat"><strong>23</strong><span>Classic GoF patterns</span></div>
+    <div class="stat"><strong>8</strong><span>Enterprise / Java patterns</span></div>
+    <div class="stat"><strong>15</strong><span>Architecture patterns</span></div>
+    <div class="stat"><strong>12</strong><span>Senior interview answers</span></div>
+    <div class="stat"><strong>Java 8</strong><span>Compatible examples</span></div>
+  </div>
+</header>
+
+<section id="principles">
+<span class="badge">Foundation</span><h2>1. Principles before patterns</h2>
+<div class="grid-2">
+  <div class="card"><h3>Program to interfaces</h3><p>Depend on stable behavior, not concrete classes. This makes Strategy, Factory, Adapter, and Proxy possible.</p></div>
+  <div class="card"><h3>Composition over inheritance</h3><p>Compose behavior when combinations and runtime replacement matter. Use inheritance for a true substitutable relationship or a stable Template Method.</p></div>
+  <div class="card"><h3>Open/Closed Principle</h3><p>New behavior should often be added through a new strategy, decorator, state, or handler rather than editing a large conditional.</p></div>
+  <div class="card"><h3>Dependency Inversion</h3><p>High-level business policy depends on ports/interfaces. Infrastructure implements those ports.</p></div>
+  <div class="card"><h3>Explicit boundaries</h3><p>Patterns should make network, transaction, state, and consistency boundaries clearer—not hide them.</p></div>
+  <div class="card"><h3>YAGNI</h3><p>Do not build variation points before there is credible variation. A simple constructor or method is often the best first design.</p></div>
+</div>
+<h3>Pattern categories</h3>
+<div class="table-wrap"><table>
+<tr><th>Category</th><th>Main question</th><th>Classic patterns</th></tr>
+<tr><td>Creational</td><td>How should objects be created?</td><td>Singleton, Factory Method, Abstract Factory, Builder, Prototype</td></tr>
+<tr><td>Structural</td><td>How should objects and classes be composed?</td><td>Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy</td></tr>
+<tr><td>Behavioral</td><td>How should responsibilities and communication be organized?</td><td>Chain, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor</td></tr>
+</table></div>
+</section>
+
+<section id="creational"><span class="badge">GoF</span><h2>2. Creational patterns</h2>
+
+    <article class="pattern-card" id="singleton" data-search="Singleton Creational Guarantee that a class has one logical instance and provide a controlled access point.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Creational</span>
+          <h3>Singleton</h3>
+        </div>
+        <span class="intent">One controlled instance</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Guarantee that a class has one logical instance and provide a controlled access point.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Some infrastructure objects represent one shared resource or one application-wide policy, such as a configuration registry, metrics collector, or immutable lookup table. Creating many independent instances may waste resources or break consistency.</p>
+
+      <h4>How it works</h4>
+      <p>The constructor is hidden, and instance creation is controlled by the class or by a dependency-injection container. In modern Java applications, a Spring singleton-scoped bean is usually safer and easier to test than manually calling a global Singleton.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>The object is stateless or safely thread-safe.</li><li>Exactly one logical instance is required in one application context.</li><li>Lifecycle and creation must be centrally controlled.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>You only want convenient global access.</li><li>The object contains mutable request or user state.</li><li>Tests need isolated instances but the design hides dependencies.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Controlled lifecycle and shared resource usage.</li><li>Can delay expensive creation.</li><li>Easy to integrate when a framework owns the singleton scope.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Global state creates hidden coupling.</li><li>Thread safety is still your responsibility.</li><li>Manual singletons are harder to mock and reset in tests.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class AppConfig {
+    private AppConfig() {
+    }
+
+    private static class Holder {
+        private static final AppConfig INSTANCE = new AppConfig();
+    }
+
+    public static AppConfig getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+
+// Preferred in Spring:
+// @Component
+// public class AppConfig { ... }</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A Spring Boot application may have one immutable CurrencyRatePolicy bean used by multiple services. Spring creates and manages one singleton bean, while each service receives it through constructor injection.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Singleton controls instance count, but I do not use it simply to avoid passing dependencies. In Spring, I normally use a singleton-scoped bean and constructor injection because the container controls lifecycle and tests can replace the dependency. If the singleton has mutable state, I must make it thread-safe because many request threads may access the same instance.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="factory-method" data-search="Factory Method Creational Define a creation method and let subclasses or implementations decide which concrete object is created.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Creational</span>
+          <h3>Factory Method</h3>
+        </div>
+        <span class="intent">Delegate object creation</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Define a creation method and let subclasses or implementations decide which concrete object is created.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Calling constructors directly couples business code to concrete classes. A factory method moves creation decisions behind a stable abstraction, so adding a new implementation does not require changing every caller.</p>
+
+      <h4>How it works</h4>
+      <p>The caller depends on an interface. A creator method selects or constructs the implementation. The classic GoF form uses inheritance, but practical Java code often uses a dedicated factory service.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Creation depends on runtime input or configuration.</li><li>The caller should depend on an interface, not implementation classes.</li><li>Construction includes validation, mapping, or dependency selection.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>There is only one simple class and no expected variation.</li><li>The factory becomes a large switch with unrelated responsibilities.</li><li>A dependency-injection container already provides the required selection cleanly.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Reduces direct coupling to concrete classes.</li><li>Centralizes creation rules.</li><li>Makes new implementations easier to introduce.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Adds extra abstraction and classes.</li><li>A poorly designed factory can become a large conditional block.</li><li>It does not automatically remove all caller changes when behavior differs significantly.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface NotificationSender {
+    void send(String recipient, String message);
+}
+
+public final class EmailSender implements NotificationSender {
+    public void send(String recipient, String message) {
+        System.out.println(&quot;Email to &quot; + recipient + &quot;: &quot; + message);
+    }
+}
+
+public final class SmsSender implements NotificationSender {
+    public void send(String recipient, String message) {
+        System.out.println(&quot;SMS to &quot; + recipient + &quot;: &quot; + message);
+    }
+}
+
+public final class NotificationSenderFactory {
+    public NotificationSender create(String channel) {
+        if (&quot;EMAIL&quot;.equalsIgnoreCase(channel)) {
+            return new EmailSender();
+        }
+        if (&quot;SMS&quot;.equalsIgnoreCase(channel)) {
+            return new SmsSender();
+        }
+        throw new IllegalArgumentException(&quot;Unsupported channel: &quot; + channel);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>An order system chooses EmailSender, SmsSender, or PushSender based on customer preference. OrderService depends only on NotificationSender, while the factory owns the channel-to-implementation mapping.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Factory Method separates object creation from object use. I use it when runtime conditions choose an implementation or construction is non-trivial. I still watch for a factory with a very large switch; at that point I may register strategies in a Map or let Spring inject implementations by qualifier.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="abstract-factory" data-search="Abstract Factory Creational Create related objects as one compatible family without exposing their concrete classes.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Creational</span>
+          <h3>Abstract Factory</h3>
+        </div>
+        <span class="intent">Create compatible object families</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Create related objects as one compatible family without exposing their concrete classes.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Some products must be used together. Mixing implementations from different vendors or platforms may produce invalid behavior. Abstract Factory keeps the family consistent.</p>
+
+      <h4>How it works</h4>
+      <p>The abstract factory declares multiple creation methods. Each concrete factory returns products belonging to one family. The client works only with product interfaces.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>You support multiple vendors, platforms, regions, or themes.</li><li>Products in one family must remain compatible.</li><li>You need to switch the whole family through configuration.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Only one product varies.</li><li>The family changes frequently and adding one product forces every factory to change.</li><li>A simpler factory or dependency injection is enough.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Ensures product-family consistency.</li><li>Hides vendor-specific classes.</li><li>Supports environment-level replacement.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Adding a new product type affects all factories.</li><li>Creates many interfaces and classes.</li><li>Can be over-engineering for a small system.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface PaymentClient {
+    void charge(long amount);
+}
+
+public interface RefundClient {
+    void refund(long amount);
+}
+
+public interface PaymentProviderFactory {
+    PaymentClient paymentClient();
+    RefundClient refundClient();
+}
+
+public final class ProviderAFactory implements PaymentProviderFactory {
+    public PaymentClient paymentClient() {
+        return amount -&gt; System.out.println(&quot;Provider A charge &quot; + amount);
+    }
+
+    public RefundClient refundClient() {
+        return amount -&gt; System.out.println(&quot;Provider A refund &quot; + amount);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A payment platform supports Provider A and Provider B. Each provider has charge, refund, and status clients with different authentication and payloads. One factory produces the complete compatible adapter family.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Abstract Factory creates a family of related products. The key value is consistency: I can swap the entire provider family without letting the caller accidentally combine Provider A charge logic with Provider B refund logic. Its weakness is that adding a new product method changes every concrete factory.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="builder" data-search="Builder Creational Build an object through readable steps while keeping construction separate from the final object.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Creational</span>
+          <h3>Builder</h3>
+        </div>
+        <span class="intent">Construct complex objects step by step</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Build an object through readable steps while keeping construction separate from the final object.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Constructors with many parameters are hard to read and easy to call incorrectly, especially when several arguments share the same type. Builder supports optional fields and centralized validation.</p>
+
+      <h4>How it works</h4>
+      <p>The builder stores temporary construction state. Fluent methods set values, and build() validates and creates the final object. The final object should preferably be immutable.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>The object has many optional parameters.</li><li>Construction must be readable and validated.</li><li>You want immutable domain or DTO objects.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The object has two or three obvious required fields.</li><li>The builder allows invalid intermediate state without build-time validation.</li><li>The object is a simple mutable JPA entity managed through setters.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Readable named construction.</li><li>Supports immutability and validation.</li><li>Avoids telescoping constructors.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>More code and another class.</li><li>Required fields may be forgotten unless validated.</li><li>A generic builder can weaken domain invariants.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class PaymentRequest {
+    private final String customerId;
+    private final long amount;
+    private final String currency;
+    private final String description;
+
+    private PaymentRequest(Builder builder) {
+        this.customerId = builder.customerId;
+        this.amount = builder.amount;
+        this.currency = builder.currency;
+        this.description = builder.description;
+    }
+
+    public static Builder builder(String customerId, long amount) {
+        return new Builder(customerId, amount);
+    }
+
+    public static final class Builder {
+        private final String customerId;
+        private final long amount;
+        private String currency = &quot;USD&quot;;
+        private String description;
+
+        private Builder(String customerId, long amount) {
+            this.customerId = customerId;
+            this.amount = amount;
+        }
+
+        public Builder currency(String currency) {
+            this.currency = currency;
+            return this;
+        }
+
+        public Builder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public PaymentRequest build() {
+            if (amount &lt;= 0) {
+                throw new IllegalStateException(&quot;amount must be positive&quot;);
+            }
+            return new PaymentRequest(this);
+        }
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A PSP request may contain customer ID, amount, currency, callback URL, metadata, risk data, and optional 3DS information. A builder makes call sites readable and validates mandatory rules before sending the request.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Builder is valuable for complex immutable objects with optional fields. I make required values explicit in the builder constructor or static factory and validate invariants in build(). I avoid builders that simply mirror every setter because they add syntax without protecting the domain model.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="prototype" data-search="Prototype Creational Create new objects by copying an existing configured object instead of constructing from the beginning.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Creational</span>
+          <h3>Prototype</h3>
+        </div>
+        <span class="intent">Create by copying</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Create new objects by copying an existing configured object instead of constructing from the beginning.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Some objects are expensive or complicated to initialize. A configured prototype can be copied and then adjusted for a specific request.</p>
+
+      <h4>How it works</h4>
+      <p>The prototype exposes a copy operation. The implementation must decide whether nested mutable objects require a deep copy or can be shared safely.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Initial setup is expensive.</li><li>Many objects share a common configuration.</li><li>Runtime classes should be copied without knowing exact concrete types.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The object graph has complex mutable references and copy semantics are unclear.</li><li>A normal constructor is cheap and clear.</li><li>Java clone() would expose unsafe shallow-copy behavior.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Reduces repeated initialization.</li><li>Hides concrete creation details.</li><li>Can create variants quickly.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Deep copying is difficult.</li><li>Shared mutable state can create subtle bugs.</li><li>Copy behavior must evolve with every new field.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class ReportTemplate {
+    private String title;
+    private Map&lt;String, String&gt; settings;
+
+    public ReportTemplate copy() {
+        ReportTemplate copy = new ReportTemplate();
+        copy.title = this.title;
+        copy.settings = new HashMap&lt;String, String&gt;(this.settings);
+        return copy;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A report engine loads a complex base template from storage. For each customer, it copies the template and changes title, filters, and branding instead of loading and parsing the complete template again.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Prototype is copying-based creation. The main design question is copy depth. I prefer an explicit copy method or copy constructor over Object.clone(), because explicit code makes ownership of nested mutable fields clear.</p>
+      </div>
+    </article>
+    
+</section>
+
+<section id="structural"><span class="badge">GoF</span><h2>3. Structural patterns</h2>
+
+    <article class="pattern-card" id="adapter" data-search="Adapter Structural Wrap an incompatible class and expose the interface expected by the application.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Adapter</h3>
+        </div>
+        <span class="intent">Convert incompatible interfaces</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Wrap an incompatible class and expose the interface expected by the application.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>External SDKs and legacy code often use APIs that do not match the application's domain interfaces. Direct use spreads vendor types throughout the codebase.</p>
+
+      <h4>How it works</h4>
+      <p>The adapter implements the application's interface, translates the request to the external format, calls the external component, and maps the result back.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Integrating a third-party SDK.</li><li>Migrating a legacy implementation behind a new interface.</li><li>Preventing vendor models from leaking into the domain.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The interfaces already match.</li><li>The adapter starts containing major business rules.</li><li>You need to simplify a large subsystem rather than convert one interface; use Facade.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Isolates vendor changes.</li><li>Keeps the domain model clean.</li><li>Improves testability.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Adds mapping code.</li><li>Can hide important semantic differences.</li><li>May require many adapters for a large external API.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface PaymentGateway {
+    PaymentResult charge(PaymentRequest request);
+}
+
+public final class PspPaymentAdapter implements PaymentGateway {
+    private final ExternalPspClient client;
+
+    public PspPaymentAdapter(ExternalPspClient client) {
+        this.client = client;
+    }
+
+    public PaymentResult charge(PaymentRequest request) {
+        ExternalRequest external = mapRequest(request);
+        ExternalResponse response = client.makePayment(external);
+        return mapResponse(response);
+    }
+
+    private ExternalRequest mapRequest(PaymentRequest request) {
+        return new ExternalRequest();
+    }
+
+    private PaymentResult mapResponse(ExternalResponse response) {
+        return new PaymentResult();
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Your domain uses PaymentGateway. Provider A requires XML, Provider B requires JSON, and Provider C returns HTML redirect data. Each adapter maps between the domain and provider-specific contracts.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Adapter changes the interface, not the underlying responsibility. I use it at integration boundaries so vendor DTOs and errors do not spread into business code. I keep business decisions outside the adapter; it should translate protocol and semantics, then return domain-level results.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="bridge" data-search="Bridge Structural Split an abstraction from its implementation so both dimensions can vary independently.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Bridge</h3>
+        </div>
+        <span class="intent">Separate two independent dimensions</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Split an abstraction from its implementation so both dimensions can vary independently.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Inheritance creates a class explosion when two dimensions vary. For example, Email/SMS/Push combined with AWS/Azure/OnPrem would produce many subclasses.</p>
+
+      <h4>How it works</h4>
+      <p>One hierarchy represents the abstraction, and it delegates to another hierarchy representing implementation. Composition connects them at runtime.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Two dimensions change independently.</li><li>Inheritance would create many combinations.</li><li>Runtime switching is useful.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Only one dimension varies.</li><li>The extra abstraction makes a simple design harder to understand.</li><li>The implementation interface is unstable and not meaningful.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Avoids subclass explosion.</li><li>Supports independent evolution.</li><li>Promotes composition over inheritance.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>More moving parts.</li><li>The abstraction boundary can be difficult to discover.</li><li>May be confused with Adapter.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface MessageTransport {
+    void deliver(String recipient, String content);
+}
+
+public abstract class Notification {
+    protected final MessageTransport transport;
+
+    protected Notification(MessageTransport transport) {
+        this.transport = transport;
+    }
+
+    public abstract void send(String recipient, String content);
+}
+
+public final class UrgentNotification extends Notification {
+    public UrgentNotification(MessageTransport transport) {
+        super(transport);
+    }
+
+    public void send(String recipient, String content) {
+        transport.deliver(recipient, &quot;[URGENT] &quot; + content);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Notification type varies by business meaning—urgent, marketing, security—while transport varies independently—email, SMS, push. Bridge avoids one subclass for every pair.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Bridge is useful when both abstraction and implementation have independent variation. Unlike Adapter, which makes an existing interface compatible, Bridge is designed upfront to prevent combinatorial inheritance.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="composite" data-search="Composite Structural Represent tree structures so clients can work with a single object or a group through the same interface.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Composite</h3>
+        </div>
+        <span class="intent">Treat part and whole uniformly</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Represent tree structures so clients can work with a single object or a group through the same interface.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Hierarchical data such as menus, organization units, file systems, or rules contains both leaves and containers. Without Composite, client code repeatedly checks types.</p>
+
+      <h4>How it works</h4>
+      <p>A common component interface defines operations. Leaves perform the operation directly; composites store children and delegate recursively.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>The domain is naturally hierarchical.</li><li>Clients should treat leaves and groups uniformly.</li><li>Recursive operations are common.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The hierarchy needs very different operations for leaves and containers.</li><li>Uniformity would hide invalid operations.</li><li>The structure is not really a tree.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Simple recursive client code.</li><li>Easy to add new component types.</li><li>Models hierarchies naturally.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can make the common interface too general.</li><li>Runtime validation may replace compile-time constraints.</li><li>Large trees may need performance controls.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface PricingRule {
+    BigDecimal apply(BigDecimal amount);
+}
+
+public final class DiscountRule implements PricingRule {
+    private final BigDecimal rate;
+
+    public DiscountRule(BigDecimal rate) {
+        this.rate = rate;
+    }
+
+    public BigDecimal apply(BigDecimal amount) {
+        return amount.subtract(amount.multiply(rate));
+    }
+}
+
+public final class RuleGroup implements PricingRule {
+    private final List&lt;PricingRule&gt; rules = new ArrayList&lt;PricingRule&gt;();
+
+    public void add(PricingRule rule) {
+        rules.add(rule);
+    }
+
+    public BigDecimal apply(BigDecimal amount) {
+        BigDecimal result = amount;
+        for (PricingRule rule : rules) {
+            result = rule.apply(result);
+        }
+        return result;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A promotion may contain individual rules and nested rule groups. The pricing engine applies any PricingRule without checking whether it is a leaf or a group.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Composite models a part-whole hierarchy. The benefit is uniform client code, but I ensure the shared interface remains semantically valid. If leaf nodes expose meaningless add/remove methods, the abstraction is probably too broad.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="decorator" data-search="Decorator Structural Wrap an object with the same interface and add behavior before or after delegation.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Decorator</h3>
+        </div>
+        <span class="intent">Add behavior dynamically</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Wrap an object with the same interface and add behavior before or after delegation.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Inheritance fixes behavior at compile time and creates many subclasses for combinations. Decorator composes behaviors dynamically.</p>
+
+      <h4>How it works</h4>
+      <p>Both the original component and decorator implement the same interface. The decorator stores another component and delegates while adding behavior.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Cross-cutting behavior must be composed per instance.</li><li>Many optional behavior combinations exist.</li><li>The original class should remain unchanged.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The behavior should apply globally through middleware or AOP.</li><li>Many decorators make the call chain difficult to understand.</li><li>Order-dependent decorators are not documented.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Flexible composition.</li><li>Follows Open/Closed Principle.</li><li>Avoids subclass explosion.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Many small wrapper objects.</li><li>Behavior order matters.</li><li>Debugging wrapper chains can be difficult.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface DocumentStorage {
+    void save(String key, byte[] content);
+}
+
+public final class S3DocumentStorage implements DocumentStorage {
+    public void save(String key, byte[] content) {
+        System.out.println(&quot;Saved &quot; + key);
+    }
+}
+
+public final class EncryptedStorageDecorator implements DocumentStorage {
+    private final DocumentStorage delegate;
+
+    public EncryptedStorageDecorator(DocumentStorage delegate) {
+        this.delegate = delegate;
+    }
+
+    public void save(String key, byte[] content) {
+        byte[] encrypted = encrypt(content);
+        delegate.save(key, encrypted);
+    }
+
+    private byte[] encrypt(byte[] content) {
+        return content;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A storage service can be decorated with encryption, compression, metrics, or checksum validation. Different deployments can compose only the required behaviors.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Decorator keeps the same interface and adds behavior dynamically. I distinguish it from Proxy by intent: Decorator adds responsibilities, while Proxy primarily controls access or location. In Spring, filters and many stream wrappers are decorator-style designs.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="facade" data-search="Facade Structural Expose a small, convenient interface over a complex subsystem.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Facade</h3>
+        </div>
+        <span class="intent">Provide a simple entry point</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Expose a small, convenient interface over a complex subsystem.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>A use case may require many services in a specific sequence. If controllers or clients coordinate them directly, orchestration becomes duplicated and tightly coupled.</p>
+
+      <h4>How it works</h4>
+      <p>The facade owns the high-level workflow and delegates to subsystem components. It does not need to hide every advanced API; it offers the common path.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>A subsystem has many steps or interfaces.</li><li>Clients need a stable use-case-level API.</li><li>You want to reduce coupling to subsystem details.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The facade becomes a god service containing all business logic.</li><li>Clients need low-level capabilities that the facade hides.</li><li>The subsystem is already simple.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Simplifies common use cases.</li><li>Reduces client coupling.</li><li>Centralizes orchestration.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can become too large.</li><li>May hide important failure or transaction behavior.</li><li>Does not remove subsystem complexity internally.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class OrderCheckoutFacade {
+    private final InventoryService inventory;
+    private final PaymentService payment;
+    private final OrderService orderService;
+
+    public OrderCheckoutFacade(
+            InventoryService inventory,
+            PaymentService payment,
+            OrderService orderService) {
+        this.inventory = inventory;
+        this.payment = payment;
+        this.orderService = orderService;
+    }
+
+    public OrderId checkout(CheckoutCommand command) {
+        inventory.reserve(command.getItems());
+        PaymentId paymentId = payment.charge(command.getPayment());
+        return orderService.create(command, paymentId);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A checkout facade coordinates inventory, promotions, payment, order creation, and notification. The REST controller calls one use-case method instead of knowing every internal service.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Facade simplifies a subsystem; it does not convert an incompatible interface like Adapter. I keep the facade use-case focused and explicit about transaction and failure boundaries, especially when external systems are involved.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="flyweight" data-search="Flyweight Structural Reuse many small immutable objects by separating shared intrinsic state from per-use extrinsic state.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Flyweight</h3>
+        </div>
+        <span class="intent">Share immutable intrinsic state</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Reuse many small immutable objects by separating shared intrinsic state from per-use extrinsic state.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Applications may create millions of logically similar objects. Sharing stable state can reduce memory usage.</p>
+
+      <h4>How it works</h4>
+      <p>A factory caches flyweight instances keyed by intrinsic state. The caller supplies changing extrinsic data when invoking behavior.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Very many objects share the same immutable data.</li><li>Memory profiling proves object duplication is significant.</li><li>Extrinsic state can be passed separately.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Object count is small.</li><li>State is mutable or user-specific.</li><li>The cache costs more complexity than the saved memory.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Large memory reduction in the right problem.</li><li>Centralized shared state.</li><li>Can improve cache locality.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Separating intrinsic and extrinsic state complicates APIs.</li><li>Requires careful immutability.</li><li>Caching can grow without bounds.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class Currency {
+    private final String code;
+
+    Currency(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}
+
+public final class CurrencyFactory {
+    private final Map&lt;String, Currency&gt; cache =
+            new ConcurrentHashMap&lt;String, Currency&gt;();
+
+    public Currency get(String code) {
+        return cache.computeIfAbsent(code, Currency::new);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A financial system reuses immutable Currency objects for USD, JPY, and EUR across millions of Money values instead of repeatedly storing equivalent metadata.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Flyweight is a memory optimization pattern, so I use it only after measurement. The shared state must be immutable, and the cache needs a bounded lifecycle if keys are not naturally limited.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="proxy" data-search="Proxy Structural Provide a stand-in that controls access, location, lifecycle, security, caching, or lazy creation.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Structural</span>
+          <h3>Proxy</h3>
+        </div>
+        <span class="intent">Control access to another object</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Provide a stand-in that controls access, location, lifecycle, security, caching, or lazy creation.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Clients may need to call an object without knowing whether it is remote, expensive, secured, transactional, or lazily loaded.</p>
+
+      <h4>How it works</h4>
+      <p>The proxy implements the same interface and delegates to the real subject after applying control logic.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Remote calls, lazy loading, security, caching, transactions, or monitoring.</li><li>The client should see the same interface.</li><li>Access control belongs outside core behavior.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The proxy hides expensive remote behavior behind a cheap-looking method.</li><li>Self-invocation bypasses framework proxies.</li><li>A wrapper is adding business responsibility rather than access control.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Separates access concerns.</li><li>Transparent to callers.</li><li>Foundation of Spring AOP and Hibernate lazy proxies.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Hidden network or transaction behavior.</li><li>Proxy limitations can surprise developers.</li><li>Stack traces and debugging become more complex.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface CustomerService {
+    Customer findById(long id);
+}
+
+public final class CachingCustomerServiceProxy implements CustomerService {
+    private final CustomerService target;
+    private final Map&lt;Long, Customer&gt; cache = new ConcurrentHashMap&lt;Long, Customer&gt;();
+
+    public CachingCustomerServiceProxy(CustomerService target) {
+        this.target = target;
+    }
+
+    public Customer findById(long id) {
+        return cache.computeIfAbsent(id, target::findById);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Spring creates a transactional proxy around a service. Calls entering through the proxy open or join a transaction. A direct method call inside the same object bypasses the proxy, which explains the self-invocation problem.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Proxy controls access to a subject. Spring transactions, security, and caching frequently use proxies. A senior answer should mention that proxy behavior is applied only when calls pass through the proxy; self-invocation may bypass the advice.</p>
+      </div>
+    </article>
+    
+</section>
+
+<section id="behavioral"><span class="badge">GoF</span><h2>4. Behavioral patterns</h2>
+
+    <article class="pattern-card" id="chain" data-search="Chain of Responsibility Behavioral Send a request through an ordered chain until handlers process, enrich, reject, or pass it onward.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Chain of Responsibility</h3>
+        </div>
+        <span class="intent">Pass a request through handlers</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Send a request through an ordered chain until handlers process, enrich, reject, or pass it onward.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Large conditional blocks couple every validation or processing rule. A chain makes handlers independent and reorderable.</p>
+
+      <h4>How it works</h4>
+      <p>Each handler decides whether to stop or delegate to the next handler. Some variants allow every handler to run.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Validation pipelines, servlet filters, security filters, approval rules.</li><li>Handlers need configurable order.</li><li>New steps should be added independently.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Order is unclear or unstable.</li><li>Every handler shares large mutable context.</li><li>A simple sequence of three explicit calls is clearer.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Loose coupling between sender and handlers.</li><li>Easy extension and reordering.</li><li>Supports short-circuit behavior.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Request may silently remain unhandled.</li><li>Order-related bugs.</li><li>Tracing a long chain is difficult.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface RequestHandler {
+    void handle(RequestContext context);
+}
+
+public abstract class BaseHandler implements RequestHandler {
+    private RequestHandler next;
+
+    public BaseHandler linkWith(RequestHandler next) {
+        this.next = next;
+        return this;
+    }
+
+    protected void next(RequestContext context) {
+        if (next != null) {
+            next.handle(context);
+        }
+    }
+}
+
+public final class AuthenticationHandler extends BaseHandler {
+    public void handle(RequestContext context) {
+        if (!context.isAuthenticated()) {
+            throw new SecurityException(&quot;Unauthenticated&quot;);
+        }
+        next(context);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Spring Security uses an ordered filter chain. Authentication, CSRF, authorization, exception translation, and other filters process the request in sequence.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Chain of Responsibility is useful for ordered, independently replaceable processing steps. I make order explicit, define whether handlers short-circuit, and add observability because debugging a hidden chain can be difficult.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="command" data-search="Command Behavioral Encapsulate a request and its data as an object that can be queued, logged, retried, or executed later.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Command</h3>
+        </div>
+        <span class="intent">Represent an action as an object</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Encapsulate a request and its data as an object that can be queued, logged, retried, or executed later.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>A direct method call is difficult to serialize, schedule, retry, audit, or undo. A command makes the action explicit.</p>
+
+      <h4>How it works</h4>
+      <p>A command contains the data required for one action. A handler executes it. In enterprise systems, the command is often a message or application-layer DTO.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Queues, job scheduling, audit, retry, undo, CQRS write models.</li><li>You need to decouple request creation from execution.</li><li>Actions need explicit names and validation.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The command is only a meaningless wrapper around one method parameter.</li><li>Business behavior is scattered into an excessive number of tiny handlers.</li><li>A simple local call needs no decoupling.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Supports asynchronous execution and retries.</li><li>Clear use-case boundary.</li><li>Easy auditing and testing.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>More classes.</li><li>Versioning serialized commands is difficult.</li><li>Exactly-once execution is not guaranteed by the pattern.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class CreateOrderCommand {
+    private final String customerId;
+    private final List&lt;String&gt; productIds;
+
+    public CreateOrderCommand(String customerId, List&lt;String&gt; productIds) {
+        this.customerId = customerId;
+        this.productIds = productIds;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+}
+
+public final class CreateOrderHandler {
+    public OrderId handle(CreateOrderCommand command) {
+        // validate and create order
+        return new OrderId();
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>An API accepts CreateOrderCommand, validates it, stores an outbox event, and later a worker executes downstream fulfillment. The command ID is used for idempotency.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Command makes a use case first-class. It is valuable for queues, retries, CQRS, and audit. I also design idempotency because a message broker can redeliver a command; the Command pattern alone does not guarantee exactly-once processing.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="interpreter" data-search="Interpreter Behavioral Represent grammar rules as objects and evaluate expressions built from those rules.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Interpreter</h3>
+        </div>
+        <span class="intent">Evaluate a small language</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Represent grammar rules as objects and evaluate expressions built from those rules.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Some domains require a small configurable language, such as rules, search filters, or access expressions.</p>
+
+      <h4>How it works</h4>
+      <p>Each expression node implements interpret/evaluate. Composite expressions recursively evaluate child expressions.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Small, stable domain-specific languages.</li><li>Expression trees generated from parsed input.</li><li>Rules need composition.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The grammar is large or performance-critical.</li><li>A parser generator or existing expression engine is better.</li><li>Untrusted expressions are evaluated without limits.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Grammar maps directly to classes.</li><li>Easy to compose expressions.</li><li>Useful for simple rules.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Class explosion for large grammars.</li><li>Parsing and security are still separate problems.</li><li>Can be slow for complex expressions.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface Expression {
+    boolean evaluate(User user);
+}
+
+public final class HasRole implements Expression {
+    private final String role;
+
+    public HasRole(String role) {
+        this.role = role;
+    }
+
+    public boolean evaluate(User user) {
+        return user.getRoles().contains(role);
+    }
+}
+
+public final class AndExpression implements Expression {
+    private final Expression left;
+    private final Expression right;
+
+    public AndExpression(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    public boolean evaluate(User user) {
+        return left.evaluate(user) &amp;&amp; right.evaluate(user);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A promotion engine builds an expression tree such as customerIsPremium AND orderAmountAbove100. For more complex rules, a dedicated rules engine is often better.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Interpreter is appropriate for a small DSL. I do not build a large language manually with this pattern; once grammar, performance, diagnostics, and security become substantial, I use a parser library or rules engine.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="iterator" data-search="Iterator Behavioral Provide sequential access to elements without exposing the collection&#x27;s internal structure.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Iterator</h3>
+        </div>
+        <span class="intent">Traverse without exposing representation</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Provide sequential access to elements without exposing the collection's internal structure.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Clients should traverse a collection without depending on whether it is backed by an array, tree, database cursor, or paginated API.</p>
+
+      <h4>How it works</h4>
+      <p>The iterator maintains traversal state and exposes hasNext/next. Java's Iterable integrates this with the enhanced for loop.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Custom collections.</li><li>Lazy traversal.</li><li>Pagination or cursor abstraction.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>A normal List iterator already solves the problem.</li><li>Resources remain open without lifecycle control.</li><li>The iterator hides expensive remote calls unexpectedly.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Encapsulates traversal state.</li><li>Supports multiple traversal strategies.</li><li>Works with Java foreach.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Concurrent modification behavior must be defined.</li><li>Lazy iterators may hold resources.</li><li>Remote or DB iteration can create N+1 calls.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class NumberRange implements Iterable&lt;Integer&gt; {
+    private final int start;
+    private final int end;
+
+    public NumberRange(int start, int end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    public Iterator&lt;Integer&gt; iterator() {
+        return new Iterator&lt;Integer&gt;() {
+            private int current = start;
+
+            public boolean hasNext() {
+                return current &lt;= end;
+            }
+
+            public Integer next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return current++;
+            }
+        };
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A paginated API iterator fetches the next page only when the current page is exhausted. The caller sees a normal traversal, while the iterator controls pagination.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Iterator separates traversal from representation. For lazy database or network iterators, I document resource ownership and performance because a harmless-looking loop may trigger many I/O calls.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="mediator" data-search="Mediator Behavioral Move complex communication between many objects into a mediator so they do not reference each other directly.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Mediator</h3>
+        </div>
+        <span class="intent">Centralize collaboration</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Move complex communication between many objects into a mediator so they do not reference each other directly.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>When components call each other in many directions, dependencies form a difficult graph. Mediator centralizes coordination.</p>
+
+      <h4>How it works</h4>
+      <p>Colleagues communicate through the mediator. The mediator knows the collaboration workflow, while colleagues focus on their own responsibilities.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>UI components, workflow coordination, message routing.</li><li>Many-to-many communication is becoming complex.</li><li>You want to reduce direct dependencies.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The mediator becomes a god object.</li><li>Simple direct collaboration is clearer.</li><li>Domain rules should live in domain objects rather than one coordinator.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Reduces coupling among components.</li><li>Centralizes workflow.</li><li>Makes components reusable.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Mediator can grow too large.</li><li>Business logic may become procedural.</li><li>A single coordination bottleneck may appear.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface CheckoutMediator {
+    void itemAdded(String productId);
+}
+
+public final class CheckoutPageMediator implements CheckoutMediator {
+    private final PriceView priceView;
+    private final InventoryView inventoryView;
+
+    public CheckoutPageMediator(
+            PriceView priceView,
+            InventoryView inventoryView) {
+        this.priceView = priceView;
+        this.inventoryView = inventoryView;
+    }
+
+    public void itemAdded(String productId) {
+        priceView.refresh(productId);
+        inventoryView.refresh(productId);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>In application architecture, an application service may act as a mediator among repositories, domain services, and external gateways for one use case.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Mediator centralizes interaction, while Facade simplifies access to a subsystem. I use Mediator when peer components would otherwise communicate in a complex graph, but I split it by use case to avoid a giant coordinator.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="memento" data-search="Memento Behavioral Save an object&#x27;s internal state so it can be restored later without exposing implementation details.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Memento</h3>
+        </div>
+        <span class="intent">Capture and restore state</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Save an object's internal state so it can be restored later without exposing implementation details.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Undo, snapshots, and rollback-like user operations need historical state. Exposing every internal field breaks encapsulation.</p>
+
+      <h4>How it works</h4>
+      <p>The originator creates a memento. A caretaker stores it but does not interpret it. The originator restores itself from the memento.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Undo/redo in editors.</li><li>Short-lived workflow snapshots.</li><li>State checkpoints.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Snapshots contain huge object graphs.</li><li>Database transactions or event sourcing already provide the required history.</li><li>Sensitive state would be stored insecurely.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Preserves encapsulation.</li><li>Simple undo behavior.</li><li>Clear snapshot ownership.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Memory cost.</li><li>Version compatibility problems.</li><li>Deep-copy complexity.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class TextEditor {
+    private String content = &quot;&quot;;
+
+    public Memento save() {
+        return new Memento(content);
+    }
+
+    public void restore(Memento memento) {
+        this.content = memento.content;
+    }
+
+    public static final class Memento {
+        private final String content;
+
+        private Memento(String content) {
+            this.content = content;
+        }
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>An admin configuration screen stores a snapshot before editing. If the user cancels, the editor restores the previous state. Persistent audit history may require Event Sourcing instead.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Memento captures state for restoration while preserving encapsulation. I consider snapshot size, sensitive information, and versioning. It is not a substitute for database transaction rollback across external systems.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="observer" data-search="Observer Behavioral Notify subscribed observers when a subject changes without tightly coupling the subject to concrete listeners.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Observer</h3>
+        </div>
+        <span class="intent">Publish state changes</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Notify subscribed observers when a subject changes without tightly coupling the subject to concrete listeners.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>One event may trigger many independent reactions. Direct calls make the publisher depend on every consumer.</p>
+
+      <h4>How it works</h4>
+      <p>Observers subscribe to a subject or event bus. The subject publishes an event; observers react. Delivery may be synchronous or asynchronous.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Domain events, UI listeners, cache invalidation, notifications.</li><li>Consumers can evolve independently.</li><li>One event has multiple reactions.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Strong consistency is required across all reactions.</li><li>Events are used to hide a required direct workflow.</li><li>Failure, ordering, and retries are undefined.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Loose coupling.</li><li>Easy addition of subscribers.</li><li>Natural event-driven design.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Harder execution tracing.</li><li>Synchronous observers can fail the publisher.</li><li>Asynchronous delivery introduces eventual consistency and duplicates.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface OrderCreatedListener {
+    void onOrderCreated(OrderCreatedEvent event);
+}
+
+public final class OrderEventPublisher {
+    private final List&lt;OrderCreatedListener&gt; listeners =
+            new ArrayList&lt;OrderCreatedListener&gt;();
+
+    public void subscribe(OrderCreatedListener listener) {
+        listeners.add(listener);
+    }
+
+    public void publish(OrderCreatedEvent event) {
+        for (OrderCreatedListener listener : listeners) {
+            listener.onOrderCreated(event);
+        }
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>After an order commits, an outbox event is published. Inventory, analytics, and email consumers react independently. Consumers are idempotent because the broker may redeliver.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Observer decouples the publisher from subscribers. In-process synchronous listeners and distributed asynchronous events have very different guarantees. For distributed systems, I discuss outbox, idempotency, ordering, retries, dead-letter handling, and eventual consistency.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="state" data-search="State Behavioral Move state-specific behavior into state objects so an object&#x27;s behavior changes when its state changes.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>State</h3>
+        </div>
+        <span class="intent">Change behavior with state</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Move state-specific behavior into state objects so an object's behavior changes when its state changes.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Large if/switch blocks based on status become difficult to maintain and allow invalid transitions.</p>
+
+      <h4>How it works</h4>
+      <p>The context delegates operations to the current State. A state handles valid behavior and chooses the next state.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Order, payment, workflow, or document lifecycle.</li><li>Behavior differs significantly by state.</li><li>Transition rules must be explicit.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>There are only two simple states.</li><li>State classes contain unrelated behavior.</li><li>A data-driven state machine library would be more appropriate.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Eliminates large conditionals.</li><li>Makes transitions explicit.</li><li>Keeps state-specific rules together.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>More classes.</li><li>Cross-state transitions can become complex.</li><li>Persistence mapping requires care.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface PaymentState {
+    void capture(Payment payment);
+    void cancel(Payment payment);
+}
+
+public final class AuthorizedState implements PaymentState {
+    public void capture(Payment payment) {
+        payment.changeState(new CapturedState());
+    }
+
+    public void cancel(Payment payment) {
+        payment.changeState(new CancelledState());
+    }
+}
+
+public final class Payment {
+    private PaymentState state;
+
+    public void capture() {
+        state.capture(this);
+    }
+
+    void changeState(PaymentState state) {
+        this.state = state;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Payment behavior differs for CREATED, AUTHORIZED, CAPTURED, FAILED, and REFUNDED. State objects prevent refund-before-capture or capture-after-cancel transitions.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>State is appropriate when behavior, not only data, depends on lifecycle status. Strategy chooses an algorithm from outside; State usually changes internally as the object transitions.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="strategy" data-search="Strategy Behavioral Encapsulate interchangeable algorithms behind one interface and select one at runtime.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Strategy</h3>
+        </div>
+        <span class="intent">Swap algorithms</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Encapsulate interchangeable algorithms behind one interface and select one at runtime.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Conditional algorithm selection spreads across services and makes new policies difficult to add.</p>
+
+      <h4>How it works</h4>
+      <p>A context delegates to a Strategy interface. A factory, configuration, or dependency-injection container selects the strategy.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Pricing, routing, validation, retry, tax, or payment algorithms.</li><li>Algorithms share the same purpose.</li><li>Runtime selection is needed.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>The algorithms do not have a meaningful common contract.</li><li>The strategy needs excessive context parameters.</li><li>There is only one stable algorithm.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Open/Closed Principle.</li><li>Easy unit testing.</li><li>Removes repeated conditions.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Clients or factories must select correctly.</li><li>Too many tiny strategies.</li><li>Common interface may become weak.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface DiscountStrategy {
+    BigDecimal calculate(Order order);
+}
+
+public final class VipDiscountStrategy implements DiscountStrategy {
+    public BigDecimal calculate(Order order) {
+        return order.getSubtotal().multiply(new BigDecimal(&quot;0.10&quot;));
+    }
+}
+
+public final class DiscountService {
+    private final Map&lt;String, DiscountStrategy&gt; strategies;
+
+    public DiscountService(Map&lt;String, DiscountStrategy&gt; strategies) {
+        this.strategies = strategies;
+    }
+
+    public BigDecimal calculate(String type, Order order) {
+        DiscountStrategy strategy = strategies.get(type);
+        if (strategy == null) {
+            throw new IllegalArgumentException(&quot;Unknown strategy&quot;);
+        }
+        return strategy.calculate(order);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A shipping service selects Standard, Express, or SameDay strategy based on region and order. Each strategy can be tested independently.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Strategy encapsulates interchangeable algorithms. In Spring, I often inject a list or map of strategy beans rather than maintain a large switch. I keep selection logic separate from algorithm logic.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="template-method" data-search="Template Method Behavioral Define the stable algorithm steps in a base class while allowing subclasses to override selected steps.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Template Method</h3>
+        </div>
+        <span class="intent">Fix algorithm skeleton</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Define the stable algorithm steps in a base class while allowing subclasses to override selected steps.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Multiple workflows share the same sequence but differ in a few operations. Copying the whole workflow creates duplication.</p>
+
+      <h4>How it works</h4>
+      <p>A final template method calls abstract or hook methods. Subclasses customize only designated steps.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Framework extension points.</li><li>Import/export pipelines.</li><li>Stable sequence with small variations.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Inheritance creates rigid coupling.</li><li>Subclasses need to reorder most steps.</li><li>Composition with Strategy would be more flexible.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Reuses the algorithm skeleton.</li><li>Controls operation order.</li><li>Simple framework design.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Inheritance-based coupling.</li><li>Fragile base class risk.</li><li>Subclass behavior can be hard to understand.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public abstract class FileImporter {
+    public final void importFile(Path path) {
+        List&lt;String&gt; lines = read(path);
+        List&lt;Record&gt; records = parse(lines);
+        validate(records);
+        save(records);
+    }
+
+    protected List&lt;String&gt; read(Path path) {
+        return Collections.emptyList();
+    }
+
+    protected abstract List&lt;Record&gt; parse(List&lt;String&gt; lines);
+
+    protected void validate(List&lt;Record&gt; records) {
+        // default validation
+    }
+
+    protected abstract void save(List&lt;Record&gt; records);
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>CSV, fixed-width, and JSON imports share read, validate, save, and audit steps but customize parsing and persistence details.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Template Method uses inheritance to preserve a stable process. Strategy uses composition to swap one algorithm. I prefer Template Method when the sequence must remain controlled; otherwise composition is usually more flexible.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="visitor" data-search="Visitor Behavioral Place operations in visitor objects so new operations can be added without changing every element class.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Visitor</h3>
+        </div>
+        <span class="intent">Add operations to stable object structures</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Place operations in visitor objects so new operations can be added without changing every element class.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>A stable object hierarchy may need many unrelated operations such as validation, export, tax calculation, or reporting.</p>
+
+      <h4>How it works</h4>
+      <p>Elements implement accept(visitor), which dispatches to a type-specific visit method. This double dispatch selects behavior by both visitor and element type.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Object structure is stable.</li><li>New operations are added frequently.</li><li>Operations need type-specific behavior.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>New element types are added frequently.</li><li>Double dispatch makes the model harder for the team.</li><li>Pattern matching or polymorphism is simpler.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Adds operations without modifying element classes.</li><li>Keeps one operation together.</li><li>Supports type-specific behavior.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Adding an element type changes all visitors.</li><li>Breaks encapsulation if visitors need internals.</li><li>Verbose.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface OrderItem {
+    void accept(OrderItemVisitor visitor);
+}
+
+public final class PhysicalItem implements OrderItem {
+    public void accept(OrderItemVisitor visitor) {
+        visitor.visit(this);
+    }
+}
+
+public final class DigitalItem implements OrderItem {
+    public void accept(OrderItemVisitor visitor) {
+        visitor.visit(this);
+    }
+}
+
+public interface OrderItemVisitor {
+    void visit(PhysicalItem item);
+    void visit(DigitalItem item);
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A stable product hierarchy needs tax, shipping, and export operations. Each visitor implements one operation across all product types.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Visitor is strongest when element types are stable and operations change frequently. If new element types are common, Visitor is expensive because every visitor must change.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="mediator-extra" data-search="Mediator vs Event Bus note Behavioral Use direct mediation for a known workflow; use events for decoupled reactions.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Mediator vs Event Bus note</h3>
+        </div>
+        <span class="intent">Clarify coordination</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Use direct mediation for a known workflow; use events for decoupled reactions.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Teams often confuse a mediator with an event bus. A mediator usually coordinates a request to one handler or a known set of collaborators, while an event bus broadcasts notifications to independent consumers.</p>
+
+      <h4>How it works</h4>
+      <p>A request mediator preserves a request/response flow. An event bus distributes events and accepts eventual processing.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>You need an explicit distinction in architecture reviews.</li><li>Commands and events are being mixed.</li><li>Request handling should stay traceable.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Treating every method call as an event.</li><li>Using asynchronous events for logic that must succeed atomically.</li><li>Creating generic infrastructure without a concrete need.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Clearer consistency boundaries.</li><li>Better message semantics.</li><li>Improved observability.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Requires naming discipline.</li><li>Infrastructure does not solve domain design.</li><li>Developers may still misuse generic buses.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>// Command: one intended handler
+commandBus.send(new CreateOrderCommand(...));
+
+// Event: zero to many independent consumers
+eventPublisher.publish(new OrderCreatedEvent(...));</code></pre>
+
+      <h4>Real project example</h4>
+      <p>CreateOrderCommand has one application handler. OrderCreatedEvent may be consumed by email, analytics, and fulfillment.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>I distinguish commands from events by intent. A command asks a specific capability to perform work and may be rejected. An event states that something already happened. This affects ownership, retries, idempotency, and consistency.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="cor" data-search="Null Object Behavioral Provide an object with neutral behavior instead of returning null and forcing repeated checks.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Behavioral</span>
+          <h3>Null Object</h3>
+        </div>
+        <span class="intent">Represent do-nothing behavior</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Provide an object with neutral behavior instead of returning null and forcing repeated checks.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Optional behavior can produce scattered null checks. A Null Object keeps polymorphic calls safe.</p>
+
+      <h4>How it works</h4>
+      <p>A no-op implementation follows the same interface and performs nothing or returns a neutral result.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>A neutral behavior is well-defined.</li><li>The caller should not branch for absence.</li><li>No-op logging, notification, or metrics is useful.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Absence is an error that must be visible.</li><li>The neutral behavior could hide a configuration mistake.</li><li>Optional communicates absence more clearly.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Removes repeated null checks.</li><li>Preserves polymorphism.</li><li>Simple defaults.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can hide missing configuration.</li><li>Neutral behavior may be domain-specific.</li><li>Another implementation to maintain.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface AuditLogger {
+    void log(String action);
+}
+
+public final class NoOpAuditLogger implements AuditLogger {
+    public void log(String action) {
+        // intentionally empty
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A local development profile may inject NoOpMetricsPublisher, while production injects the real publisher.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Null Object is useful only when doing nothing is a valid behavior. If absence should fail fast, I throw a configuration error or use Optional rather than silently hiding it.</p>
+      </div>
+    </article>
+    
+</section>
+
+<section id="enterprise"><span class="badge">Java / Spring / DDD</span><h2>5. Enterprise and application patterns</h2>
+
+    <article class="pattern-card" id="dependency-injection" data-search="Dependency Injection Enterprise / Java An object receives its collaborators instead of creating them directly.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise / Java</span>
+          <h3>Dependency Injection</h3>
+        </div>
+        <span class="intent">Supply dependencies externally</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> An object receives its collaborators instead of creating them directly.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Direct construction couples a class to implementations and lifecycle. DI makes dependencies explicit and replaceable.</p>
+
+      <h4>How it works</h4>
+      <p>Constructor injection is preferred for required dependencies. A container such as Spring creates objects, resolves collaborators, and manages scopes.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Services depend on repositories, clients, clocks, or policies.</li><li>Implementations vary by environment.</li><li>Testability and lifecycle control matter.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Service locator hides dependencies.</li><li>Field injection makes construction and tests unclear.</li><li>Every value object is created through the container.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Loose coupling.</li><li>Easy testing.</li><li>Central lifecycle and configuration.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Container configuration can become complex.</li><li>Runtime wiring errors.</li><li>Overuse may create anemic classes.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>@Service
+public class OrderService {
+    private final OrderRepository repository;
+    private final PaymentGateway paymentGateway;
+
+    public OrderService(
+            OrderRepository repository,
+            PaymentGateway paymentGateway) {
+        this.repository = repository;
+        this.paymentGateway = paymentGateway;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Spring injects a PSP adapter in production and a fake gateway in tests. OrderService never creates the vendor client.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>DI implements Dependency Inversion by making collaborators explicit. I prefer constructor injection because required dependencies are visible, immutable, and easy to test. I avoid service locator and field injection because they hide dependencies.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="repository" data-search="Repository Enterprise / DDD Expose collection-like access to domain aggregates while hiding persistence details.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise / DDD</span>
+          <h3>Repository</h3>
+        </div>
+        <span class="intent">Abstract aggregate persistence</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Expose collection-like access to domain aggregates while hiding persistence details.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Business services should not contain SQL or JPA query details. Repository creates a boundary between domain/application logic and persistence.</p>
+
+      <h4>How it works</h4>
+      <p>The repository interface speaks domain language. Infrastructure implements it with JPA, JDBC, or another store.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Aggregate loading and saving.</li><li>Domain logic should be persistence-agnostic.</li><li>Tests need in-memory implementations.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Wrapping every CRUD call without domain meaning.</li><li>Returning persistence entities directly to external APIs.</li><li>Building a generic repository that hides useful database capabilities.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Domain-focused interface.</li><li>Testability.</li><li>Persistence isolation.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can become an unnecessary abstraction over Spring Data.</li><li>Complex queries may not fit collection semantics.</li><li>Leaky abstractions remain possible.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface OrderRepository {
+    Optional&lt;Order&gt; findById(OrderId id);
+    void save(Order order);
+    List&lt;Order&gt; findPendingForCustomer(CustomerId customerId);
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>OrderService asks for pending orders by customer without knowing whether the implementation uses JPA, JDBC, or an external store.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Repository should model aggregate persistence, not blindly duplicate EntityManager or JpaRepository. I keep query names in domain language and avoid returning infrastructure-specific types from the domain boundary.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="dao" data-search="DAO Enterprise / Data Encapsulate low-level persistence operations for tables, records, or data sources.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise / Data</span>
+          <h3>DAO</h3>
+        </div>
+        <span class="intent">Encapsulate data access</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Encapsulate low-level persistence operations for tables, records, or data sources.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>SQL, JDBC mapping, and database errors should not spread through business code.</p>
+
+      <h4>How it works</h4>
+      <p>DAO methods perform queries and map rows. Repository is usually domain/aggregate focused; DAO is often data-source or table focused.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>JDBC applications.</li><li>Reporting queries.</li><li>Low-level database access.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Confusing DAO with a domain repository.</li><li>Creating both DAO and repository with identical methods.</li><li>Hiding transaction boundaries inside every DAO.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Central SQL and mapping.</li><li>Reusable database access.</li><li>Clear infrastructure boundary.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can expose table-centric design.</li><li>May produce anemic services.</li><li>Another layer when Spring Data already suffices.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class UserDao {
+    private final DataSource dataSource;
+
+    public UserRecord find(long id) throws SQLException {
+        String sql = &quot;select id, name from users where id = ?&quot;;
+        try (Connection c = dataSource.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next()
+                        ? new UserRecord(rs.getLong(&quot;id&quot;), rs.getString(&quot;name&quot;))
+                        : null;
+            }
+        }
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A reporting module uses DAOs for optimized SQL and projections instead of loading full domain aggregates.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>DAO abstracts low-level data access; Repository abstracts domain aggregate persistence. In simple CRUD systems the distinction may be small, so I avoid creating both layers without a clear reason.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="service-layer" data-search="Service Layer Enterprise Expose application operations and coordinate transactions, domain objects, repositories, and external gateways.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise</span>
+          <h3>Service Layer</h3>
+        </div>
+        <span class="intent">Define application use cases</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Expose application operations and coordinate transactions, domain objects, repositories, and external gateways.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Controllers should not own business workflows. Domain objects alone may not coordinate repositories and external services.</p>
+
+      <h4>How it works</h4>
+      <p>Each service method represents a use case, validates application-level rules, defines a transaction boundary, and delegates domain behavior.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Business workflows span multiple collaborators.</li><li>Transaction boundaries need a clear home.</li><li>Multiple delivery channels reuse the same use case.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Putting all business logic in giant services.</li><li>Creating one service method per repository method.</li><li>Mixing HTTP details into application services.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Clear use-case API.</li><li>Reusable across REST, batch, and messaging.</li><li>Natural transaction boundary.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Can become anemic and procedural.</li><li>Large services become god objects.</li><li>Domain logic may be misplaced.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>@Service
+public class TransferApplicationService {
+    @Transactional
+    public void transfer(TransferCommand command) {
+        Account from = repository.get(command.getFrom());
+        Account to = repository.get(command.getTo());
+
+        from.transferTo(to, command.getAmount());
+
+        repository.save(from);
+        repository.save(to);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A transfer application service starts a transaction, loads two accounts, asks the domain model to transfer, and persists the result.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Service Layer defines use cases and transaction boundaries. I keep orchestration there but place business invariants in domain objects or domain services when appropriate, avoiding a service layer that becomes one large script.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="unit-of-work" data-search="Unit of Work Enterprise / Data Track objects changed during a business transaction and coordinate persistence as one unit.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise / Data</span>
+          <h3>Unit of Work</h3>
+        </div>
+        <span class="intent">Track changes and commit together</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Track objects changed during a business transaction and coordinate persistence as one unit.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Multiple changes must be committed consistently and efficiently. Saving every change immediately increases database calls and can break atomicity.</p>
+
+      <h4>How it works</h4>
+      <p>The unit of work tracks new, dirty, and removed objects and flushes them within a transaction. JPA EntityManager implements this through the persistence context and dirty checking.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Multiple entity changes belong to one transaction.</li><li>Change tracking and batching help.</li><li>ORM persistence context is used.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Long-lived persistence contexts.</li><li>Assuming it handles distributed systems.</li><li>Keeping thousands of entities managed in one huge transaction.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Atomic commit.</li><li>Dirty checking.</li><li>Batching opportunities.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Hidden SQL timing.</li><li>Memory use.</li><li>Unexpected flush and lazy-loading behavior.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>@Transactional
+public void renameCustomer(long id, String newName) {
+    Customer customer = entityManager.find(Customer.class, id);
+    customer.rename(newName);
+    // JPA dirty checking updates at flush/commit.
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>JPA tracks a managed Order and its items. At commit, Hibernate generates SQL for changed entities in one transaction.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>JPA's persistence context is a Unit of Work. I understand that SQL may execute at flush rather than at setter call, and I keep transaction scope short to control locks, memory, and stale managed state.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="dto" data-search="DTO Enterprise / API Carry data across process or layer boundaries without exposing domain or persistence objects.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Enterprise / API</span>
+          <h3>DTO</h3>
+        </div>
+        <span class="intent">Transfer shaped data</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Carry data across process or layer boundaries without exposing domain or persistence objects.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>API contracts, domain models, and database entities evolve for different reasons. Reusing one class for all three creates coupling and security problems.</p>
+
+      <h4>How it works</h4>
+      <p>DTOs contain only required fields. Mapping occurs at the boundary through explicit code or a mapper.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>REST requests/responses.</li><li>External integrations.</li><li>Read projections and versioned contracts.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Creating DTOs for every internal method call.</li><li>Blind reflection mapping of security-sensitive fields.</li><li>Putting domain behavior into DTOs.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Stable API contract.</li><li>Data minimization.</li><li>Prevents lazy-loading and persistence leakage.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Mapping code.</li><li>Potential duplication.</li><li>Version management.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public final class UserResponse {
+    private final long id;
+    private final String displayName;
+
+    public UserResponse(long id, String displayName) {
+        this.id = id;
+        this.displayName = displayName;
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>UserEntity includes password hash, internal flags, and audit fields. UserResponse exposes only ID and display name.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>DTO protects boundaries. I do not return JPA entities from controllers because it leaks schema, may trigger lazy loading, and can expose sensitive fields. Mapping cost is usually worth the contract isolation.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="specification" data-search="Specification DDD / Behavioral Represent a business rule as an object that can be evaluated and combined with other rules.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">DDD / Behavioral</span>
+          <h3>Specification</h3>
+        </div>
+        <span class="intent">Compose business predicates</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Represent a business rule as an object that can be evaluated and combined with other rules.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>Complex eligibility rules become duplicated if written as booleans in many services.</p>
+
+      <h4>How it works</h4>
+      <p>A specification exposes isSatisfiedBy and composition such as and/or/not. Persistence specifications may also translate to query predicates.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Eligibility, validation, filtering, policy composition.</li><li>Rules are reused and combined.</li><li>Business language matters.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>A simple one-line condition is enough.</li><li>Database and in-memory semantics differ.</li><li>Specifications become generic technical predicates with no domain meaning.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Reusable rules.</li><li>Readable composition.</li><li>Easy unit testing.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Many small classes.</li><li>Persistence translation complexity.</li><li>May hide expensive checks.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>public interface Specification&lt;T&gt; {
+    boolean isSatisfiedBy(T value);
+
+    default Specification&lt;T&gt; and(Specification&lt;T&gt; other) {
+        return value -&gt; this.isSatisfiedBy(value)
+                &amp;&amp; other.isSatisfiedBy(value);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>A loan applicant must be Adult AND HasVerifiedIncome AND NotBlacklisted. Each rule is independently tested and composed.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>Specification models a named business predicate. I separate in-memory domain specifications from database query specifications when translation would otherwise leak persistence concerns.</p>
+      </div>
+    </article>
+    
+    <article class="pattern-card" id="mvc" data-search="MVC Presentation Separate request handling, application/domain state, and presentation rendering.">
+      <div class="pattern-header">
+        <div>
+          <span class="badge">Presentation</span>
+          <h3>MVC</h3>
+        </div>
+        <span class="intent">Separate input, model, and view</span>
+      </div>
+
+      <div class="callout">
+        <strong>Simple idea:</strong> Separate request handling, application/domain state, and presentation rendering.
+      </div>
+
+      <h4>Why this pattern exists</h4>
+      <p>User-interface code, business logic, and rendering change independently.</p>
+
+      <h4>How it works</h4>
+      <p>Controller accepts input and invokes application services; Model represents state/data; View renders the response. In REST, the view is often JSON serialization rather than a template.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Use it when</h4>
+          <ul><li>Web applications.</li><li>Multiple views over the same application capabilities.</li><li>Clear presentation boundary.</li></ul>
+        </div>
+        <div class="card">
+          <h4>Avoid it when</h4>
+          <ul><li>Putting business logic in controllers.</li><li>Treating JPA entities as the model returned directly.</li><li>Creating controller-service-repository layers with no meaningful separation.</li></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card good">
+          <h4>Advantages</h4>
+          <ul><li>Separation of concerns.</li><li>Testable controllers and services.</li><li>Multiple presentation formats.</li></ul>
+        </div>
+        <div class="card warning">
+          <h4>Disadvantages / trade-offs</h4>
+          <ul><li>Misused as only folder structure.</li><li>Extra mapping.</li><li>Thin layers can become ceremony.</li></ul>
+        </div>
+      </div>
+
+      <h4>Java 8 example</h4>
+      <pre><code>@RestController
+@RequestMapping(&quot;/orders&quot;)
+public class OrderController {
+    private final OrderApplicationService service;
+
+    public OrderController(OrderApplicationService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public OrderResponse create(@RequestBody CreateOrderRequest request) {
+        return service.create(request);
+    }
+}</code></pre>
+
+      <h4>Real project example</h4>
+      <p>Spring MVC controller validates HTTP input and calls an application service. Domain rules and transactions stay outside the controller.</p>
+
+      <div class="interview">
+        <h4>Senior interview answer</h4>
+        <p>MVC is a presentation pattern, not the complete backend architecture. In Spring, I keep controllers focused on HTTP concerns, then delegate use cases to application services.</p>
+      </div>
+    </article>
+    
+</section>
+
+<section id="architecture"><span class="badge">Architecture</span><h2>6. Architecture, data, resilience, and microservice patterns</h2>
+
+    <article class="pattern-card" id="layered" data-search="Layered Architecture Architecture Organize code into presentation, application/service, domain, and infrastructure/data layers.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>Layered Architecture</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Organize code into presentation, application/service, domain, and infrastructure/data layers.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for CRUD and enterprise systems with clear responsibilities.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: business logic becomes database-centric and every request passes through unnecessary layers.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Controller → Application Service → Domain/Repository → Database</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Layering gives dependency direction and separation, but I avoid treating it as only packages. Domain rules should not depend on controllers or database frameworks.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="hexagonal" data-search="Hexagonal Architecture Architecture Place business logic at the center and connect external systems through ports and adapters.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>Hexagonal Architecture</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Place business logic at the center and connect external systems through ports and adapters.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful when domain logic must be tested independently and integrations change.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: too many interfaces and mapping layers for simple CRUD.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Driving adapter (REST) → Input Port → Domain/Application → Output Port → DB/PSP adapter</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Hexagonal Architecture protects the core from frameworks. I introduce ports at meaningful boundaries, not one interface for every class.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="clean" data-search="Clean Architecture Architecture Arrange concentric dependency boundaries so source-code dependencies point inward toward business policy.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>Clean Architecture</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Arrange concentric dependency boundaries so source-code dependencies point inward toward business policy.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for long-lived systems with important domain rules and multiple delivery/infrastructure mechanisms.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: ceremony, duplicated models, and excessive indirection.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Frameworks → Interface Adapters → Use Cases → Entities</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>The key is the dependency rule, not folder names. Inner layers must not depend on outer implementation details.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="cqrs" data-search="CQRS Architecture Separate write commands from read queries, potentially with different models and stores.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>CQRS</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Separate write commands from read queries, potentially with different models and stores.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful when read and write models have very different scaling or complexity.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: eventual consistency, duplicated models, operational complexity.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Command → Write Model; Event/Projection → Read Model → Query</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>CQRS does not require Event Sourcing or microservices. I use it only when asymmetric read/write needs justify the extra consistency and operations cost.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="event-sourcing" data-search="Event Sourcing Architecture Persist state changes as an append-only sequence of domain events and rebuild current state by replay.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>Event Sourcing</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Persist state changes as an append-only sequence of domain events and rebuild current state by replay.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for audit-heavy domains, temporal queries, and complex state evolution.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: event versioning, replay cost, privacy deletion, and operational complexity.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Events: OrderCreated, ItemAdded, OrderPaid → rebuild Order state</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Event Sourcing is not just logging. Events become the source of truth, so schema evolution, idempotency, snapshotting, and correction strategy are core design concerns.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="saga" data-search="Saga Distributed Pattern Coordinate a distributed business transaction through local transactions and compensating actions.">
+      <div class="pattern-header">
+        <div><span class="badge">Distributed Pattern</span><h3>Saga</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Coordinate a distributed business transaction through local transactions and compensating actions.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful when one ACID transaction cannot span microservices.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: compensation is not true rollback, intermediate states are visible, and workflows are complex.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Reserve inventory → Charge payment → Create shipment; compensate in reverse on failure</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>I explain orchestration versus choreography, idempotency, retry, timeout, compensation, and how the saga state is persisted.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="outbox" data-search="Transactional Outbox Distributed Pattern Write business data and an outgoing event in the same local database transaction, then publish asynchronously.">
+      <div class="pattern-header">
+        <div><span class="badge">Distributed Pattern</span><h3>Transactional Outbox</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Write business data and an outgoing event in the same local database transaction, then publish asynchronously.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful to avoid the dual-write problem between database and message broker.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: duplicate publication, cleanup, ordering, and relay operations.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">DB transaction: save Order + OutboxEvent; relay publishes event later</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Outbox provides atomic persistence, not exactly-once delivery. Consumers remain idempotent, and the relay needs monitoring and retries.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="circuit-breaker" data-search="Circuit Breaker Resilience Pattern Stop repeated calls to a failing dependency and periodically test recovery.">
+      <div class="pattern-header">
+        <div><span class="badge">Resilience Pattern</span><h3>Circuit Breaker</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Stop repeated calls to a failing dependency and periodically test recovery.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for remote calls with repeated failure or latency.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: wrong thresholds, stale fallback, and hiding failures.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Closed → Open → Half-open → Closed/Open</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Circuit Breaker protects resources and reduces cascading failure. It is not a retry replacement; retries may increase load, so policies must be combined carefully.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="retry" data-search="Retry Resilience Pattern Repeat transiently failed operations with bounded attempts and backoff.">
+      <div class="pattern-header">
+        <div><span class="badge">Resilience Pattern</span><h3>Retry</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Repeat transiently failed operations with bounded attempts and backoff.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for temporary network errors, throttling, and optimistic conflicts.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: retry storms, duplicate side effects, and longer latency.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Retry with exponential backoff + jitter + idempotency</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>I retry only classified transient failures, use backoff and jitter, set a time budget, and ensure side effects are idempotent.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="bulkhead" data-search="Bulkhead Resilience Pattern Isolate resources so one failing workload cannot consume all threads, connections, or capacity.">
+      <div class="pattern-header">
+        <div><span class="badge">Resilience Pattern</span><h3>Bulkhead</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Isolate resources so one failing workload cannot consume all threads, connections, or capacity.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for shared services calling dependencies with different risk profiles.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: underutilized pools and configuration complexity.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Separate thread/connection pools for Payment, Email, Reporting</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Bulkhead limits blast radius. I size pools from traffic and latency, monitor queue saturation, and combine with timeouts and circuit breakers.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="api-gateway" data-search="API Gateway Microservice Pattern Provide one external entry point for routing, authentication, rate limits, and protocol adaptation.">
+      <div class="pattern-header">
+        <div><span class="badge">Microservice Pattern</span><h3>API Gateway</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Provide one external entry point for routing, authentication, rate limits, and protocol adaptation.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for many backend services and multiple clients.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: gateway becomes a bottleneck or contains business logic.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Client → Gateway → Order/Payment/User services</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Gateway centralizes edge concerns, but services still enforce authorization and domain rules. I avoid trusting unsigned user headers blindly.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="strangler" data-search="Strangler Fig Migration Pattern Replace a legacy system incrementally by routing selected capabilities to new components.">
+      <div class="pattern-header">
+        <div><span class="badge">Migration Pattern</span><h3>Strangler Fig</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Replace a legacy system incrementally by routing selected capabilities to new components.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for gradual monolith migration with lower risk.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: long-lived hybrid complexity and duplicated data/workflows.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Router sends migrated endpoints to new service; remaining endpoints stay legacy</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>Strangler is a migration strategy, not a goal. I define capability boundaries, observability, data ownership, rollback, and a plan to remove the old path.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="bff" data-search="Backend for Frontend Architecture Create a backend tailored to one frontend&#x27;s needs and security model.">
+      <div class="pattern-header">
+        <div><span class="badge">Architecture</span><h3>Backend for Frontend</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Create a backend tailored to one frontend&#x27;s needs and security model.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful when web, mobile, and partner clients need different aggregation or token handling.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: duplicated logic and too many backend variants.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Browser → Web BFF → APIs; Mobile → Mobile BFF → APIs</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>BFF is valuable for browser OAuth because tokens can remain server-side. Shared business logic stays in domain services, not duplicated in each BFF.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="anti-corruption" data-search="Anti-Corruption Layer DDD Integration Protect the domain model from an external or legacy model through translation.">
+      <div class="pattern-header">
+        <div><span class="badge">DDD Integration</span><h3>Anti-Corruption Layer</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Protect the domain model from an external or legacy model through translation.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful when integrating a system with different terminology or semantics.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: mapping cost and duplicated models.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Legacy CustomerCode/Status → ACL → Domain CustomerId/State</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>An ACL is more than DTO mapping; it translates meaning and prevents an external model from corrupting domain language.</p></div>
+    </article>
+    
+    <article class="pattern-card" id="cache-aside" data-search="Cache-Aside Data Pattern Application reads cache first, loads from source on miss, and updates/invalidates cache explicitly.">
+      <div class="pattern-header">
+        <div><span class="badge">Data Pattern</span><h3>Cache-Aside</h3></div>
+      </div>
+      <div class="callout"><strong>Simple idea:</strong> Application reads cache first, loads from source on miss, and updates/invalidates cache explicitly.</div>
+      <div class="grid-2">
+        <div class="card good"><h4>Use it when</h4><p>Useful for read-heavy data with acceptable staleness.</p></div>
+        <div class="card warning"><h4>Main risk</h4><p>Risk: stale data, stampede, invalidation complexity.</p></div>
+      </div>
+      <h4>Typical flow</h4>
+      <div class="diagram">Get key → cache miss → DB → put cache → return</div>
+      <div class="interview"><h4>Senior interview answer</h4><p>I discuss TTL, invalidation, cache stampede, negative caching, consistency requirements, and why cache is not the source of truth.</p></div>
+    </article>
+    
+</section>
+
+<section id="comparisons"><span class="badge">Interview</span><h2>7. Frequently confused patterns</h2>
+<div class="table-wrap"><table><tr><th>Comparison</th><th>How to distinguish them</th></tr>
+<tr><td><strong>Factory Method vs Abstract Factory</strong></td><td>Factory Method creates one product and often delegates creation through a method. Abstract Factory creates a compatible family of related products.</td></tr><tr><td><strong>Adapter vs Facade</strong></td><td>Adapter changes an incompatible interface into the application&#x27;s interface. Facade provides a simpler high-level interface to a complex subsystem.</td></tr><tr><td><strong>Adapter vs Decorator vs Proxy</strong></td><td>Adapter changes interface. Decorator keeps interface and adds behavior. Proxy keeps interface and controls access, location, or lifecycle.</td></tr><tr><td><strong>Strategy vs State</strong></td><td>Strategy is usually selected externally to choose an algorithm. State changes behavior based on internal lifecycle and often transitions itself.</td></tr><tr><td><strong>Strategy vs Template Method</strong></td><td>Strategy uses composition and can change at runtime. Template Method uses inheritance and fixes the algorithm skeleton.</td></tr><tr><td><strong>Observer vs Mediator</strong></td><td>Observer broadcasts changes to subscribers. Mediator centralizes known collaboration among components.</td></tr><tr><td><strong>Repository vs DAO</strong></td><td>Repository is domain/aggregate focused. DAO is data-source or table/query focused.</td></tr><tr><td><strong>CQRS vs Event Sourcing</strong></td><td>CQRS separates reads and writes. Event Sourcing stores events as source of truth. They can be used independently.</td></tr><tr><td><strong>Saga vs Transaction</strong></td><td>A local transaction provides atomic rollback in one resource. Saga coordinates local transactions and compensation across services; compensation is not true rollback.</td></tr><tr><td><strong>Decorator vs AOP</strong></td><td>Decorator is explicit object composition. AOP applies cross-cutting behavior through proxies/weaving and is useful for broad concerns such as transactions or security.</td></tr>
+</table></div>
+</section>
+
+<section id="questions"><span class="badge">Senior interview</span><h2>8. Interview questions and senior answers</h2>
+<details><summary>1. How do you choose a design pattern?</summary><p>I start from the recurring problem, forces, and trade-offs. I do not choose from a pattern list first. I prefer the simplest design and introduce a pattern only when it reduces coupling, clarifies variation, or manages a known failure mode.</p></details><details><summary>2. What is the most common pattern misuse?</summary><p>Over-engineering: creating interfaces, factories, and layers without real variation. Another misuse is hiding important network or transaction behavior behind transparent abstractions.</p></details><details><summary>3. Why prefer composition over inheritance?</summary><p>Composition allows behavior to be assembled and replaced without creating rigid class hierarchies. Inheritance is still useful for true substitutable relationships and stable template algorithms.</p></details><details><summary>4. How are SOLID and patterns related?</summary><p>Patterns are common structures that often apply SOLID principles. Strategy supports Open/Closed and Dependency Inversion; Decorator supports Open/Closed; Adapter protects boundaries. Patterns do not guarantee SOLID automatically.</p></details><details><summary>5. Which patterns does Spring use?</summary><p>Dependency Injection, Singleton bean scope, Proxy for transactions/security/AOP, Factory patterns in bean creation, Template Method in helper templates, Observer through application events, Front Controller in DispatcherServlet, and Adapter in handler adapters.</p></details><details><summary>6. Which patterns does Hibernate use?</summary><p>Proxy for lazy loading, Unit of Work through the persistence context, Identity Map within a session, Repository through application abstractions, and Data Mapper internally.</p></details><details><summary>7. How do you prevent a Strategy factory from becoming a large switch?</summary><p>Register strategies by key through dependency injection, annotations, configuration, or a Map. Keep selection policy separate from strategy implementation.</p></details><details><summary>8. Why can Observer be dangerous in distributed systems?</summary><p>Delivery can be duplicated, delayed, reordered, or lost without durable messaging. Consumers need idempotency, retry strategy, dead-letter handling, schema compatibility, and observability.</p></details><details><summary>9. When is Singleton not thread-safe?</summary><p>One instance does not mean safe concurrency. Mutable fields, non-thread-safe collections, and compound read-modify-write operations still need synchronization, immutability, or concurrent structures.</p></details><details><summary>10. How do patterns affect performance?</summary><p>Most patterns add indirection, allocations, calls, or network boundaries. I optimize based on measurement. Clarity and correct boundaries usually matter more until profiling proves otherwise.</p></details><details><summary>11. How would you explain Proxy self-invocation in Spring?</summary><p>Transactional or cached behavior is attached to a proxy. A method calling another method on this bypasses the proxy, so advice such as REQUIRES_NEW may not run. Move the method to another bean or use an appropriate alternative.</p></details><details><summary>12. What makes a senior answer different?</summary><p>A senior answer explains intent, real constraints, trade-offs, failure behavior, operational impact, testing, and when not to use the pattern—not only the textbook definition.</p></details>
+</section>
+
+<section id="checklist"><span class="badge">Decision guide</span><h2>9. Pattern selection checklist</h2>
+<div class="grid-2">
+<div class="card">
+<h3>Before introducing a pattern</h3>
+<ul>
+<li>What concrete problem is repeated?</li>
+<li>Which dimension is expected to change?</li>
+<li>Can a simple method or class solve it?</li>
+<li>What coupling does the pattern remove?</li>
+<li>What new complexity does it add?</li>
+<li>How will failure, concurrency, and transactions behave?</li>
+</ul>
+</div>
+<div class="card">
+<h3>Code-review questions</h3>
+<ul>
+<li>Is the intent visible from names?</li>
+<li>Does the abstraction have more than one meaningful implementation?</li>
+<li>Are dependencies explicit?</li>
+<li>Are network calls and side effects obvious?</li>
+<li>Can each component be tested independently?</li>
+<li>Is the pattern solving today's problem rather than an imagined future?</li>
+</ul>
+</div>
+</div>
+<div class="callout"><strong>Final interview statement:</strong> I know the textbook patterns, but I use them as vocabulary for design trade-offs. A strong design is not the one with the most patterns. It is the one whose responsibilities, variation points, consistency boundaries, and failure behavior are easiest to understand and change safely.</div>
+</section>
+
+<div class="footer">Java Design Patterns Deep Dive — standalone HTML guide</div>
+</div></main>
+</div>
+
+<script>
+const body=document.body;
+if(localStorage.getItem("pattern-theme")==="dark") body.classList.add("dark");
+document.getElementById("theme").onclick=()=>{body.classList.toggle("dark");localStorage.setItem("pattern-theme",body.classList.contains("dark")?"dark":"light")};
+
+document.querySelectorAll("pre").forEach(pre=>{
+ const b=document.createElement("button");b.className="copy";b.textContent="Copy";
+ b.onclick=async()=>{try{await navigator.clipboard.writeText(pre.querySelector("code").innerText);b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)}catch(e){b.textContent="Failed"}};
+ pre.appendChild(b);
+});
+
+let expanded=false;
+document.getElementById("expand").onclick=()=>{expanded=!expanded;document.querySelectorAll("details").forEach(d=>d.open=expanded);document.getElementById("expand").textContent=expanded?"Collapse Q&A":"Expand Q&A"};
+
+document.getElementById("search").addEventListener("input",e=>{
+ const q=e.target.value.trim().toLowerCase();
+ document.querySelectorAll(".pattern-card").forEach(card=>{
+   const text=(card.dataset.search+" "+card.innerText).toLowerCase();
+   card.classList.toggle("hidden",q && !text.includes(q));
+ });
+});
+
+const links=[...document.querySelectorAll(".nav-link")];
+const targets=links.map(l=>document.querySelector(l.getAttribute("href"))).filter(Boolean);
+new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(l=>l.classList.remove("active"));const a=document.querySelector('.nav-link[href="#'+entry.target.id+'"]');if(a)a.classList.add("active")}}),{rootMargin:"-18% 0px -68% 0px"}).observe;
+const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(l=>l.classList.remove("active"));const a=document.querySelector('.nav-link[href="#'+entry.target.id+'"]');if(a)a.classList.add("active")}}),{rootMargin:"-18% 0px -68% 0px"});
+targets.forEach(t=>observer.observe(t));
+</script>
+</body>
+</html>

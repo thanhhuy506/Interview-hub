@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Multithreading Deep Dive & Senior Interview Guide</title>
+<style>
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2ff;
+  --text: #162033;
+  --muted: #5f6b7a;
+  --primary: #4f46e5;
+  --primary-2: #7c3aed;
+  --border: #dbe1ea;
+  --code: #101827;
+  --code-text: #e7edf7;
+  --success: #0f766e;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --shadow: 0 14px 35px rgba(30, 41, 59, .08);
+}
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --surface: #121a2c;
+  --surface-2: #1a2440;
+  --text: #edf2ff;
+  --muted: #a8b3c7;
+  --primary: #8b85ff;
+  --primary-2: #b388ff;
+  --border: #2b3650;
+  --code: #070b13;
+  --code-text: #e7edf7;
+  --shadow: 0 14px 35px rgba(0,0,0,.26);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+a { color: inherit; }
+.progress {
+  position: fixed; top: 0; left: 0; height: 4px; width: 0;
+  background: linear-gradient(90deg, var(--primary), var(--primary-2));
+  z-index: 9999;
+}
+.hero {
+  padding: 72px 24px 48px;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(79,70,229,.22), transparent 35%),
+    radial-gradient(circle at 85% 15%, rgba(124,58,237,.20), transparent 34%),
+    linear-gradient(145deg, #111827, #1e1b4b 60%, #312e81);
+  color: white;
+}
+.hero-inner { max-width: 1200px; margin: auto; }
+.badge {
+  display: inline-flex; padding: 6px 12px; border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px; background: rgba(255,255,255,.08); font-size: 13px;
+}
+.hero h1 { font-size: clamp(34px, 5vw, 66px); line-height: 1.08; margin: 18px 0; max-width: 950px; }
+.hero p { max-width: 800px; color: #dbeafe; font-size: 18px; }
+.hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.stat { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); padding: 18px; border-radius: 18px; }
+.stat b { display: block; font-size: 26px; }
+.toolbar {
+  position: sticky; top: 0; z-index: 1000; background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+}
+.toolbar-inner {
+  max-width: 1400px; margin: auto; padding: 12px 20px;
+  display: flex; gap: 10px; align-items: center;
+}
+.search {
+  flex: 1; min-width: 120px; padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 12px; padding: 10px 13px; cursor: pointer; font-weight: 700;
+}
+.btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.layout { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 28px; padding: 30px 20px 70px; }
+.sidebar {
+  position: sticky; top: 78px; align-self: start; max-height: calc(100vh - 95px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px;
+  box-shadow: var(--shadow);
+}
+.sidebar h3 { margin: 6px 10px 12px; }
+.sidebar a {
+  display: block; text-decoration: none; padding: 8px 10px; border-radius: 9px;
+  color: var(--muted); font-size: 13px;
+}
+.sidebar a:hover, .sidebar a.current { background: var(--surface-2); color: var(--primary); }
+main { min-width: 0; }
+.topic, .interview-section, .scenario-section, .cheatsheet {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
+  padding: clamp(22px, 4vw, 40px); margin-bottom: 24px; box-shadow: var(--shadow);
+  scroll-margin-top: 82px;
+}
+h2 { margin: 0 0 18px; font-size: clamp(26px, 3vw, 38px); line-height: 1.2; }
+h3 { margin-top: 26px; }
+h4 { margin-bottom: 8px; }
+p, li { color: var(--text); }
+code { font-family: "SFMono-Regular", Consolas, monospace; }
+p code, li code, td code {
+  background: var(--surface-2); padding: 2px 6px; border-radius: 6px; color: var(--primary);
+}
+pre {
+  position: relative; overflow: auto; background: var(--code); color: var(--code-text);
+  padding: 22px; border-radius: 16px; border: 1px solid #263149; line-height: 1.55;
+}
+pre code { font-size: 14px; }
+.copy {
+  position: absolute; top: 10px; right: 10px; border: 1px solid #44506b; color: #e5e7eb;
+  background: #1f2937; border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 12px;
+}
+.grid { display: grid; gap: 14px; margin: 18px 0; }
+.grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.card { padding: 18px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; }
+.card h4 { margin-top: 0; color: var(--primary); }
+.callout {
+  border-left: 5px solid var(--primary); padding: 15px 18px; background: var(--surface-2);
+  border-radius: 10px; margin: 18px 0;
+}
+.callout.senior { border-color: var(--success); }
+.callout.warning { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.formula {
+  font-family: "SFMono-Regular", Consolas, monospace; background: var(--code); color: #dbeafe;
+  padding: 16px; border-radius: 12px; text-align: center; font-size: 17px; margin: 12px 0;
+}
+.flow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 20px 0; }
+.flow span { padding: 9px 12px; background: var(--primary); color: white; border-radius: 9px; font-weight: 800; }
+.flow b { color: var(--muted); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--border); padding: 12px 14px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); color: var(--primary); }
+.qa {
+  border: 1px solid var(--border); border-radius: 14px; margin: 10px 0; overflow: hidden;
+  background: var(--surface);
+}
+.qa summary { list-style: none; cursor: pointer; padding: 15px 18px; font-weight: 750; display: flex; gap: 12px; align-items: center; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa[open] summary { background: var(--surface-2); }
+.qnum { display: inline-grid; place-items: center; min-width: 34px; height: 34px; background: var(--primary); color: white; border-radius: 10px; font-size: 12px; }
+.answer { padding: 18px; border-top: 1px solid var(--border); }
+.scenario { border: 1px solid var(--border); border-radius: 18px; padding: 22px; margin: 16px 0; background: var(--surface-2); }
+.checklist { display: grid; gap: 10px; }
+.checklist label { padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; }
+.checklist input { width: 18px; height: 18px; vertical-align: middle; margin-right: 10px; }
+.cheat-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.cheat { padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-2); }
+.cheat h4 { color: var(--primary); margin-top: 0; }
+.footer { text-align: center; color: var(--muted); padding: 30px; }
+.hidden-search { display: none !important; }
+[data-lang="vi"] { display: none; }
+body.lang-vi [data-lang="en"] { display: none; }
+body.lang-vi [data-lang="vi"] { display: revert; }
+mark { background: #fde68a; padding: 0 2px; border-radius: 3px; }
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .hero-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 700px) {
+  .toolbar-inner { flex-wrap: wrap; }
+  .search { flex-basis: 100%; order: 3; }
+  .grid.two, .grid.three, .cheat-grid { grid-template-columns: 1fr; }
+  .hero-grid { grid-template-columns: 1fr; }
+  .topic, .interview-section, .scenario-section, .cheatsheet { border-radius: 16px; padding: 20px; }
+}
+@media print {
+  .toolbar, .sidebar, .progress, .copy { display: none !important; }
+  .layout { display: block; max-width: none; padding: 0; }
+  .topic, .interview-section, .scenario-section, .cheatsheet { box-shadow: none; break-inside: avoid; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="badge">Senior Java Backend • Concurrency • Interview Preparation</span>
+    <h1>Java Multithreading Deep Dive & Senior Interview Guide</h1>
+    <p data-lang="en">A practical guide covering the Java Memory Model, synchronization, thread pools, atomics, concurrent collections, CompletableFuture, virtual threads, production debugging, and senior-level interview scenarios.</p>
+    <p data-lang="vi">Tài liệu thực chiến về Java Memory Model, synchronization, thread pool, atomic, concurrent collection, CompletableFuture, virtual thread, debugging production và tình huống phỏng vấn Senior.</p>
+    <div class="hero-grid">
+      <div class="stat"><b>24</b><span data-lang="en">Deep-dive topics</span><span data-lang="vi">Chủ đề chuyên sâu</span></div>
+      <div class="stat"><b>39</b><span data-lang="en">Interview questions</span><span data-lang="vi">Câu hỏi phỏng vấn</span></div>
+      <div class="stat"><b>6</b><span data-lang="en">System scenarios</span><span data-lang="vi">Tình huống hệ thống</span></div>
+      <div class="stat"><b>EN / VI</b><span data-lang="en">Bilingual mode</span><span data-lang="vi">Chế độ song ngữ</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <button class="btn active" id="enBtn">EN</button>
+    <button class="btn" id="viBtn">VI</button>
+    <button class="btn" id="themeBtn">◐ Theme</button>
+    <button class="btn" onclick="window.print()">Print / PDF</button>
+    <input id="search" class="search" placeholder="Search topics, code, interview questions...">
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h3 data-lang="en">Contents</h3>
+    <h3 data-lang="vi">Mục lục</h3>
+    <a href="#mental-model"><span data-lang="en">1. Senior Mental Model</span><span data-lang="vi">1. Tư duy nền tảng ở cấp Senior</span></a>
+<a href="#thread-basics"><span data-lang="en">2. Thread, Process, Task and Concurrency</span><span data-lang="vi">2. Thread, Process, Task và Concurrency</span></a>
+<a href="#lifecycle"><span data-lang="en">3. Java Thread Lifecycle</span><span data-lang="vi">3. Vòng đời Java Thread</span></a>
+<a href="#jmm"><span data-lang="en">4. Java Memory Model and Happens-Before</span><span data-lang="vi">4. Java Memory Model và Happens-Before</span></a>
+<a href="#race"><span data-lang="en">5. Race Condition and Lost Update</span><span data-lang="vi">5. Race Condition và Lost Update</span></a>
+<a href="#synchronized"><span data-lang="en">6. synchronized and Intrinsic Locks</span><span data-lang="vi">6. synchronized và Intrinsic Lock</span></a>
+<a href="#volatile"><span data-lang="en">7. volatile: Visibility Without Mutual Exclusion</span><span data-lang="vi">7. volatile: Visibility nhưng không Mutual Exclusion</span></a>
+<a href="#locks"><span data-lang="en">8. Lock, ReentrantLock and ReadWriteLock</span><span data-lang="vi">8. Lock, ReentrantLock và ReadWriteLock</span></a>
+<a href="#atomics"><span data-lang="en">9. Atomics, CAS and LongAdder</span><span data-lang="vi">9. Atomic, CAS và LongAdder</span></a>
+<a href="#wait-notify"><span data-lang="en">10. wait, notify, notifyAll and Condition</span><span data-lang="vi">10. wait, notify, notifyAll và Condition</span></a>
+<a href="#executors"><span data-lang="en">11. ExecutorService and ThreadPoolExecutor</span><span data-lang="vi">11. ExecutorService và ThreadPoolExecutor</span></a>
+<a href="#pool-sizing"><span data-lang="en">12. Thread Pool Sizing</span><span data-lang="vi">12. Cách tính kích thước Thread Pool</span></a>
+<a href="#future"><span data-lang="en">13. Future and CompletableFuture</span><span data-lang="vi">13. Future và CompletableFuture</span></a>
+<a href="#concurrent-collections"><span data-lang="en">14. Concurrent Collections</span><span data-lang="vi">14. Concurrent Collections</span></a>
+<a href="#coordination"><span data-lang="en">15. Coordination Utilities</span><span data-lang="vi">15. Các công cụ phối hợp Thread</span></a>
+<a href="#deadlock"><span data-lang="en">16. Deadlock, Livelock and Starvation</span><span data-lang="vi">16. Deadlock, Livelock và Starvation</span></a>
+<a href="#interruption"><span data-lang="en">17. Interruption and Cancellation</span><span data-lang="vi">17. Interruption và Cancellation</span></a>
+<a href="#virtual-threads"><span data-lang="en">18. Virtual Threads</span><span data-lang="vi">18. Virtual Threads</span></a>
+<a href="#spring"><span data-lang="en">19. Multithreading in Spring Applications</span><span data-lang="vi">19. Multithreading trong Spring</span></a>
+<a href="#reactive"><span data-lang="en">20. Blocking, Async and Reactive</span><span data-lang="vi">20. Blocking, Async và Reactive</span></a>
+<a href="#patterns"><span data-lang="en">21. Production Concurrency Patterns</span><span data-lang="vi">21. Pattern Concurrency trong Production</span></a>
+<a href="#testing"><span data-lang="en">22. Testing Concurrent Code</span><span data-lang="vi">22. Kiểm thử Concurrent Code</span></a>
+<a href="#debugging"><span data-lang="en">23. Production Debugging and Observability</span><span data-lang="vi">23. Debugging và Observability trên Production</span></a>
+<a href="#review"><span data-lang="en">24. Senior Code Review Checklist</span><span data-lang="vi">24. Checklist Review Code ở cấp Senior</span></a>
+    <a href="#interview"><span data-lang="en">25. Interview Q&A</span><span data-lang="vi">25. Câu hỏi phỏng vấn</span></a>
+    <a href="#scenarios"><span data-lang="en">26. Senior scenarios</span><span data-lang="vi">26. Tình huống Senior</span></a>
+    <a href="#cheatsheet"><span data-lang="en">27. Final cheat sheet</span><span data-lang="vi">27. Cheat sheet cuối</span></a>
+  </aside>
+
+  <main>
+    
+    <section id="mental-model" class="topic searchable">
+      <h2 data-lang="en">1. Senior Mental Model</h2>
+      <h2 data-lang="vi">1. Tư duy nền tảng ở cấp Senior</h2>
+      <div data-lang="en">
+        <p>Multithreading is not simply “running several methods at the same time.” It is the controlled coordination of multiple execution flows that share memory, CPU time, I/O resources, locks, queues, and failure states.</p>
+        <div class="grid two">
+          <div class="card"><h4>Correctness</h4><p>Does the program preserve invariants under every legal thread interleaving?</p></div>
+          <div class="card"><h4>Liveness</h4><p>Can work always make progress, or can threads deadlock, livelock, or starve?</p></div>
+          <div class="card"><h4>Performance</h4><p>Does concurrency increase throughput without creating excessive contention, context switching, or memory pressure?</p></div>
+          <div class="card"><h4>Operability</h4><p>Can the system be observed and diagnosed through metrics, thread dumps, tracing, and timeouts?</p></div>
+        </div>
+        <div class="callout senior"><b>Senior perspective:</b> Prefer minimizing shared mutable state. Good concurrency design is usually more about ownership, isolation, queues, immutability, and bounded resources than adding more locks.</div>
+        </div>
+      <div data-lang="vi">
+        <p>Multithreading không chỉ là “chạy nhiều method cùng lúc”. Đây là việc điều phối nhiều luồng thực thi cùng chia sẻ bộ nhớ, CPU, I/O, lock, queue và trạng thái lỗi.</p>
+        <div class="grid two">
+          <div class="card"><h4>Tính đúng đắn</h4><p>Chương trình có giữ đúng invariant với mọi thứ tự xen kẽ hợp lệ giữa các thread không?</p></div>
+          <div class="card"><h4>Khả năng tiến triển</h4><p>Hệ thống có tiếp tục xử lý được hay bị deadlock, livelock hoặc starvation?</p></div>
+          <div class="card"><h4>Hiệu năng</h4><p>Concurrency có tăng throughput mà không gây contention, context switching và memory pressure quá mức không?</p></div>
+          <div class="card"><h4>Khả năng vận hành</h4><p>Có thể quan sát và chẩn đoán bằng metric, thread dump, tracing và timeout không?</p></div>
+        </div>
+        <div class="callout senior"><b>Góc nhìn Senior:</b> Hãy giảm shared mutable state. Thiết kế concurrency tốt thường dựa vào ownership, isolation, queue, immutability và giới hạn tài nguyên hơn là thêm nhiều lock.</div>
+        </div>
+    </section>
+    
+    <section id="thread-basics" class="topic searchable">
+      <h2 data-lang="en">2. Thread, Process, Task and Concurrency</h2>
+      <h2 data-lang="vi">2. Thread, Process, Task và Concurrency</h2>
+      <div data-lang="en">
+        <table>
+          <thead><tr><th>Concept</th><th>Meaning</th><th>Senior note</th></tr></thead>
+          <tbody>
+            <tr><td>Process</td><td>An isolated operating-system execution unit with its own address space.</td><td>Communication between processes is more expensive but offers stronger isolation.</td></tr>
+            <tr><td>Platform thread</td><td>A Java thread typically mapped to an OS thread.</td><td>Creation and blocking are relatively expensive; use pools for bounded reuse.</td></tr>
+            <tr><td>Virtual thread</td><td>A lightweight Java-managed thread designed for high-concurrency blocking workloads.</td><td>It improves scalability for thread-per-request I/O workloads, but does not make CPU-bound work faster.</td></tr>
+            <tr><td>Task</td><td>A unit of work such as Runnable or Callable.</td><td>Separate task submission from execution policy.</td></tr>
+            <tr><td>Concurrency</td><td>Multiple tasks make progress during overlapping time periods.</td><td>Possible even on one CPU core through scheduling.</td></tr>
+            <tr><td>Parallelism</td><td>Multiple tasks execute literally at the same instant.</td><td>Requires multiple cores or execution units.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><b>Key distinction:</b> Concurrency is a design property. Parallelism is an execution property.</div>
+        </div>
+      <div data-lang="vi">
+        <table>
+          <thead><tr><th>Khái niệm</th><th>Ý nghĩa</th><th>Điểm Senior cần nhớ</th></tr></thead>
+          <tbody>
+            <tr><td>Process</td><td>Đơn vị thực thi của hệ điều hành, có vùng nhớ riêng.</td><td>Giao tiếp giữa process tốn chi phí hơn nhưng cách ly tốt hơn.</td></tr>
+            <tr><td>Platform thread</td><td>Java thread thường ánh xạ tới OS thread.</td><td>Khởi tạo và blocking tương đối tốn kém; nên dùng pool để tái sử dụng có giới hạn.</td></tr>
+            <tr><td>Virtual thread</td><td>Thread nhẹ do JVM quản lý, phù hợp workload blocking có concurrency cao.</td><td>Tăng khả năng mở rộng cho mô hình thread-per-request I/O, nhưng không làm CPU-bound nhanh hơn.</td></tr>
+            <tr><td>Task</td><td>Đơn vị công việc như Runnable hoặc Callable.</td><td>Tách logic công việc khỏi chính sách thực thi.</td></tr>
+            <tr><td>Concurrency</td><td>Nhiều task cùng tiến triển trong khoảng thời gian chồng lấn.</td><td>Có thể xảy ra ngay cả trên một CPU core.</td></tr>
+            <tr><td>Parallelism</td><td>Nhiều task thực sự chạy cùng một thời điểm.</td><td>Cần nhiều core hoặc execution unit.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><b>Phân biệt quan trọng:</b> Concurrency là thuộc tính của thiết kế; parallelism là thuộc tính khi thực thi.</div>
+        </div>
+    </section>
+    
+    <section id="lifecycle" class="topic searchable">
+      <h2 data-lang="en">3. Java Thread Lifecycle</h2>
+      <h2 data-lang="vi">3. Vòng đời Java Thread</h2>
+      <div data-lang="en">
+        <div class="flow">
+          <span>NEW</span><b>→ start()</b><span>RUNNABLE</span><b>→ lock contention</b><span>BLOCKED</span>
+          <b>→ wait/join/park</b><span>WAITING</span><b>→ timeout</b><span>TIMED_WAITING</span><b>→ finish</b><span>TERMINATED</span>
+        </div>
+        <ul>
+          <li><b>RUNNABLE</b> in Java includes both ready-to-run and currently running at the OS level.</li>
+          <li><b>BLOCKED</b> means waiting to enter a synchronized monitor.</li>
+          <li><b>WAITING</b> may result from Object.wait(), Thread.join(), or LockSupport.park().</li>
+          <li><b>TIMED_WAITING</b> may result from sleep(), timed wait(), timed join(), or parkNanos().</li>
+        </ul>
+        <div class="callout danger"><b>Common mistake:</b> Calling run() does not create a new thread. Calling start() asks the JVM to schedule a new thread that later executes run().</div>
+        </div>
+      <div data-lang="vi">
+        <div class="flow">
+          <span>NEW</span><b>→ start()</b><span>RUNNABLE</span><b>→ tranh chấp lock</b><span>BLOCKED</span>
+          <b>→ wait/join/park</b><span>WAITING</span><b>→ hết timeout</b><span>TIMED_WAITING</span><b>→ hoàn tất</b><span>TERMINATED</span>
+        </div>
+        <ul>
+          <li><b>RUNNABLE</b> trong Java bao gồm cả trạng thái sẵn sàng chạy và đang chạy ở tầng OS.</li>
+          <li><b>BLOCKED</b> là đang chờ vào synchronized monitor.</li>
+          <li><b>WAITING</b> có thể do Object.wait(), Thread.join() hoặc LockSupport.park().</li>
+          <li><b>TIMED_WAITING</b> có thể do sleep(), timed wait(), timed join() hoặc parkNanos().</li>
+        </ul>
+        <div class="callout danger"><b>Lỗi thường gặp:</b> Gọi run() không tạo thread mới. Gọi start() yêu cầu JVM schedule một thread mới rồi thread đó mới chạy run().</div>
+        </div>
+    </section>
+    
+    <section id="jmm" class="topic searchable">
+      <h2 data-lang="en">4. Java Memory Model and Happens-Before</h2>
+      <h2 data-lang="vi">4. Java Memory Model và Happens-Before</h2>
+      <div data-lang="en">
+        <p>The Java Memory Model defines when writes performed by one thread are guaranteed to become visible to another thread and which reorderings are legal.</p>
+        <h4>The three core concurrency problems</h4>
+        <div class="grid three">
+          <div class="card"><h4>Atomicity</h4><p>An operation happens completely or not at all. <code>count++</code> is not atomic.</p></div>
+          <div class="card"><h4>Visibility</h4><p>One thread may not immediately observe another thread’s write without synchronization.</p></div>
+          <div class="card"><h4>Ordering</h4><p>The compiler, CPU, and runtime may reorder instructions when single-thread semantics are preserved.</p></div>
+        </div>
+        <h4>Important happens-before relationships</h4>
+        <ul>
+          <li>Unlocking a monitor happens-before a later lock of the same monitor.</li>
+          <li>A volatile write happens-before a later volatile read of the same variable.</li>
+          <li>Actions before Thread.start() happen-before actions in the started thread.</li>
+          <li>All actions in a thread happen-before another thread successfully returns from join().</li>
+          <li>Actions before submitting a task to an Executor happen-before task execution.</li>
+          <li>Transitivity applies: if A happens-before B and B happens-before C, then A happens-before C.</li>
+        </ul>
+        <div class="callout senior"><b>Interview phrase:</b> “Thread safety is not only about mutual exclusion. It also requires safe publication, visibility, and ordering guarantees under the Java Memory Model.”</div>
+        </div>
+      <div data-lang="vi">
+        <p>Java Memory Model định nghĩa khi nào dữ liệu được một thread ghi sẽ chắc chắn visible với thread khác và những reorder nào được phép.</p>
+        <h4>Ba vấn đề cốt lõi</h4>
+        <div class="grid three">
+          <div class="card"><h4>Atomicity</h4><p>Một thao tác xảy ra trọn vẹn hoặc không xảy ra. <code>count++</code> không atomic.</p></div>
+          <div class="card"><h4>Visibility</h4><p>Một thread có thể không thấy ngay giá trị thread khác vừa ghi nếu không có cơ chế đồng bộ.</p></div>
+          <div class="card"><h4>Ordering</h4><p>Compiler, CPU và runtime có thể reorder lệnh miễn vẫn giữ đúng semantics của single thread.</p></div>
+        </div>
+        <h4>Các quan hệ happens-before quan trọng</h4>
+        <ul>
+          <li>Unlock monitor xảy ra trước lần lock tiếp theo trên cùng monitor.</li>
+          <li>Ghi volatile xảy ra trước lần đọc volatile tiếp theo trên cùng biến.</li>
+          <li>Thao tác trước Thread.start() xảy ra trước thao tác trong thread được start.</li>
+          <li>Mọi thao tác trong thread xảy ra trước khi thread khác join() thành công.</li>
+          <li>Thao tác trước khi submit task vào Executor xảy ra trước khi task chạy.</li>
+          <li>Có tính bắc cầu: A happens-before B, B happens-before C thì A happens-before C.</li>
+        </ul>
+        <div class="callout senior"><b>Câu trả lời phỏng vấn:</b> “Thread safety không chỉ là mutual exclusion. Nó còn cần safe publication, visibility và ordering theo Java Memory Model.”</div>
+        </div>
+    </section>
+    
+    <section id="race" class="topic searchable">
+      <h2 data-lang="en">5. Race Condition and Lost Update</h2>
+      <h2 data-lang="vi">5. Race Condition và Lost Update</h2>
+      <div data-lang="en">
+        <p>A race condition occurs when correctness depends on timing or interleaving between threads.</p>
+        <pre><code class="language-java">class UnsafeCounter {
+    private int count;
+
+    void increment() {
+        count++; // read → add → write, not atomic
+    }
+
+    int get() {
+        return count;
+    }
+}</code></pre>
+        <p>Two threads may both read 10, both compute 11, and both write 11. One increment is lost.</p>
+        <h4>Correct alternatives</h4>
+        <pre><code class="language-java">class SynchronizedCounter {
+    private int count;
+
+    synchronized void increment() {
+        count++;
+    }
+
+    synchronized int get() {
+        return count;
+    }
+}
+
+class AtomicCounter {
+    private final AtomicInteger count = new AtomicInteger();
+
+    void increment() {
+        count.incrementAndGet();
+    }
+
+    int get() {
+        return count.get();
+    }
+}</code></pre>
+        </div>
+      <div data-lang="vi">
+        <p>Race condition xảy ra khi tính đúng đắn phụ thuộc vào timing hoặc thứ tự xen kẽ giữa các thread.</p>
+        <pre><code class="language-java">class UnsafeCounter {
+    private int count;
+
+    void increment() {
+        count++; // đọc → cộng → ghi, không atomic
+    }
+
+    int get() {
+        return count;
+    }
+}</code></pre>
+        <p>Hai thread có thể cùng đọc 10, cùng tính 11 và cùng ghi 11. Một lần tăng bị mất.</p>
+        <h4>Cách sửa</h4>
+        <pre><code class="language-java">class SynchronizedCounter {
+    private int count;
+
+    synchronized void increment() {
+        count++;
+    }
+
+    synchronized int get() {
+        return count;
+    }
+}
+
+class AtomicCounter {
+    private final AtomicInteger count = new AtomicInteger();
+
+    void increment() {
+        count.incrementAndGet();
+    }
+
+    int get() {
+        return count.get();
+    }
+}</code></pre>
+        </div>
+    </section>
+    
+    <section id="synchronized" class="topic searchable">
+      <h2 data-lang="en">6. synchronized and Intrinsic Locks</h2>
+      <h2 data-lang="vi">6. synchronized và Intrinsic Lock</h2>
+      <div data-lang="en">
+        <p>Every Java object can act as a monitor. Entering a synchronized block acquires the monitor; exiting releases it, including when an exception is thrown.</p>
+        <pre><code class="language-java">class InventoryService {
+    private final Object lock = new Object();
+    private int stock = 100;
+
+    public boolean reserve(int quantity) {
+        synchronized (lock) {
+            if (stock &lt; quantity) {
+                return false;
+            }
+            stock -= quantity;
+            return true;
+        }
+    }
+}</code></pre>
+        <h4>Method vs block</h4>
+        <ul>
+          <li><code>synchronized instanceMethod()</code> locks <code>this</code>.</li>
+          <li><code>static synchronized method()</code> locks the Class object.</li>
+          <li>A synchronized block can use a private dedicated lock and minimize critical-section size.</li>
+        </ul>
+        <div class="callout warning"><b>Do not lock on:</b> public objects, string literals, boxed primitives, request objects, or mutable references that may be replaced.</div>
+        <div class="callout senior"><b>Design rule:</b> Protect an invariant, not just a field. All fields participating in the invariant must be read and modified under the same synchronization policy.</div>
+        </div>
+      <div data-lang="vi">
+        <p>Mỗi object Java có thể hoạt động như một monitor. Vào synchronized block sẽ acquire monitor; thoát block sẽ release, kể cả khi có exception.</p>
+        <pre><code class="language-java">class InventoryService {
+    private final Object lock = new Object();
+    private int stock = 100;
+
+    public boolean reserve(int quantity) {
+        synchronized (lock) {
+            if (stock &lt; quantity) {
+                return false;
+            }
+            stock -= quantity;
+            return true;
+        }
+    }
+}</code></pre>
+        <h4>Method và block</h4>
+        <ul>
+          <li><code>synchronized instanceMethod()</code> lock trên <code>this</code>.</li>
+          <li><code>static synchronized method()</code> lock trên Class object.</li>
+          <li>Synchronized block có thể dùng private lock riêng và thu nhỏ critical section.</li>
+        </ul>
+        <div class="callout warning"><b>Không nên lock trên:</b> public object, string literal, boxed primitive, request object hoặc reference có thể bị thay thế.</div>
+        <div class="callout senior"><b>Quy tắc thiết kế:</b> Bảo vệ invariant, không chỉ bảo vệ một field. Mọi field thuộc invariant phải được đọc và cập nhật theo cùng synchronization policy.</div>
+        </div>
+    </section>
+    
+    <section id="volatile" class="topic searchable">
+      <h2 data-lang="en">7. volatile: Visibility Without Mutual Exclusion</h2>
+      <h2 data-lang="vi">7. volatile: Visibility nhưng không Mutual Exclusion</h2>
+      <div data-lang="en">
+        <p><code>volatile</code> guarantees visibility and ordering around the variable, but it does not make compound operations atomic.</p>
+        <pre><code class="language-java">class GracefulWorker implements Runnable {
+    private volatile boolean running = true;
+
+    public void shutdown() {
+        running = false;
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            doOneUnitOfWork();
+        }
+    }
+}</code></pre>
+        <h4>Good use cases</h4>
+        <ul>
+          <li>Stop flags and simple state publication.</li>
+          <li>Immutable configuration snapshots replaced atomically.</li>
+          <li>Double-checked locking when the instance field is volatile.</li>
+        </ul>
+        <pre><code class="language-java">private static volatile Client instance;
+
+public static Client getInstance() {
+    Client local = instance;
+    if (local == null) {
+        synchronized (Client.class) {
+            local = instance;
+            if (local == null) {
+                local = instance = new Client();
+            }
+        }
+    }
+    return local;
+}</code></pre>
+        <div class="callout danger"><code>volatile int count; count++;</code> is still unsafe because increment is a read-modify-write sequence.</div>
+        </div>
+      <div data-lang="vi">
+        <p><code>volatile</code> đảm bảo visibility và ordering xung quanh biến đó, nhưng không làm compound operation trở thành atomic.</p>
+        <pre><code class="language-java">class GracefulWorker implements Runnable {
+    private volatile boolean running = true;
+
+    public void shutdown() {
+        running = false;
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            doOneUnitOfWork();
+        }
+    }
+}</code></pre>
+        <h4>Use case phù hợp</h4>
+        <ul>
+          <li>Stop flag và publish trạng thái đơn giản.</li>
+          <li>Thay thế atomic một immutable configuration snapshot.</li>
+          <li>Double-checked locking khi instance field là volatile.</li>
+        </ul>
+        <pre><code class="language-java">private static volatile Client instance;
+
+public static Client getInstance() {
+    Client local = instance;
+    if (local == null) {
+        synchronized (Client.class) {
+            local = instance;
+            if (local == null) {
+                local = instance = new Client();
+            }
+        }
+    }
+    return local;
+}</code></pre>
+        <div class="callout danger"><code>volatile int count; count++;</code> vẫn không an toàn vì increment là chuỗi read-modify-write.</div>
+        </div>
+    </section>
+    
+    <section id="locks" class="topic searchable">
+      <h2 data-lang="en">8. Lock, ReentrantLock and ReadWriteLock</h2>
+      <h2 data-lang="vi">8. Lock, ReentrantLock và ReadWriteLock</h2>
+      <div data-lang="en">
+        <p><code>ReentrantLock</code> provides explicit lock control, interruptible acquisition, timed acquisition, optional fairness, and multiple Condition queues.</p>
+        <pre><code class="language-java">private final ReentrantLock lock = new ReentrantLock();
+
+public void transfer(Account from, Account to, BigDecimal amount)
+        throws InterruptedException {
+
+    if (lock.tryLock(200, TimeUnit.MILLISECONDS)) {
+        try {
+            // validate and update shared state
+        } finally {
+            lock.unlock();
+        }
+    } else {
+        throw new TimeoutException("Could not acquire transfer lock");
+    }
+}</code></pre>
+        <div class="callout warning"><b>Always unlock in finally.</b> Explicit locks are powerful but easier to misuse than synchronized.</div>
+        <h4>ReadWriteLock</h4>
+        <p>Useful when reads are frequent, writes are rare, and the protected operation is large enough to justify the lock overhead. It may perform worse for small critical sections or write-heavy workloads.</p>
+        <h4>StampedLock</h4>
+        <p>Supports optimistic reads, but it is not reentrant and is more error-prone. Use only after measurement proves value.</p>
+        </div>
+      <div data-lang="vi">
+        <p><code>ReentrantLock</code> cho phép điều khiển lock tường minh, acquire có thể interrupt, timeout, fairness và nhiều Condition queue.</p>
+        <pre><code class="language-java">private final ReentrantLock lock = new ReentrantLock();
+
+public void transfer(Account from, Account to, BigDecimal amount)
+        throws InterruptedException {
+
+    if (lock.tryLock(200, TimeUnit.MILLISECONDS)) {
+        try {
+            // validate và cập nhật shared state
+        } finally {
+            lock.unlock();
+        }
+    } else {
+        throw new TimeoutException("Could not acquire transfer lock");
+    }
+}</code></pre>
+        <div class="callout warning"><b>Luôn unlock trong finally.</b> Explicit lock mạnh nhưng dễ dùng sai hơn synchronized.</div>
+        <h4>ReadWriteLock</h4>
+        <p>Phù hợp khi read nhiều, write ít và phần logic bảo vệ đủ lớn để bù chi phí lock. Có thể chậm hơn nếu critical section nhỏ hoặc write nhiều.</p>
+        <h4>StampedLock</h4>
+        <p>Hỗ trợ optimistic read nhưng không reentrant và dễ lỗi hơn. Chỉ dùng khi benchmark chứng minh có lợi.</p>
+        </div>
+    </section>
+    
+    <section id="atomics" class="topic searchable">
+      <h2 data-lang="en">9. Atomics, CAS and LongAdder</h2>
+      <h2 data-lang="vi">9. Atomic, CAS và LongAdder</h2>
+      <div data-lang="en">
+        <p>Atomic classes use compare-and-set style operations to update a value without a traditional blocking lock.</p>
+        <pre><code class="language-java">AtomicInteger retries = new AtomicInteger();
+
+int current = retries.incrementAndGet();
+
+boolean updated = retries.compareAndSet(current, 0);</code></pre>
+        <h4>CAS concept</h4>
+        <p>“Update the value to N only if it still equals the expected old value.” If another thread changed it, retry.</p>
+        <h4>Trade-offs</h4>
+        <ul>
+          <li>Excellent under low-to-moderate contention.</li>
+          <li>Under heavy contention, retries can waste CPU.</li>
+          <li>Single-variable atomicity does not automatically protect multi-field invariants.</li>
+          <li>ABA can matter in lock-free algorithms; stamped references can help.</li>
+        </ul>
+        <h4>AtomicLong vs LongAdder</h4>
+        <p><code>AtomicLong</code> provides a precise atomic value. <code>LongAdder</code> spreads updates across cells, improving throughput for hot counters, but <code>sum()</code> is not a transactional snapshot.</p>
+        </div>
+      <div data-lang="vi">
+        <p>Các lớp Atomic dùng compare-and-set để cập nhật giá trị mà không cần blocking lock truyền thống.</p>
+        <pre><code class="language-java">AtomicInteger retries = new AtomicInteger();
+
+int current = retries.incrementAndGet();
+
+boolean updated = retries.compareAndSet(current, 0);</code></pre>
+        <h4>Khái niệm CAS</h4>
+        <p>“Chỉ cập nhật thành N nếu giá trị hiện tại vẫn bằng expected value.” Nếu thread khác đã thay đổi thì retry.</p>
+        <h4>Trade-off</h4>
+        <ul>
+          <li>Rất hiệu quả khi contention thấp hoặc trung bình.</li>
+          <li>Khi contention cao, retry có thể tốn CPU.</li>
+          <li>Atomic cho một biến không tự động bảo vệ invariant gồm nhiều field.</li>
+          <li>ABA có thể ảnh hưởng lock-free algorithm; stamped reference có thể hỗ trợ.</li>
+        </ul>
+        <h4>AtomicLong và LongAdder</h4>
+        <p><code>AtomicLong</code> cung cấp giá trị atomic chính xác. <code>LongAdder</code> phân tán update ra nhiều cell để tăng throughput cho counter nóng, nhưng <code>sum()</code> không phải transactional snapshot.</p>
+        </div>
+    </section>
+    
+    <section id="wait-notify" class="topic searchable">
+      <h2 data-lang="en">10. wait, notify, notifyAll and Condition</h2>
+      <h2 data-lang="vi">10. wait, notify, notifyAll và Condition</h2>
+      <div data-lang="en">
+        <p><code>wait()</code> releases the current monitor and suspends the thread. <code>sleep()</code> does not release any lock.</p>
+        <pre><code class="language-java">class BoundedBuffer&lt;T&gt; {
+    private final Queue&lt;T&gt; queue = new ArrayDeque&lt;&gt;();
+    private final int capacity;
+
+    BoundedBuffer(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public synchronized void put(T item) throws InterruptedException {
+        while (queue.size() == capacity) {
+            wait();
+        }
+        queue.add(item);
+        notifyAll();
+    }
+
+    public synchronized T take() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        T item = queue.remove();
+        notifyAll();
+        return item;
+    }
+}</code></pre>
+        <div class="callout senior"><b>Always wait in a while loop.</b> The condition may no longer be true after wake-up, and spurious wake-ups are allowed.</div>
+        <p>In production, prefer higher-level utilities such as <code>BlockingQueue</code>, <code>Semaphore</code>, <code>CountDownLatch</code>, or <code>Condition</code>.</p>
+        </div>
+      <div data-lang="vi">
+        <p><code>wait()</code> release monitor hiện tại rồi tạm dừng thread. <code>sleep()</code> không release lock.</p>
+        <pre><code class="language-java">class BoundedBuffer&lt;T&gt; {
+    private final Queue&lt;T&gt; queue = new ArrayDeque&lt;&gt;();
+    private final int capacity;
+
+    BoundedBuffer(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public synchronized void put(T item) throws InterruptedException {
+        while (queue.size() == capacity) {
+            wait();
+        }
+        queue.add(item);
+        notifyAll();
+    }
+
+    public synchronized T take() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        T item = queue.remove();
+        notifyAll();
+        return item;
+    }
+}</code></pre>
+        <div class="callout senior"><b>Luôn wait trong while.</b> Sau khi được đánh thức, condition có thể đã không còn đúng và JVM cho phép spurious wake-up.</div>
+        <p>Trong production nên ưu tiên utility cấp cao như <code>BlockingQueue</code>, <code>Semaphore</code>, <code>CountDownLatch</code> hoặc <code>Condition</code>.</p>
+        </div>
+    </section>
+    
+    <section id="executors" class="topic searchable">
+      <h2 data-lang="en">11. ExecutorService and ThreadPoolExecutor</h2>
+      <h2 data-lang="vi">11. ExecutorService và ThreadPoolExecutor</h2>
+      <div data-lang="en">
+        <p>Executor separates <b>what to execute</b> from <b>how and where it executes</b>.</p>
+        <pre><code class="language-java">ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    8,                              // corePoolSize
+    16,                             // maximumPoolSize
+    60, TimeUnit.SECONDS,           // keepAliveTime
+    new ArrayBlockingQueue&lt;&gt;(500),  // bounded queue
+    new NamedThreadFactory("order-worker"),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);</code></pre>
+        <h4>Execution decision</h4>
+        <ol>
+          <li>If workers &lt; corePoolSize, create a worker.</li>
+          <li>Otherwise, enqueue the task if the queue accepts it.</li>
+          <li>If the queue is full and workers &lt; maximumPoolSize, create another worker.</li>
+          <li>Otherwise, apply the rejection policy.</li>
+        </ol>
+        <div class="callout danger"><b>Unbounded queue warning:</b> With an unbounded queue, maximumPoolSize is usually ineffective because tasks continue to queue instead of creating extra workers. This can lead to high latency or OutOfMemoryError.</div>
+        <h4>Rejection policies</h4>
+        <table>
+          <thead><tr><th>Policy</th><th>Behavior</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>AbortPolicy</td><td>Throws RejectedExecutionException.</td><td>Fail fast and surface overload.</td></tr>
+            <tr><td>CallerRunsPolicy</td><td>Caller executes the task.</td><td>Provides natural backpressure, but can slow request threads.</td></tr>
+            <tr><td>DiscardPolicy</td><td>Silently drops the task.</td><td>Only when dropping is explicitly acceptable and measured.</td></tr>
+            <tr><td>DiscardOldestPolicy</td><td>Drops the oldest queued task.</td><td>Rarely safe for business operations.</td></tr>
+          </tbody>
+        </table>
+        </div>
+      <div data-lang="vi">
+        <p>Executor tách <b>công việc cần chạy</b> khỏi <b>chính sách chạy ở đâu và như thế nào</b>.</p>
+        <pre><code class="language-java">ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    8,                              // corePoolSize
+    16,                             // maximumPoolSize
+    60, TimeUnit.SECONDS,           // keepAliveTime
+    new ArrayBlockingQueue&lt;&gt;(500),  // bounded queue
+    new NamedThreadFactory("order-worker"),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);</code></pre>
+        <h4>Quyết định thực thi</h4>
+        <ol>
+          <li>Nếu số worker &lt; corePoolSize, tạo worker mới.</li>
+          <li>Nếu không, đưa task vào queue nếu queue còn chỗ.</li>
+          <li>Nếu queue đầy và worker &lt; maximumPoolSize, tạo worker mới.</li>
+          <li>Nếu vẫn không xử lý được, áp dụng rejection policy.</li>
+        </ol>
+        <div class="callout danger"><b>Cảnh báo unbounded queue:</b> Với queue không giới hạn, maximumPoolSize thường không có tác dụng vì task tiếp tục xếp hàng thay vì tạo worker mới. Hậu quả có thể là latency cao hoặc OutOfMemoryError.</div>
+        <h4>Rejection policy</h4>
+        <table>
+          <thead><tr><th>Policy</th><th>Hành vi</th><th>Khi dùng</th></tr></thead>
+          <tbody>
+            <tr><td>AbortPolicy</td><td>Ném RejectedExecutionException.</td><td>Fail fast và hiển thị overload.</td></tr>
+            <tr><td>CallerRunsPolicy</td><td>Caller tự chạy task.</td><td>Tạo backpressure tự nhiên nhưng có thể làm chậm request thread.</td></tr>
+            <tr><td>DiscardPolicy</td><td>Im lặng bỏ task.</td><td>Chỉ dùng khi business cho phép drop và có đo lường.</td></tr>
+            <tr><td>DiscardOldestPolicy</td><td>Bỏ task cũ nhất trong queue.</td><td>Hiếm khi an toàn cho nghiệp vụ.</td></tr>
+          </tbody>
+        </table>
+        </div>
+    </section>
+    
+    <section id="pool-sizing" class="topic searchable">
+      <h2 data-lang="en">12. Thread Pool Sizing</h2>
+      <h2 data-lang="vi">12. Cách tính kích thước Thread Pool</h2>
+      <div data-lang="en">
+        <h4>CPU-bound</h4>
+        <div class="formula">threads ≈ number of CPU cores or cores + 1</div>
+        <p>Examples: compression, encryption, image processing, complex calculations. More threads than cores usually increase context switching rather than throughput.</p>
+        <h4>I/O-bound</h4>
+        <div class="formula">threads ≈ cores × (1 + wait time / compute time)</div>
+        <p>Example: 8 cores, average 90 ms waiting and 10 ms computing:</p>
+        <div class="formula">8 × (1 + 90/10) = 80 threads</div>
+        <div class="callout warning"><b>This is a starting estimate, not a final answer.</b> Validate with latency targets, queue time, downstream limits, connection pools, heap usage, CPU saturation, and load tests.</div>
+        <h4>Little’s Law for capacity thinking</h4>
+        <div class="formula">concurrency = throughput × average response time</div>
+        <p>If a service must process 1,000 requests/s and each request occupies a worker for 200 ms, expected in-flight concurrency is roughly 200.</p>
+        <div class="callout senior"><b>Critical relationship:</b> A 100-thread application pool cannot efficiently call a database through a 10-connection pool if every task needs a connection. The smallest constrained downstream resource becomes the bottleneck.</div>
+        </div>
+      <div data-lang="vi">
+        <h4>CPU-bound</h4>
+        <div class="formula">số thread ≈ số CPU core hoặc core + 1</div>
+        <p>Ví dụ: nén, mã hóa, xử lý ảnh, tính toán phức tạp. Tạo nhiều thread hơn core thường chỉ làm tăng context switching.</p>
+        <h4>I/O-bound</h4>
+        <div class="formula">số thread ≈ core × (1 + thời gian chờ / thời gian tính toán)</div>
+        <p>Ví dụ: 8 core, trung bình chờ 90 ms và tính toán 10 ms:</p>
+        <div class="formula">8 × (1 + 90/10) = 80 thread</div>
+        <div class="callout warning"><b>Đây chỉ là giá trị khởi đầu.</b> Cần kiểm chứng bằng latency target, queue time, giới hạn downstream, connection pool, heap, CPU và load test.</div>
+        <h4>Little’s Law để suy nghĩ về capacity</h4>
+        <div class="formula">concurrency = throughput × response time trung bình</div>
+        <p>Nếu service phải xử lý 1.000 request/s và mỗi request giữ worker trong 200 ms, concurrency đang in-flight xấp xỉ 200.</p>
+        <div class="callout senior"><b>Mối quan hệ quan trọng:</b> Application pool 100 thread không thể hiệu quả nếu mọi task cần database nhưng DB pool chỉ có 10 connection. Resource bị giới hạn nhỏ nhất sẽ trở thành bottleneck.</div>
+        </div>
+    </section>
+    
+    <section id="future" class="topic searchable">
+      <h2 data-lang="en">13. Future and CompletableFuture</h2>
+      <h2 data-lang="vi">13. Future và CompletableFuture</h2>
+      <div data-lang="en">
+        <p><code>Future</code> represents a pending result but is difficult to compose. <code>CompletableFuture</code> supports pipelines, combination, recovery, and asynchronous stages.</p>
+        <pre><code class="language-java">CompletableFuture&lt;Customer&gt; customerFuture =
+    CompletableFuture.supplyAsync(
+        () -&gt; customerClient.getCustomer(customerId),
+        ioExecutor
+    );
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; ordersFuture =
+    CompletableFuture.supplyAsync(
+        () -&gt; orderClient.getOrders(customerId),
+        ioExecutor
+    );
+
+CustomerSummary summary = customerFuture
+    .thenCombine(ordersFuture, CustomerSummary::new)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(ex -&gt; fallbackSummary(customerId))
+    .join();</code></pre>
+        <h4>thenApply vs thenCompose</h4>
+        <ul>
+          <li><code>thenApply</code>: synchronous mapping, T → U.</li>
+          <li><code>thenCompose</code>: flatten asynchronous mapping, T → CompletableFuture&lt;U&gt;.</li>
+        </ul>
+        <h4>thenApply vs thenApplyAsync</h4>
+        <p>Non-Async stages may execute on the thread completing the previous stage. Async stages use an executor, commonly the common ForkJoinPool unless a custom executor is supplied.</p>
+        <div class="callout danger"><b>Production pitfall:</b> Do not allow blocking HTTP, JDBC, or file I/O to accidentally run on the common ForkJoinPool. Use dedicated, bounded executors and explicit timeouts.</div>
+        </div>
+      <div data-lang="vi">
+        <p><code>Future</code> biểu diễn kết quả chưa hoàn tất nhưng khó compose. <code>CompletableFuture</code> hỗ trợ pipeline, combine, recovery và async stage.</p>
+        <pre><code class="language-java">CompletableFuture&lt;Customer&gt; customerFuture =
+    CompletableFuture.supplyAsync(
+        () -&gt; customerClient.getCustomer(customerId),
+        ioExecutor
+    );
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; ordersFuture =
+    CompletableFuture.supplyAsync(
+        () -&gt; orderClient.getOrders(customerId),
+        ioExecutor
+    );
+
+CustomerSummary summary = customerFuture
+    .thenCombine(ordersFuture, CustomerSummary::new)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(ex -&gt; fallbackSummary(customerId))
+    .join();</code></pre>
+        <h4>thenApply và thenCompose</h4>
+        <ul>
+          <li><code>thenApply</code>: map đồng bộ, T → U.</li>
+          <li><code>thenCompose</code>: flatten mapping bất đồng bộ, T → CompletableFuture&lt;U&gt;.</li>
+        </ul>
+        <h4>thenApply và thenApplyAsync</h4>
+        <p>Stage không có Async có thể chạy trên thread hoàn tất stage trước. Stage Async dùng executor, thường là common ForkJoinPool nếu không truyền custom executor.</p>
+        <div class="callout danger"><b>Lỗi production:</b> Không để blocking HTTP, JDBC hoặc file I/O vô tình chạy trên common ForkJoinPool. Dùng executor riêng có giới hạn và timeout rõ ràng.</div>
+        </div>
+    </section>
+    
+    <section id="concurrent-collections" class="topic searchable">
+      <h2 data-lang="en">14. Concurrent Collections</h2>
+      <h2 data-lang="vi">14. Concurrent Collections</h2>
+      <div data-lang="en">
+        <table>
+          <thead><tr><th>Type</th><th>Best use</th><th>Important detail</th></tr></thead>
+          <tbody>
+            <tr><td>ConcurrentHashMap</td><td>High-concurrency key-value access.</td><td>Individual operations are thread-safe; compound logic may require compute, merge, or external coordination.</td></tr>
+            <tr><td>CopyOnWriteArrayList</td><td>Very frequent reads, very rare writes, small lists.</td><td>Each write copies the backing array; iterators see a snapshot.</td></tr>
+            <tr><td>BlockingQueue</td><td>Producer-consumer and backpressure.</td><td>Prefer bounded queues when memory must be controlled.</td></tr>
+            <tr><td>ConcurrentLinkedQueue</td><td>Non-blocking FIFO queue.</td><td>Size may be expensive and is only transiently meaningful under concurrency.</td></tr>
+            <tr><td>ConcurrentSkipListMap</td><td>Concurrent sorted map and range queries.</td><td>Higher overhead than ConcurrentHashMap.</td></tr>
+          </tbody>
+        </table>
+        <pre><code class="language-java">ConcurrentHashMap&lt;String, LongAdder&gt; counters = new ConcurrentHashMap&lt;&gt;();
+
+counters
+    .computeIfAbsent(eventType, key -&gt; new LongAdder())
+    .increment();</code></pre>
+        <div class="callout warning"><b>Check-then-act is unsafe:</b> <code>if (!map.containsKey(k)) map.put(k, v)</code> is not atomic. Prefer <code>putIfAbsent</code>, <code>computeIfAbsent</code>, <code>compute</code>, or <code>merge</code>.</div>
+        </div>
+      <div data-lang="vi">
+        <table>
+          <thead><tr><th>Loại</th><th>Use case tốt</th><th>Điểm quan trọng</th></tr></thead>
+          <tbody>
+            <tr><td>ConcurrentHashMap</td><td>Key-value có concurrency cao.</td><td>Từng operation riêng lẻ thread-safe; compound logic nên dùng compute, merge hoặc cơ chế phối hợp khác.</td></tr>
+            <tr><td>CopyOnWriteArrayList</td><td>Read rất nhiều, write rất ít, list nhỏ.</td><td>Mỗi lần write copy backing array; iterator nhìn snapshot.</td></tr>
+            <tr><td>BlockingQueue</td><td>Producer-consumer và backpressure.</td><td>Nên dùng bounded queue khi cần kiểm soát memory.</td></tr>
+            <tr><td>ConcurrentLinkedQueue</td><td>FIFO queue non-blocking.</td><td>size() có thể tốn kém và chỉ phản ánh trạng thái tạm thời.</td></tr>
+            <tr><td>ConcurrentSkipListMap</td><td>Sorted map concurrent và range query.</td><td>Overhead cao hơn ConcurrentHashMap.</td></tr>
+          </tbody>
+        </table>
+        <pre><code class="language-java">ConcurrentHashMap&lt;String, LongAdder&gt; counters = new ConcurrentHashMap&lt;&gt;();
+
+counters
+    .computeIfAbsent(eventType, key -&gt; new LongAdder())
+    .increment();</code></pre>
+        <div class="callout warning"><b>Check-then-act không an toàn:</b> <code>if (!map.containsKey(k)) map.put(k, v)</code> không atomic. Hãy dùng <code>putIfAbsent</code>, <code>computeIfAbsent</code>, <code>compute</code> hoặc <code>merge</code>.</div>
+        </div>
+    </section>
+    
+    <section id="coordination" class="topic searchable">
+      <h2 data-lang="en">15. Coordination Utilities</h2>
+      <h2 data-lang="vi">15. Các công cụ phối hợp Thread</h2>
+      <div data-lang="en">
+        <div class="grid two">
+          <div class="card"><h4>CountDownLatch</h4><p>One-shot gate. One or more threads wait until a counter reaches zero.</p></div>
+          <div class="card"><h4>CyclicBarrier</h4><p>A fixed group repeatedly waits for all participants to reach the barrier.</p></div>
+          <div class="card"><h4>Phaser</h4><p>Flexible multi-phase coordination with dynamic registration.</p></div>
+          <div class="card"><h4>Semaphore</h4><p>Limits concurrent access to a scarce resource such as an external API.</p></div>
+        </div>
+        <pre><code class="language-java">Semaphore permits = new Semaphore(20);
+
+public Response callPartner(Request request) throws InterruptedException {
+    if (!permits.tryAcquire(300, TimeUnit.MILLISECONDS)) {
+        throw new TooManyRequestsException();
+    }
+    try {
+        return partnerClient.call(request);
+    } finally {
+        permits.release();
+    }
+}</code></pre>
+        <div class="callout senior"><b>Senior use:</b> A Semaphore can protect a downstream system even when the application accepts much higher concurrency. This is bulkheading at the resource boundary.</div>
+        </div>
+      <div data-lang="vi">
+        <div class="grid two">
+          <div class="card"><h4>CountDownLatch</h4><p>One-shot gate. Một hoặc nhiều thread chờ counter về zero.</p></div>
+          <div class="card"><h4>CyclicBarrier</h4><p>Một nhóm thread cố định có thể lặp lại việc chờ tất cả thành viên tới barrier.</p></div>
+          <div class="card"><h4>Phaser</h4><p>Phối hợp nhiều phase linh hoạt và đăng ký participant động.</p></div>
+          <div class="card"><h4>Semaphore</h4><p>Giới hạn số thread truy cập đồng thời vào resource khan hiếm như external API.</p></div>
+        </div>
+        <pre><code class="language-java">Semaphore permits = new Semaphore(20);
+
+public Response callPartner(Request request) throws InterruptedException {
+    if (!permits.tryAcquire(300, TimeUnit.MILLISECONDS)) {
+        throw new TooManyRequestsException();
+    }
+    try {
+        return partnerClient.call(request);
+    } finally {
+        permits.release();
+    }
+}</code></pre>
+        <div class="callout senior"><b>Ứng dụng Senior:</b> Semaphore có thể bảo vệ downstream ngay cả khi application nhận concurrency cao hơn nhiều. Đây là bulkhead tại resource boundary.</div>
+        </div>
+    </section>
+    
+    <section id="deadlock" class="topic searchable">
+      <h2 data-lang="en">16. Deadlock, Livelock and Starvation</h2>
+      <h2 data-lang="vi">16. Deadlock, Livelock và Starvation</h2>
+      <div data-lang="en">
+        <h4>Deadlock</h4>
+        <p>Two or more threads wait forever for resources held by each other.</p>
+        <pre><code class="language-java">// Thread 1
+synchronized (accountA) {
+    synchronized (accountB) { transfer(); }
+}
+
+// Thread 2
+synchronized (accountB) {
+    synchronized (accountA) { transfer(); }
+}</code></pre>
+        <h4>Four Coffman conditions</h4>
+        <ol>
+          <li>Mutual exclusion</li>
+          <li>Hold and wait</li>
+          <li>No preemption</li>
+          <li>Circular wait</li>
+        </ol>
+        <h4>Prevention</h4>
+        <ul>
+          <li>Use a global lock ordering.</li>
+          <li>Avoid nested locks.</li>
+          <li>Use timed tryLock and rollback.</li>
+          <li>Reduce lock scope and shared state.</li>
+          <li>Use immutable data, queues, or actors when possible.</li>
+        </ul>
+        <h4>Livelock</h4><p>Threads are active and repeatedly react to each other, but no useful work completes.</p>
+        <h4>Starvation</h4><p>A thread is continually denied CPU or lock access because other threads dominate the resource.</p>
+        </div>
+      <div data-lang="vi">
+        <h4>Deadlock</h4>
+        <p>Hai hoặc nhiều thread chờ vĩnh viễn resource đang bị thread khác giữ.</p>
+        <pre><code class="language-java">// Thread 1
+synchronized (accountA) {
+    synchronized (accountB) { transfer(); }
+}
+
+// Thread 2
+synchronized (accountB) {
+    synchronized (accountA) { transfer(); }
+}</code></pre>
+        <h4>Bốn điều kiện Coffman</h4>
+        <ol>
+          <li>Mutual exclusion</li>
+          <li>Hold and wait</li>
+          <li>No preemption</li>
+          <li>Circular wait</li>
+        </ol>
+        <h4>Cách phòng tránh</h4>
+        <ul>
+          <li>Dùng thứ tự lock toàn cục.</li>
+          <li>Tránh nested lock.</li>
+          <li>Dùng timed tryLock và rollback.</li>
+          <li>Giảm phạm vi lock và shared state.</li>
+          <li>Ưu tiên immutable data, queue hoặc actor.</li>
+        </ul>
+        <h4>Livelock</h4><p>Thread vẫn hoạt động và liên tục phản ứng với nhau nhưng không hoàn thành công việc hữu ích.</p>
+        <h4>Starvation</h4><p>Một thread liên tục không giành được CPU hoặc lock vì thread khác chiếm ưu thế.</p>
+        </div>
+    </section>
+    
+    <section id="interruption" class="topic searchable">
+      <h2 data-lang="en">17. Interruption and Cancellation</h2>
+      <h2 data-lang="vi">17. Interruption và Cancellation</h2>
+      <div data-lang="en">
+        <p>Interruption is cooperative cancellation. It is a request, not a forced kill.</p>
+        <pre><code class="language-java">public void process() {
+    try {
+        while (!Thread.currentThread().isInterrupted()) {
+            Task task = queue.take();
+            handle(task);
+        }
+    } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt(); // restore status
+        log.info("Worker interrupted, stopping");
+    } finally {
+        cleanup();
+    }
+}</code></pre>
+        <h4>Rules</h4>
+        <ul>
+          <li>Propagate InterruptedException when the API allows it.</li>
+          <li>If you catch it and cannot rethrow, restore the interrupt flag.</li>
+          <li>Do not swallow interruption and continue as if nothing happened.</li>
+          <li>Blocking operations should have timeouts where indefinite waiting is unacceptable.</li>
+        </ul>
+        <div class="callout danger"><b>Never use Thread.stop().</b> It can terminate a thread while shared state is inconsistent and locks are being manipulated.</div>
+        </div>
+      <div data-lang="vi">
+        <p>Interruption là cơ chế cooperative cancellation. Đây là yêu cầu dừng, không phải cưỡng chế kill thread.</p>
+        <pre><code class="language-java">public void process() {
+    try {
+        while (!Thread.currentThread().isInterrupted()) {
+            Task task = queue.take();
+            handle(task);
+        }
+    } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt(); // khôi phục flag
+        log.info("Worker interrupted, stopping");
+    } finally {
+        cleanup();
+    }
+}</code></pre>
+        <h4>Quy tắc</h4>
+        <ul>
+          <li>Propagate InterruptedException nếu API cho phép.</li>
+          <li>Nếu catch nhưng không thể throw tiếp, phải restore interrupt flag.</li>
+          <li>Không swallow interruption rồi tiếp tục như không có gì xảy ra.</li>
+          <li>Blocking operation nên có timeout nếu không chấp nhận chờ vô hạn.</li>
+        </ul>
+        <div class="callout danger"><b>Không dùng Thread.stop().</b> Nó có thể dừng thread khi shared state đang không nhất quán.</div>
+        </div>
+    </section>
+    
+    <section id="virtual-threads" class="topic searchable">
+      <h2 data-lang="en">18. Virtual Threads</h2>
+      <h2 data-lang="vi">18. Virtual Threads</h2>
+      <div data-lang="en">
+        <p>Virtual threads make the thread-per-task model practical for large numbers of mostly-blocking tasks.</p>
+        <pre><code class="language-java">try (ExecutorService executor =
+         Executors.newVirtualThreadPerTaskExecutor()) {
+
+    List&lt;Future&lt;Response&gt;&gt; futures = requests.stream()
+        .map(request -&gt; executor.submit(() -&gt; blockingCall(request)))
+        .toList();
+
+    for (Future&lt;Response&gt; future : futures) {
+        handle(future.get());
+    }
+}</code></pre>
+        <h4>Good fit</h4>
+        <ul>
+          <li>Blocking HTTP calls, JDBC, file operations, and thread-per-request services.</li>
+          <li>Large numbers of independent tasks with simple imperative code.</li>
+        </ul>
+        <h4>Not a magic solution</h4>
+        <ul>
+          <li>CPU-bound work is still limited by CPU cores.</li>
+          <li>Database connections, sockets, rate limits, and memory remain finite.</li>
+          <li>ThreadLocal usage may become expensive when millions of virtual threads are created.</li>
+          <li>Long blocking while holding a monitor or native call can reduce scalability.</li>
+        </ul>
+        <div class="callout senior"><b>Design rule:</b> With virtual threads, do not pool threads to limit concurrency. Use Semaphore, connection pools, rate limiters, or bounded queues to limit scarce resources.</div>
+        </div>
+      <div data-lang="vi">
+        <p>Virtual thread giúp mô hình thread-per-task khả thi với số lượng lớn task chủ yếu bị blocking.</p>
+        <pre><code class="language-java">try (ExecutorService executor =
+         Executors.newVirtualThreadPerTaskExecutor()) {
+
+    List&lt;Future&lt;Response&gt;&gt; futures = requests.stream()
+        .map(request -&gt; executor.submit(() -&gt; blockingCall(request)))
+        .toList();
+
+    for (Future&lt;Response&gt; future : futures) {
+        handle(future.get());
+    }
+}</code></pre>
+        <h4>Phù hợp</h4>
+        <ul>
+          <li>Blocking HTTP, JDBC, file operation và service thread-per-request.</li>
+          <li>Số lượng lớn task độc lập với code imperative đơn giản.</li>
+        </ul>
+        <h4>Không phải giải pháp thần kỳ</h4>
+        <ul>
+          <li>CPU-bound vẫn bị giới hạn bởi số CPU core.</li>
+          <li>DB connection, socket, rate limit và memory vẫn hữu hạn.</li>
+          <li>ThreadLocal có thể tốn kém nếu tạo hàng triệu virtual thread.</li>
+          <li>Blocking lâu khi đang giữ monitor hoặc native call có thể giảm scalability.</li>
+        </ul>
+        <div class="callout senior"><b>Quy tắc thiết kế:</b> Với virtual thread, không pool thread để giới hạn concurrency. Hãy dùng Semaphore, connection pool, rate limiter hoặc bounded queue để giới hạn resource khan hiếm.</div>
+        </div>
+    </section>
+    
+    <section id="spring" class="topic searchable">
+      <h2 data-lang="en">19. Multithreading in Spring Applications</h2>
+      <h2 data-lang="vi">19. Multithreading trong Spring</h2>
+      <div data-lang="en">
+        <h4>@Async</h4>
+        <pre><code class="language-java">@Configuration
+@EnableAsync
+class AsyncConfig {
+
+    @Bean("paymentExecutor")
+    Executor paymentExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(8);
+        executor.setMaxPoolSize(16);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("payment-");
+        executor.setRejectedExecutionHandler(
+            new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+        executor.initialize();
+        return executor;
+    }
+}
+
+@Service
+class PaymentService {
+
+    @Async("paymentExecutor")
+    public CompletableFuture&lt;Receipt&gt; charge(Payment payment) {
+        return CompletableFuture.completedFuture(doCharge(payment));
+    }
+}</code></pre>
+        <h4>Important Spring pitfalls</h4>
+        <ul>
+          <li>Self-invocation bypasses the proxy, so <code>@Async</code> may not apply.</li>
+          <li>Transaction context does not automatically move to another thread.</li>
+          <li>SecurityContext, MDC, request scope, and ThreadLocal values require explicit propagation.</li>
+          <li>Exceptions from void async methods require an AsyncUncaughtExceptionHandler.</li>
+          <li>Do not use the default executor blindly; define capacity, naming, metrics, and rejection behavior.</li>
+        </ul>
+        <div class="callout danger"><b>Transaction warning:</b> An async method normally runs in another thread. The caller’s transaction and persistence context do not continue automatically.</div>
+        </div>
+      <div data-lang="vi">
+        <h4>@Async</h4>
+        <pre><code class="language-java">@Configuration
+@EnableAsync
+class AsyncConfig {
+
+    @Bean("paymentExecutor")
+    Executor paymentExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(8);
+        executor.setMaxPoolSize(16);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("payment-");
+        executor.setRejectedExecutionHandler(
+            new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+        executor.initialize();
+        return executor;
+    }
+}
+
+@Service
+class PaymentService {
+
+    @Async("paymentExecutor")
+    public CompletableFuture&lt;Receipt&gt; charge(Payment payment) {
+        return CompletableFuture.completedFuture(doCharge(payment));
+    }
+}</code></pre>
+        <h4>Lỗi quan trọng trong Spring</h4>
+        <ul>
+          <li>Self-invocation bỏ qua proxy nên <code>@Async</code> có thể không hoạt động.</li>
+          <li>Transaction context không tự động chuyển sang thread khác.</li>
+          <li>SecurityContext, MDC, request scope và ThreadLocal cần propagate rõ ràng.</li>
+          <li>Exception từ void async method cần AsyncUncaughtExceptionHandler.</li>
+          <li>Không dùng default executor một cách mù quáng; phải cấu hình capacity, thread name, metric và rejection.</li>
+        </ul>
+        <div class="callout danger"><b>Cảnh báo transaction:</b> Async method thường chạy trên thread khác. Transaction và persistence context của caller không tự động tiếp tục.</div>
+        </div>
+    </section>
+    
+    <section id="reactive" class="topic searchable">
+      <h2 data-lang="en">20. Blocking, Async and Reactive</h2>
+      <h2 data-lang="vi">20. Blocking, Async và Reactive</h2>
+      <div data-lang="en">
+        <table>
+          <thead><tr><th>Model</th><th>Strength</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Platform thread + pool</td><td>Simple, mature, good for bounded workloads.</td><td>Large blocking concurrency needs many threads.</td></tr>
+            <tr><td>CompletableFuture</td><td>Good for composing several asynchronous operations.</td><td>Error handling, context, and thread selection can become complex.</td></tr>
+            <tr><td>Reactive/WebFlux</td><td>Efficient for end-to-end non-blocking pipelines and backpressure.</td><td>Blocking code on event-loop threads can collapse throughput.</td></tr>
+            <tr><td>Virtual threads</td><td>Simple imperative code with high blocking concurrency.</td><td>Does not remove downstream limits or CPU constraints.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout senior"><b>Architecture choice:</b> Do not mix paradigms without a reason. Choose based on workload, team skill, library support, operability, and end-to-end blocking behavior—not fashion.</div>
+        </div>
+      <div data-lang="vi">
+        <table>
+          <thead><tr><th>Mô hình</th><th>Điểm mạnh</th><th>Rủi ro</th></tr></thead>
+          <tbody>
+            <tr><td>Platform thread + pool</td><td>Đơn giản, trưởng thành, phù hợp workload có giới hạn.</td><td>Concurrency blocking lớn cần nhiều thread.</td></tr>
+            <tr><td>CompletableFuture</td><td>Tốt khi compose vài operation bất đồng bộ.</td><td>Error handling, context và chọn thread có thể phức tạp.</td></tr>
+            <tr><td>Reactive/WebFlux</td><td>Hiệu quả cho pipeline non-blocking end-to-end và backpressure.</td><td>Blocking trên event-loop thread có thể làm throughput sụp đổ.</td></tr>
+            <tr><td>Virtual threads</td><td>Code imperative đơn giản với blocking concurrency cao.</td><td>Không loại bỏ giới hạn downstream hoặc CPU.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout senior"><b>Lựa chọn kiến trúc:</b> Không trộn paradigm nếu không có lý do. Chọn theo workload, kỹ năng team, thư viện, vận hành và mức độ blocking end-to-end.</div>
+        </div>
+    </section>
+    
+    <section id="patterns" class="topic searchable">
+      <h2 data-lang="en">21. Production Concurrency Patterns</h2>
+      <h2 data-lang="vi">21. Pattern Concurrency trong Production</h2>
+      <div data-lang="en">
+        <div class="grid two">
+          <div class="card"><h4>Thread confinement</h4><p>State is owned by one thread and never shared.</p></div>
+          <div class="card"><h4>Immutability</h4><p>Objects cannot change after construction, greatly simplifying sharing.</p></div>
+          <div class="card"><h4>Producer-consumer</h4><p>Tasks move through a bounded BlockingQueue between producers and workers.</p></div>
+          <div class="card"><h4>Bulkhead</h4><p>Separate pools or permits isolate failures between dependencies.</p></div>
+          <div class="card"><h4>Backpressure</h4><p>Slow producers or reject work instead of allowing unbounded accumulation.</p></div>
+          <div class="card"><h4>Single writer</h4><p>One thread owns mutation; others send commands through a queue.</p></div>
+        </div>
+        <h4>Example: bounded producer-consumer</h4>
+        <pre><code class="language-java">BlockingQueue&lt;Job&gt; queue = new ArrayBlockingQueue&lt;&gt;(1_000);
+
+boolean accepted = queue.offer(job, 100, TimeUnit.MILLISECONDS);
+if (!accepted) {
+    throw new ServiceOverloadedException();
+}
+
+Job next = queue.take();
+process(next);</code></pre>
+        </div>
+      <div data-lang="vi">
+        <div class="grid two">
+          <div class="card"><h4>Thread confinement</h4><p>State thuộc sở hữu của một thread và không chia sẻ.</p></div>
+          <div class="card"><h4>Immutability</h4><p>Object không thay đổi sau khi tạo, giúp chia sẻ đơn giản hơn nhiều.</p></div>
+          <div class="card"><h4>Producer-consumer</h4><p>Task đi qua bounded BlockingQueue giữa producer và worker.</p></div>
+          <div class="card"><h4>Bulkhead</h4><p>Tách pool hoặc permit để cô lập lỗi giữa các dependency.</p></div>
+          <div class="card"><h4>Backpressure</h4><p>Làm chậm producer hoặc reject thay vì tích lũy vô hạn.</p></div>
+          <div class="card"><h4>Single writer</h4><p>Một thread sở hữu mutation; thread khác gửi command qua queue.</p></div>
+        </div>
+        <h4>Ví dụ: bounded producer-consumer</h4>
+        <pre><code class="language-java">BlockingQueue&lt;Job&gt; queue = new ArrayBlockingQueue&lt;&gt;(1_000);
+
+boolean accepted = queue.offer(job, 100, TimeUnit.MILLISECONDS);
+if (!accepted) {
+    throw new ServiceOverloadedException();
+}
+
+Job next = queue.take();
+process(next);</code></pre>
+        </div>
+    </section>
+    
+    <section id="testing" class="topic searchable">
+      <h2 data-lang="en">22. Testing Concurrent Code</h2>
+      <h2 data-lang="vi">22. Kiểm thử Concurrent Code</h2>
+      <div data-lang="en">
+        <p>Concurrency bugs are timing-dependent. A test that passes once proves very little.</p>
+        <h4>Testing strategy</h4>
+        <ul>
+          <li>Extract deterministic business logic from scheduling code.</li>
+          <li>Use barriers or latches to force specific interleavings.</li>
+          <li>Run tests repeatedly and under load.</li>
+          <li>Assert invariants, not thread timing.</li>
+          <li>Use Awaitility-style polling instead of arbitrary sleep.</li>
+          <li>Use specialized stress-testing tools for Java Memory Model edge cases.</li>
+        </ul>
+        <pre><code class="language-java">int workers = 20;
+CountDownLatch ready = new CountDownLatch(workers);
+CountDownLatch start = new CountDownLatch(1);
+CountDownLatch done = new CountDownLatch(workers);
+
+for (int i = 0; i &lt; workers; i++) {
+    executor.submit(() -&gt; {
+        ready.countDown();
+        start.await();
+        counter.increment();
+        done.countDown();
+        return null;
+    });
+}
+
+ready.await();
+start.countDown();
+done.await();
+
+assertEquals(workers, counter.get());</code></pre>
+        </div>
+      <div data-lang="vi">
+        <p>Concurrency bug phụ thuộc timing. Một test pass một lần gần như không chứng minh được nhiều.</p>
+        <h4>Chiến lược test</h4>
+        <ul>
+          <li>Tách business logic deterministic khỏi scheduling code.</li>
+          <li>Dùng barrier hoặc latch để ép một số interleaving cụ thể.</li>
+          <li>Chạy test lặp lại và dưới tải.</li>
+          <li>Assert invariant, không assert timing mơ hồ.</li>
+          <li>Dùng polling kiểu Awaitility thay vì sleep tùy ý.</li>
+          <li>Dùng công cụ stress test chuyên dụng cho edge case của Java Memory Model.</li>
+        </ul>
+        <pre><code class="language-java">int workers = 20;
+CountDownLatch ready = new CountDownLatch(workers);
+CountDownLatch start = new CountDownLatch(1);
+CountDownLatch done = new CountDownLatch(workers);
+
+for (int i = 0; i &lt; workers; i++) {
+    executor.submit(() -&gt; {
+        ready.countDown();
+        start.await();
+        counter.increment();
+        done.countDown();
+        return null;
+    });
+}
+
+ready.await();
+start.countDown();
+done.await();
+
+assertEquals(workers, counter.get());</code></pre>
+        </div>
+    </section>
+    
+    <section id="debugging" class="topic searchable">
+      <h2 data-lang="en">23. Production Debugging and Observability</h2>
+      <h2 data-lang="vi">23. Debugging và Observability trên Production</h2>
+      <div data-lang="en">
+        <h4>Symptoms to watch</h4>
+        <ul>
+          <li>Thread count continuously increasing.</li>
+          <li>Executor active count equals maximum for long periods.</li>
+          <li>Queue depth and queue wait time increasing.</li>
+          <li>Many threads BLOCKED on the same monitor.</li>
+          <li>Many WAITING threads on a downstream pool.</li>
+          <li>High context switching with low useful CPU.</li>
+          <li>Timeouts, rejected tasks, or connection-pool exhaustion.</li>
+        </ul>
+        <h4>Useful commands</h4>
+        <pre><code class="language-bash">jcmd &lt;pid&gt; Thread.print
+jstack &lt;pid&gt;
+jcmd &lt;pid&gt; JFR.start name=concurrency settings=profile duration=60s filename=recording.jfr
+top -H -p &lt;pid&gt;</code></pre>
+        <h4>Executor metrics</h4>
+        <ul>
+          <li>pool size, active threads, largest pool size</li>
+          <li>queue size, remaining capacity, queue wait time</li>
+          <li>completed task count, task duration, rejection count</li>
+          <li>timeout count and downstream latency</li>
+        </ul>
+        <div class="callout senior"><b>Thread dump method:</b> Capture several dumps a few seconds apart. A single dump is a snapshot; repeated dumps reveal whether threads are progressing or stuck.</div>
+        </div>
+      <div data-lang="vi">
+        <h4>Dấu hiệu cần theo dõi</h4>
+        <ul>
+          <li>Thread count tăng liên tục.</li>
+          <li>Executor active count bằng maximum trong thời gian dài.</li>
+          <li>Queue depth và queue wait time tăng.</li>
+          <li>Nhiều thread BLOCKED trên cùng monitor.</li>
+          <li>Nhiều thread WAITING vì downstream pool.</li>
+          <li>Context switching cao nhưng useful CPU thấp.</li>
+          <li>Timeout, rejected task hoặc connection-pool exhaustion.</li>
+        </ul>
+        <h4>Lệnh hữu ích</h4>
+        <pre><code class="language-bash">jcmd &lt;pid&gt; Thread.print
+jstack &lt;pid&gt;
+jcmd &lt;pid&gt; JFR.start name=concurrency settings=profile duration=60s filename=recording.jfr
+top -H -p &lt;pid&gt;</code></pre>
+        <h4>Metric cho Executor</h4>
+        <ul>
+          <li>pool size, active thread, largest pool size</li>
+          <li>queue size, remaining capacity, queue wait time</li>
+          <li>completed task count, task duration, rejection count</li>
+          <li>timeout count và downstream latency</li>
+        </ul>
+        <div class="callout senior"><b>Cách đọc thread dump:</b> Chụp nhiều dump cách nhau vài giây. Một dump chỉ là snapshot; nhiều dump giúp biết thread đang tiến triển hay bị kẹt.</div>
+        </div>
+    </section>
+    
+    <section id="review" class="topic searchable">
+      <h2 data-lang="en">24. Senior Code Review Checklist</h2>
+      <h2 data-lang="vi">24. Checklist Review Code ở cấp Senior</h2>
+      <div data-lang="en">
+        <div class="checklist">
+          <label><input type="checkbox"> Shared mutable state is minimized and clearly owned.</label>
+          <label><input type="checkbox"> Every invariant has one documented synchronization policy.</label>
+          <label><input type="checkbox"> Executor and queue capacity are bounded.</label>
+          <label><input type="checkbox"> Rejection and overload behavior are intentional.</label>
+          <label><input type="checkbox"> Blocking calls have timeouts.</label>
+          <label><input type="checkbox"> Interruption is propagated or restored.</label>
+          <label><input type="checkbox"> Locks are released in finally blocks.</label>
+          <label><input type="checkbox"> Lock ordering prevents deadlock.</label>
+          <label><input type="checkbox"> Context propagation is handled across threads.</label>
+          <label><input type="checkbox"> Thread pools, queues, latency, and rejection are monitored.</label>
+          <label><input type="checkbox"> Shutdown is graceful and awaits task completion.</label>
+          <label><input type="checkbox"> Concurrency tests assert invariants under repeated execution.</label>
+        </div>
+        </div>
+      <div data-lang="vi">
+        <div class="checklist">
+          <label><input type="checkbox"> Giảm shared mutable state và xác định rõ ownership.</label>
+          <label><input type="checkbox"> Mỗi invariant có một synchronization policy rõ ràng.</label>
+          <label><input type="checkbox"> Executor và queue có giới hạn.</label>
+          <label><input type="checkbox"> Hành vi rejection và overload được thiết kế có chủ đích.</label>
+          <label><input type="checkbox"> Blocking call có timeout.</label>
+          <label><input type="checkbox"> Interruption được propagate hoặc restore.</label>
+          <label><input type="checkbox"> Lock được release trong finally.</label>
+          <label><input type="checkbox"> Thứ tự lock ngăn deadlock.</label>
+          <label><input type="checkbox"> Context được propagate khi chuyển thread.</label>
+          <label><input type="checkbox"> Có metric cho thread pool, queue, latency và rejection.</label>
+          <label><input type="checkbox"> Shutdown graceful và chờ task hoàn tất.</label>
+          <label><input type="checkbox"> Concurrency test kiểm tra invariant khi chạy lặp lại.</label>
+        </div>
+        </div>
+    </section>
+    
+
+    <section id="interview" class="interview-section">
+      <h2 data-lang="en">25. Senior Java Multithreading Interview Questions</h2>
+      <h2 data-lang="vi">25. Câu hỏi phỏng vấn Java Multithreading cấp Senior</h2>
+      <p data-lang="en">Open each question and practice answering in 60–120 seconds. Start with the definition, explain the internal mechanism, discuss trade-offs, and finish with a production example.</p>
+      <p data-lang="vi">Mở từng câu và luyện trả lời trong 60–120 giây. Bắt đầu bằng khái niệm, giải thích cơ chế, trade-off và kết thúc bằng ví dụ production.</p>
+      
+    <details class="qa searchable">
+      <summary><span class="qnum">01</span> <span>What is thread safety?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Thread safety means code preserves its correctness guarantees when accessed concurrently, without callers needing extra synchronization. A strong answer should mention atomicity, visibility, ordering, safe publication, and protection of invariants.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Thread safety nghĩa là code vẫn giữ đúng tính đúng đắn khi được nhiều thread truy cập đồng thời mà caller không cần tự đồng bộ thêm. Câu trả lời tốt cần nhắc atomicity, visibility, ordering, safe publication và bảo vệ invariant.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">02</span> <span>What is the difference between synchronized and volatile?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> synchronized provides mutual exclusion and visibility for a critical section. volatile provides visibility and ordering for one variable but does not protect compound operations or multi-field invariants.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> synchronized cung cấp mutual exclusion và visibility cho critical section. volatile cung cấp visibility và ordering cho một biến nhưng không bảo vệ compound operation hoặc invariant gồm nhiều field.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">03</span> <span>Why is count++ not thread-safe?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> It consists of read, increment, and write. Threads can interleave these steps and overwrite each other, producing a lost update.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Vì nó gồm đọc, cộng và ghi. Nhiều thread có thể xen kẽ các bước này và ghi đè kết quả của nhau.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">04</span> <span>What is happens-before?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> It is a Java Memory Model ordering relation. If action A happens-before action B, B is guaranteed to observe A’s effects, subject to the semantics of the actions involved.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Đây là quan hệ ordering của Java Memory Model. Nếu A happens-before B thì B được đảm bảo thấy effect của A.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">05</span> <span>Can synchronized methods on two different objects block each other?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Not normally. Instance synchronized methods lock each object’s monitor. They block each other only when they synchronize on the same monitor or shared lock object.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Thông thường không. Instance synchronized method lock monitor của từng object. Chúng chỉ block nhau nếu dùng cùng monitor hoặc cùng shared lock.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">06</span> <span>What is reentrancy?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> A reentrant lock allows a thread that already owns the lock to acquire it again. Both synchronized and ReentrantLock are reentrant.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Reentrant lock cho phép thread đang giữ lock acquire lại lock đó. synchronized và ReentrantLock đều reentrant.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">07</span> <span>When would you use ReentrantLock instead of synchronized?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> When timed acquisition, interruptible acquisition, fairness, multiple Condition queues, or explicit lock management is required. Otherwise synchronized is often simpler and safer.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Dùng khi cần timed acquisition, interruptible acquisition, fairness, nhiều Condition queue hoặc quản lý lock tường minh. Nếu không, synchronized thường đơn giản hơn.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">08</span> <span>What is the difference between wait() and sleep()?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> wait releases the current object monitor and must be called while holding it. sleep pauses the thread for a duration and does not release locks.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> wait release monitor của object hiện tại và phải gọi khi đang giữ monitor. sleep tạm dừng thread nhưng không release lock.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">09</span> <span>Why should wait() be called in a loop?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Because of spurious wake-ups and because another thread may consume or change the condition before the awakened thread reacquires the monitor.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Vì có spurious wake-up và vì thread khác có thể thay đổi condition trước khi thread vừa thức giành lại monitor.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">10</span> <span>notify() or notifyAll()?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> notify wakes one arbitrary waiter. notifyAll wakes all waiters, which re-check their conditions. notifyAll is safer when multiple logical conditions share a monitor, though it can cause more contention.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> notify đánh thức một waiter bất kỳ. notifyAll đánh thức tất cả để tự kiểm tra lại condition. notifyAll an toàn hơn khi nhiều condition logic dùng chung monitor nhưng gây contention lớn hơn.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">11</span> <span>How does ThreadPoolExecutor decide to create threads?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> It first grows to corePoolSize, then queues tasks, then grows toward maximumPoolSize only when the queue is full, and finally rejects.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Nó tăng tới corePoolSize, sau đó queue task, chỉ tăng tới maximumPoolSize khi queue đầy, rồi mới reject.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">12</span> <span>Why is an unbounded executor queue dangerous?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> It can hide overload by accumulating tasks indefinitely, increasing latency and memory use until the process becomes unstable or runs out of memory.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Nó che giấu overload bằng cách tích lũy task vô hạn, làm tăng latency và memory cho tới khi process bất ổn hoặc OOM.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">13</span> <span>How do you size a thread pool?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Classify the workload as CPU-bound or blocking, estimate wait-to-compute ratio, respect downstream capacity, then validate with load tests and production metrics. There is no universal fixed number.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Phân loại CPU-bound hay blocking, ước lượng tỷ lệ wait/compute, tôn trọng capacity downstream rồi kiểm chứng bằng load test và metric. Không có một con số cố định cho mọi hệ thống.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">14</span> <span>What is backpressure?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> It is a mechanism that prevents producers from overwhelming consumers, for example by using bounded queues, blocking submission, caller-runs, rate limiting, or rejection.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Đây là cơ chế ngăn producer làm quá tải consumer, ví dụ bounded queue, block khi submit, caller-runs, rate limiting hoặc rejection.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">15</span> <span>What happens when a task submitted to ExecutorService throws an exception?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> With execute(), an uncaught exception reaches the worker thread’s uncaught-exception handling. With submit(), it is captured by Future and rethrown from get() as ExecutionException.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Với execute(), exception chưa xử lý đi tới uncaught-exception handler của worker. Với submit(), exception được giữ trong Future và get() ném ExecutionException.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">16</span> <span>execute() vs submit()?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> execute accepts Runnable and returns nothing. submit accepts Runnable or Callable and returns a Future, capturing exceptions in that Future.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> execute nhận Runnable và không trả kết quả. submit nhận Runnable hoặc Callable và trả Future, đồng thời giữ exception trong Future.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">17</span> <span>shutdown() vs shutdownNow()?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> shutdown stops accepting new tasks and lets submitted tasks finish. shutdownNow attempts to interrupt running tasks and returns tasks that never started; cancellation is still cooperative.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> shutdown ngừng nhận task mới và cho task đã submit chạy xong. shutdownNow cố interrupt task đang chạy và trả về task chưa chạy; cancellation vẫn mang tính cooperative.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">18</span> <span>What is a deadlock and how do you diagnose it?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> A deadlock is a circular wait among threads holding resources. Diagnose using repeated thread dumps or JFR; look for Java-level deadlock reports and threads mutually waiting on monitors.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Deadlock là circular wait giữa các thread đang giữ resource. Chẩn đoán bằng nhiều thread dump hoặc JFR; tìm báo cáo deadlock và các thread chờ monitor của nhau.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">19</span> <span>How do you prevent deadlock in fund transfer?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Use deterministic lock ordering, such as locking accounts by stable ID order, or use tryLock with timeout and retry. Keep lock scope small.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Dùng thứ tự lock cố định, ví dụ lock account theo ID, hoặc tryLock với timeout và retry. Giữ phạm vi lock nhỏ.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">20</span> <span>What is starvation?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> A thread is ready but repeatedly denied access to CPU, a lock, or another resource. Causes include unfair locking, priority misuse, and long critical sections.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Một thread sẵn sàng nhưng liên tục không được cấp CPU, lock hoặc resource. Nguyên nhân gồm unfair lock, lạm dụng priority và critical section quá dài.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">21</span> <span>What is livelock?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Threads are not blocked but repeatedly react to one another in a way that prevents progress, such as both backing off and retrying in sync.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Thread không bị block nhưng liên tục phản ứng với nhau khiến không tiến triển, ví dụ cùng backoff và retry đồng bộ.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">22</span> <span>AtomicInteger vs LongAdder?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> AtomicInteger gives an exact atomic value and CAS-based updates. LongAdder improves update throughput under heavy contention by spreading writes, but sum() is not an atomic snapshot.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> AtomicInteger cho giá trị atomic chính xác bằng CAS. LongAdder tăng throughput khi contention cao bằng cách phân tán write, nhưng sum() không phải atomic snapshot.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">23</span> <span>Is ConcurrentHashMap enough for compound operations?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Not automatically. Use atomic map methods such as compute, merge, replace, and putIfAbsent, or coordinate externally when multiple keys or structures form one invariant.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Không tự động. Dùng compute, merge, replace, putIfAbsent hoặc cơ chế bên ngoài khi invariant liên quan nhiều key hay nhiều structure.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">24</span> <span>What is safe publication?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Making an object visible to other threads in a way that guarantees they see a fully constructed state. Examples include static initialization, volatile references, final-field guarantees, locks, and concurrent collections.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Làm object visible cho thread khác sao cho chúng thấy trạng thái đã khởi tạo đầy đủ. Ví dụ static initialization, volatile reference, final-field guarantee, lock và concurrent collection.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">25</span> <span>Why should fields often be final in concurrent code?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Final fields support immutability and have special initialization safety guarantees, reducing the number of states and synchronization requirements.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Final field hỗ trợ immutability và có guarantee đặc biệt khi khởi tạo, giúp giảm số trạng thái và nhu cầu đồng bộ.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">26</span> <span>What is false sharing?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Independent hot variables located on the same cache line cause cores to invalidate each other’s cache, reducing performance even though the variables are logically unrelated.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Các biến nóng độc lập nằm cùng cache line khiến các core liên tục invalidate cache của nhau, làm giảm hiệu năng dù logic không liên quan.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">27</span> <span>What is context switching overhead?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> The CPU and OS save and restore execution state when switching threads. Excessive runnable threads can increase scheduler overhead, cache misses, and latency.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> CPU và OS phải lưu/khôi phục trạng thái khi chuyển thread. Quá nhiều runnable thread làm tăng scheduler overhead, cache miss và latency.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">28</span> <span>Why is blocking in ForkJoinPool risky?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> ForkJoinPool is optimized for short compute tasks and work stealing. Blocking can reduce available workers and stall unrelated tasks unless compensation or managed blocking occurs.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> ForkJoinPool tối ưu cho task tính toán ngắn và work stealing. Blocking có thể làm thiếu worker và kẹt task khác.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">29</span> <span>parallelStream: when should you avoid it?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Avoid it for blocking I/O, small data sets, order-sensitive side effects, shared mutable state, request-serving code that needs isolation, or when common-pool interference matters.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Tránh dùng cho blocking I/O, dữ liệu nhỏ, side effect phụ thuộc thứ tự, shared mutable state, request cần isolation hoặc khi common pool gây ảnh hưởng lẫn nhau.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">30</span> <span>How do CompletableFuture exceptions work?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Exceptions propagate through dependent stages. handle observes success or failure; exceptionally recovers from failure; whenComplete observes without changing the result unless it throws.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Exception propagate qua các stage phụ thuộc. handle xử lý cả success/failure; exceptionally recover failure; whenComplete quan sát kết quả và thường không đổi result.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">31</span> <span>thenApply vs thenCompose?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> thenApply maps a value to another value. thenCompose chains an asynchronous operation and flattens nested CompletableFuture results.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> thenApply map value sang value khác. thenCompose chain async operation và flatten CompletableFuture lồng nhau.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">32</span> <span>What is the risk of ThreadLocal in a thread pool?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Pool threads are reused. If values are not removed, data may leak between tasks and retain objects in memory. Always clean up in finally or use controlled context propagation.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Thread trong pool được tái sử dụng. Nếu không remove, dữ liệu có thể rò giữa các task và giữ object trong memory. Luôn cleanup trong finally hoặc propagate có kiểm soát.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">33</span> <span>How does @Async work in Spring?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Typically through a proxy that submits the method invocation to an Executor. Self-invocation bypasses the proxy, and caller transaction/request context does not automatically move to the worker thread.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Thường qua proxy submit method invocation vào Executor. Self-invocation bỏ qua proxy và transaction/request context của caller không tự động chuyển sang worker.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">34</span> <span>Can @Transactional and @Async be used together?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Yes, but transaction boundaries must be understood. The async method runs in another thread, so it normally starts its own transaction if annotated; it does not continue the caller’s transaction.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Có, nhưng phải hiểu transaction boundary. Async method chạy thread khác nên thường tạo transaction riêng nếu được annotate; nó không tiếp tục transaction của caller.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">35</span> <span>What are virtual threads best for?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> High-concurrency workloads that spend much of their time blocking on I/O while benefiting from simple thread-per-task code.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Workload concurrency cao dành nhiều thời gian blocking I/O và muốn giữ code thread-per-task đơn giản.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">36</span> <span>Do virtual threads remove the need for connection pools?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> No. Connections are scarce external resources. Virtual threads reduce thread cost, not database or socket limits.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Không. Connection vẫn là external resource hữu hạn. Virtual thread giảm chi phí thread chứ không tăng giới hạn database hay socket.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">37</span> <span>How do you limit concurrency with virtual threads?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Use semaphores, rate limiters, bounded queues, and resource pools around scarce dependencies, rather than pooling virtual threads simply to limit count.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Dùng semaphore, rate limiter, bounded queue và resource pool quanh dependency hữu hạn, thay vì pool virtual thread chỉ để giới hạn số lượng.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">38</span> <span>How do you troubleshoot a saturated executor?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Check active threads, pool size, queue depth, queue wait, task duration, rejection count, downstream latency, connection-pool usage, CPU, and repeated thread dumps.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Kiểm tra active thread, pool size, queue depth, queue wait, task duration, rejection, downstream latency, connection pool, CPU và nhiều thread dump.</div>
+      </div>
+    </details>
+    
+
+    <details class="qa searchable">
+      <summary><span class="qnum">39</span> <span>What does a senior engineer consider before adding concurrency?</span></summary>
+      <div class="answer">
+        <div data-lang="en"><b>Strong answer:</b> Correctness model, ownership of mutable state, expected throughput, latency target, downstream capacity, overload policy, failure propagation, cancellation, observability, and operational simplicity.</div>
+        <div data-lang="vi"><b>Câu trả lời tốt:</b> Senior cần xem correctness model, ownership của mutable state, throughput, latency target, capacity downstream, overload policy, failure propagation, cancellation, observability và độ đơn giản vận hành.</div>
+      </div>
+    </details>
+    
+    </section>
+
+    <section id="scenarios" class="scenario-section">
+      <h2 data-lang="en">26. Senior System Scenarios</h2>
+      <h2 data-lang="vi">26. Tình huống hệ thống cấp Senior</h2>
+      
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 1: Order processing overload</h3>
+      <h3 data-lang="vi">Tình huống 1: Order processing bị overload</h3>
+      <p data-lang="en"><b>Problem:</b> A service receives 2,000 orders/s. It uses a fixed pool of 200 threads and an unbounded queue. Database connections are limited to 30. Latency climbs for 20 minutes before the JVM runs out of memory. What is wrong?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Service nhận 2.000 order/s, dùng fixed pool 200 thread và unbounded queue. DB pool chỉ có 30 connection. Latency tăng trong 20 phút rồi JVM OOM. Vấn đề là gì?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> The executor accepts work faster than the database can process it. The unbounded queue hides overload, retains task payloads, and increases queueing latency. The real concurrency limit is near the database pool capacity. Use a bounded queue, explicit rejection/backpressure, right-size workers to downstream capacity, add timeouts, measure queue wait, and scale or optimize the database path.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Executor nhận việc nhanh hơn database xử lý. Unbounded queue che giấu overload, giữ payload trong memory và tăng queue latency. Giới hạn thực tế gần với DB pool. Cần bounded queue, rejection/backpressure rõ ràng, chỉnh worker theo downstream, thêm timeout, đo queue wait và scale/optimize DB.</div>
+    </article>
+    
+
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 2: Duplicate payment</h3>
+      <h3 data-lang="vi">Tình huống 2: Thanh toán bị trùng</h3>
+      <p data-lang="en"><b>Problem:</b> Two request threads check that a payment is not completed, then both call the provider and mark it completed. How would you fix it?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Hai request thread cùng kiểm tra payment chưa hoàn tất, cùng gọi provider rồi cùng mark completed. Sửa thế nào?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> A local synchronized block is insufficient in a multi-instance service. Use a database uniqueness constraint or atomic state transition, idempotency key, compare-and-set update such as UPDATE ... WHERE status=&#x27;PENDING&#x27;, and provider-side idempotency. Design the operation to be idempotent across retries and instances.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Synchronized local không đủ trong service nhiều instance. Cần unique constraint hoặc atomic state transition ở DB, idempotency key, CAS update kiểu UPDATE ... WHERE status=&#x27;PENDING&#x27; và idempotency phía provider. Thiết kế operation idempotent qua retry và nhiều instance.</div>
+    </article>
+    
+
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 3: Slow external partner</h3>
+      <h3 data-lang="vi">Tình huống 3: External partner chậm</h3>
+      <p data-lang="en"><b>Problem:</b> One partner API becomes slow and consumes all request threads, causing unrelated endpoints to time out. What design changes would you make?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Một partner API chậm chiếm hết request thread làm endpoint khác timeout. Anh sẽ thay đổi thiết kế gì?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> Use dependency-specific bulkheads: a dedicated executor or semaphore, strict connect/read/overall timeouts, circuit breaker, bounded queue, rejection or fallback, and metrics. Do not let one dependency consume the global worker pool.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Dùng bulkhead riêng cho dependency: executor hoặc semaphore riêng, timeout connect/read/overall, circuit breaker, bounded queue, rejection/fallback và metric. Không để một dependency chiếm global worker pool.</div>
+    </article>
+    
+
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 4: @Async did not run asynchronously</h3>
+      <h3 data-lang="vi">Tình huống 4: @Async không chạy bất đồng bộ</h3>
+      <p data-lang="en"><b>Problem:</b> A method inside a Spring service calls another @Async method in the same class, but logs show the same thread. Why?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Một method trong Spring service gọi method @Async khác trong cùng class nhưng log vẫn cùng thread. Tại sao?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> Self-invocation does not pass through the Spring proxy, so the interceptor is not applied. Move the async method to another bean, inject the proxied bean, or redesign the boundary.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Self-invocation không đi qua Spring proxy nên interceptor không được áp dụng. Chuyển async method sang bean khác, gọi qua proxy bean hoặc thiết kế lại boundary.</div>
+    </article>
+    
+
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 5: Deadlock in account transfer</h3>
+      <h3 data-lang="vi">Tình huống 5: Deadlock khi chuyển tiền</h3>
+      <p data-lang="en"><b>Problem:</b> Transfers lock the source account and then destination account. Production occasionally freezes. What is your fix and verification plan?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Transfer lock source account rồi destination account. Production thỉnh thoảng bị freeze. Cách sửa và xác minh?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> Acquire locks in deterministic order using account IDs, or use timed tryLock with rollback. Reduce lock scope. Capture repeated thread dumps to confirm circular wait, add contention metrics, and run a stress test with opposing transfers.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Acquire lock theo thứ tự cố định dựa trên account ID hoặc timed tryLock kèm rollback. Giảm phạm vi lock. Chụp nhiều thread dump xác nhận circular wait, thêm contention metric và stress test transfer ngược chiều.</div>
+    </article>
+    
+
+    <article class="scenario searchable">
+      <h3 data-lang="en">Scenario 6: Moving to virtual threads</h3>
+      <h3 data-lang="vi">Tình huống 6: Chuyển sang virtual thread</h3>
+      <p data-lang="en"><b>Problem:</b> A team replaces a 100-thread pool with virtual threads and suddenly opens thousands of concurrent database requests. What was missed?</p>
+      <p data-lang="vi"><b>Vấn đề:</b> Team thay pool 100 thread bằng virtual thread và đột nhiên mở hàng nghìn DB request đồng thời. Đã bỏ sót điều gì?</p>
+      <div class="callout senior" data-lang="en"><b>Senior answer:</b> The old thread pool accidentally acted as a concurrency limiter. Virtual threads removed that limit, but database capacity remained finite. Add explicit permits or rely on a correctly sized connection pool, plus timeouts and overload handling.</div>
+      <div class="callout senior" data-lang="vi"><b>Câu trả lời Senior:</b> Thread pool cũ vô tình đóng vai trò concurrency limiter. Virtual thread bỏ giới hạn đó nhưng DB capacity vẫn hữu hạn. Cần permit rõ ràng hoặc DB pool đúng kích thước, thêm timeout và overload handling.</div>
+    </article>
+    
+    </section>
+
+    <section id="cheatsheet" class="cheatsheet">
+      <h2 data-lang="en">27. Final Cheat Sheet</h2>
+      <h2 data-lang="vi">27. Cheat Sheet tổng kết</h2>
+      <div class="cheat-grid">
+        <div class="cheat">
+          <h4 data-lang="en">Use synchronized when</h4><h4 data-lang="vi">Dùng synchronized khi</h4>
+          <p data-lang="en">You need simple mutual exclusion and visibility around a small critical section.</p>
+          <p data-lang="vi">Cần mutual exclusion và visibility đơn giản quanh critical section nhỏ.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use volatile when</h4><h4 data-lang="vi">Dùng volatile khi</h4>
+          <p data-lang="en">One variable represents independent state and operations are simple reads/writes.</p>
+          <p data-lang="vi">Một biến biểu diễn trạng thái độc lập và operation chỉ là read/write đơn giản.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use Atomic classes when</h4><h4 data-lang="vi">Dùng Atomic khi</h4>
+          <p data-lang="en">A single value needs atomic read-modify-write operations without a larger invariant.</p>
+          <p data-lang="vi">Một giá trị cần atomic read-modify-write và không thuộc invariant lớn hơn.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use ReentrantLock when</h4><h4 data-lang="vi">Dùng ReentrantLock khi</h4>
+          <p data-lang="en">You need timeout, interruption, fairness, or multiple conditions.</p>
+          <p data-lang="vi">Cần timeout, interruption, fairness hoặc nhiều condition.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use BlockingQueue when</h4><h4 data-lang="vi">Dùng BlockingQueue khi</h4>
+          <p data-lang="en">You need producer-consumer coordination and bounded buffering.</p>
+          <p data-lang="vi">Cần phối hợp producer-consumer và buffer có giới hạn.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use CompletableFuture when</h4><h4 data-lang="vi">Dùng CompletableFuture khi</h4>
+          <p data-lang="en">You need to compose several independent asynchronous operations.</p>
+          <p data-lang="vi">Cần compose nhiều async operation độc lập.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Use virtual threads when</h4><h4 data-lang="vi">Dùng virtual thread khi</h4>
+          <p data-lang="en">You have high concurrency with mostly blocking I/O and want imperative code.</p>
+          <p data-lang="vi">Concurrency cao, chủ yếu blocking I/O và muốn giữ code imperative.</p>
+        </div>
+        <div class="cheat">
+          <h4 data-lang="en">Always remember</h4><h4 data-lang="vi">Luôn nhớ</h4>
+          <p data-lang="en">Bound resources, define overload behavior, propagate cancellation, and monitor queues.</p>
+          <p data-lang="vi">Giới hạn resource, thiết kế overload, propagate cancellation và monitor queue.</p>
+        </div>
+      </div>
+      <div class="callout senior" data-lang="en"><b>Best senior answer structure:</b> Definition → internal mechanism → correctness risks → trade-offs → production example → monitoring and failure handling.</div>
+      <div class="callout senior" data-lang="vi"><b>Cấu trúc trả lời Senior tốt nhất:</b> Khái niệm → cơ chế bên trong → rủi ro correctness → trade-off → ví dụ production → monitoring và failure handling.</div>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  Java Multithreading Deep Dive • Standalone HTML Study Document
+</footer>
+
+<script>
+const body = document.body;
+const enBtn = document.getElementById('enBtn');
+const viBtn = document.getElementById('viBtn');
+const themeBtn = document.getElementById('themeBtn');
+const search = document.getElementById('search');
+const progress = document.getElementById('progress');
+
+function setLanguage(lang) {
+  const vi = lang === 'vi';
+  body.classList.toggle('lang-vi', vi);
+  enBtn.classList.toggle('active', !vi);
+  viBtn.classList.toggle('active', vi);
+  search.placeholder = vi
+    ? 'Tìm chủ đề, code, câu hỏi phỏng vấn...'
+    : 'Search topics, code, interview questions...';
+  document.documentElement.lang = lang;
+  localStorage.setItem('java-thread-lang', lang);
+}
+
+enBtn.addEventListener('click', () => setLanguage('en'));
+viBtn.addEventListener('click', () => setLanguage('vi'));
+
+themeBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('java-thread-theme', next);
+});
+
+document.querySelectorAll('pre').forEach(pre => {
+  const button = document.createElement('button');
+  button.className = 'copy';
+  button.textContent = 'Copy';
+  button.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(pre.innerText.replace(/^Copy\n/, ''));
+    button.textContent = 'Copied';
+    setTimeout(() => button.textContent = 'Copy', 1200);
+  });
+  pre.appendChild(button);
+});
+
+search.addEventListener('input', () => {
+  const term = search.value.trim().toLowerCase();
+  document.querySelectorAll('.searchable').forEach(node => {
+    node.classList.toggle('hidden-search', term && !node.innerText.toLowerCase().includes(term));
+  });
+});
+
+window.addEventListener('scroll', () => {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+
+  let current = '';
+  document.querySelectorAll('main section[id]').forEach(section => {
+    if (section.getBoundingClientRect().top <= 120) current = section.id;
+  });
+  document.querySelectorAll('.sidebar a').forEach(a => {
+    a.classList.toggle('current', a.getAttribute('href') === '#' + current);
+  });
+});
+
+setLanguage(localStorage.getItem('java-thread-lang') || 'en');
+document.documentElement.setAttribute('data-theme', localStorage.getItem('java-thread-theme') || 'light');
+</script>
+</body>
+</html>

@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Core Basics - Ultimate Interview Preparation Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        java: {
+                            50: '#fdf3f2',
+                            100: '#fbe4e2',
+                            200: '#f7cecb',
+                            300: '#f1aba6',
+                            400: '#e57c75',
+                            500: '#d5534a',
+                            600: '#c23b32',
+                            700: '#a32d25',
+                            800: '#872821',
+                            900: '#70241e',
+                            950: '#3d100c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <!-- Java SVG Logo -->
+            <svg class="w-8 h-8 text-java-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 19.5c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-17c-.83 0-1.5.67-1.5 1.5zm2.14-5.36c-.4-.14-.83.05-.97.45-.14.4.05.83.45.97 1.83.64 3.86.84 5.8.35.53-.13.88-.61.85-1.16-.03-.54-.44-.95-1-.89-1.57.17-3.18.27-5.13-.28zm14.15-5.91c.21.36.14.8-.18 1.09l-3.23 2.9c-.3.27-.75.31-1.09.11-.34-.21-.49-.62-.36-1L17.15 8c.2-.55.8-.84 1.35-.64.55.2.84.8.64 1.35zM9.5 2C8.67 2 8 2.67 8 3.5S8.67 5 9.5 5 11 4.33 11 3.5 10.33 2 9.5 2zm5 1C13.67 3 13 3.67 13 4.5S13.67 6 14.5 6 16 5.33 16 4.5 15.33 3 14.5 3zm-9 6c-.83 0-1.5.67-1.5 1.5S4.67 12 5.5 12h5c.83 0 1.5-.67 1.5-1.5S11.33 9 10.5 9h-5zm10.5 2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2z" />
+            </svg>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-java-600 to-orange-500 bg-clip-text text-transparent">Java Interview Master</h1>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wider uppercase">Comprehensive Basics Guide</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- Search Bar -->
+            <div class="relative hidden md:block w-64">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </span>
+                <input type="text" id="search-input" oninput="filterTopics()" placeholder="Search concepts/keywords..." class="w-full pl-9 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg text-sm focus:ring-2 focus:ring-java-500 focus:outline-none text-slate-900 dark:text-slate-100">
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs">
+                <span class="font-semibold text-slate-500 dark:text-slate-400">Preparation:</span>
+                <span id="progress-text" class="text-java-600 font-bold">0%</span>
+                <div class="w-20 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-java-500 to-orange-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Dark Mode Toggle -->
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" aria-label="Toggle Dark Mode">
+                <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+                <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-[1600px] mx-auto flex min-h-[calc(100vh-57px)] relative">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-80 border-r border-slate-200 dark:border-slate-800 hidden lg:block p-4 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-slate-900/50">
+            <h2 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Topic Checklist</h2>
+            
+            <nav class="space-y-1" id="sidebar-nav">
+                <!-- Navigation items dynamically injected & managed by JS -->
+            </nav>
+
+            <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="openQuizModal()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-java-600 to-orange-500 hover:from-java-700 hover:to-orange-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-java-500/10 hover:shadow-java-500/20 transition-all text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <span>Test Your Prep Quiz</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 px-4 sm:px-8 py-8 overflow-y-auto max-w-4xl mx-auto">
+            
+            <!-- Quick Info banner for next-week interview -->
+            <div class="mb-8 p-6 bg-gradient-to-br from-java-50 to-orange-50 dark:from-slate-800/40 dark:to-orange-950/20 rounded-2xl border border-java-100 dark:border-java-950/40 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="space-y-1 text-center md:text-left">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-java-100 text-java-800 dark:bg-java-900/50 dark:text-java-400">Upcoming Interview Readiness</span>
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Java Foundations Boot Camp</h2>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Deep dive study guide optimized for high-impact conceptual questions, pitfalls, and JVM internal designs.</p>
+                </div>
+                <div class="flex items-center space-x-2 bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 self-stretch md:self-auto justify-center">
+                    <div class="text-center">
+                        <span id="completed-count" class="block text-2xl font-black text-java-600">0</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Completed</span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                    <div class="text-center">
+                        <span class="block text-2xl font-black text-slate-400">16</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search field for mobile -->
+            <div class="md:hidden mb-6">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" id="mobile-search-input" oninput="filterTopicsMobile()" placeholder="Search concepts..." class="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-java-500 focus:outline-none text-slate-900 dark:text-slate-100">
+                </div>
+            </div>
+
+            <!-- Concept Sections -->
+            <div id="concepts-container" class="space-y-12">
+                
+                <!-- Topic 1: JVM vs JDK vs JRE -->
+                <section id="jvm-jdk-jre" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">1</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">JVM vs JDK vs JRE</h3>
+                        </div>
+                        <button onclick="toggleCompleted('jvm-jdk-jre')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Understanding the nested relationship and distinct boundaries of <strong>JDK</strong>, <strong>JRE</strong>, and <strong>JVM</strong> is a fundamental Java interview standard. They represent the compilation, runtime, and execution lifecycle phases.
+                        </p>
+
+                        <!-- Visual Structural Map -->
+                        <div class="bg-slate-100 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/60 dark:border-slate-800 my-6">
+                            <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 text-center">Structural Nested Boundaries</p>
+                            <div class="border-2 border-dashed border-orange-400/50 rounded-lg p-4 bg-orange-50/10 dark:bg-orange-950/5">
+                                <span class="text-xs font-black text-orange-500 block mb-2">JDK (Java Development Kit) = JRE + Development Tools (javac, jdb, jshell)</span>
+                                <div class="border-2 border-solid border-java-500/40 rounded-lg p-4 bg-java-50/10 dark:bg-java-950/5">
+                                    <span class="text-xs font-black text-java-500 block mb-2">JRE (Java Runtime Environment) = JVM + Core Class Libraries</span>
+                                    <div class="border-2 border-indigo-400/50 rounded-lg p-4 bg-indigo-50/10 dark:bg-indigo-950/5 text-center">
+                                        <span class="text-xs font-black text-indigo-500 block">JVM (Java Virtual Machine)</span>
+                                        <span class="text-[11px] text-slate-500 block mt-1">Executes bytecode line-by-line via JIT & Interpreter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technical Deep Dive Table -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300">Feature / Layer</th>
+                                        <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300">JVM</th>
+                                        <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300">JRE</th>
+                                        <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300">JDK</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Purpose</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Executes Java bytecode.</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Provides runtime environment to execute applications.</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Provides tools needed to write, build, and run Java programs.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Inclusion</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Interpreter, JIT, Garbage Collector.</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">JVM + Core class files (java.lang, util).</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">JRE + Compiler (javac), Archiver (jar).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Target User</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Hardware / OS execution interface.</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">End users executing prebuilt programs.</td>
+                                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">Java software developers.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pro-Tips / Common Interview Questions -->
+                        <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded-r-xl">
+                            <span class="block font-bold text-amber-800 dark:text-amber-400 text-xs uppercase tracking-wider mb-1">💡 Pro-Tip Interview Question</span>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                                "Is JVM platform independent?"
+                            </p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <strong>Answer:</strong> No! The JVM is platform-dependent. There is a specific JVM build for Windows, macOS, Linux, etc. It is the JVM that interprets/translates platform-independent bytecode into platform-specific machine code.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 2: Java Compilation Process -->
+                <section id="compilation-process" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">2</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Java Compilation Process</h3>
+                        </div>
+                        <button onclick="toggleCompleted('compilation-process')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Java employs a unique two-stage approach: compilation to intermediate bytecode followed by real-time hardware execution via the JVM.
+                        </p>
+
+                        <!-- SVG Compilation Flowchart -->
+                        <div class="my-6 p-4 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-center gap-4 text-center">
+                            <div class="p-3 bg-white dark:bg-slate-800 shadow rounded-lg border border-slate-200 dark:border-slate-700 w-full md:w-36">
+                                <span class="block text-xs font-bold text-java-600">Source File</span>
+                                <span class="text-[11px] font-mono block text-slate-500">MyClass.java</span>
+                            </div>
+                            <div class="text-slate-400">➔</div>
+                            <div class="p-3 bg-java-500 text-white shadow rounded-lg w-full md:w-36">
+                                <span class="block text-xs font-bold">Compiler</span>
+                                <span class="text-[11px] font-mono block opacity-90">javac MyClass.java</span>
+                            </div>
+                            <div class="text-slate-400">➔</div>
+                            <div class="p-3 bg-white dark:bg-slate-800 shadow rounded-lg border border-slate-200 dark:border-slate-700 w-full md:w-36">
+                                <span class="block text-xs font-bold text-orange-600">Bytecode</span>
+                                <span class="text-[11px] font-mono block text-slate-500">MyClass.class</span>
+                            </div>
+                            <div class="text-slate-400">➔</div>
+                            <div class="p-3 bg-indigo-600 text-white shadow rounded-lg w-full md:w-40">
+                                <span class="block text-xs font-bold">JVM (Execution)</span>
+                                <span class="text-[10px] block opacity-90">Interpreter & JIT Compiler</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">The Two Key Compilation / Execution Actors:</h4>
+                            <ul class="list-disc list-inside text-sm text-slate-600 dark:text-slate-300 space-y-2">
+                                <li><strong>Compiler (javac):</strong> Evaluates the source code syntax, checks types, and writes compile-time assertions to output structural `.class` binary instruction structures containing platform-agnostic bytecode instructions.</li>
+                                <li><strong>JIT (Just-In-Time) Compiler:</strong> Resides inside the JVM. While executing, it monitors performance hotspots. High-execution blocks are compiled straight into native CPU instructions for maximum operational speed, rather than interpreted instruction-by-instruction.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 3: Bytecode -->
+                <section id="bytecode" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">3</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Bytecode</h3>
+                        </div>
+                        <button onclick="toggleCompleted('bytecode')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Bytecode is the intermediate, machine-readable instruction set generated by compiling high-level Java code. Designed to target the virtual machine stack directly, bytecode acts as the universal language across all JVM implementations.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-900 text-slate-200 rounded-xl font-mono text-xs">
+                                <span class="text-slate-500">// Source Java Code</span><br>
+                                <span class="text-orange-400">public int</span> add(<span class="text-orange-400">int</span> a, <span class="text-orange-400">int</span> b) {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-orange-400">return</span> a + b;<br>
+                                }
+                            </div>
+                            <div class="p-4 bg-slate-900 text-slate-200 rounded-xl font-mono text-xs border border-slate-800">
+                                <span class="text-slate-500">// Resulting Bytecode (Compiled Representation)</span><br>
+                                <span class="text-emerald-400">iload_1</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500">; Load local int parameter 1 on stack</span><br>
+                                <span class="text-emerald-400">iload_2</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500">; Load local int parameter 2 on stack</span><br>
+                                <span class="text-emerald-400">iadd</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500">; Pop top two integers, add them</span><br>
+                                <span class="text-emerald-400">ireturn</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500">; Return resulting integer</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-indigo-50 dark:bg-indigo-950/20 border-l-4 border-indigo-500 rounded-r-xl">
+                            <span class="block font-bold text-indigo-800 dark:text-indigo-400 text-xs uppercase tracking-wider mb-1">🔍 Tool Tip</span>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">
+                                You can view compilation bytecode directly by typing <code>javap -c MyClass.class</code> into your system console on any compiled file.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 4: ClassLoader -->
+                <section id="classloader" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">4</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">ClassLoader</h3>
+                        </div>
+                        <button onclick="toggleCompleted('classloader')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            The Java ClassLoader is a subsystem of the JVM responsible for loading class files dynamically into system memory at runtime.
+                        </p>
+
+                        <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">The Delegation Principle:</h4>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            ClassLoaders follow the <strong>delegation-hierarchy model</strong>. When asked to find a class, a ClassLoader first delegates the request upwards to its parent ClassLoader before attempting to find it locally.
+                        </p>
+
+                        <!-- Hierarchy Visual Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="block text-xs font-black text-indigo-500">1. Bootstrap ClassLoader</span>
+                                <span class="text-[10px] text-slate-500 block mt-1">Loads core JVM classes (lib/rt.jar). Written in C/C++. Parent of Platform.</span>
+                            </div>
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="block text-xs font-black text-indigo-500">2. Platform / Extension</span>
+                                <span class="text-[10px] text-slate-500 block mt-1">Loads platform extensions / standard library APIs.</span>
+                            </div>
+                            <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="block text-xs font-black text-indigo-500">3. Application / System</span>
+                                <span class="text-[10px] text-slate-500 block mt-1">Loads your classes inside the custom classpath directories.</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50 dark:bg-indigo-950/20 p-4 border-l-4 border-indigo-500 rounded-r-xl">
+                            <h5 class="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider mb-1">🔑 Three Steps of Loading:</h5>
+                            <ol class="list-decimal list-inside text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                                <li><strong>Loading:</strong> Acquires the raw binary bytes representing a class or interface file name.</li>
+                                <li><strong>Linking:</strong> Includes bytecode verification, static field allocation (preparation), and symbolic reference compilation.</li>
+                                <li><strong>Initialization:</strong> Executes static blocks and assigns actual program variables inside the loaded files.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 5: Platform Independent -->
+                <section id="platform-independent" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">5</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Platform Independent</h3>
+                        </div>
+                        <button onclick="toggleCompleted('platform-independent')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Java achieves its legendary <strong>WORA (Write Once, Run Anywhere)</strong> status by isolating compilation structures from CPU execution architectures.
+                        </p>
+
+                        <div class="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-2">How it works under the hood:</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 mb-3">
+                                Languages like C/C++ compile directly into machine language for a target architecture (e.g. x86 assembly).
+                                Java compiles into <strong>bytecode</strong>. Any computer with the appropriate OS-specific JVM can execute the exact same `.class` bytecode file.
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div class="bg-red-50 dark:bg-red-950/20 p-3 rounded-lg border border-red-200 dark:border-red-900">
+                                    <span class="block text-xs font-bold text-red-600">Platform Dependent Languages (e.g., C++)</span>
+                                    <span class="text-[11px] text-slate-500">Source code compiles straight into operating system specific machine-binary structures. Binary cannot travel between OS platforms.</span>
+                                </div>
+                                <div class="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-200 dark:border-emerald-900">
+                                    <span class="block text-xs font-bold text-emerald-600">Platform Independent (Java)</span>
+                                    <span class="text-[11px] text-slate-500">Code compiles to universal platform bytecode. Platform dependent JVMs read that exact same bytecode and resolve it to target systems on the fly.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 6: Primitive vs Object -->
+                <section id="primitive-vs-object" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">6</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Primitive vs Object</h3>
+                        </div>
+                        <button onclick="toggleCompleted('primitive-vs-object')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Java has a dual nature: highly-efficient low-level <strong>Primitive types</strong> and full <strong>Object structures</strong> that represent pointers in memory.
+                        </p>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-bold">Feature</th>
+                                        <th class="px-4 py-3 text-left font-bold">Primitive Types (e.g. <code>int</code>, <code>char</code>)</th>
+                                        <th class="px-4 py-3 text-left font-bold">Object Types (e.g. <code>Integer</code>, <code>String</code>)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-600 dark:text-slate-300">
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Memory Allocation</td>
+                                        <td class="px-4 py-3">Usually Stack memory (fast access).</td>
+                                        <td class="px-4 py-3">Heap memory (reference resides on Stack, object on Heap).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Performance</td>
+                                        <td class="px-4 py-3">Highly performant, minimal memory layout.</td>
+                                        <td class="px-4 py-3">Slower due to reference dereferencing and overhead.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Default Values</td>
+                                        <td class="px-4 py-3">Always default values (e.g., <code>0</code>, <code>false</code>).</td>
+                                        <td class="px-4 py-3">Defaults to <code>null</code> if uninitialized.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Can use with Generics?</td>
+                                        <td class="px-4 py-3 text-red-500 font-bold">No (e.g. <code>List&lt;int&gt;</code> is invalid).</td>
+                                        <td class="px-4 py-3 text-emerald-500 font-bold">Yes (e.g. <code>List&lt;Integer&gt;</code>).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 7: Wrapper Class -->
+                <section id="wrapper-class" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">7</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Wrapper Class</h3>
+                        </div>
+                        <button onclick="toggleCompleted('wrapper-class')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Wrapper classes provide a mechanism to wrap primitive values inside a standard Object container.
+                        </p>
+
+                        <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Primary Uses</h4>
+                            <ul class="list-disc list-inside text-sm text-slate-600 dark:text-slate-300 space-y-2">
+                                <li><strong>Generics:</strong> Type parameters only support Object classes.</li>
+                                <li><strong>Utility Methods:</strong> Parsing integers from strings (e.g. <code>Integer.parseInt("123")</code>).</li>
+                                <li><strong>Collections:</strong> Storing primitive sequences in standard JVM collections (e.g., ArrayList, HashMap).</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded-r-xl">
+                            <span class="block font-bold text-amber-800 dark:text-amber-400 text-xs uppercase tracking-wider mb-1">⚠️ Integer Cache Pitfall</span>
+                            <p class="text-xs text-slate-700 dark:text-slate-300">
+                                To optimize performance, Java caches instances of wrapper classes representing values between <strong>-128 to 127</strong>.
+                            </p>
+                            <pre class="text-[11px] font-mono mt-2 bg-slate-900 p-2 rounded text-slate-200">
+Integer a = 100;
+Integer b = 100;
+System.out.println(a == b); // Prints TRUE (points to cached instance)
+
+Integer x = 200;
+Integer y = 200;
+System.out.println(x == y); // Prints FALSE (different objects on heap! Use .equals()!)</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 8: Auto boxing / Unboxing -->
+                <section id="autoboxing" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">8</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Auto boxing / Unboxing</h3>
+                        </div>
+                        <button onclick="toggleCompleted('autoboxing')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Introduced in Java 5, these features allow Java to automatically convert between primitives and their respective wrapper objects without manual casting.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                <span class="block font-bold text-xs text-java-600 mb-2">Autoboxing (Primitive ➔ Wrapper)</span>
+                                <pre class="text-xs bg-slate-900 text-slate-100 p-2.5 rounded font-mono">
+<span class="text-slate-500">// What you write:</span>
+Integer count = 10;
+
+<span class="text-slate-500">// What compiler does under the hood:</span>
+Integer count = Integer.valueOf(10);</pre>
+                            </div>
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                <span class="block font-bold text-xs text-java-600 mb-2">Unboxing (Wrapper ➔ Primitive)</span>
+                                <pre class="text-xs bg-slate-900 text-slate-100 p-2.5 rounded font-mono">
+<span class="text-slate-500">// What you write:</span>
+int price = count;
+
+<span class="text-slate-500">// What compiler does under the hood:</span>
+int price = count.intValue();</pre>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 rounded-r-xl">
+                            <span class="block font-bold text-red-800 dark:text-red-400 text-xs uppercase tracking-wider mb-1">⚠️ Major Interview Trap: NullPointerException during Unboxing</span>
+                            <p class="text-xs text-slate-700 dark:text-slate-300">
+                                If a wrapper class instance is <code>null</code>, and you attempt to unbox it into a primitive, Java will throw a <code>NullPointerException</code> at runtime!
+                            </p>
+                            <pre class="text-[11px] font-mono mt-2 bg-slate-900 p-2 rounded text-slate-200">
+Integer numObj = null;
+int numPrim = numObj; <span class="text-red-400">// Throws NullPointerException!</span></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 9: String -->
+                <section id="string" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">9</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">String</h3>
+                        </div>
+                        <button onclick="toggleCompleted('string')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Strings in Java are objects of the final class <code>String</code>. They are <strong>immutable</strong>—once created, their value cannot be changed.
+                        </p>
+
+                        <div class="bg-indigo-50 dark:bg-indigo-950/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-2">
+                            <h4 class="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider">The String Pool concept</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">
+                                When a String is initialized using literals, the JVM stores it in a special cache memory called the <strong>String Constant Pool</strong> inside the Heap. Reusing the literal resolves to the exact same pointer reference.
+                            </p>
+                            <pre class="text-[11px] font-mono bg-slate-900 p-2 rounded text-slate-200">
+String s1 = "Java"; <span class="text-slate-500">// Created in pool</span>
+String s2 = "Java"; <span class="text-slate-500">// Reuses literal from pool</span>
+System.out.println(s1 == s2); <span class="text-emerald-400">// TRUE</span>
+
+String s3 = new String("Java"); <span class="text-slate-500">// Created directly on standard Heap</span>
+System.out.println(s1 == s3); <span class="text-red-400">// FALSE (different heap pointers)</span></pre>
+                        </div>
+
+                        <div class="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded-r-xl">
+                            <span class="block font-bold text-amber-800 dark:text-amber-400 text-xs uppercase tracking-wider mb-1">🔑 Why are Strings Immutable?</span>
+                            <ol class="list-decimal list-inside text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+                                <li><strong>Security:</strong> Parameters like network connection URLs, file paths, and database credentials can't be altered mid-execution.</li>
+                                <li><strong>Thread Safety:</strong> Multiple execution pipelines can read strings without synchronization.</li>
+                                <li><strong>String Cache Hash:</strong> High performance inside collection structures because hashcodes are precomputed and cached.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 10: StringBuilder & StringBuffer -->
+                <section id="stringbuilder-stringbuffer" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">10</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">StringBuilder & StringBuffer</h3>
+                        </div>
+                        <button onclick="toggleCompleted('stringbuilder-stringbuffer')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            When modifying strings frequently (e.g., inside loops), standard String concatenation is highly inefficient because it produces multiple short-lived garbage collector target references. Mutable companions <strong>StringBuilder</strong> and <strong>StringBuffer</strong> solve this issue.
+                        </p>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-bold">Feature</th>
+                                        <th class="px-4 py-3 text-left font-bold">StringBuilder</th>
+                                        <th class="px-4 py-3 text-left font-bold">StringBuffer</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-600 dark:text-slate-300">
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Mutability</td>
+                                        <td class="px-4 py-3 text-emerald-600 font-semibold">Mutable</td>
+                                        <td class="px-4 py-3 text-emerald-600 font-semibold">Mutable</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Thread Safety</td>
+                                        <td class="px-4 py-3 text-red-500 font-bold">Not Thread-safe (unsynchronized methods)</td>
+                                        <td class="px-4 py-3 text-emerald-500 font-bold">Thread-safe (synchronized methods)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-semibold">Speed / Efficiency</td>
+                                        <td class="px-4 py-3 text-emerald-600 font-bold">Extremely Fast (default choice for local modifications)</td>
+                                        <td class="px-4 py-3 text-amber-600">Slower due to lock overhead</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 11: final / finally / finalize -->
+                <section id="final-finally-finalize" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">11</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">final / finally / finalize</h3>
+                        </div>
+                        <button onclick="toggleCompleted('final-finally-finalize')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Despite similar names, these are three distinct constructs in Java:
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- final -->
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2 border border-slate-200/50 dark:border-slate-700/50">
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold bg-java-100 dark:bg-java-950 text-java-700 dark:text-java-400 rounded-full">Modifier Keyword</span>
+                                <h4 class="font-bold text-slate-800 dark:text-slate-200">final</h4>
+                                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-disc list-inside">
+                                    <li><strong>Variable:</strong> Cannot be reassigned.</li>
+                                    <li><strong>Method:</strong> Cannot be overridden in subclasses.</li>
+                                    <li><strong>Class:</strong> Cannot be extended (e.g. String).</li>
+                                </ul>
+                            </div>
+
+                            <!-- finally -->
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2 border border-slate-200/50 dark:border-slate-700/50">
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 rounded-full">Block Structure</span>
+                                <h4 class="font-bold text-slate-800 dark:text-slate-200">finally</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-300">
+                                    A block used in try-catch structures for cleanup (e.g., closing connections). It **always** executes, even if an exception occurs.
+                                </p>
+                            </div>
+
+                            <!-- finalize -->
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2 border border-slate-200/50 dark:border-slate-700/50">
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 rounded-full">Method</span>
+                                <h4 class="font-bold text-slate-800 dark:text-slate-200 text-red-500">finalize()</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-300">
+                                    A deprecated method in the <code>Object</code> class, formerly called by the garbage collector before deleting an object. **Never use this.**
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 12: static -->
+                <section id="static" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">12</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">static</h3>
+                        </div>
+                        <button onclick="toggleCompleted('static')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            The <code>static</code> keyword defines members belonging directly to the **class** itself rather than to individual object instances.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2">
+                                <h4 class="font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">Common Static Varieties</h4>
+                                <ul class="list-disc list-inside text-xs text-slate-600 dark:text-slate-300 space-y-2">
+                                    <li><strong>Variables:</strong> Only one shared copy exists across all instances in heap memory.</li>
+                                    <li><strong>Methods:</strong> Can be called without instantiating the class. Cannot access non-static variables directly (no reference to <code>this</code>).</li>
+                                    <li><strong>Blocks:</strong> Run once when the class is first loaded by the ClassLoader.</li>
+                                    <li><strong>Nested Classes:</strong> A static class defined inside another class; doesn't need a reference to the outer class instance.</li>
+                                </ul>
+                            </div>
+
+                            <div class="p-4 bg-slate-900 text-slate-200 rounded-xl text-xs font-mono">
+                                <span class="text-slate-500">// Static usage example</span><br>
+                                <span class="text-orange-400">public class</span> Counter {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-orange-400">public static int</span> count = 0; <span class="text-slate-500">// Shared</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-orange-400">public static void</span> increment() {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count++; <span class="text-slate-500">// OK</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 13: enum -->
+                <section id="enum" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">13</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">enum</h3>
+                        </div>
+                        <button onclick="toggleCompleted('enum')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            An <code>enum</code> represents a fixed set of type-safe, named constants. Under the hood, Enums are specialized classes extending <code>java.lang.Enum</code>.
+                        </p>
+
+                        <div class="bg-indigo-50 dark:bg-indigo-950/20 p-4 border-l-4 border-indigo-500 rounded-r-xl space-y-2">
+                            <span class="block font-bold text-indigo-800 dark:text-indigo-400 text-xs uppercase tracking-wider">✨ Cool Java Enum Features:</span>
+                            <p class="text-xs text-slate-700 dark:text-slate-300">
+                                Unlike other languages, Java enums are full classes. They can declare **fields, constructors (always private), and methods**, and can even implement **interfaces**.
+                            </p>
+                        </div>
+
+                        <pre class="p-4 bg-slate-900 text-slate-200 rounded-xl text-xs font-mono">
+<span class="text-orange-400">public enum</span> Severity {
+    LOW(1), MEDIUM(2), HIGH(3); <span class="text-slate-500">// Constants invoke constructor</span>
+
+    <span class="text-orange-400">private final int</span> level;
+
+    Severity(<span class="text-orange-400">int</span> level) { <span class="text-slate-500">// Constructor (always private)</span>
+        <span class="text-orange-400">this</span>.level = level;
+    }
+
+    <span class="text-orange-400">public int</span> getLevel() { <span class="text-orange-400">return this</span>.level; }
+}</pre>
+                    </div>
+                </section>
+
+                <!-- Topic 14: record (Java 16+) -->
+                <section id="record" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">14</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">record (Java 16+)</h3>
+                        </div>
+                        <button onclick="toggleCompleted('record')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Introduced in Java 16, a <code>record</code> is a special type of class designed exclusively to carry immutable data. It eliminates boilerplates for simple Data Transfer Objects (DTOs).
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                <span class="block font-bold text-xs text-java-600 mb-2">Modern Record (Java 16)</span>
+                                <pre class="text-[11px] bg-slate-900 text-slate-100 p-2.5 rounded font-mono">
+<span class="text-orange-400">public record</span> User(String name, <span class="text-orange-400">int</span> age) {}</pre>
+                                <span class="text-[10px] text-slate-400 block mt-2">Just 1 line! Auto-generates: constructor, getters (no "get" prefix: e.g., <code>user.name()</code>), equals(), hashCode(), and toString().</span>
+                            </div>
+
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2">
+                                <h4 class="font-bold text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">Critical Rules</h4>
+                                <ul class="list-disc list-inside text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                                    <li><strong>Immutable:</strong> Fields are implicitly <code>private final</code>.</li>
+                                    <li><strong>No Inheritance:</strong> Records cannot extend other classes (they implicitly extend <code>java.lang.Record</code>) and are implicitly <code>final</code>.</li>
+                                    <li><strong>Interfaces:</strong> Can implement interfaces.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 15: var -->
+                <section id="var" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">15</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">var (Local Variable Type Inference)</h3>
+                        </div>
+                        <button onclick="toggleCompleted('var')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-4">
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Introduced in Java 10, the <code>var</code> keyword enables local variable type inference. The compiler determines the target type statically based on the initialization value.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl space-y-2">
+                                <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400">✅ Where you CAN use var</span>
+                                <pre class="text-[10px] bg-slate-900 text-slate-100 p-2 rounded font-mono">
+var text = "Hello"; <span class="text-slate-400">// Local variable initialized</span>
+var list = new ArrayList&lt;String&gt;();
+for (var item : list) {} <span class="text-slate-400">// In loops</span></pre>
+                            </div>
+
+                            <div class="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl space-y-2">
+                                <span class="text-xs font-bold text-red-800 dark:text-red-400 font-bold">❌ Where you CANNOT use var</span>
+                                <pre class="text-[10px] bg-slate-900 text-slate-100 p-2 rounded font-mono">
+<span class="text-slate-400">// Not as fields:</span>
+public class User { var name = "John"; }
+<span class="text-slate-400">// Not as method arguments/returns:</span>
+public var doSomething(var a) {}
+<span class="text-slate-400">// Not without initialization:</span>
+var count;</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Topic 16: switch expression & Optional -->
+                <section id="switch-optional" class="scroll-mt-20 group">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg bg-java-100 dark:bg-java-900/50 text-java-600 dark:text-java-400 flex items-center justify-center font-bold text-sm">16</span>
+                            <h3 class="text-xl font-bold hover:text-java-600 dark:hover:text-java-400 transition cursor-pointer">Switch Expression & Optional</h3>
+                        </div>
+                        <button onclick="toggleCompleted('switch-optional')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition duration-150">
+                            <span class="checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1"></span>
+                            <span class="checkbox-text text-slate-500">Mark Studied</span>
+                        </button>
+                    </div>
+
+                    <div class="prose prose-slate dark:prose-invert max-w-none space-y-6">
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-base text-slate-800 dark:text-slate-200">A. Switch Expressions (Java 12+)</h4>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                Unlike traditional switch statements, switch expressions return a direct result value, omit break fall-through behaviors, and enforce path exhaustiveness.
+                            </p>
+                            <pre class="p-4 bg-slate-900 text-slate-200 rounded-xl text-xs font-mono">
+<span class="text-orange-400">int</span> days = <span class="text-orange-400">switch</span> (month) {
+    <span class="text-orange-400">case</span> JANUARY, MARCH, MAY -> 31;
+    <span class="text-orange-400">case</span> APRIL, JUNE, SEPTEMBER -> 30;
+    <span class="text-orange-400">case</span> FEBRUARY -> {
+        System.out.println("Leap check needed");
+        <span class="text-orange-400">yield</span> 28; <span class="text-slate-500">// Returns value for multi-line blocks</span>
+    }
+    <span class="text-orange-400">default</span> -> <span class="text-orange-400">throw new</span> IllegalArgumentException();
+};</pre>
+                        </div>
+
+                        <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <h4 class="font-bold text-base text-slate-800 dark:text-slate-200">B. Optional (Java 8+)</h4>
+                            <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                <code>Optional&lt;T&gt;</code> is a monadic container object designed specifically to represent optional/nullable properties explicitly, reducing runtime NullPointerExceptions.
+                            </p>
+                            <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2">
+                                <span class="block font-bold text-xs text-java-600">Common Optional Patterns:</span>
+                                <pre class="text-xs bg-slate-900 text-slate-100 p-2.5 rounded font-mono">
+Optional&lt;String&gt; opt = Optional.ofNullable(getUserName());
+
+<span class="text-slate-400">// Fallback default value if null</span>
+String name = opt.orElse("Guest");
+
+<span class="text-slate-400">// Trigger behavior if present</span>
+opt.ifPresent(n -> System.out.println("Hello " + n));</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Footer encouragement -->
+            <footer class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 text-center pb-12">
+                <p class="text-sm text-slate-500 dark:text-slate-400">Good luck on your upcoming technical interview! Study hard, understand the concepts thoroughly, and stay confident.</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Java Interview Prep Tool &copy; 2026</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Quiz Modal Window -->
+    <div id="quiz-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="px-6 py-4 bg-gradient-to-r from-java-600 to-orange-500 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <h3 class="font-bold text-lg">Quick Interview Quiz Tracker</h3>
+                </div>
+                <button onclick="closeQuizModal()" class="text-white hover:text-orange-200 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Quiz Content (dynamically injected) -->
+            <div id="quiz-body" class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Footer Control -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400" id="quiz-score-indicator">Question 1 of 5</span>
+                <button id="quiz-action-btn" onclick="nextQuizQuestion()" class="bg-java-600 text-white hover:bg-java-700 font-bold py-2 px-5 rounded-lg text-sm transition">
+                    Submit Answer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive script logic for layout, trackers, search and quiz components -->
+    <script>
+        // Set Theme preference on initialization
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Checklist topics
+        const topics = [
+            { id: 'jvm-jdk-jre', title: 'JVM vs JDK vs JRE', completed: false },
+            { id: 'compilation-process', title: 'Java compilation process', completed: false },
+            { id: 'bytecode', title: 'Bytecode', completed: false },
+            { id: 'classloader', title: 'ClassLoader', completed: false },
+            { id: 'platform-independent', title: 'Platform independent', completed: false },
+            { id: 'primitive-vs-object', title: 'Primitive vs Object', completed: false },
+            { id: 'wrapper-class', title: 'Wrapper class', completed: false },
+            { id: 'autoboxing', title: 'Auto boxing / Unboxing', completed: false },
+            { id: 'string', title: 'String Pool / Immutability', completed: false },
+            { id: 'stringbuilder-stringbuffer', title: 'StringBuilder & StringBuffer', completed: false },
+            { id: 'final-finally-finalize', title: 'final / finally / finalize', completed: false },
+            { id: 'static', title: 'static keyword', completed: false },
+            { id: 'enum', title: 'enum structures', completed: false },
+            { id: 'record', title: 'record (Java 16+)', completed: false },
+            { id: 'var', title: 'var keyword', completed: false },
+            { id: 'switch-optional', title: 'Switch expressions & Optional', completed: false }
+        ];
+
+        // Initialize state from LocalStorage to help candidate save progress across sessions
+        const storedProgress = localStorage.getItem('java_prep_progress');
+        if (storedProgress) {
+            try {
+                const parsed = JSON.parse(storedProgress);
+                topics.forEach(t => {
+                    if (parsed[t.id] !== undefined) {
+                        t.completed = parsed[t.id];
+                    }
+                });
+            } catch (e) {
+                console.error("Progress restoration error", e);
+            }
+        }
+
+        // Render sidebar & complete checkbox systems on DOM ready
+        window.addEventListener('DOMContentLoaded', () => {
+            renderSidebar();
+            updateUIState();
+        });
+
+        function renderSidebar() {
+            const container = document.getElementById('sidebar-nav');
+            container.innerHTML = '';
+            
+            topics.forEach((topic, index) => {
+                const checkedClass = topic.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 dark:border-slate-600';
+                const checkedSvg = topic.completed ? `<svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>` : '';
+                
+                const item = document.createElement('div');
+                item.className = `group flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition duration-150 cursor-pointer sidebar-item-card`;
+                item.setAttribute('data-id', topic.id);
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3 min-w-0" onclick="scrollToTopic('${topic.id}')">
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 w-4">${index + 1}</span>
+                        <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate group-hover:text-java-600 dark:group-hover:text-java-400 transition">${topic.title}</span>
+                    </div>
+                    <button onclick="toggleCompleted('${topic.id}')" class="flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${checkedClass}">
+                        ${checkedSvg}
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function scrollToTopic(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function toggleCompleted(id) {
+            const topic = topics.find(t => t.id === id);
+            if (topic) {
+                topic.completed = !topic.completed;
+                
+                // Save progress
+                const currentStatus = {};
+                topics.forEach(t => currentStatus[t.id] = t.completed);
+                localStorage.setItem('java_prep_progress', JSON.stringify(currentStatus));
+
+                renderSidebar();
+                updateUIState();
+            }
+        }
+
+        function updateUIState() {
+            const completedCount = topics.filter(t => t.completed).length;
+            const percentage = Math.round((completedCount / topics.length) * 100);
+            
+            document.getElementById('completed-count').textContent = completedCount;
+            document.getElementById('progress-text').textContent = `${percentage}%`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+
+            // Update DOM section action checkboxes
+            topics.forEach(t => {
+                const sec = document.getElementById(t.id);
+                if (sec) {
+                    const btn = sec.querySelector('.checkbox-indicator');
+                    const text = sec.querySelector('.checkbox-text');
+                    if (t.completed) {
+                        btn.className = "checkbox-indicator w-3 h-3 rounded-sm bg-emerald-500 border-emerald-500 inline-block mr-1 flex items-center justify-center";
+                        btn.innerHTML = `<svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                        text.textContent = "Studied";
+                        text.className = "checkbox-text text-emerald-600 font-bold";
+                    } else {
+                        btn.className = "checkbox-indicator w-3 h-3 rounded-sm border border-slate-400 dark:border-slate-500 inline-block mr-1";
+                        btn.innerHTML = "";
+                        text.textContent = "Mark Studied";
+                        text.className = "checkbox-text text-slate-500";
+                    }
+                }
+            });
+        }
+
+        // Live filtration features
+        function filterTopics() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            applyFilter(query);
+        }
+
+        function filterTopicsMobile() {
+            const query = document.getElementById('mobile-search-input').value.toLowerCase();
+            applyFilter(query);
+        }
+
+        function applyFilter(query) {
+            topics.forEach(t => {
+                const sec = document.getElementById(t.id);
+                const sidebarItem = document.querySelector(`.sidebar-item-card[data-id="${t.id}"]`);
+                if (sec) {
+                    const match = t.title.toLowerCase().includes(query) || sec.textContent.toLowerCase().includes(query);
+                    if (match) {
+                        sec.classList.remove('hidden');
+                        if (sidebarItem) sidebarItem.classList.remove('hidden');
+                    } else {
+                        sec.classList.add('hidden');
+                        if (sidebarItem) sidebarItem.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Dynamic Interactive Quiz Database & System
+        const quizQuestions = [
+            {
+                q: "Which compilation component performs native execution optimizations on frequent hotspots during standard runtime?",
+                options: ["JVM interpreter", "javac compiler", "Just-In-Time (JIT) Compiler", "ClassLoader Engine"],
+                ans: 2,
+                explanation: "The Just-In-Time (JIT) compiler compiles performance hotspots into native machine instructions during JVM executing for near-instant native speed."
+            },
+            {
+                q: "What runtime event happens when you try unboxing a Null reference Wrapper type (like Integer a = null; int b = a;)?",
+                options: ["Compilation failure", "b becomes default 0", "NullPointerException is thrown at runtime", "a stays intact on memory heap"],
+                ans: 2,
+                explanation: "Auto-unboxing calls .intValue() internally on the wrapper object. If that object variable is null, it throws a NullPointerException."
+            },
+            {
+                q: "Why are String instances strictly immutable inside the Java specification?",
+                options: ["To prevent memory allocation", "For security parameters, caching advantages, and structural thread-safety", "Because ClassLoaders can't read modified strings", "Only to enable standard garbage collectors to operate fast"],
+                ans: 1,
+                explanation: "Immutability keeps reference locations safe from malicious parameters alterations, enables String pool instances reuse, and ensures absolute thread-safety automatically."
+            },
+            {
+                q: "Which property is TRUE regarding newly added Java record declarations (Java 16+)?",
+                options: ["Fields are implicitly final, and they cannot inherit external base class types", "Records have normal default empty default public getters with 'get' prefixes", "You can declare custom non-final variables in records", "Records are mutable by default"],
+                ans: 0,
+                explanation: "Records represent immutable DTO representations. They can't extend classes (since they extend java.lang.Record) and all field components are private final properties."
+            },
+            {
+                q: "Where is the local type inference identifier 'var' strictly valid inside programs?",
+                options: ["Global class variables fields", "Method parameters definition structures", "Local initialized variables only", "Method return type parameters declarations"],
+                ans: 2,
+                explanation: "'var' is limited purely to local variables declared inside a block scope with immediate initialization values so the compiler can infer their types statically."
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let selectedOptionIdx = null;
+        let userQuizScore = 0;
+
+        function openQuizModal() {
+            currentQuestionIdx = 0;
+            userQuizScore = 0;
+            selectedOptionIdx = null;
+            document.getElementById('quiz-modal').classList.remove('hidden');
+            loadQuizQuestion();
+        }
+
+        function closeQuizModal() {
+            document.getElementById('quiz-modal').classList.add('hidden');
+        }
+
+        function loadQuizQuestion() {
+            selectedOptionIdx = null;
+            const qData = quizQuestions[currentQuestionIdx];
+            const indicator = document.getElementById('quiz-score-indicator');
+            indicator.textContent = `Question ${currentQuestionIdx + 1} of ${quizQuestions.length}`;
+            
+            const btn = document.getElementById('quiz-action-btn');
+            btn.textContent = "Submit Answer";
+            btn.disabled = true;
+            btn.className = "bg-slate-300 text-slate-500 cursor-not-allowed font-bold py-2 px-5 rounded-lg text-sm transition";
+
+            const body = document.getElementById('quiz-body');
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <p class="font-bold text-slate-800 dark:text-slate-100 text-base">${qData.q}</p>
+                    <div class="space-y-2" id="options-group">
+                        ${qData.options.map((opt, idx) => `
+                            <button onclick="selectQuizOption(${idx})" class="w-full text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition flex items-center justify-between text-sm group text-slate-700 dark:text-slate-300 option-btn" data-index="${idx}">
+                                <span>${opt}</span>
+                                <div class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-500 flex items-center justify-center p-[2px]">
+                                    <div class="w-full h-full rounded-full bg-transparent inner-dot"></div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectQuizOption(index) {
+            selectedOptionIdx = index;
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((b, idx) => {
+                const dot = b.querySelector('.inner-dot');
+                if (idx === index) {
+                    b.className = "w-full text-left p-3.5 rounded-xl border-2 border-java-500 bg-java-50/20 dark:bg-java-950/20 transition flex items-center justify-between text-sm group text-slate-900 dark:text-white option-btn";
+                    dot.className = "w-full h-full rounded-full bg-java-500 inner-dot";
+                } else {
+                    b.className = "w-full text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition flex items-center justify-between text-sm group text-slate-700 dark:text-slate-300 option-btn";
+                    dot.className = "w-full h-full rounded-full bg-transparent inner-dot";
+                }
+            });
+
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.disabled = false;
+            actionBtn.className = "bg-java-600 hover:bg-java-700 text-white font-bold py-2 px-5 rounded-lg text-sm transition";
+        }
+
+        function nextQuizQuestion() {
+            const btn = document.getElementById('quiz-action-btn');
+            
+            if (btn.textContent === "Submit Answer") {
+                const qData = quizQuestions[currentQuestionIdx];
+                const btns = document.querySelectorAll('.option-btn');
+                
+                // Score evaluation
+                let isCorrect = selectedOptionIdx === qData.ans;
+                if (isCorrect) userQuizScore++;
+
+                // Visual response update
+                btns.forEach((b, idx) => {
+                    const dot = b.querySelector('.inner-dot');
+                    b.disabled = true;
+                    if (idx === qData.ans) {
+                        b.className = "w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 dark:bg-emerald-950/20 transition flex items-center justify-between text-sm group text-emerald-800 dark:text-emerald-400 option-btn";
+                        dot.className = "w-full h-full rounded-full bg-emerald-500 inner-dot";
+                    } else if (idx === selectedOptionIdx) {
+                        b.className = "w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-500/10 dark:bg-red-950/20 transition flex items-center justify-between text-sm group text-red-800 dark:text-red-400 option-btn";
+                        dot.className = "w-full h-full rounded-full bg-red-500 inner-dot";
+                    }
+                });
+
+                // Display response explanation
+                const body = document.getElementById('quiz-body');
+                const expl = document.createElement('div');
+                expl.className = `p-4 rounded-xl text-xs mt-4 ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200' : 'bg-red-50 dark:bg-red-950/20 border border-red-200'}`;
+                expl.innerHTML = `
+                    <span class="block font-bold text-sm mb-1">${isCorrect ? 'Correct! 🎉' : 'Incorrect 😅'}</span>
+                    <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${qData.explanation}</p>
+                `;
+                body.appendChild(expl);
+
+                btn.textContent = (currentQuestionIdx < quizQuestions.length - 1) ? "Next Question" : "View Results";
+            } else if (btn.textContent === "Next Question") {
+                currentQuestionIdx++;
+                loadQuizQuestion();
+            } else {
+                // End Quiz Results Card
+                const body = document.getElementById('quiz-body');
+                const indicator = document.getElementById('quiz-score-indicator');
+                indicator.textContent = `Quiz Complete`;
+                
+                let performanceQuote = "Keep studying! You will get there.";
+                if (userQuizScore === quizQuestions.length) performanceQuote = "Amazing job! You are fully ready for the core java basics portion.";
+                else if (userQuizScore >= 3) performanceQuote = "Great effort! A few concepts still need review.";
+
+                body.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-java-600 to-orange-500 text-white flex items-center justify-center text-3xl font-black mx-auto shadow-lg">
+                            ${userQuizScore}/${quizQuestions.length}
+                        </div>
+                        <h4 class="font-extrabold text-xl text-slate-800 dark:text-slate-100">Your Score: ${Math.round((userQuizScore/quizQuestions.length)*100)}%</h4>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 max-w-sm mx-auto">${performanceQuote}</p>
+                        <button onclick="openQuizModal()" class="inline-flex items-center space-x-2 bg-java-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-java-700 transition">
+                            Retry Quiz
+                        </button>
+                    </div>
+                `;
+                btn.textContent = "Finish Prep Session";
+            }
+        }
+    </script>
+</body>
+</html>

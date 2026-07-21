@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Java Reflection and Spring AOP Deep Dive EN VN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#132033;--muted:#667085;--dark:#0f172a;--border:#d9e2ef;--code:#0b1120;--blue:#2563eb;--green:#0f766e;--soft-blue:#eff6ff;--soft-green:#ecfdf5;--soft-yellow:#fffbeb;--soft-red:#fef2f2}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);line-height:1.72}.layout{display:grid;grid-template-columns:330px 1fr;min-height:100vh}aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--dark);color:#f8fafc;padding:28px 22px}main{padding:38px;max-width:1320px;width:100%}.badge{display:inline-block;background:rgba(37,99,235,.25);color:#bfdbfe;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}h1{font-size:22px;line-height:1.25}aside p{color:#cbd5e1;font-size:14px}.toc-title{color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;margin:24px 0 8px;letter-spacing:.08em}nav ul{padding:0;margin:0;list-style:none}nav a{display:block;color:#dbeafe;padding:8px 10px;border-radius:10px;text-decoration:none;font-size:14px}nav a:hover{background:rgba(59,130,246,.18);color:white}.hero{background:linear-gradient(135deg,#111827,#1e3a8a,#0f766e);color:white;border-radius:30px;padding:42px;margin-bottom:26px;box-shadow:0 18px 40px rgba(15,23,42,.08)}.hero h2{font-size:40px;line-height:1.1;margin:0 0 12px;letter-spacing:-.04em}.hero p{color:#dbeafe;font-size:17px;max-width:1050px}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.tags span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800}section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;margin:22px 0;box-shadow:0 12px 30px rgba(15,23,42,.04)}section h2{margin-top:0;border-bottom:1px solid var(--border);padding-bottom:12px;font-size:28px;letter-spacing:-.025em}h3{color:#1e3a8a;margin-top:28px;font-size:21px}h4{color:#0f766e;margin-top:22px;font-size:17px}.lead{color:var(--muted);font-size:16px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0}.card{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:18px}.card h4{margin:0 0 8px;color:#0f172a}.card p{margin:0;color:var(--muted)}.note,.warn,.danger,.ok{border-radius:14px;padding:14px 16px;margin:16px 0;border:1px solid}.note{background:var(--soft-blue);border-color:#bfdbfe;color:#1e3a8a}.ok{background:var(--soft-green);border-color:#bbf7d0;color:#166534}.warn{background:var(--soft-yellow);border-color:#fde68a;color:#92400e}.danger{background:var(--soft-red);border-color:#fecaca;color:#991b1b}table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;font-size:14px}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{background:#f1f5f9;color:#0f172a;font-weight:900}tr:last-child td{border-bottom:none}pre{background:var(--code);color:#e5e7eb;border-radius:16px;padding:18px 20px;overflow:auto;font-size:13.3px;line-height:1.6;border:1px solid rgba(255,255,255,.08)}code{font-family:SFMono-Regular,Consolas,monospace}p code,li code,td code{background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 6px;font-size:.92em}.diagram{background:#f8fafc;border:1px dashed #94a3b8;border-radius:16px;padding:18px;margin:18px 0;overflow:auto;white-space:pre;font-family:SFMono-Regular,Consolas,monospace;font-size:13.2px;line-height:1.65}.qa{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0}.qa strong{color:#1e3a8a}.interview{background:#0f172a;color:#e5e7eb}.interview h2,.interview h3{color:#fff}.interview .qa{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}.checklist li::marker{content:'✅ '}.avoid li::marker{content:'⚠️ '}.footer{text-align:center;color:var(--muted);padding:32px 0 10px;font-size:13px}@media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto}main{padding:22px}.grid,.grid3{grid-template-columns:1fr}.hero h2{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<span class="badge">Senior Java Backend</span>
+<h1>Java Reflection & Spring AOP</h1>
+<p>Deep-dive EN/VN notes with examples, comparison, internal mechanism, pitfalls and interview Q&A.</p>
+<div class="toc-title">English</div>
+<nav><ul>
+<li><a href="#en-overview">Big Picture</a></li>
+<li><a href="#en-reflection-basic">Reflection Basics</a></li>
+<li><a href="#en-reflection-advanced">Reflection Advanced</a></li>
+<li><a href="#en-aop-basic">Spring AOP Basics</a></li>
+<li><a href="#en-aop-internals">Spring AOP Internals</a></li>
+<li><a href="#en-examples">AOP Examples</a></li>
+<li><a href="#en-compare">Reflection vs AOP</a></li>
+<li><a href="#en-pitfalls">Pitfalls</a></li>
+<li><a href="#en-qa">Interview Q&A</a></li>
+</ul></nav>
+<div class="toc-title">Vietnamese</div>
+<nav><ul>
+<li><a href="#vi-overview">Tổng quan</a></li>
+<li><a href="#vi-reflection-basic">Reflection cơ bản</a></li>
+<li><a href="#vi-reflection-advanced">Reflection nâng cao</a></li>
+<li><a href="#vi-aop-basic">Spring AOP cơ bản</a></li>
+<li><a href="#vi-aop-internals">Spring AOP Internals</a></li>
+<li><a href="#vi-examples">Ví dụ AOP</a></li>
+<li><a href="#vi-compare">Reflection vs AOP</a></li>
+<li><a href="#vi-pitfalls">Pitfalls</a></li>
+<li><a href="#vi-qa">Câu hỏi phỏng vấn</a></li>
+</ul></nav>
+</aside>
+<main>
+<div class="hero">
+<h2>Java Reflection and Spring AOP Deep Dive</h2>
+<p>Understand runtime metadata, dynamic method invocation, annotations, proxies, aspects, advice, pointcuts, join points, and how Spring uses AOP for transactions, security, caching and logging.</p>
+<div class="tags"><span>Reflection</span><span>Class</span><span>Method</span><span>Field</span><span>Annotation</span><span>Proxy</span><span>AOP</span><span>Aspect</span><span>Pointcut</span><span>Advice</span><span>JDK Proxy</span><span>CGLIB</span><span>@Transactional</span></div>
+</div>
+
+<section id="en-overview">
+<h2>1. Big Picture</h2>
+<p class="lead"><b>Reflection</b> is a Java runtime capability to inspect and manipulate classes, methods, fields, constructors and annotations. <b>Spring AOP</b> is a programming model that applies cross-cutting behavior around Spring beans using proxies.</p>
+<div class="diagram">Java Reflection:
+Runtime metadata access
+  → inspect class/method/field/annotation
+  → create object dynamically
+  → invoke method dynamically
+  → used by frameworks internally
+
+Spring AOP:
+Proxy-based interception
+  → wrap Spring bean with proxy
+  → intercept method call
+  → run advice before/after/around method
+  → used for transaction, security, caching, logging</div>
+<div class="grid">
+<div class="card"><h4>Reflection</h4><p>Low-level Java feature. It works on class metadata and can access members dynamically.</p></div>
+<div class="card"><h4>Spring AOP</h4><p>Higher-level Spring feature. It intercepts method calls on Spring beans through proxies.</p></div>
+<div class="card"><h4>Relationship</h4><p>Spring may use reflection internally, but AOP itself is not just reflection. AOP is based on proxy interception.</p></div>
+<div class="card"><h4>Interview Focus</h4><p>Explain when to use each, performance, proxy limitations, self-invocation, private/final methods, and real Spring examples.</p></div>
+</div>
+<div class="note"><b>Senior mindset:</b> Reflection is about runtime inspection and dynamic access. AOP is about separating cross-cutting concerns from business logic by intercepting method calls.</div>
+</section>
+
+<section id="en-reflection-basic">
+<h2>2. Java Reflection Basics</h2>
+<h3>What is Reflection?</h3>
+<p>Reflection allows Java code to inspect classes, methods, fields, constructors, annotations and invoke members at runtime, even if the class is only known dynamically.</p>
+<h3>Core Reflection Classes</h3>
+<table><thead><tr><th>Class</th><th>Purpose</th><th>Example</th></tr></thead><tbody>
+<tr><td><code>Class&lt;?&gt;</code></td><td>Runtime representation of a Java class.</td><td><code>User.class</code>, <code>Class.forName()</code></td></tr>
+<tr><td><code>Field</code></td><td>Represents a field.</td><td>Read/write field value dynamically.</td></tr>
+<tr><td><code>Method</code></td><td>Represents a method.</td><td>Invoke method dynamically.</td></tr>
+<tr><td><code>Constructor</code></td><td>Represents a constructor.</td><td>Create object dynamically.</td></tr>
+<tr><td><code>Annotation</code></td><td>Represents annotation metadata.</td><td>Read custom annotation.</td></tr>
+</tbody></table>
+<h3>Getting Class Object</h3>
+<pre><code>Class&lt;User&gt; clazz1 = User.class;
+
+User user = new User();
+Class&lt;? extends User&gt; clazz2 = user.getClass();
+
+Class&lt;?&gt; clazz3 = Class.forName("com.example.User");</code></pre>
+<h3>Inspect Fields and Methods</h3>
+<pre><code>Class&lt;User&gt; clazz = User.class;
+
+for (Field field : clazz.getDeclaredFields()) {
+    System.out.println(field.getName() + " : " + field.getType());
+}
+
+for (Method method : clazz.getDeclaredMethods()) {
+    System.out.println(method.getName());
+}</code></pre>
+<h3>Invoke Method Dynamically</h3>
+<pre><code>public class UserService {
+    public String hello(String name) {
+        return "Hello " + name;
+    }
+}
+
+UserService service = new UserService();
+
+Method method = UserService.class.getDeclaredMethod("hello", String.class);
+Object result = method.invoke(service, "Huy");
+
+System.out.println(result); // Hello Huy</code></pre>
+<h3>Access Private Field</h3>
+<pre><code>public class User {
+    private String email = "old@example.com";
+}
+
+User user = new User();
+
+Field emailField = User.class.getDeclaredField("email");
+emailField.setAccessible(true);
+
+String oldEmail = (String) emailField.get(user);
+emailField.set(user, "new@example.com");</code></pre>
+<div class="warn"><b>Important:</b> Accessing private members breaks encapsulation. Frameworks may do it, but business code should avoid abusing it.</div>
+</section>
+
+<section id="en-reflection-advanced">
+<h2>3. Reflection Advanced</h2>
+<h3>Reflection and Annotations</h3>
+<p>Many frameworks use reflection to read annotations and build runtime behavior.</p>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface AuditLog {
+    String action();
+}
+
+public class PaymentService {
+    @AuditLog(action = "PAYMENT_CREATED")
+    public void createPayment() {
+        // business logic
+    }
+}
+
+Method method = PaymentService.class.getDeclaredMethod("createPayment");
+
+if (method.isAnnotationPresent(AuditLog.class)) {
+    AuditLog auditLog = method.getAnnotation(AuditLog.class);
+    System.out.println(auditLog.action());
+}</code></pre>
+<h3>Dynamic Object Creation</h3>
+<pre><code>Class&lt;?&gt; clazz = Class.forName("com.example.User");
+
+Constructor&lt;?&gt; constructor = clazz.getDeclaredConstructor(String.class);
+Object user = constructor.newInstance("huy@example.com");</code></pre>
+<h3>Generic Type Inspection</h3>
+<pre><code>public class UserRepository {
+    private List&lt;User&gt; users;
+}
+
+Field field = UserRepository.class.getDeclaredField("users");
+Type genericType = field.getGenericType();
+
+if (genericType instanceof ParameterizedType parameterizedType) {
+    Type actualType = parameterizedType.getActualTypeArguments()[0];
+    System.out.println(actualType); // class User
+}</code></pre>
+<h3>Reflection in Real Frameworks</h3>
+<table><thead><tr><th>Framework</th><th>Reflection Usage</th></tr></thead><tbody>
+<tr><td>Spring</td><td>Scan classes, read annotations, create beans, inject dependencies, call lifecycle methods.</td></tr>
+<tr><td>Hibernate/JPA</td><td>Read entity annotations, access fields, instantiate entities, map database columns.</td></tr>
+<tr><td>Jackson</td><td>Inspect fields/getters/setters, serialize/deserialize JSON.</td></tr>
+<tr><td>JUnit</td><td>Find and invoke test methods annotated with <code>@Test</code>.</td></tr>
+<tr><td>Mockito</td><td>Create mocks/proxies and inject fields.</td></tr>
+</tbody></table>
+<h3>Reflection Performance</h3>
+<p>Reflection is slower than direct method calls because it involves dynamic lookup, access checks, boxing/unboxing and less compiler optimization. Modern JVMs optimize some cases, but reflection still has overhead and should not be used in hot paths without caching.</p>
+<h3>Reflection Risks</h3>
+<ul class="avoid"><li>Breaks encapsulation by accessing private fields/methods.</li><li>Runtime errors instead of compile-time errors.</li><li>Harder refactoring because method/field names may be strings.</li><li>Performance overhead if used heavily.</li><li>Security/module access restrictions can block reflective access.</li><li>Harder to understand and debug.</li></ul>
+</section>
+
+<section id="en-aop-basic">
+<h2>4. Spring AOP Basics</h2>
+<h3>What is AOP?</h3>
+<p>AOP — Aspect-Oriented Programming — separates cross-cutting concerns from business logic. Cross-cutting concerns are logic repeated across many places, such as transaction, logging, security, caching, audit and metrics.</p>
+<div class="diagram">Without AOP:
+OrderService.createOrder()
+  → log start
+  → begin transaction
+  → check security
+  → business logic
+  → commit transaction
+  → log end
+
+With AOP:
+Proxy wraps OrderService
+  → logging advice
+  → transaction advice
+  → security advice
+  → actual business method</div>
+<h3>AOP Concepts</h3>
+<table><thead><tr><th>Concept</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+<tr><td>Aspect</td><td>Module containing cross-cutting logic.</td><td>LoggingAspect, AuditAspect.</td></tr>
+<tr><td>Advice</td><td>Code executed at a join point.</td><td><code>@Before</code>, <code>@After</code>, <code>@Around</code>.</td></tr>
+<tr><td>Join Point</td><td>A point in program execution. In Spring AOP, usually method execution.</td><td>Calling <code>OrderService.createOrder()</code>.</td></tr>
+<tr><td>Pointcut</td><td>Expression selecting join points.</td><td><code>execution(* com.example..service..*(..))</code>.</td></tr>
+<tr><td>Target Object</td><td>Original object being proxied.</td><td>Real OrderService bean.</td></tr>
+<tr><td>Proxy</td><td>Object wrapping target to apply advice.</td><td>JDK dynamic proxy or CGLIB proxy.</td></tr>
+<tr><td>Weaving</td><td>Applying aspect to target.</td><td>In Spring AOP, done at runtime through proxy.</td></tr>
+</tbody></table>
+<h3>Advice Types</h3>
+<table><thead><tr><th>Advice</th><th>When it runs</th><th>Use Case</th></tr></thead><tbody>
+<tr><td><code>@Before</code></td><td>Before method execution.</td><td>Validation, logging before call.</td></tr>
+<tr><td><code>@After</code></td><td>After method execution, success or failure.</td><td>Cleanup, generic logging.</td></tr>
+<tr><td><code>@AfterReturning</code></td><td>Only after successful method return.</td><td>Log response, audit success.</td></tr>
+<tr><td><code>@AfterThrowing</code></td><td>Only when method throws exception.</td><td>Error logging, failure audit.</td></tr>
+<tr><td><code>@Around</code></td><td>Wraps method execution.</td><td>Performance timing, transaction-like behavior, retry.</td></tr>
+</tbody></table>
+</section>
+
+<section id="en-aop-internals">
+<h2>5. Spring AOP Internals</h2>
+<h3>Proxy-Based Mechanism</h3>
+<p>Spring AOP works by creating a proxy object around the target Spring bean. Client code calls the proxy. The proxy runs advice and then delegates to the target method.</p>
+<div class="diagram">Client
+  ↓
+Proxy bean
+  ↓ run advice before
+Target method
+  ↓ run advice after
+Return to client</div>
+<h3>JDK Dynamic Proxy vs CGLIB Proxy</h3>
+<table><thead><tr><th>Proxy Type</th><th>How it works</th><th>When used</th><th>Limitation</th></tr></thead><tbody>
+<tr><td>JDK Dynamic Proxy</td><td>Creates proxy implementing interfaces.</td><td>When bean has interface.</td><td>Only interface methods are proxied.</td></tr>
+<tr><td>CGLIB Proxy</td><td>Creates subclass of target class.</td><td>When no interface or class-based proxy is configured.</td><td>Cannot proxy final class/method; private methods cannot be advised.</td></tr>
+</tbody></table>
+<h3>@Transactional is AOP</h3>
+<p><code>@Transactional</code> is one of the most common Spring AOP examples. Spring creates a proxy that opens transaction before method execution and commits/rolls back after execution.</p>
+<pre><code>@Service
+public class OrderService {
+
+    @Transactional
+    public void createOrder(CreateOrderRequest request) {
+        // 1. proxy opens transaction
+        // 2. business logic executes
+        // 3. proxy commits if success
+        // 4. proxy rolls back if RuntimeException/Error
+    }
+}</code></pre>
+<h3>Self-Invocation Problem</h3>
+<pre><code>@Service
+public class OrderService {
+
+    public void outer() {
+        this.inner(); // bypasses proxy
+    }
+
+    @Transactional
+    public void inner() {
+        // transaction may NOT be applied when called by this.inner()
+    }
+}</code></pre>
+<div class="danger"><b>Very common interview point:</b> Spring AOP works only when the call goes through the proxy. Self-invocation bypasses proxy.</div>
+<h3>Spring AOP Limitations</h3>
+<ul class="avoid"><li>Only Spring beans are proxied.</li><li>Only method execution join points are supported in Spring AOP.</li><li>Private methods are not advised.</li><li>Final methods/classes cannot be proxied by CGLIB.</li><li>Self-invocation bypasses proxy.</li><li>Constructor execution is not advised by Spring AOP.</li><li>For full AspectJ features, use AspectJ weaving, not Spring proxy AOP.</li></ul>
+</section>
+
+<section id="en-examples">
+<h2>6. Practical Spring AOP Examples</h2>
+<h3>Example 1: Logging Execution Time</h3>
+<pre><code>@Aspect
+@Component
+public class PerformanceLoggingAspect {
+
+    @Around("execution(* com.example..service..*(..))")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            System.out.println(joinPoint.getSignature() + " took " + duration + "ms");
+        }
+    }
+}</code></pre>
+<h3>Example 2: Audit by Custom Annotation</h3>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Auditable {
+    String action();
+}
+
+@Aspect
+@Component
+public class AuditAspect {
+
+    @AfterReturning("@annotation(auditable)")
+    public void auditSuccess(JoinPoint joinPoint, Auditable auditable) {
+        System.out.println("Audit action = " + auditable.action());
+        System.out.println("Method = " + joinPoint.getSignature().getName());
+    }
+}
+
+@Service
+public class PaymentService {
+
+    @Auditable(action = "CREATE_PAYMENT")
+    public void createPayment() {
+        // business logic
+    }
+}</code></pre>
+<h3>Example 3: Exception Logging</h3>
+<pre><code>@Aspect
+@Component
+public class ExceptionLoggingAspect {
+
+    @AfterThrowing(
+        pointcut = "execution(* com.example..service..*(..))",
+        throwing = "ex"
+    )
+    public void logException(JoinPoint joinPoint, Exception ex) {
+        System.out.println("Exception in " + joinPoint.getSignature());
+        System.out.println("Error: " + ex.getMessage());
+    }
+}</code></pre>
+<h3>Example 4: Simple Retry with @Around</h3>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface RetryableOperation {
+    int maxAttempts() default 3;
+}
+
+@Aspect
+@Component
+public class RetryAspect {
+
+    @Around("@annotation(retryable)")
+    public Object retry(ProceedingJoinPoint joinPoint, RetryableOperation retryable) throws Throwable {
+        int attempts = 0;
+        Throwable lastError = null;
+
+        while (attempts < retryable.maxAttempts()) {
+            try {
+                attempts++;
+                return joinPoint.proceed();
+            } catch (RuntimeException ex) {
+                lastError = ex;
+            }
+        }
+
+        throw lastError;
+    }
+}</code></pre>
+<div class="warn"><b>Production note:</b> For real retry, prefer battle-tested libraries like Spring Retry or Resilience4j because they handle backoff, retryable exceptions, metrics and circuit breakers better.</div>
+</section>
+
+<section id="en-compare">
+<h2>7. Java Reflection vs Spring AOP</h2>
+<table><thead><tr><th>Point</th><th>Java Reflection</th><th>Spring AOP</th></tr></thead><tbody>
+<tr><td>Level</td><td>Low-level Java runtime feature.</td><td>High-level Spring programming model.</td></tr>
+<tr><td>Main purpose</td><td>Inspect and manipulate class metadata at runtime.</td><td>Apply cross-cutting behavior around Spring bean methods.</td></tr>
+<tr><td>Core mechanism</td><td><code>Class</code>, <code>Method</code>, <code>Field</code>, <code>Constructor</code>.</td><td>Proxy + advice + pointcut + join point.</td></tr>
+<tr><td>Typical use</td><td>Framework internals, annotation scanning, dynamic invocation.</td><td>Transaction, logging, security, caching, metrics, audit.</td></tr>
+<tr><td>Scope</td><td>Can inspect almost any loaded class, depending on access rules.</td><td>Works mainly on Spring beans and method execution.</td></tr>
+<tr><td>Invocation</td><td>You explicitly call <code>method.invoke()</code>.</td><td>Client calls proxy, advice runs automatically.</td></tr>
+<tr><td>Compile-time safety</td><td>Lower. Errors often happen at runtime.</td><td>Better for business code, but pointcut mistakes can be runtime/config issues.</td></tr>
+<tr><td>Performance</td><td>Reflection invocation has overhead.</td><td>Proxy interception also has overhead, usually acceptable for service methods.</td></tr>
+<tr><td>Business code usage</td><td>Use rarely and carefully.</td><td>Common for cross-cutting concerns.</td></tr>
+</tbody></table>
+<h3>Relationship Between Them</h3>
+<p>Spring AOP may use reflection internally to inspect annotations, methods and metadata. However, Spring AOP is not the same as reflection. AOP is about method interception through proxy. Reflection is about dynamic metadata access and invocation.</p>
+<div class="diagram">Reflection:
+"Let me inspect this class/method/field and maybe invoke it dynamically."
+
+AOP:
+"Let me intercept calls to this Spring bean method and run extra behavior before/after/around it."</div>
+</section>
+
+<section id="en-pitfalls">
+<h2>8. Common Pitfalls</h2>
+<h3>Reflection Pitfalls</h3>
+<ul class="avoid"><li>Overusing reflection in business code.</li><li>Accessing private fields and breaking encapsulation.</li><li>Using string method/field names that break during refactoring.</li><li>Ignoring performance overhead in loops or hot paths.</li><li>Not handling checked exceptions from reflection APIs.</li><li>Assuming reflective access always works with Java module restrictions.</li></ul>
+<h3>AOP Pitfalls</h3>
+<ul class="avoid"><li>Self-invocation bypasses proxy.</li><li>Private methods are not advised.</li><li>Final methods/classes may not be proxied.</li><li>Advice only applies to Spring beans.</li><li>Pointcut too broad can accidentally affect many methods.</li><li>Putting business logic inside aspects makes code hard to understand.</li><li>Wrong advice order can cause unexpected behavior.</li><li>Assuming <code>@Transactional</code> works on every method call without understanding proxy.</li></ul>
+<h3>Best Practices</h3>
+<ul class="checklist"><li>Use reflection mostly in framework-like code, not normal business services.</li><li>Cache reflective metadata if used repeatedly.</li><li>Prefer annotations and clear contracts over magic strings.</li><li>Use AOP for cross-cutting concerns only.</li><li>Keep aspects small, focused and observable.</li><li>Use explicit pointcuts and package conventions.</li><li>Understand proxy limitations before using <code>@Transactional</code>, <code>@Async</code>, <code>@Cacheable</code>.</li></ul>
+</section>
+
+<section id="en-qa" class="interview">
+<h2>9. Common Interview Questions & Answers — English</h2>
+<div class="qa"><p><strong>Q1. What is Java Reflection?</strong></p><p>A: Reflection is a Java runtime feature that allows code to inspect and manipulate classes, fields, methods, constructors and annotations dynamically. It is commonly used by frameworks like Spring, Hibernate, Jackson and JUnit for annotation scanning, dependency injection, object creation and method invocation.</p></div>
+<div class="qa"><p><strong>Q2. What are the disadvantages of reflection?</strong></p><p>A: Reflection has runtime overhead, weaker compile-time safety, can break encapsulation, may fail at runtime because of wrong names or access restrictions, and can make code harder to understand and refactor. It should be used carefully, especially outside framework code.</p></div>
+<div class="qa"><p><strong>Q3. What is Spring AOP?</strong></p><p>A: Spring AOP is a proxy-based mechanism for applying cross-cutting concerns to Spring beans. It intercepts method calls and runs advice before, after, or around the target method. It is commonly used for transactions, security, caching, logging, audit and metrics.</p></div>
+<div class="qa"><p><strong>Q4. How does Spring AOP work internally?</strong></p><p>A: Spring creates a proxy for the target bean. Client code calls the proxy instead of the real object. The proxy checks pointcuts, runs applicable advice, and then delegates to the target method. Depending on the bean, Spring can use JDK dynamic proxy or CGLIB class-based proxy.</p></div>
+<div class="qa"><p><strong>Q5. JDK Dynamic Proxy vs CGLIB?</strong></p><p>A: JDK dynamic proxy creates a proxy implementing interfaces, so it works when the bean exposes an interface. CGLIB creates a subclass of the target class, so it can proxy classes without interfaces. However, CGLIB cannot proxy final classes or final methods, and private methods are not advised.</p></div>
+<div class="qa"><p><strong>Q6. Is Spring AOP the same as reflection?</strong></p><p>A: No. Reflection is a low-level Java feature for runtime metadata inspection and dynamic invocation. Spring AOP is a higher-level proxy-based method interception mechanism. Spring may use reflection internally, but AOP is mainly about proxies, pointcuts and advice.</p></div>
+<div class="qa"><p><strong>Q7. Why does self-invocation break @Transactional?</strong></p><p>A: Spring AOP works only when method calls go through the proxy. If a method inside the same class calls another method using this.inner(), the call bypasses the proxy, so transactional advice is not applied.</p></div>
+<div class="qa"><p><strong>Q8. Can Spring AOP advise private methods?</strong></p><p>A: No. Spring AOP is proxy-based and intercepts method calls through the proxy. Private methods are not visible to proxy-based method interception. Also, private method calls are usually internal calls within the class.</p></div>
+<div class="qa"><p><strong>Q9. What is the difference between @Before, @After and @Around?</strong></p><p>A: @Before runs before target method. @After runs after target method whether it succeeds or fails. @AfterReturning runs only on success. @AfterThrowing runs only on exception. @Around wraps the method and can control whether, when and how the target method executes.</p></div>
+<div class="qa"><p><strong>Q10. When should you use AOP?</strong></p><p>A: Use AOP for cross-cutting concerns repeated across many places: transaction, logging, metrics, audit, security, caching and tracing. Avoid putting core business logic into aspects because it makes behavior hidden and harder to understand.</p></div>
+</section>
+
+<section id="vi-overview">
+<h2>10. Tổng quan</h2>
+<p class="lead"><b>Reflection</b> là khả năng runtime của Java để inspect và manipulate class, method, field, constructor, annotation. <b>Spring AOP</b> là cơ chế của Spring để apply cross-cutting behavior quanh Spring beans bằng proxy.</p>
+<div class="diagram">Java Reflection:
+Runtime metadata access
+  → inspect class/method/field/annotation
+  → create object dynamically
+  → invoke method dynamically
+  → framework hay dùng bên trong
+
+Spring AOP:
+Proxy-based interception
+  → wrap Spring bean bằng proxy
+  → intercept method call
+  → chạy advice before/after/around method
+  → dùng cho transaction, security, caching, logging</div>
+<div class="note"><b>Mindset Senior:</b> Reflection là runtime inspection/dynamic access. AOP là tách cross-cutting concerns ra khỏi business logic bằng cách intercept method calls.</div>
+</section>
+
+<section id="vi-reflection-basic">
+<h2>11. Java Reflection cơ bản</h2>
+<h3>Reflection là gì?</h3>
+<p>Reflection cho phép Java code inspect class, method, field, constructor, annotation và invoke member ở runtime, kể cả khi class chỉ được biết dynamic.</p>
+<h3>Các class chính</h3>
+<table><thead><tr><th>Class</th><th>Mục đích</th><th>Ví dụ</th></tr></thead><tbody>
+<tr><td><code>Class&lt;?&gt;</code></td><td>Runtime representation của Java class.</td><td><code>User.class</code>, <code>Class.forName()</code></td></tr>
+<tr><td><code>Field</code></td><td>Đại diện cho field.</td><td>Read/write field dynamic.</td></tr>
+<tr><td><code>Method</code></td><td>Đại diện cho method.</td><td>Invoke method dynamic.</td></tr>
+<tr><td><code>Constructor</code></td><td>Đại diện cho constructor.</td><td>Create object dynamic.</td></tr>
+<tr><td><code>Annotation</code></td><td>Đại diện annotation metadata.</td><td>Read custom annotation.</td></tr>
+</tbody></table>
+<h3>Lấy Class object</h3>
+<pre><code>Class&lt;User&gt; clazz1 = User.class;
+
+User user = new User();
+Class&lt;? extends User&gt; clazz2 = user.getClass();
+
+Class&lt;?&gt; clazz3 = Class.forName("com.example.User");</code></pre>
+<h3>Inspect fields và methods</h3>
+<pre><code>Class&lt;User&gt; clazz = User.class;
+
+for (Field field : clazz.getDeclaredFields()) {
+    System.out.println(field.getName() + " : " + field.getType());
+}
+
+for (Method method : clazz.getDeclaredMethods()) {
+    System.out.println(method.getName());
+}</code></pre>
+<h3>Invoke method dynamic</h3>
+<pre><code>public class UserService {
+    public String hello(String name) {
+        return "Hello " + name;
+    }
+}
+
+UserService service = new UserService();
+
+Method method = UserService.class.getDeclaredMethod("hello", String.class);
+Object result = method.invoke(service, "Huy");
+
+System.out.println(result); // Hello Huy</code></pre>
+<div class="warn"><b>Quan trọng:</b> Access private member bằng reflection phá encapsulation. Framework có thể dùng, nhưng business code không nên lạm dụng.</div>
+</section>
+
+<section id="vi-reflection-advanced">
+<h2>12. Reflection nâng cao</h2>
+<h3>Reflection và Annotation</h3>
+<p>Nhiều framework dùng reflection để đọc annotation và build behavior runtime.</p>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface AuditLog {
+    String action();
+}
+
+public class PaymentService {
+    @AuditLog(action = "PAYMENT_CREATED")
+    public void createPayment() {
+        // business logic
+    }
+}
+
+Method method = PaymentService.class.getDeclaredMethod("createPayment");
+
+if (method.isAnnotationPresent(AuditLog.class)) {
+    AuditLog auditLog = method.getAnnotation(AuditLog.class);
+    System.out.println(auditLog.action());
+}</code></pre>
+<h3>Framework nào dùng Reflection?</h3>
+<table><thead><tr><th>Framework</th><th>Cách dùng Reflection</th></tr></thead><tbody>
+<tr><td>Spring</td><td>Scan classes, đọc annotations, create beans, inject dependencies, gọi lifecycle methods.</td></tr>
+<tr><td>Hibernate/JPA</td><td>Đọc entity annotations, access fields, instantiate entities, map DB columns.</td></tr>
+<tr><td>Jackson</td><td>Inspect fields/getters/setters, serialize/deserialize JSON.</td></tr>
+<tr><td>JUnit</td><td>Tìm và invoke test methods annotated với <code>@Test</code>.</td></tr>
+<tr><td>Mockito</td><td>Tạo mocks/proxies và inject fields.</td></tr>
+</tbody></table>
+<h3>Performance và rủi ro</h3>
+<p>Reflection chậm hơn direct call vì dynamic lookup, access checks, boxing/unboxing và ít compiler optimization hơn. Nếu dùng lặp lại nhiều lần, nên cache metadata như <code>Method</code>, <code>Field</code>.</p>
+<ul class="avoid"><li>Phá encapsulation khi access private fields/methods.</li><li>Lỗi runtime thay vì compile-time.</li><li>Refactor khó hơn nếu dùng string method/field names.</li><li>Overhead performance nếu dùng trong hot path.</li><li>Có thể bị hạn chế bởi Java module/security access.</li></ul>
+</section>
+
+<section id="vi-aop-basic">
+<h2>13. Spring AOP cơ bản</h2>
+<h3>AOP là gì?</h3>
+<p>AOP — Aspect-Oriented Programming — tách cross-cutting concerns khỏi business logic. Cross-cutting concerns là logic lặp lại ở nhiều nơi như transaction, logging, security, caching, audit, metrics.</p>
+<div class="diagram">Không dùng AOP:
+OrderService.createOrder()
+  → log start
+  → begin transaction
+  → check security
+  → business logic
+  → commit transaction
+  → log end
+
+Dùng AOP:
+Proxy wrap OrderService
+  → logging advice
+  → transaction advice
+  → security advice
+  → actual business method</div>
+<h3>Concepts trong AOP</h3>
+<table><thead><tr><th>Concept</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead><tbody>
+<tr><td>Aspect</td><td>Module chứa cross-cutting logic.</td><td>LoggingAspect, AuditAspect.</td></tr>
+<tr><td>Advice</td><td>Code chạy tại join point.</td><td><code>@Before</code>, <code>@After</code>, <code>@Around</code>.</td></tr>
+<tr><td>Join Point</td><td>Điểm trong execution. Với Spring AOP thường là method execution.</td><td>Gọi <code>OrderService.createOrder()</code>.</td></tr>
+<tr><td>Pointcut</td><td>Expression chọn join points.</td><td><code>execution(* com.example..service..*(..))</code>.</td></tr>
+<tr><td>Target Object</td><td>Object gốc bị proxy.</td><td>OrderService thật.</td></tr>
+<tr><td>Proxy</td><td>Object wrap target để apply advice.</td><td>JDK dynamic proxy hoặc CGLIB proxy.</td></tr>
+<tr><td>Weaving</td><td>Apply aspect vào target.</td><td>Spring AOP làm runtime qua proxy.</td></tr>
+</tbody></table>
+</section>
+
+<section id="vi-aop-internals">
+<h2>14. Spring AOP Internals</h2>
+<h3>Proxy-Based Mechanism</h3>
+<p>Spring AOP tạo proxy object quanh target Spring bean. Client gọi proxy. Proxy chạy advice rồi delegate tới target method.</p>
+<div class="diagram">Client
+  ↓
+Proxy bean
+  ↓ run advice before
+Target method
+  ↓ run advice after
+Return to client</div>
+<h3>JDK Dynamic Proxy vs CGLIB Proxy</h3>
+<table><thead><tr><th>Proxy Type</th><th>Cách hoạt động</th><th>Khi nào dùng</th><th>Giới hạn</th></tr></thead><tbody>
+<tr><td>JDK Dynamic Proxy</td><td>Tạo proxy implement interfaces.</td><td>Khi bean có interface.</td><td>Chỉ proxy interface methods.</td></tr>
+<tr><td>CGLIB Proxy</td><td>Tạo subclass của target class.</td><td>Khi không có interface hoặc cấu hình class-based proxy.</td><td>Không proxy được final class/method; private method không được advise.</td></tr>
+</tbody></table>
+<h3>@Transactional là AOP</h3>
+<pre><code>@Service
+public class OrderService {
+
+    @Transactional
+    public void createOrder(CreateOrderRequest request) {
+        // proxy opens transaction
+        // business logic executes
+        // proxy commits if success
+        // proxy rolls back on RuntimeException/Error
+    }
+}</code></pre>
+<h3>Self-invocation problem</h3>
+<pre><code>@Service
+public class OrderService {
+
+    public void outer() {
+        this.inner(); // bypasses proxy
+    }
+
+    @Transactional
+    public void inner() {
+        // transaction may NOT be applied when called by this.inner()
+    }
+}</code></pre>
+<div class="danger"><b>Điểm phỏng vấn rất hay hỏi:</b> Spring AOP chỉ hoạt động khi method call đi qua proxy. Self-invocation bypass proxy nên advice không chạy.</div>
+</section>
+
+<section id="vi-examples">
+<h2>15. Ví dụ Spring AOP thực tế</h2>
+<h3>Ví dụ 1: Logging execution time</h3>
+<pre><code>@Aspect
+@Component
+public class PerformanceLoggingAspect {
+
+    @Around("execution(* com.example..service..*(..))")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            System.out.println(joinPoint.getSignature() + " took " + duration + "ms");
+        }
+    }
+}</code></pre>
+<h3>Ví dụ 2: Audit bằng custom annotation</h3>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Auditable {
+    String action();
+}
+
+@Aspect
+@Component
+public class AuditAspect {
+
+    @AfterReturning("@annotation(auditable)")
+    public void auditSuccess(JoinPoint joinPoint, Auditable auditable) {
+        System.out.println("Audit action = " + auditable.action());
+        System.out.println("Method = " + joinPoint.getSignature().getName());
+    }
+}
+
+@Service
+public class PaymentService {
+
+    @Auditable(action = "CREATE_PAYMENT")
+    public void createPayment() {
+        // business logic
+    }
+}</code></pre>
+<h3>Ví dụ 3: Exception logging</h3>
+<pre><code>@Aspect
+@Component
+public class ExceptionLoggingAspect {
+
+    @AfterThrowing(
+        pointcut = "execution(* com.example..service..*(..))",
+        throwing = "ex"
+    )
+    public void logException(JoinPoint joinPoint, Exception ex) {
+        System.out.println("Exception in " + joinPoint.getSignature());
+        System.out.println("Error: " + ex.getMessage());
+    }
+}</code></pre>
+<h3>Ví dụ 4: Simple retry bằng @Around</h3>
+<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface RetryableOperation {
+    int maxAttempts() default 3;
+}
+
+@Aspect
+@Component
+public class RetryAspect {
+
+    @Around("@annotation(retryable)")
+    public Object retry(ProceedingJoinPoint joinPoint, RetryableOperation retryable) throws Throwable {
+        int attempts = 0;
+        Throwable lastError = null;
+
+        while (attempts < retryable.maxAttempts()) {
+            try {
+                attempts++;
+                return joinPoint.proceed();
+            } catch (RuntimeException ex) {
+                lastError = ex;
+            }
+        }
+
+        throw lastError;
+    }
+}</code></pre>
+</section>
+
+<section id="vi-compare">
+<h2>16. Java Reflection vs Spring AOP</h2>
+<table><thead><tr><th>Điểm</th><th>Java Reflection</th><th>Spring AOP</th></tr></thead><tbody>
+<tr><td>Level</td><td>Low-level Java runtime feature.</td><td>High-level Spring programming model.</td></tr>
+<tr><td>Mục đích chính</td><td>Inspect và manipulate class metadata ở runtime.</td><td>Apply cross-cutting behavior quanh Spring bean methods.</td></tr>
+<tr><td>Cơ chế chính</td><td><code>Class</code>, <code>Method</code>, <code>Field</code>, <code>Constructor</code>.</td><td>Proxy + advice + pointcut + join point.</td></tr>
+<tr><td>Use case</td><td>Framework internals, annotation scanning, dynamic invocation.</td><td>Transaction, logging, security, caching, metrics, audit.</td></tr>
+<tr><td>Scope</td><td>Có thể inspect nhiều loaded classes tùy access rules.</td><td>Chủ yếu hoạt động trên Spring beans và method execution.</td></tr>
+<tr><td>Invocation</td><td>Gọi rõ ràng <code>method.invoke()</code>.</td><td>Client gọi proxy, advice tự chạy.</td></tr>
+<tr><td>Compile-time safety</td><td>Thấp hơn, lỗi thường xảy ra runtime.</td><td>Tốt hơn cho business code, nhưng pointcut sai vẫn là runtime/config issue.</td></tr>
+<tr><td>Performance</td><td>Reflective invocation có overhead.</td><td>Proxy interception cũng có overhead, thường chấp nhận được cho service methods.</td></tr>
+</tbody></table>
+<p>Spring AOP có thể dùng reflection bên trong để inspect annotations, methods và metadata. Nhưng Spring AOP không phải là reflection. AOP là method interception qua proxy. Reflection là dynamic metadata access và invocation.</p>
+</section>
+
+<section id="vi-pitfalls">
+<h2>17. Pitfalls</h2>
+<h3>Reflection Pitfalls</h3>
+<ul class="avoid"><li>Lạm dụng reflection trong business code.</li><li>Access private fields làm phá encapsulation.</li><li>Dùng string method/field names khiến refactor dễ lỗi.</li><li>Bỏ qua performance overhead trong loops/hot paths.</li><li>Không xử lý checked exceptions từ reflection APIs.</li></ul>
+<h3>AOP Pitfalls</h3>
+<ul class="avoid"><li>Self-invocation bypass proxy.</li><li>Private methods không được advise.</li><li>Final methods/classes có thể không proxy được.</li><li>Advice chỉ apply cho Spring beans.</li><li>Pointcut quá rộng ảnh hưởng ngoài ý muốn.</li><li>Đưa business logic vào aspect làm code khó hiểu.</li><li>Advice order sai gây behavior khó đoán.</li><li>Tưởng <code>@Transactional</code> luôn chạy mà không hiểu proxy.</li></ul>
+<h3>Best Practices</h3>
+<ul class="checklist"><li>Dùng reflection chủ yếu cho framework-like code.</li><li>Cache reflective metadata nếu dùng lặp lại.</li><li>Dùng AOP cho cross-cutting concerns, không dùng để giấu business logic.</li><li>Pointcut nên rõ ràng, theo package convention.</li><li>Hiểu proxy limitation trước khi dùng <code>@Transactional</code>, <code>@Async</code>, <code>@Cacheable</code>.</li></ul>
+</section>
+
+<section id="vi-qa" class="interview">
+<h2>18. Câu hỏi phỏng vấn và trả lời — Vietnamese</h2>
+<div class="qa"><p><strong>Q1. Java Reflection là gì?</strong></p><p>A: Reflection là tính năng runtime của Java cho phép inspect và manipulate class, fields, methods, constructors và annotations một cách dynamic. Framework như Spring, Hibernate, Jackson, JUnit dùng reflection để scan annotation, inject dependency, create object và invoke method.</p></div>
+<div class="qa"><p><strong>Q2. Nhược điểm của reflection?</strong></p><p>A: Reflection có runtime overhead, compile-time safety thấp hơn, có thể phá encapsulation, dễ lỗi runtime do sai tên method/field hoặc access restriction, và làm code khó hiểu/khó refactor. Business code nên hạn chế dùng reflection trực tiếp.</p></div>
+<div class="qa"><p><strong>Q3. Spring AOP là gì?</strong></p><p>A: Spring AOP là cơ chế proxy-based để apply cross-cutting concerns vào Spring beans. Nó intercept method call và chạy advice trước, sau hoặc xung quanh target method. Use case phổ biến là transaction, security, caching, logging, audit và metrics.</p></div>
+<div class="qa"><p><strong>Q4. Spring AOP hoạt động bên trong thế nào?</strong></p><p>A: Spring tạo proxy cho target bean. Client gọi proxy thay vì object thật. Proxy kiểm tra pointcut, chạy advice phù hợp, rồi delegate tới target method. Spring có thể dùng JDK dynamic proxy hoặc CGLIB proxy.</p></div>
+<div class="qa"><p><strong>Q5. JDK Dynamic Proxy khác CGLIB?</strong></p><p>A: JDK dynamic proxy tạo proxy implement interface, phù hợp khi bean có interface. CGLIB tạo subclass của target class, dùng khi không có interface hoặc class-based proxy. CGLIB không proxy được final class/final method, private method cũng không được advise.</p></div>
+<div class="qa"><p><strong>Q6. Spring AOP có phải Reflection không?</strong></p><p>A: Không. Reflection là low-level Java feature để inspect metadata và invoke dynamic. Spring AOP là proxy-based method interception. Spring có thể dùng reflection bên trong, nhưng AOP chủ yếu là proxy, pointcut và advice.</p></div>
+<div class="qa"><p><strong>Q7. Vì sao self-invocation làm @Transactional không chạy?</strong></p><p>A: Spring AOP chỉ chạy khi method call đi qua proxy. Nếu method trong cùng class gọi <code>this.inner()</code>, call này bypass proxy nên transactional advice không được apply.</p></div>
+<div class="qa"><p><strong>Q8. Spring AOP có advise private method không?</strong></p><p>A: Không. Spring AOP là proxy-based, intercept method call qua proxy. Private method không visible cho proxy-based interception và thường là internal call trong cùng class.</p></div>
+<div class="qa"><p><strong>Q9. @Before, @After, @Around khác nhau thế nào?</strong></p><p>A: @Before chạy trước target method. @After chạy sau method dù success hay fail. @AfterReturning chỉ chạy khi success. @AfterThrowing chạy khi exception. @Around wrap method và có thể kiểm soát có gọi target method hay không, gọi khi nào, xử lý result/exception thế nào.</p></div>
+<div class="qa"><p><strong>Q10. Khi nào dùng AOP?</strong></p><p>A: Dùng AOP cho cross-cutting concerns lặp lại ở nhiều nơi như transaction, logging, metrics, audit, security, caching, tracing. Không nên đưa core business logic vào aspect vì behavior bị ẩn và khó maintain.</p></div>
+</section>
+
+<section>
+<h2>Quick Senior Checklist</h2>
+<ul class="checklist"><li>Explain Reflection as runtime metadata access and dynamic invocation.</li><li>Know <code>Class</code>, <code>Field</code>, <code>Method</code>, <code>Constructor</code>, annotations.</li><li>Know why frameworks use reflection.</li><li>Know Reflection drawbacks: performance, encapsulation, runtime errors.</li><li>Explain AOP as proxy-based method interception.</li><li>Know Aspect, Advice, Join Point, Pointcut, Proxy, Target.</li><li>Know JDK Dynamic Proxy vs CGLIB.</li><li>Know self-invocation problem.</li><li>Know why private/final methods are problematic for Spring AOP.</li><li>Compare Reflection vs AOP clearly.</li></ul>
+</section>
+<div class="footer">Created for Senior Java Backend interview preparation — Java Reflection & Spring AOP Deep Dive EN/VN.</div>
+</main>
+</div>
+</body>
+</html>

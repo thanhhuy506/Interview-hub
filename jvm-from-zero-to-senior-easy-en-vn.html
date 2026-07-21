@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JVM From Zero to Senior — Easy EN/VN</title>
+<style>
+:root{--bg:#07111d;--s:#102034;--s2:#162a42;--t:#eef6ff;--m:#9eb1c9;--l:rgba(160,190,220,.17);--p:#65d7ff;--p2:#9a83ff;--g:#5ce5a7;--y:#ffca65;--r:#ff7b8e;--code:#050d16;--side:300px}
+html[data-theme=light]{--bg:#eef4fa;--s:#fff;--s2:#f1f6fb;--t:#16243a;--m:#607287;--l:rgba(40,70,105,.15);--p:#007fae;--p2:#6850d4;--g:#0b9563;--y:#9d6400;--r:#c43c54;--code:#0b1726}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:20px}body{margin:0;background:radial-gradient(circle at 80% 0,rgba(140,115,255,.18),transparent 30%),var(--bg);color:var(--t);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.7}
+a{color:var(--p)}button,input{font:inherit}.layout{display:grid;grid-template-columns:var(--side) 1fr}aside{position:fixed;inset:0 auto 0 0;width:var(--side);padding:20px 16px;overflow:auto;border-right:1px solid var(--l);background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(18px);z-index:20}main{grid-column:2;width:min(1120px,calc(100vw - var(--side)));padding:32px 40px 90px}
+.brand{display:flex;gap:11px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:900;color:#06111d;background:linear-gradient(135deg,var(--p),var(--p2))}.brand strong{display:block}.brand small{color:var(--m)}.search{width:100%;margin-top:15px;padding:10px;border:1px solid var(--l);border-radius:11px;background:var(--s);color:var(--t)}.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.btn{padding:9px;border:1px solid var(--l);border-radius:10px;background:var(--s2);color:var(--t);cursor:pointer}.track{height:5px;background:var(--s2);border-radius:99px;overflow:hidden;margin-top:12px}#bar{height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--p2))}#pct{font-size:11px;color:var(--m)}
+nav{margin-top:10px}nav a{display:block;padding:7px 9px;border-left:2px solid transparent;border-radius:8px;text-decoration:none;color:var(--m);font-size:13px}nav a:hover,nav a.active{color:var(--t);background:var(--s2);border-left-color:var(--p)}
+.hero,section{border:1px solid var(--l);background:var(--s);box-shadow:0 18px 50px rgba(0,0,0,.18)}.hero{padding:42px;border-radius:27px;margin-bottom:25px}.eyebrow,.kicker{color:var(--p);font-size:12px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}h1{font-size:clamp(40px,5vw,64px);line-height:1.04;letter-spacing:-.045em;margin:10px 0 16px}h2{font-size:29px;line-height:1.2;letter-spacing:-.025em;margin:2px 0 10px}h3{font-size:20px;margin:25px 0 9px}h4{color:var(--p);margin:16px 0 6px}.lead{font-size:18px;color:var(--m);max-width:870px}.metrics,.g2,.g3,.g4{display:grid;gap:13px;margin:15px 0}.metrics,.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}.metric,.card{padding:16px;border:1px solid var(--l);border-radius:14px;background:var(--s2)}.metric strong{display:block;font-size:19px}.metric span,.muted{color:var(--m);font-size:13px}
+section{padding:28px;border-radius:18px;margin:22px 0}section.hide{display:none}.simple,.callout,.diagram{padding:16px;border-radius:13px;margin:15px 0}.simple{background:var(--s2);border:1px solid var(--l)}.simple strong{color:var(--g)}.callout{border-left:4px solid var(--p);background:color-mix(in srgb,var(--p) 7%,var(--s2))}.callout.y{border-left-color:var(--y)}.callout.r{border-left-color:var(--r)}.callout.g{border-left-color:var(--g)}.diagram{border:1px dashed color-mix(in srgb,var(--p) 45%,var(--l));background:color-mix(in srgb,var(--p) 4%,var(--s2))}
+pre{position:relative;overflow:auto;padding:17px;border:1px solid rgba(180,210,240,.13);border-radius:13px;background:var(--code);color:#ddecff;font-size:13px;line-height:1.55}code{font-family:"SFMono-Regular",Consolas,monospace}:not(pre)>code{padding:2px 5px;border-radius:5px;color:var(--p);background:color-mix(in srgb,var(--p) 9%,transparent)}.copy{position:absolute;right:8px;top:8px;padding:5px 8px;border:1px solid rgba(255,255,255,.14);border-radius:7px;background:#14253c;color:#ddecff;cursor:pointer;font-size:11px}
+.table{overflow:auto;border:1px solid var(--l);border-radius:13px;margin:14px 0}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:11px 9px;border-bottom:1px solid var(--l);text-align:left;vertical-align:top}th{background:var(--s2);color:var(--p)}
+.step{display:grid;grid-template-columns:48px 1fr;gap:13px;margin:14px 0}.n{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#06111d;background:linear-gradient(135deg,var(--p),var(--p2))}
+details{margin:8px 0;padding:12px 14px;border:1px solid var(--l);border-radius:12px;background:var(--s2)}summary{cursor:pointer;font-weight:750}ul,ol{padding-left:22px}
+.lang-vn{display:none}body.vn .lang-en{display:none}body.vn .lang-vn{display:initial}.dual .lang-en,.dual .lang-vn{display:block}body:not(.both) .dual .lang-vn{display:none}body.vn:not(.both) .dual .lang-en{display:none}body.vn:not(.both) .dual .lang-vn{display:block}body.both .dual{display:grid;grid-template-columns:1fr 1fr;gap:13px}body.both .dual>*{margin:0}
+.mobile{display:none}footer{text-align:center;color:var(--m);padding:24px}
+@media(max-width:980px){.layout{display:block}aside{transform:translateX(-100%);transition:.25s}aside.open{transform:none}main{width:100%;padding:70px 17px 80px}.mobile{display:flex;position:fixed;z-index:30;top:10px;left:10px;right:10px;gap:7px}.mobile button{padding:9px;border:1px solid var(--l);border-radius:10px;background:var(--s);color:var(--t)}.metrics,.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.hero,section{padding:21px 17px}.g2,.g3,.g4,body.both .dual{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}h1{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="mobile"><button onclick="document.querySelector('aside').classList.toggle('open')">☰</button><button onclick="theme()">◐</button><button onclick="lang()">EN/VN</button></div>
+<div class="layout">
+<aside>
+<div class="brand"><div class="logo">JVM</div><div><strong>JVM From Zero</strong><small>Easy first, deep later</small></div></div>
+<input id="search" class="search" placeholder="Search Stack, Heap, GC...">
+<div class="controls"><button id="lb" class="btn" onclick="lang()">English</button><button id="tb" class="btn" onclick="theme()">Dark</button></div>
+<div class="track"><div id="bar"></div></div><span id="pct">0% read</span>
+<nav>
+<a href="#one">01. JVM in one picture</a><a href="#terms">02. JDK, JRE, JVM</a><a href="#run">03. How Java runs</a><a href="#loader">04. ClassLoader</a><a href="#memory">05. Memory map</a><a href="#stack">06. Stack</a><a href="#heap">07. Heap</a><a href="#object">08. One object journey</a><a href="#gc">09. Garbage Collection</a><a href="#collectors">10. GC collectors</a><a href="#jit">11. Interpreter & JIT</a><a href="#jmm">12. Threads & JMM</a><a href="#errors">13. Memory errors</a><a href="#prod">14. Production checks</a><a href="#qa">15. Interview Q&A</a><a href="#end">16. Final summary</a>
+</nav>
+</aside>
+<main>
+<header class="hero">
+<div class="eyebrow">Beginner friendly • English + Vietnamese</div>
+<h1>JVM From Zero<br>to Senior</h1>
+<div class="lead dual"><p class="lang-en">This version assumes you remember almost nothing. It explains one concept at a time, using one continuous example before introducing advanced JVM terms.</p><p class="lang-vn">Bản này giả sử anh gần như đã quên nền tảng. Mỗi phần chỉ giải thích một khái niệm, dùng một ví dụ xuyên suốt trước khi đưa vào thuật ngữ JVM nâng cao.</p></div>
+<div class="metrics"><div class="metric"><strong>16 lessons</strong><span>progressive order</span></div><div class="metric"><strong>Visual</strong><span>ASCII diagrams</span></div><div class="metric"><strong>EN + VN</strong><span>language toggle</span></div><div class="metric"><strong>Senior</strong><span>production and Q&A</span></div></div>
+</header>
+
+<section id="one"><div class="kicker">01 • Start here</div><h2>JVM in one picture</h2>
+<div class="simple dual"><p class="lang-en"><strong>The JVM is a virtual computer inside your real computer.</strong> It reads Java bytecode, creates memory for the program, runs instructions, optimizes hot code, manages threads, and cleans unused objects.</p><p class="lang-vn"><strong>JVM là một máy tính ảo nằm trong máy tính thật.</strong> Nó đọc Java bytecode, tạo memory cho chương trình, chạy instruction, tối ưu code chạy nhiều, quản lý thread và dọn object không còn dùng.</p></div>
+<div class="diagram"><pre><code>Java source (.java)
+       │ javac
+       ▼
+Bytecode (.class)
+       │
+       ▼
+┌──────────────────── JVM ────────────────────┐
+│ ClassLoader       → loads classes           │
+│ Stack / Heap      → stores runtime data     │
+│ Interpreter / JIT → executes code           │
+│ Garbage Collector → cleans unused objects   │
+│ Thread runtime    → manages Java threads    │
+└─────────────────────────────────────────────┘
+       │
+       ▼
+Operating System + CPU</code></pre></div>
+<div class="callout g dual"><p class="lang-en">First remember only five verbs: <strong>load, store, execute, optimize, clean.</strong></p><p class="lang-vn">Đầu tiên chỉ cần nhớ 5 việc: <strong>load, lưu, chạy, tối ưu, dọn.</strong></p></div></section>
+
+<section id="terms"><div class="kicker">02 • Basic terms</div><h2>JDK vs JRE vs JVM</h2>
+<div class="g3">
+<div class="card"><h3>JDK</h3><p>Tools for creating Java programs.</p><pre><code>javac + debugger + tools + runtime</code></pre></div>
+<div class="card"><h3>JRE</h3><p>Conceptual runtime needed to run Java.</p><pre><code>runtime libraries + JVM</code></pre></div>
+<div class="card"><h3>JVM</h3><p>The engine that executes bytecode.</p><pre><code>load + memory + execute + GC</code></pre></div>
+</div>
+<div class="simple"><strong>Easy memory:</strong> JDK is for development, JRE is for running, JVM is the execution engine.</div></section>
+
+<section id="run"><div class="kicker">03 • Program lifecycle</div><h2>How Java code becomes a running program</h2>
+<div class="step"><div class="n">1</div><div><h3>Write source code</h3><pre><code>public class Main {
+    public static void main(String[] args) {
+        User user = new User("Huy");
+    }
+}</code></pre></div></div>
+<div class="step"><div class="n">2</div><div><h3>Compile with javac</h3><pre><code>javac Main.java
+→ Main.class</code></pre><p>The result is bytecode, not normal CPU machine code.</p></div></div>
+<div class="step"><div class="n">3</div><div><h3>ClassLoader loads the class</h3><p>The JVM locates <code>Main.class</code> and <code>User.class</code>, verifies them, and creates runtime metadata.</p></div></div>
+<div class="step"><div class="n">4</div><div><h3>Main thread and memory are prepared</h3><p>The main thread gets a Stack. New objects normally use Heap memory.</p></div></div>
+<div class="step"><div class="n">5</div><div><h3>Interpreter starts executing</h3><p>It executes bytecode instruction by instruction, allowing fast startup.</p></div></div>
+<div class="step"><div class="n">6</div><div><h3>JIT optimizes hot code</h3><p>Methods executed many times are compiled into native machine code.</p></div></div>
+<div class="step"><div class="n">7</div><div><h3>GC reclaims unreachable objects</h3><p>Unused heap objects can be removed automatically.</p></div></div></section>
+
+<section id="loader"><div class="kicker">04 • Loading classes</div><h2>ClassLoader in simple language</h2>
+<div class="simple dual"><p class="lang-en"><strong>ClassLoader is the JVM's librarian.</strong> It finds class bytecode when the program needs it.</p><p class="lang-vn"><strong>ClassLoader là thủ thư của JVM.</strong> Khi chương trình cần class nào, nó tìm bytecode của class đó.</p></div>
+<div class="diagram"><pre><code>Need com.shop.User
+       │
+Bootstrap ClassLoader → core Java classes
+       │ not found
+Platform ClassLoader  → platform modules
+       │ not found
+Application ClassLoader → application classes</code></pre></div>
+<h3>Four important phases</h3><div class="g4"><div class="card"><h4>Loading</h4><p>Read class bytes.</p></div><div class="card"><h4>Verification</h4><p>Check bytecode validity.</p></div><div class="card"><h4>Preparation</h4><p>Create static storage with default values.</p></div><div class="card"><h4>Initialization</h4><p>Run static assignments and blocks.</p></div></div>
+<div class="callout r dual"><p class="lang-en">Runtime class identity is <strong>class name + defining ClassLoader</strong>. The same class loaded by two loaders becomes two different runtime types.</p><p class="lang-vn">Runtime identity của class là <strong>class name + ClassLoader define nó</strong>. Cùng bytecode nhưng hai loader khác nhau tạo hai runtime type khác nhau.</p></div></section>
+
+<section id="memory"><div class="kicker">05 • Memory map</div><h2>JVM memory areas</h2>
+<div class="diagram"><pre><code>Shared memory
+┌─────────────────────────────────────┐
+│ Heap       → objects and arrays     │
+│ Metaspace  → class metadata         │
+│ Code Cache → JIT machine code       │
+└─────────────────────────────────────┘
+
+Memory owned by each thread
+┌─────────────────────────────────────┐
+│ JVM Stack   → method frames         │
+│ PC Register → current instruction   │
+│ Native Stack→ native method state   │
+└─────────────────────────────────────┘
+
+Other process memory:
+direct buffers + thread stacks + JNI + JVM/GC data</code></pre></div>
+<div class="table"><table><thead><tr><th>Area</th><th>What it stores</th><th>Typical error</th></tr></thead><tbody><tr><td>Stack</td><td>Current method execution</td><td>StackOverflowError</td></tr><tr><td>Heap</td><td>Objects and arrays</td><td>Java heap space</td></tr><tr><td>Metaspace</td><td>Class metadata</td><td>Metaspace OOM</td></tr><tr><td>Direct memory</td><td>NIO/Netty buffers</td><td>Direct buffer memory</td></tr></tbody></table></div></section>
+
+<section id="stack"><div class="kicker">06 • Stack</div><h2>Stack stores the current work of one thread</h2>
+<pre><code>void methodA() {
+    int number = 10;
+    methodB(number);
+}
+
+void methodB(int input) {
+    String text = "Hello";
+}</code></pre>
+<div class="diagram"><pre><code>Main Thread Stack
+
+┌─────────────────────────────┐
+│ Frame: methodB              │ ← running now
+│ input = 10                  │
+│ text reference ─────────────┼──► String object in Heap
+├─────────────────────────────┤
+│ Frame: methodA              │
+│ number = 10                 │
+├─────────────────────────────┤
+│ Frame: main                 │
+└─────────────────────────────┘</code></pre></div>
+<div class="g3"><div class="card"><h4>Local variables</h4><p>Arguments, primitives, object references.</p></div><div class="card"><h4>Operand stack</h4><p>Temporary values used by bytecode.</p></div><div class="card"><h4>Return state</h4><p>Where execution continues afterward.</p></div></div>
+<h3>Frame lifecycle</h3><pre><code>call method → push frame
+method runs
+return/throw → pop frame</code></pre>
+<h3>Why StackOverflowError happens</h3><pre><code>void recurse() {
+    recurse();
+}</code></pre>
+<p>Every call adds another frame until the stack has no capacity left.</p>
+<div class="callout y dual"><p class="lang-en"><code>-Xss</code> controls platform-thread stack size. Increasing it does not fix infinite recursion and reduces how many threads fit in native memory.</p><p class="lang-vn"><code>-Xss</code> điều khiển stack size của platform thread. Tăng nó không sửa infinite recursion và làm giảm số thread có thể tạo.</p></div></section>
+
+<section id="heap"><div class="kicker">07 • Heap</div><h2>Heap stores objects shared by the application</h2>
+<pre><code>User user = new User("Huy");</code></pre>
+<div class="diagram"><pre><code>Stack                         Heap
+user reference ─────────────► User object
+                               │
+                               └─ name ─────► String "Huy"</code></pre></div>
+<h3>Young and Old</h3><div class="g2"><div class="card"><h4>Young generation</h4><p>New objects. Most die quickly. Collected frequently.</p></div><div class="card"><h4>Old generation</h4><p>Long-lived objects such as caches, sessions, and application state.</p></div></div>
+<h3>Four numbers to understand</h3><div class="g4"><div class="card"><h4>Used</h4><p>Current occupied heap.</p></div><div class="card"><h4>Max</h4><p>Maximum heap, often <code>-Xmx</code>.</p></div><div class="card"><h4>Allocation rate</h4><p>How fast new objects are created.</p></div><div class="card"><h4>Live set</h4><p>Objects still alive after GC.</p></div></div>
+<h3>Leak or temporary allocation?</h3><pre><code>90% before GC → 35% after GC → stays near 35%
+Likely temporary allocations, not automatically a leak.
+
+90% before GC → 35%, later 45%, later 60%, later 75%
+Post-GC live set is growing → investigate retention.</code></pre></section>
+
+<section id="object"><div class="kicker">08 • One object journey</div><h2>What happens to <code>new User("Huy")</code>?</h2>
+<div class="step"><div class="n">1</div><div><h3>A stack frame already exists</h3><p>The method frame has a local slot for the variable <code>user</code>.</p></div></div>
+<div class="step"><div class="n">2</div><div><h3>The JVM requests object memory</h3><p>Small objects are normally allocated quickly from the thread's TLAB inside a young heap region.</p></div></div>
+<div class="step"><div class="n">3</div><div><h3>The object is initialized</h3><p>JVM initializes object header and fields, then the constructor assigns the name.</p></div></div>
+<div class="step"><div class="n">4</div><div><h3>A reference is returned</h3><p>The local variable on Stack stores a reference pointing to the object on Heap.</p></div></div>
+<div class="step"><div class="n">5</div><div><h3>The object may escape</h3><p>If returned or stored in a field, other code can keep it alive.</p></div></div>
+<div class="step"><div class="n">6</div><div><h3>Eventually it may become unreachable</h3><p>When no GC Root can reach it, GC may reclaim its memory.</p></div></div>
+<div class="callout g dual"><p class="lang-en">Beginner model: reference on Stack, object on Heap. Advanced model: JIT may remove some allocations through escape analysis and scalar replacement.</p><p class="lang-vn">Mô hình dễ hiểu: reference trên Stack, object trên Heap. Mô hình nâng cao: JIT có thể loại bỏ allocation bằng escape analysis và scalar replacement.</p></div></section>
+
+<section id="gc"><div class="kicker">09 • Garbage Collection</div><h2>GC removes unreachable objects</h2>
+<div class="simple dual"><p class="lang-en"><strong>An object is not collected because it is old.</strong> It is collectible when no path from a GC Root reaches it.</p><p class="lang-vn"><strong>Object không bị collect vì nó cũ.</strong> Nó có thể được collect khi không còn đường đi từ GC Root tới nó.</p></div>
+<h3>GC Roots</h3><ul><li>References from live thread stacks.</li><li>Static fields of loaded classes.</li><li>JNI references.</li><li>JVM internal references.</li></ul>
+<div class="diagram"><pre><code>GC Root ─► A ─► B ─► C     → alive
+
+D ─► E                    → no root path
+                            → eligible for GC</code></pre></div>
+<div class="g4"><div class="card"><h4>Mark</h4><p>Find reachable objects.</p></div><div class="card"><h4>Sweep</h4><p>Reclaim dead memory.</p></div><div class="card"><h4>Copy</h4><p>Move live objects.</p></div><div class="card"><h4>Compact</h4><p>Reduce fragmentation.</p></div></div>
+<h3>Stop-the-world</h3><p>Some GC phases pause application threads. Modern collectors try to do more work concurrently so pauses are shorter.</p></section>
+
+<section id="collectors"><div class="kicker">10 • Collectors</div><h2>Which GC collector does what?</h2>
+<div class="table"><table><thead><tr><th>Collector</th><th>Goal</th><th>Typical fit</th></tr></thead><tbody><tr><td>Serial</td><td>Simple, small footprint</td><td>Small tools/tiny heaps</td></tr><tr><td>Parallel</td><td>High throughput</td><td>Batch processing</td></tr><tr><td>G1</td><td>Balanced server GC</td><td>General backend services</td></tr><tr><td>ZGC</td><td>Very low pauses</td><td>Latency-sensitive large heaps</td></tr><tr><td>Shenandoah</td><td>Low pauses</td><td>Supported low-latency JDK workloads</td></tr></tbody></table></div>
+<h3>G1 in one picture</h3><pre><code>[Eden][Old][Free][Survivor][Old][Humongous][Free]
+
+G1 divides the heap into regions.
+It selects regions to collect and tries to meet a pause goal.</code></pre>
+<div class="callout y">No collector is always best. Measure with real traffic, CPU limits, heap size, allocation rate, and latency SLO.</div></section>
+
+<section id="jit"><div class="kicker">11 • Execution engine</div><h2>Interpreter starts fast; JIT makes hot code fast</h2>
+<div class="diagram"><pre><code>Bytecode
+  │
+  ├─ Interpreter executes immediately
+  │
+  └─ JVM profiles methods
+          │
+          └─ method becomes "hot"
+                  │
+                  ▼
+             JIT compiles
+                  │
+                  ▼
+          native machine code</code></pre></div>
+<div class="g3"><div class="card"><h4>Inlining</h4><p>Put small method body into caller.</p></div><div class="card"><h4>Escape analysis</h4><p>Check whether an object escapes.</p></div><div class="card"><h4>Dead-code removal</h4><p>Remove work that cannot affect the result.</p></div></div>
+<p>This is why Java applications have a warm-up period and why benchmarks should use JMH.</p></section>
+
+<section id="jmm"><div class="kicker">12 • Threads</div><h2>Java Memory Model is not Heap/Stack</h2>
+<div class="callout y dual"><p class="lang-en">Heap and Stack describe <strong>where data is stored</strong>. The Java Memory Model describes <strong>what one thread can see from another thread</strong>.</p><p class="lang-vn">Heap và Stack nói <strong>dữ liệu nằm ở đâu</strong>. Java Memory Model nói <strong>thread này nhìn thấy thay đổi của thread khác như thế nào</strong>.</p></div>
+<div class="g3"><div class="card"><h4>Atomicity</h4><p>Operation is indivisible.</p></div><div class="card"><h4>Visibility</h4><p>One thread sees another's write.</p></div><div class="card"><h4>Ordering</h4><p>Operations follow guaranteed observation rules.</p></div></div>
+<pre><code>volatile boolean running = true;</code></pre>
+<p>A volatile write is visible to a later volatile read. However, <code>count++</code> is not atomic because it is read + add + write.</p>
+<pre><code>AtomicInteger count = new AtomicInteger();
+count.incrementAndGet();</code></pre></section>
+
+<section id="errors"><div class="kicker">13 • Errors</div><h2>Common JVM memory failures</h2>
+<div class="table"><table><thead><tr><th>Error</th><th>Meaning</th><th>Common cause</th></tr></thead><tbody>
+<tr><td>StackOverflowError</td><td>Thread Stack exhausted</td><td>Infinite/deep recursion</td></tr>
+<tr><td>Java heap space</td><td>Heap cannot allocate</td><td>Leak, burst, small heap</td></tr>
+<tr><td>GC overhead limit exceeded</td><td>Too much GC, little reclaimed</td><td>Live set near max heap</td></tr>
+<tr><td>Metaspace</td><td>Class metadata exhausted</td><td>Many classes/ClassLoader leak</td></tr>
+<tr><td>Direct buffer memory</td><td>Off-heap buffer pressure</td><td>NIO/Netty buffers</td></tr>
+<tr><td>Unable to create native thread</td><td>Cannot create OS thread</td><td>Thread count, Xss, OS limit</td></tr>
+<tr><td>Exit 137 / OOMKilled</td><td>Container/OS killed process</td><td>Total RSS exceeded limit</td></tr>
+</tbody></table></div>
+<div class="callout r dual"><p class="lang-en"><code>-Xmx</code> limits Heap, not total process memory.</p><p class="lang-vn"><code>-Xmx</code> chỉ giới hạn Heap, không giới hạn tổng memory của process.</p></div></section>
+
+<section id="prod"><div class="kicker">14 • Production</div><h2>How to investigate memory problems</h2>
+<h3>Ask one question first</h3><pre><code>Post-GC Heap grows?
+→ heap retention / leak
+
+RSS grows but Heap is stable?
+→ native memory, direct buffers, threads, JNI
+
+GC frequent but post-GC Heap stable?
+→ allocation churn or undersized Heap
+
+Pauses are long?
+→ live set, collector phases, CPU throttling, safepoints</code></pre>
+<h3>Useful commands</h3><pre><code>jcmd -l
+jcmd &lt;pid&gt; VM.flags
+jcmd &lt;pid&gt; GC.heap_info
+jcmd &lt;pid&gt; GC.class_histogram
+jcmd &lt;pid&gt; Thread.print -l
+jcmd &lt;pid&gt; GC.heap_dump /tmp/app.hprof</code></pre>
+<h3>GC log</h3><pre><code>-Xlog:gc*,safepoint:file=gc.log:time,uptime,level,tags:filecount=10,filesize=20M</code></pre>
+<h3>Heap dump flow</h3><ol><li>Open heap dump.</li><li>Check class histogram.</li><li>Check dominator tree and retained size.</li><li>Follow Path to GC Roots.</li><li>Find the owner: cache, queue, static map, ThreadLocal, listener, or ClassLoader.</li></ol></section>
+
+<section id="qa"><div class="kicker">15 • Interview</div><h2>Senior JVM questions with clear answers</h2>
+<details open><summary>1. What is JVM?</summary><p>JVM is the execution environment that loads bytecode, manages runtime memory, executes code through Interpreter/JIT, manages threads, and performs Garbage Collection.</p></details>
+<details><summary>2. Stack vs Heap?</summary><p>Each thread owns a private Stack containing frames and local values/references. Heap is shared and normally stores objects and arrays. Frames disappear when methods return; Heap objects remain until unreachable and reclaimed.</p></details>
+<details><summary>3. What makes an object eligible for GC?</summary><p>No live path exists from a GC Root to the object. Setting one reference to null does not guarantee that all other references are gone.</p></details>
+<details><summary>4. Why can process memory exceed Xmx?</summary><p>Xmx limits only Java Heap. Metaspace, code cache, direct buffers, thread stacks, GC structures, JNI, and native libraries use additional memory.</p></details>
+<details><summary>5. What is JIT?</summary><p>JIT compiles frequently executed bytecode into optimized native machine code using runtime profiling information.</p></details>
+<details><summary>6. What is a Java memory leak?</summary><p>An object is no longer useful but remains reachable, often through static collections, unbounded caches, queues, ThreadLocals, listeners, or ClassLoaders.</p></details>
+<details><summary>7. Leak vs high allocation?</summary><p>A leak causes post-GC occupancy to rise over time. High temporary allocation causes peaks and frequent GC but returns to a stable post-GC baseline.</p></details>
+<details><summary>8. G1 vs ZGC?</summary><p>G1 is a balanced regional collector for general services. ZGC performs most work concurrently for very low pauses, with CPU and memory-headroom trade-offs.</p></details>
+<details><summary>9. What is parent delegation?</summary><p>A ClassLoader asks its parent to load a class first. This protects core classes and reduces duplicate normal definitions.</p></details>
+<details><summary>10. What is Java Memory Model?</summary><p>It defines cross-thread visibility, ordering, atomicity, synchronization, and happens-before rules. It is different from physical Stack/Heap areas.</p></details>
+<details><summary>11. How do you investigate Kubernetes OOM?</summary><p>First distinguish Java OOME from OOMKilled/exit 137. Check pod events, cgroup limit, RSS vs Heap, GC logs, direct memory, thread count, NMT, JFR, and heap dump when safe.</p></details>
+<details><summary>12. Does every object physically live on Heap?</summary><p>That is the useful logical model, but JIT escape analysis may eliminate an allocation or scalar-replace object fields.</p></details>
+</section>
+
+<section id="end"><div class="kicker">16 • Remember this</div><h2>JVM in 10 sentences</h2>
+<ol><li>Java source becomes bytecode.</li><li>ClassLoader loads classes.</li><li>Each thread has a Stack.</li><li>Each method call creates a frame.</li><li>Objects normally live in Heap.</li><li>GC reclaims unreachable objects.</li><li>Interpreter starts execution quickly.</li><li>JIT optimizes hot code.</li><li>Process memory is larger than Heap alone.</li><li>Production diagnosis starts by identifying which memory area grows.</li></ol>
+<div class="callout g dual"><p class="lang-en"><strong>Best study order:</strong> execution flow → Stack → Heap → one object → GC → ClassLoader → JIT → threads → production.</p><p class="lang-vn"><strong>Thứ tự học tốt nhất:</strong> execution flow → Stack → Heap → một object → GC → ClassLoader → JIT → thread → production.</p></div></section>
+<footer>JVM From Zero to Senior • Easy EN/VN</footer>
+</main></div>
+<script>
+let lm=0;
+function lang(){lm=(lm+1)%3;document.body.classList.toggle('vn',lm===1);document.body.classList.toggle('both',lm===2);document.getElementById('lb').textContent=['English','Tiếng Việt','EN + VN'][lm]}
+function theme(){let r=document.documentElement,n=r.dataset.theme==='dark'?'light':'dark';r.dataset.theme=n;localStorage.setItem('jvm-theme',n);document.getElementById('tb').textContent=n==='dark'?'Dark':'Light'}
+let sv=localStorage.getItem('jvm-theme');if(sv)document.documentElement.dataset.theme=sv;
+document.querySelectorAll('pre').forEach(p=>{let b=document.createElement('button');b.className='copy';b.textContent='Copy';b.onclick=async()=>{await navigator.clipboard.writeText(p.innerText.replace(/^Copy\s*/,''));b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1000)};p.appendChild(b)});
+document.getElementById('search').addEventListener('input',e=>{let q=e.target.value.toLowerCase().trim();document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hide',q&&!s.innerText.toLowerCase().includes(q)))});
+let ls=[...document.querySelectorAll('nav a')],ss=[...document.querySelectorAll('main section')];new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)ls.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-25% 0px -65% 0px'}).observe;
+const ob=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)ls.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-25% 0px -65% 0px'});ss.forEach(s=>ob.observe(s));
+window.addEventListener('scroll',()=>{let m=document.documentElement.scrollHeight-innerHeight,p=m?Math.round(scrollY/m*100):0;document.getElementById('bar').style.width=p+'%';document.getElementById('pct').textContent=p+'% read'});
+document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>document.querySelector('aside').classList.remove('open'));
+</script>
+</body></html>

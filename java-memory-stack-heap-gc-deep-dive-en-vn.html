@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Senior-level bilingual Java Memory and Garbage Collection handbook for Java 17/21." />
+  <title>Java Stack, Heap & Garbage Collection — Senior Deep Dive (EN / VN)</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0b1728;
+      --surface: rgba(16, 31, 51, .88);
+      --surface-2: #12243b;
+      --surface-3: #172d49;
+      --text: #eaf2ff;
+      --muted: #9db0c9;
+      --line: rgba(155, 184, 219, .16);
+      --primary: #6dd6ff;
+      --primary-2: #8f7cff;
+      --success: #5ee6a8;
+      --warning: #ffc768;
+      --danger: #ff7d91;
+      --code: #06101d;
+      --shadow: 0 22px 60px rgba(0,0,0,.28);
+      --radius: 18px;
+      --sidebar: 310px;
+    }
+    html[data-theme="light"] {
+      --bg: #eef4fa;
+      --bg-soft: #f7faff;
+      --surface: rgba(255,255,255,.92);
+      --surface-2: #f1f6fb;
+      --surface-3: #e8f0f8;
+      --text: #142238;
+      --muted: #5f7187;
+      --line: rgba(38, 69, 105, .14);
+      --primary: #007db5;
+      --primary-2: #6b53d7;
+      --success: #0f9d68;
+      --warning: #a66500;
+      --danger: #c83d56;
+      --code: #0b1727;
+      --shadow: 0 20px 48px rgba(29, 60, 95, .12);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 80% -10%, rgba(111, 116, 255, .18), transparent 34%),
+        radial-gradient(circle at 15% 5%, rgba(42, 201, 255, .14), transparent 30%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+    }
+    a { color: var(--primary); }
+    button, input { font: inherit; }
+    .layout { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+    aside {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar);
+      padding: 22px 18px;
+      border-right: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(18px);
+      overflow-y: auto;
+      z-index: 20;
+    }
+    main { grid-column: 2; width: min(1180px, calc(100vw - var(--sidebar))); padding: 34px 44px 100px; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .brand-mark {
+      width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center;
+      color: #06111f; font-weight: 900; letter-spacing: -.04em;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 12px 30px rgba(77, 173, 255, .25);
+    }
+    .brand strong { display:block; font-size: 14px; }
+    .brand span { color: var(--muted); font-size: 12px; }
+    .controls { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin: 14px 0; }
+    .control {
+      border: 1px solid var(--line); background: var(--surface-2); color:var(--text);
+      border-radius:12px; padding:9px 10px; cursor:pointer;
+    }
+    .control:hover { border-color: color-mix(in srgb, var(--primary) 65%, var(--line)); }
+    .search {
+      width:100%; border:1px solid var(--line); border-radius:12px;
+      padding:10px 12px; background:var(--surface); color:var(--text); outline:none;
+    }
+    .search:focus { border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+    .progress-wrap { margin:16px 0 12px; }
+    .progress-line { height:5px; background:var(--surface-3); border-radius:999px; overflow:hidden; }
+    #progress { width:0; height:100%; background:linear-gradient(90deg,var(--primary),var(--primary-2)); }
+    #progressText { display:block; font-size:11px; color:var(--muted); margin-top:6px; }
+    nav { margin-top:12px; }
+    nav a {
+      display:block; text-decoration:none; color:var(--muted); padding:8px 10px;
+      border-radius:10px; font-size:13px; border-left:2px solid transparent;
+    }
+    nav a:hover, nav a.active { color:var(--text); background:var(--surface-2); border-left-color:var(--primary); }
+    .hero {
+      position:relative; overflow:hidden; padding:42px; border:1px solid var(--line);
+      background:linear-gradient(145deg, color-mix(in srgb,var(--surface) 96%, transparent), color-mix(in srgb,var(--surface-2) 84%, transparent));
+      border-radius:28px; box-shadow:var(--shadow); margin-bottom:28px;
+    }
+    .hero::after {
+      content:""; position:absolute; width:340px;height:340px;right:-140px;top:-160px;border-radius:50%;
+      background:radial-gradient(circle, color-mix(in srgb,var(--primary-2) 32%, transparent), transparent 68%);
+    }
+    .eyebrow { color:var(--primary); text-transform:uppercase; letter-spacing:.17em; font-size:12px; font-weight:800; }
+    h1 { max-width:900px; font-size:clamp(36px,5vw,64px); line-height:1.04; letter-spacing:-.045em; margin:12px 0 18px; }
+    .lead { max-width:870px; font-size:18px; color:var(--muted); }
+    .hero-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:28px; }
+    .metric { padding:14px; border:1px solid var(--line); background:rgba(255,255,255,.025); border-radius:14px; }
+    .metric strong { display:block; font-size:20px; color:var(--text); }
+    .metric span { font-size:12px;color:var(--muted); }
+    section {
+      margin:24px 0; padding:30px; border:1px solid var(--line);
+      background:var(--surface); border-radius:var(--radius); box-shadow:0 10px 36px rgba(0,0,0,.08);
+    }
+    section.search-hidden { display:none; }
+    h2 { font-size:30px; line-height:1.16; letter-spacing:-.025em; margin:0 0 10px; }
+    h3 { font-size:21px; margin:28px 0 10px; }
+    h4 { font-size:16px; margin:20px 0 8px; color:var(--primary); }
+    p { margin:9px 0 13px; }
+    .section-kicker { color:var(--primary); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    .muted { color:var(--muted); }
+    .grid-2, .grid-3, .grid-4 { display:grid; gap:14px; margin:16px 0; }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:18px; background:var(--surface-2); border:1px solid var(--line); border-radius:15px; }
+    .card h3, .card h4 { margin-top:0; }
+    .card strong { color:var(--text); }
+    .pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    .pill { padding:5px 9px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:12px; }
+    .callout {
+      border-left:4px solid var(--primary); background:color-mix(in srgb,var(--primary) 7%, var(--surface-2));
+      border-radius:12px; padding:15px 17px; margin:16px 0;
+    }
+    .callout.warning { border-left-color:var(--warning); background:color-mix(in srgb,var(--warning) 7%, var(--surface-2)); }
+    .callout.danger { border-left-color:var(--danger); background:color-mix(in srgb,var(--danger) 7%, var(--surface-2)); }
+    .callout.success { border-left-color:var(--success); background:color-mix(in srgb,var(--success) 7%, var(--surface-2)); }
+    pre {
+      position:relative; overflow:auto; padding:18px; border-radius:14px; color:#d9e7fb;
+      background:var(--code); border:1px solid rgba(180,210,240,.14); line-height:1.55; font-size:13px;
+    }
+    code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
+    :not(pre)>code { padding:2px 6px; border-radius:6px; color:var(--primary); background:color-mix(in srgb,var(--primary) 9%, transparent); }
+    .copy {
+      position:absolute; top:9px; right:9px; padding:5px 8px; border-radius:8px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.15); background:#13233a; color:#dcecff; font-size:11px;
+    }
+    .diagram {
+      margin:16px 0; padding:20px; border:1px dashed color-mix(in srgb,var(--primary) 40%,var(--line));
+      border-radius:15px; background:color-mix(in srgb,var(--primary) 4%,var(--surface-2));
+    }
+    .memory-map { display:grid; grid-template-columns:1.35fr .65fr; gap:12px; }
+    .memory-map .heap { display:grid; grid-template-columns:1.2fr .55fr 1.4fr; gap:8px; }
+    .memory-box { min-height:90px; padding:13px; border-radius:12px; background:var(--surface-3); border:1px solid var(--line); }
+    .memory-box b { display:block; margin-bottom:6px; color:var(--primary); }
+    table { width:100%; border-collapse:collapse; margin:15px 0; font-size:14px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
+    th { color:var(--primary); background:var(--surface-2); position:sticky; top:0; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:14px; }
+    .ok { color:var(--success); font-weight:700; }
+    .warn { color:var(--warning); font-weight:700; }
+    .bad { color:var(--danger); font-weight:700; }
+    details { border:1px solid var(--line); border-radius:13px; padding:12px 14px; background:var(--surface-2); margin:9px 0; }
+    summary { cursor:pointer; font-weight:700; }
+    details p, details ul { color:var(--muted); }
+    ul,ol { padding-left:22px; }
+    li { margin:5px 0; }
+    .lang-vn { display:none; }
+    body.show-vn .lang-en { display:none; }
+    body.show-vn .lang-vn { display:initial; }
+    .lang-vn.block, .lang-en.block { display:block; }
+    body.show-vn .lang-en.block { display:none; }
+    body:not(.show-vn) .lang-vn.block { display:none; }
+    .dual .lang-en, .dual .lang-vn { display:block; }
+    body:not(.show-both) .dual .lang-vn { display:none; }
+    body.show-vn:not(.show-both) .dual .lang-en { display:none; }
+    body.show-vn:not(.show-both) .dual .lang-vn { display:block; }
+    body.show-both .dual { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    body.show-both .dual > * { margin:0; }
+    .quiz button { margin-top:8px; }
+    .answer { display:none; margin-top:10px; color:var(--muted); }
+    .answer.visible { display:block; }
+    .sticky-mobile { display:none; }
+    footer { color:var(--muted); text-align:center; padding:24px; font-size:13px; }
+    @media (max-width: 1020px) {
+      .layout { display:block; }
+      aside { transform:translateX(-100%); transition:.25s; box-shadow:var(--shadow); }
+      aside.open { transform:translateX(0); }
+      main { width:100%; padding:76px 18px 80px; }
+      .sticky-mobile { display:flex; position:fixed; z-index:30; top:12px; left:12px; right:12px; gap:8px; }
+      .sticky-mobile button { border:1px solid var(--line); background:var(--surface); color:var(--text); padding:9px 12px; border-radius:11px; backdrop-filter:blur(16px); }
+      .hero-grid, .grid-4 { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width: 720px) {
+      .hero { padding:27px 22px; }
+      section { padding:22px 18px; }
+      .grid-2,.grid-3,.grid-4,.memory-map,.memory-map .heap, body.show-both .dual { grid-template-columns:1fr; }
+      h1 { font-size:39px; }
+      h2 { font-size:25px; }
+      .hero-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media print {
+      aside,.sticky-mobile,.copy,.controls { display:none !important; }
+      main { width:100%; padding:0; }
+      body { background:white; color:black; }
+      section,.hero { box-shadow:none; break-inside:avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="sticky-mobile">
+  <button onclick="document.querySelector('aside').classList.toggle('open')">☰ Contents</button>
+  <button onclick="toggleTheme()">◐ Theme</button>
+  <button onclick="cycleLanguage()">EN/VN</button>
+</div>
+
+<div class="layout">
+  <aside>
+    <div class="brand">
+      <div class="brand-mark">JVM</div>
+      <div><strong>Memory & GC Deep Dive</strong><span>Java 17 / 21 • Senior Backend</span></div>
+    </div>
+    <input id="search" class="search" placeholder="Search: G1, heap, OOM..." />
+    <div class="controls">
+      <button class="control" onclick="cycleLanguage()" id="langBtn">English</button>
+      <button class="control" onclick="toggleTheme()" id="themeBtn">Dark</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-line"><div id="progress"></div></div>
+      <span id="progressText">0% read</span>
+    </div>
+    <nav id="nav">
+      <a href="#overview">01. Mental model</a>
+      <a href="#stack-deep">02. Stack deep dive</a>
+      <a href="#heap-deep">03. Heap deep dive</a>
+      <a href="#areas">04. JVM memory areas</a>
+      <a href="#object-layout">05. Object layout</a>
+      <a href="#allocation">06. Allocation path</a>
+      <a href="#reachability">07. Reachability & roots</a>
+      <a href="#references">08. Reference types</a>
+      <a href="#gc-foundation">09. GC foundations</a>
+      <a href="#collectors">10. GC collectors</a>
+      <a href="#g1">11. G1 internals</a>
+      <a href="#zgc">12. ZGC & Shenandoah</a>
+      <a href="#jmm">13. Java Memory Model</a>
+      <a href="#oom">14. OOM taxonomy</a>
+      <a href="#leaks">15. Memory leaks</a>
+      <a href="#diagnostics">16. Production diagnostics</a>
+      <a href="#tuning">17. GC tuning</a>
+      <a href="#examples">18. Code examples</a>
+      <a href="#interview">19. Senior interview Q&A</a>
+      <a href="#checklist">20. Runbook & checklist</a>
+      <a href="#sources">Official sources</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Bilingual engineering handbook • EN / VN</div>
+      <h1>Java Stack, Heap &<br/>Garbage Collection</h1>
+      <div class="lead dual">
+        <p class="lang-en">A production-focused guide with dedicated deep dives into Java Stack and Heap, plus object allocation, garbage collectors, Java Memory Model, leak analysis, GC logs, heap dumps, Native Memory Tracking, tuning, and senior interview reasoning.</p>
+        <p class="lang-vn">Tài liệu chuyên sâu theo hướng production với hai chương riêng về Java Stack và Heap, cùng với cấp phát object, garbage collector, Java Memory Model, phân tích memory leak, GC log, heap dump, Native Memory Tracking, tuning và tư duy phỏng vấn senior.</p>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><strong>20</strong><span>deep-dive modules</span></div>
+        <div class="metric"><strong>EN + VN</strong><span>language modes</span></div>
+        <div class="metric"><strong>Java 17/21</strong><span>primary focus</span></div>
+        <div class="metric"><strong>Production</strong><span>commands & runbooks</span></div>
+      </div>
+    </header>
+
+    <section id="overview">
+      <div class="section-kicker">01 • Mental model</div>
+      <h2><span class="lang-en">Start with the correct memory model</span><span class="lang-vn">Bắt đầu bằng mental model chính xác</span></h2>
+      <div class="dual">
+        <div class="lang-en">
+          <p>A Java process consumes much more memory than <code>-Xmx</code>. The operating-system view is approximately:</p>
+          <pre><code>Process RSS
+≈ Java heap
++ Metaspace / compressed class space
++ Code cache
++ Thread stacks
++ Direct / mapped buffers
++ GC native structures
++ JNI and native libraries
++ JVM internal memory</code></pre>
+          <p><strong>Garbage Collection mainly manages the Java heap.</strong> It does not automatically solve native-memory leaks, unlimited thread creation, direct-buffer pressure, or class-loader retention.</p>
+        </div>
+        <div class="lang-vn">
+          <p>Java process sử dụng nhiều memory hơn rất nhiều so với <code>-Xmx</code>. Nhìn từ hệ điều hành, có thể ước lượng:</p>
+          <pre><code>Process RSS
+≈ Java heap
++ Metaspace / compressed class space
++ Code cache
++ Thread stack
++ Direct / mapped buffer
++ Native structure của GC
++ JNI và native library
++ Memory nội bộ của JVM</code></pre>
+          <p><strong>Garbage Collection chủ yếu quản lý Java heap.</strong> GC không tự xử lý native-memory leak, tạo thread không giới hạn, direct-buffer pressure hay class-loader retention.</p>
+        </div>
+      </div>
+      <div class="callout success dual">
+        <p class="lang-en"><strong>Senior rule:</strong> First identify which memory pool is growing. Do not call every memory problem a “heap leak.”</p>
+        <p class="lang-vn"><strong>Quy tắc senior:</strong> Trước tiên phải xác định memory pool nào đang tăng. Không được gọi mọi vấn đề memory là “heap leak”.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card"><h3>Capacity</h3><p class="muted">How much memory is available before allocation fails?</p></div>
+        <div class="card"><h3>Allocation rate</h3><p class="muted">How quickly does the application create new objects?</p></div>
+        <div class="card"><h3>Live set</h3><p class="muted">How much memory remains reachable after a full marking cycle?</p></div>
+      </div>
+    </section>
+
+
+    <section id="stack-deep">
+      <div class="section-kicker">02 • Java Stack Deep Dive</div>
+      <h2><span class="lang-en">Java Stack: per-thread execution memory</span><span class="lang-vn">Java Stack: vùng nhớ thực thi riêng của từng thread</span></h2>
+
+      <div class="dual">
+        <div class="lang-en">
+          <p>Every platform thread owns a private JVM stack. A new stack frame is created for each method invocation and removed when that method returns or throws an exception. Other threads cannot directly access a thread's stack frames.</p>
+          <p>The stack is mainly used for execution state, not long-lived object storage.</p>
+        </div>
+        <div class="lang-vn">
+          <p>Mỗi platform thread sở hữu một JVM stack riêng. Mỗi lần gọi method, JVM tạo một stack frame mới; frame bị loại bỏ khi method return hoặc throw exception. Thread khác không thể trực tiếp truy cập stack frame của thread này.</p>
+          <p>Stack chủ yếu lưu trạng thái thực thi, không phải nơi lưu object lâu dài.</p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <pre><code>Thread JVM Stack
+
+┌─────────────────────────────────────┐
+│ Frame: controller()                 │ ← current frame
+│ ├─ Local Variable Table             │
+│ ├─ Operand Stack                    │
+│ ├─ Constant Pool Reference          │
+│ └─ Return / exception information   │
+├─────────────────────────────────────┤
+│ Frame: service()                    │
+├─────────────────────────────────────┤
+│ Frame: repository()                 │
+├─────────────────────────────────────┤
+│ Frame: Thread.run()                 │
+└─────────────────────────────────────┘</code></pre>
+      </div>
+
+      <h3>What exactly exists inside a stack frame?</h3>
+      <div class="grid-4">
+        <div class="card">
+          <h4>Local Variable Table</h4>
+          <p>Stores method parameters, local primitives, and local object references.</p>
+          <p class="muted">Nó lưu reference, không lưu toàn bộ object graph.</p>
+        </div>
+        <div class="card">
+          <h4>Operand Stack</h4>
+          <p>Temporary workspace used by JVM bytecode instructions for arithmetic, method calls, field access, and return values.</p>
+        </div>
+        <div class="card">
+          <h4>Dynamic Linking</h4>
+          <p>Connects symbolic references in the class constant pool to runtime methods and fields.</p>
+        </div>
+        <div class="card">
+          <h4>Return State</h4>
+          <p>Contains information needed to return to the caller or propagate an exception.</p>
+        </div>
+      </div>
+
+      <h3>Bytecode example: local variables and operand stack</h3>
+      <pre><code>int calculate(int a, int b) {
+    int sum = a + b;
+    return sum * 2;
+}</code></pre>
+      <pre><code>// Simplified bytecode idea
+iload_1        // push a onto operand stack
+iload_2        // push b
+iadd           // pop a and b, push result
+istore_3       // store result in local slot 3
+iload_3        // push sum
+iconst_2       // push 2
+imul           // multiply
+ireturn        // return integer</code></pre>
+
+      <h3>References on stack, objects on heap</h3>
+      <pre><code>void createOrder() {
+    Order order = new Order();
+}</code></pre>
+      <div class="diagram">
+        <pre><code>Thread Stack                         Java Heap
+
+Local slot "order" ────────────────► Order object
+(reference value)                    header + fields + referenced objects</code></pre>
+      </div>
+      <div class="callout warning dual">
+        <p class="lang-en">This is the logical model. HotSpot JIT may eliminate the allocation through escape analysis and scalar replacement, so a physical heap allocation is not guaranteed for every <code>new</code>.</p>
+        <p class="lang-vn">Đây là logical model. HotSpot JIT có thể loại bỏ allocation bằng escape analysis và scalar replacement, nên không phải mọi lệnh <code>new</code> đều chắc chắn tạo object vật lý trên heap.</p>
+      </div>
+
+      <h3>Stack lifecycle</h3>
+      <ol>
+        <li>A thread is created.</li>
+        <li>The JVM reserves or commits stack memory according to platform/JVM behavior and <code>-Xss</code>.</li>
+        <li>Each method call pushes a new frame.</li>
+        <li>Normal return pops the frame.</li>
+        <li>An exception unwinds frames until a matching handler is found.</li>
+        <li>When the thread terminates, its stack memory is released.</li>
+      </ol>
+
+      <h3>StackOverflowError</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Common causes</h4>
+          <ul>
+            <li>Infinite recursion.</li>
+            <li>Very deep recursive traversal.</li>
+            <li>Cyclic object graph traversal without visited-state tracking.</li>
+            <li>Large generated call chains.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Correct fixes</h4>
+          <ul>
+            <li>Fix recursion termination.</li>
+            <li>Convert recursion to an iterative algorithm.</li>
+            <li>Use an explicit queue/stack data structure.</li>
+            <li>Increase <code>-Xss</code> only after understanding the algorithm.</li>
+          </ul>
+        </div>
+      </div>
+      <pre><code>static void recurse() {
+    recurse(); // eventually throws StackOverflowError
+}</code></pre>
+
+      <h3>Why too many threads cause native-memory pressure</h3>
+      <div class="dual">
+        <p class="lang-en">Thread stacks are outside the Java heap. Creating thousands of platform threads can exhaust native memory or OS thread limits even when heap usage is low.</p>
+        <p class="lang-vn">Thread stack nằm ngoài Java heap. Tạo hàng nghìn platform thread có thể làm cạn native memory hoặc chạm giới hạn thread của OS dù heap vẫn còn nhiều memory.</p>
+      </div>
+      <pre><code>Approximate stack reservation:
+10,000 threads × 1 MiB Xss ≈ 10 GiB address-space reservation
+
+Actual committed memory depends on OS/JVM behavior,
+but the capacity risk is still significant.</code></pre>
+
+      <h3>Stack tuning with -Xss</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Smaller -Xss</th><th>Larger -Xss</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Supports more threads within the same memory budget.</td>
+              <td>Supports deeper call stacks and recursion.</td>
+            </tr>
+            <tr>
+              <td>Higher risk of <code>StackOverflowError</code>.</td>
+              <td>Higher native-memory usage per thread.</td>
+            </tr>
+            <tr>
+              <td>Useful after measuring actual call depth.</td>
+              <td>Can reduce maximum thread capacity.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Platform threads vs virtual threads</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Platform thread</h4>
+          <p>Maps closely to an OS thread and has a native stack. Large thread counts are expensive.</p>
+        </div>
+        <div class="card">
+          <h4>Virtual thread</h4>
+          <p>Managed by the JVM and can unmount from carrier threads. Its execution stack is represented differently and can be stored in heap-managed stack chunks.</p>
+          <p class="muted">Virtual threads reduce thread-per-request cost, but they do not remove heap pressure, pinning, blocking-library, or resource-limit concerns.</p>
+        </div>
+      </div>
+
+      <h3>Senior interview questions about Stack</h3>
+      <details>
+        <summary>Why are local variables considered thread-safe?</summary>
+        <p>Each thread has its own stack and stack frames, so normal local variables are not shared. However, a local reference may point to a shared heap object, and that object can still require synchronization.</p>
+      </details>
+      <details>
+        <summary>Can an object live on the stack?</summary>
+        <p>At the Java language level, object storage location is not guaranteed. HotSpot normally allocates objects on heap, but the JIT may remove allocations or scalar-replace object fields when the object does not escape.</p>
+      </details>
+      <details>
+        <summary>Why is StackOverflowError not an OutOfMemoryError?</summary>
+        <p>It indicates that a thread exceeded its stack capacity, usually due to excessive call depth. It is a different failure category from exhausting Java heap or another memory pool.</p>
+      </details>
+    </section>
+
+    <section id="heap-deep">
+      <div class="section-kicker">03 • Java Heap Deep Dive</div>
+      <h2><span class="lang-en">Java Heap: shared object memory managed by GC</span><span class="lang-vn">Java Heap: vùng nhớ object dùng chung và được GC quản lý</span></h2>
+
+      <div class="dual">
+        <div class="lang-en">
+          <p>The Java heap is the shared runtime area where object and array instances are normally allocated. Garbage collectors trace object reachability, reclaim dead objects, and may relocate live objects.</p>
+          <p>Heap performance is driven by four numbers: maximum capacity, allocation rate, live-set size, and object lifetime distribution.</p>
+        </div>
+        <div class="lang-vn">
+          <p>Java heap là vùng runtime dùng chung, nơi object và array thường được allocate. Garbage collector trace reachability, reclaim object chết và có thể relocate object còn sống.</p>
+          <p>Hiệu năng heap phụ thuộc bốn yếu tố chính: maximum capacity, allocation rate, live-set size và phân bố vòng đời object.</p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <pre><code>Logical generational view
+
+┌──────────────────────── Young Generation ────────────────────────┐
+│ Eden / young regions │ Survivor / aging objects                 │
+└──────────────────────────────────────────────────────────────────┘
+                              │ survive collections
+                              ▼
+┌───────────────────────── Old Generation ─────────────────────────┐
+│ Long-lived objects, caches, sessions, large retained graphs      │
+└──────────────────────────────────────────────────────────────────┘
+
+Note: G1 and ZGC use collector-specific region layouts,
+not one universal physical Eden/Survivor/Old arrangement.</code></pre>
+      </div>
+
+      <h3>Heap capacity terms</h3>
+      <div class="grid-4">
+        <div class="card">
+          <h4>Used</h4>
+          <p>Memory currently occupied by allocated objects.</p>
+        </div>
+        <div class="card">
+          <h4>Committed</h4>
+          <p>Memory guaranteed by the JVM for heap use.</p>
+        </div>
+        <div class="card">
+          <h4>Reserved / Max</h4>
+          <p>Upper heap boundary, commonly influenced by <code>-Xmx</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Post-GC used</h4>
+          <p>Approximation of the live set after collection; a key leak signal.</p>
+        </div>
+      </div>
+
+      <h3>Object allocation flow</h3>
+      <div class="diagram">
+        <pre><code>Application executes new
+        │
+        ├─ JIT removes allocation? → scalar replacement / optimized away
+        │
+        └─ Allocation required
+              │
+              ├─ Fast TLAB bump-pointer allocation
+              ├─ Refill TLAB if needed
+              ├─ Shared/collector-specific allocation for large objects
+              ├─ GC triggered when space is insufficient
+              └─ OOM if JVM cannot satisfy allocation</code></pre>
+      </div>
+
+      <h3>Why TLAB makes allocation fast</h3>
+      <div class="dual">
+        <p class="lang-en">Each thread usually allocates from its own Thread-Local Allocation Buffer. A small object allocation can be only a pointer increment plus object initialization, avoiding a global lock for most allocations.</p>
+        <p class="lang-vn">Mỗi thread thường allocate từ Thread-Local Allocation Buffer riêng. Việc allocate object nhỏ có thể chỉ là tăng con trỏ và initialize object, tránh global lock trong phần lớn trường hợp.</p>
+      </div>
+
+      <h3>Young generation and old generation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Characteristic</th><th>Young</th><th>Old</th></tr></thead>
+          <tbody>
+            <tr><td>Typical objects</td><td>Requests, DTOs, temporary collections, parsing objects</td><td>Caches, application state, long-lived services, retained graphs</td></tr>
+            <tr><td>Collection frequency</td><td>Frequent</td><td>Less frequent or concurrently managed</td></tr>
+            <tr><td>Expected mortality</td><td>High</td><td>Lower</td></tr>
+            <tr><td>Main risk</td><td>High allocation churn</td><td>Large live set, retention, long marking/evacuation work</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Promotion and object aging</h3>
+      <p>Objects surviving young collections may be copied to survivor space or treated as older. The collector decides when to promote them based on age, survivor capacity, region policy, and current heap conditions.</p>
+      <div class="callout dual">
+        <p class="lang-en">Do not assume a fixed “15 GCs then promotion” rule for every collector and workload. Tenuring behavior is collector- and policy-dependent.</p>
+        <p class="lang-vn">Không nên mặc định mọi collector đều theo luật “sống qua 15 lần GC thì promote”. Tenuring phụ thuộc collector và policy runtime.</p>
+      </div>
+
+      <h3>Live set vs allocation rate</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>High allocation rate, stable live set</h4>
+          <p>Frequent young GC, CPU overhead, latency spikes, but not necessarily a leak.</p>
+        </div>
+        <div class="card">
+          <h4>Growing live set</h4>
+          <p>Post-GC occupancy trends upward. This often indicates retention, cache growth, workload-state growth, or insufficient capacity.</p>
+        </div>
+      </div>
+
+      <h3>Heap fragmentation</h3>
+      <div class="dual">
+        <p class="lang-en">Fragmentation means free memory exists but not in a shape suitable for allocation or evacuation. Compacting/copying collectors reduce fragmentation by moving live objects. Large objects and insufficient free regions can still create allocation pressure.</p>
+        <p class="lang-vn">Fragmentation nghĩa là vẫn còn free memory nhưng không có layout phù hợp để allocate hoặc evacuate. Collector có compaction/copy sẽ giảm fragmentation bằng cách di chuyển object sống. Tuy nhiên large object và thiếu free region vẫn có thể gây allocation pressure.</p>
+      </div>
+
+      <h3>Large and humongous objects</h3>
+      <ul>
+        <li>Large arrays, JSON payloads, byte buffers, images, files loaded fully into memory.</li>
+        <li>Can bypass normal small-object allocation paths.</li>
+        <li>In G1, humongous objects occupy one or more contiguous regions.</li>
+        <li>They can increase region pressure and make reclamation less flexible.</li>
+      </ul>
+      <pre><code>// Risk: one large heap allocation
+byte[] file = Files.readAllBytes(path);
+
+// Better: bounded streaming
+try (InputStream in = Files.newInputStream(path)) {
+    in.transferTo(outputStream);
+}</code></pre>
+
+      <h3>Heap leak example: static retention</h3>
+      <pre><code>class SessionRegistry {
+    private static final Map&lt;String, Session&gt; SESSIONS =
+        new ConcurrentHashMap&lt;&gt;();
+
+    static void register(Session session) {
+        SESSIONS.put(session.id(), session);
+    }
+
+    // If removal never occurs, every Session remains reachable
+    // from a static GC root through the map.
+}</code></pre>
+
+      <h3>Heap dump analysis workflow</h3>
+      <ol>
+        <li>Open the dump in Eclipse MAT, JMC, VisualVM, or another trusted analyzer.</li>
+        <li>Check the class histogram for dominant types.</li>
+        <li>Inspect dominator tree by retained size.</li>
+        <li>Choose suspicious instances.</li>
+        <li>Follow “Path to GC Roots”.</li>
+        <li>Identify the owner: static field, cache, ThreadLocal, listener, class loader, queue, or framework container.</li>
+        <li>Confirm business lifecycle and expected cardinality before calling it a leak.</li>
+      </ol>
+
+      <h3>Heap sizing principles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Heap too small</th><th>Heap too large</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Frequent GC, allocation stalls, promotion pressure, possible OOM.</td>
+              <td>Larger memory footprint, potentially more marking work, bigger dumps, slower leak detection.</td>
+            </tr>
+            <tr>
+              <td>Application may spend excessive CPU reclaiming small amounts.</td>
+              <td>May leave insufficient native memory inside the container.</td>
+            </tr>
+            <tr>
+              <td>Traffic bursts fail quickly.</td>
+              <td>Can hide an unbounded retention issue for longer.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Heap monitoring metrics</h3>
+      <div class="grid-3">
+        <div class="card"><h4>Post-GC occupancy</h4><p>Tracks live-set trend and leak suspicion.</p></div>
+        <div class="card"><h4>Allocation rate</h4><p>Explains young-GC frequency and application churn.</p></div>
+        <div class="card"><h4>Promotion rate</h4><p>Shows how quickly objects move into old regions.</p></div>
+        <div class="card"><h4>Old-gen occupancy</h4><p>Signals headroom before concurrent or full collection pressure.</p></div>
+        <div class="card"><h4>GC pause distribution</h4><p>Use p95, p99, and max, not only average.</p></div>
+        <div class="card"><h4>Object cardinality</h4><p>Useful for sessions, cache keys, queues, and domain-state growth.</p></div>
+      </div>
+
+      <h3>Senior interview questions about Heap</h3>
+      <details>
+        <summary>Is every object created in Eden?</summary>
+        <p>No. Allocation can be optimized away, happen in a TLAB that belongs to a young region, use a shared allocation path, or use collector-specific handling for large objects.</p>
+      </details>
+      <details>
+        <summary>Why is heap usage alone insufficient for diagnosing leaks?</summary>
+        <p>Temporary allocation can drive heap usage high before each GC. The important signal is whether post-GC occupancy and retained object counts grow over time.</p>
+      </details>
+      <details>
+        <summary>What is the difference between shallow size and retained size?</summary>
+        <p>Shallow size is the memory of the object itself. Retained size includes the object graph that would become unreachable if that object were removed.</p>
+      </details>
+      <details>
+        <summary>Can increasing Xmx fix an OOM?</summary>
+        <p>It may solve legitimate capacity shortage, but it does not fix unbounded retention. It can also reduce native headroom inside a container. The root cause must be proven first.</p>
+      </details>
+      <details>
+        <summary>Why can a stable heap still produce bad latency?</summary>
+        <p>High allocation rate, expensive young collections, safepoint delays, CPU throttling, remembered-set scanning, or large-object allocation can affect latency even when post-GC occupancy is stable.</p>
+      </details>
+    </section>
+
+    <section id="areas">
+      <div class="section-kicker">04 • Runtime data areas</div>
+      <h2><span class="lang-en">JVM memory areas</span><span class="lang-vn">Các vùng nhớ của JVM</span></h2>
+      <div class="diagram memory-map">
+        <div>
+          <div class="memory-box">
+            <b>Java Heap — shared</b>
+            <div class="heap">
+              <div class="memory-box"><b>Young</b>Eden + Survivor / logical young regions</div>
+              <div class="memory-box"><b>Old</b>Long-lived objects</div>
+              <div class="memory-box"><b>Collector-specific regions</b>Humongous, relocation, free regions</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="memory-box"><b>Metaspace — native</b>Class metadata, method metadata, constant-pool structures</div>
+            <div class="memory-box"><b>Code Cache — native</b>JIT-compiled machine code and related data</div>
+          </div>
+        </div>
+        <div>
+          <div class="memory-box"><b>Per-thread stack</b>Frames, local variables, operand stacks, return data</div>
+          <div class="memory-box"><b>PC register</b>Current JVM instruction per thread</div>
+          <div class="memory-box"><b>Native method stack</b>Native method execution</div>
+          <div class="memory-box"><b>Off-heap</b>Direct buffers, mmap, JNI, libraries</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Area</th><th>Shared?</th><th>Contains</th><th>Typical failure</th><th>Key controls</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Heap</strong></td><td>Yes</td><td>Objects and arrays</td><td><code>Java heap space</code></td><td><code>-Xms</code>, <code>-Xmx</code></td></tr>
+            <tr><td><strong>Thread stack</strong></td><td>No</td><td>Frames, local primitives/references, operand stacks</td><td><code>StackOverflowError</code>, native thread OOM</td><td><code>-Xss</code>, thread count</td></tr>
+            <tr><td><strong>Metaspace</strong></td><td>Yes</td><td>Class metadata; allocated from native memory</td><td><code>Metaspace</code></td><td><code>-XX:MaxMetaspaceSize</code></td></tr>
+            <tr><td><strong>Code cache</strong></td><td>Yes</td><td>JIT-compiled code</td><td>Compilation disabled / code-cache full warning</td><td><code>-XX:ReservedCodeCacheSize</code></td></tr>
+            <tr><td><strong>Direct memory</strong></td><td>Yes</td><td>NIO direct buffers, Netty buffers</td><td><code>Direct buffer memory</code></td><td><code>-XX:MaxDirectMemorySize</code></td></tr>
+            <tr><td><strong>Native/JNI</strong></td><td>Process</td><td>Libraries, allocators, JVM internals</td><td>OS kill, native OOM</td><td>NMT + OS tools</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Stack vs Heap: the precise answer</h3>
+      <div class="dual">
+        <div class="lang-en card">
+          <p>A local variable of reference type normally lives in a stack frame, while the referenced object usually lives in the heap. However, the JIT may optimize allocation through escape analysis and scalar replacement. Therefore “all objects are always physically stored in the heap” is an oversimplification of HotSpot execution.</p>
+        </div>
+        <div class="lang-vn card">
+          <p>Biến local kiểu reference thường nằm trong stack frame, còn object được tham chiếu thường nằm ở heap. Tuy nhiên JIT có thể tối ưu bằng escape analysis và scalar replacement. Vì vậy câu “mọi object luôn luôn được lưu vật lý trên heap” là cách giải thích đơn giản hóa.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="object-layout">
+      <div class="section-kicker">05 • Object representation</div>
+      <h2><span class="lang-en">Object memory layout</span><span class="lang-vn">Cấu trúc object trong memory</span></h2>
+      <div class="grid-4">
+        <div class="card"><h3>Mark word</h3><p class="muted">Identity hash, locking state, age bits, collector-specific state.</p></div>
+        <div class="card"><h3>Class pointer</h3><p class="muted">Connects the object to class metadata. Often compressed.</p></div>
+        <div class="card"><h3>Fields</h3><p class="muted">Primitive values and object references, possibly reordered for alignment.</p></div>
+        <div class="card"><h3>Padding</h3><p class="muted">Alignment bytes so object size meets JVM alignment constraints.</p></div>
+      </div>
+      <div class="callout warning dual">
+        <p class="lang-en">Exact object size is JVM-, architecture-, flag-, and field-layout-dependent. Use JOL (Java Object Layout) or a profiler instead of memorizing a universal byte count.</p>
+        <p class="lang-vn">Kích thước object phụ thuộc JVM, kiến trúc CPU, JVM flags và field layout. Hãy dùng JOL hoặc profiler thay vì học thuộc một con số byte áp dụng cho mọi trường hợp.</p>
+      </div>
+      <h3>Shallow size vs retained size</h3>
+      <div class="grid-2">
+        <div class="card"><h4>Shallow size</h4><p>Memory occupied by the object itself, excluding referenced objects.</p><p class="muted">Ví dụ: bản thân một <code>ArrayList</code>, chưa tính toàn bộ phần tử mà nó giữ.</p></div>
+        <div class="card"><h4>Retained size</h4><p>Memory that becomes collectible when this object is no longer reachable.</p><p class="muted">Đây là metric quan trọng khi tìm object đang “giữ” một object graph lớn.</p></div>
+      </div>
+      <h3>Common sizing traps</h3>
+      <ul>
+        <li><code>ArrayList</code> holds a backing array; capacity can be larger than size.</li>
+        <li><code>HashMap</code> has a table, node objects, references, and load-factor headroom.</li>
+        <li><code>String</code> stores content separately from the String object; representation varies by JDK implementation.</li>
+        <li>Boxed numbers create objects and references; primitive arrays are often far more compact.</li>
+        <li>A “small” cache entry can retain a large graph through keys, values, listeners, or class loaders.</li>
+      </ul>
+    </section>
+
+    <section id="allocation">
+      <div class="section-kicker">06 • Allocation</div>
+      <h2><span class="lang-en">How object allocation actually happens</span><span class="lang-vn">Object được cấp phát như thế nào</span></h2>
+      <div class="diagram">
+        <pre><code>new Order()
+   │
+   ├─ Fast path: current thread's TLAB
+   │      └─ bump pointer → initialize header/fields → return reference
+   │
+   ├─ TLAB exhausted → request/refill TLAB
+   │
+   ├─ Large/special object → shared region or collector-specific path
+   │
+   └─ Insufficient space → GC / allocation stall / OOM</code></pre>
+      </div>
+      <div class="grid-3">
+        <div class="card"><h3>TLAB</h3><p>Thread-Local Allocation Buffer lets most allocations avoid global contention. Allocation is commonly a pointer bump.</p></div>
+        <div class="card"><h3>Escape analysis</h3><p>The JIT checks whether an object escapes a method or thread, enabling optimizations.</p></div>
+        <div class="card"><h3>Scalar replacement</h3><p>The JIT may eliminate an allocation and treat object fields as independent values.</p></div>
+      </div>
+      <h3>Generational hypothesis</h3>
+      <div class="dual">
+        <p class="lang-en">Most objects die young. Collectors exploit this by collecting young objects frequently and scanning old objects less often. The exact layout differs: G1 uses regions, while generational ZGC has logical young and old generations.</p>
+        <p class="lang-vn">Phần lớn object “chết sớm”. Collector tận dụng đặc điểm này bằng cách thu gom young object thường xuyên và quét old object ít hơn. Cách tổ chức cụ thể khác nhau: G1 dùng region, còn Generational ZGC chia logical young/old generation.</p>
+      </div>
+      <h3>Object lifecycle</h3>
+      <ol>
+        <li><strong>Allocate</strong> in TLAB/Eden/young region or a collector-specific area.</li>
+        <li><strong>Use</strong> while reachable through roots or other live objects.</li>
+        <li><strong>Survive</strong> collections and accumulate age / remain in live regions.</li>
+        <li><strong>Promote</strong> or be treated as old when collector policy decides.</li>
+        <li><strong>Become unreachable</strong> after all root paths disappear.</li>
+        <li><strong>Reclaim or relocate</strong> during a later GC cycle.</li>
+      </ol>
+    </section>
+
+    <section id="reachability">
+      <div class="section-kicker">07 • Liveness</div>
+      <h2><span class="lang-en">Reachability, GC roots, and object graphs</span><span class="lang-vn">Reachability, GC root và object graph</span></h2>
+      <div class="diagram">
+        <pre><code>GC Roots
+├─ Live thread stacks and registers
+├─ Static fields of loaded classes
+├─ JNI global/local references
+├─ Synchronization / JVM internal roots
+└─ Collector-specific roots
+      │
+      ▼
+ reachable object → reachable object → reachable object
+      │
+      └─ no path to an object ⇒ eligible for collection</code></pre>
+      </div>
+      <div class="callout dual">
+        <p class="lang-en"><strong>Eligible for GC does not mean immediately collected.</strong> It means the collector may reclaim it in a future cycle.</p>
+        <p class="lang-vn"><strong>Eligible for GC không có nghĩa là được thu gom ngay lập tức.</strong> Nó chỉ có nghĩa collector có thể reclaim object trong một chu kỳ sau.</p>
+      </div>
+      <h3>Why reference counting is insufficient</h3>
+      <div class="dual">
+        <p class="lang-en">Two unreachable objects can reference each other and keep non-zero reference counts. Tracing collectors start from roots, so unreachable cycles are collectible.</p>
+        <p class="lang-vn">Hai object không còn được ứng dụng sử dụng vẫn có thể tham chiếu lẫn nhau, làm reference count khác 0. Tracing GC bắt đầu từ root nên vẫn thu gom được cycle không reachable.</p>
+      </div>
+      <h3>Heap-dump concepts</h3>
+      <div class="grid-3">
+        <div class="card"><h4>Dominator</h4><p>An object that lies on every path from roots to another object.</p></div>
+        <div class="card"><h4>Path to GC Root</h4><p>Explains exactly why an object is still alive.</p></div>
+        <div class="card"><h4>Retained set</h4><p>Objects that would be released if the dominator were released.</p></div>
+      </div>
+    </section>
+
+    <section id="references">
+      <div class="section-kicker">08 • java.lang.ref</div>
+      <h2><span class="lang-en">Strong, soft, weak, and phantom references</span><span class="lang-vn">Strong, soft, weak và phantom reference</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Collection behavior</th><th>Typical use</th><th>Senior warning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Strong</strong></td><td>Not collectible while strongly reachable</td><td>Normal references</td><td>A static strong reference commonly causes retention</td></tr>
+            <tr><td><strong>SoftReference</strong></td><td>Cleared at GC discretion under memory pressure</td><td>Historically memory-sensitive caches</td><td>Usually avoid as a primary cache policy; use explicit bounds</td></tr>
+            <tr><td><strong>WeakReference</strong></td><td>Cleared when only weakly reachable</td><td>Canonical maps, metadata association</td><td>Value can disappear at any GC; design for null</td></tr>
+            <tr><td><strong>PhantomReference</strong></td><td>Enqueued after referent becomes phantom reachable</td><td>Post-mortem resource tracking</td><td>Use with <code>ReferenceQueue</code>; not for resurrecting objects</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warning">
+        Prefer explicit resource management with <code>try-with-resources</code>. <code>Cleaner</code> is a fallback safety mechanism, not a replacement for deterministic cleanup.
+      </div>
+      <pre><code>try (InputStream in = Files.newInputStream(path)) {
+    return in.readAllBytes();
+} // close happens deterministically; do not wait for GC</code></pre>
+    </section>
+
+    <section id="gc-foundation">
+      <div class="section-kicker">09 • GC mechanics</div>
+      <h2><span class="lang-en">Garbage Collection foundations</span><span class="lang-vn">Nền tảng Garbage Collection</span></h2>
+      <div class="grid-4">
+        <div class="card"><h3>Mark</h3><p>Discover reachable objects from roots.</p></div>
+        <div class="card"><h3>Sweep</h3><p>Reclaim memory occupied by unmarked objects.</p></div>
+        <div class="card"><h3>Compact</h3><p>Move live objects to reduce fragmentation.</p></div>
+        <div class="card"><h3>Copy</h3><p>Copy live objects from one space/region to another.</p></div>
+      </div>
+      <h3>Terms that interviewers expect you to separate</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Stop-the-world (STW)</strong></td><td>Application threads are paused for a GC/JVM phase.</td></tr>
+            <tr><td><strong>Parallel GC work</strong></td><td>Multiple GC threads perform work together, often during an STW pause.</td></tr>
+            <tr><td><strong>Concurrent GC work</strong></td><td>GC runs while application threads continue executing.</td></tr>
+            <tr><td><strong>Safepoint</strong></td><td>A state where JVM can safely pause and inspect/modify execution state.</td></tr>
+            <tr><td><strong>Throughput</strong></td><td>Percentage of time spent doing application work instead of GC.</td></tr>
+            <tr><td><strong>Latency</strong></td><td>Response-time impact, especially pause duration and tail latency.</td></tr>
+            <tr><td><strong>Allocation stall</strong></td><td>Application cannot allocate until GC creates space.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Barriers</h3>
+      <div class="dual">
+        <p class="lang-en">Concurrent and generational collectors need barriers around reference reads/writes. Barriers maintain remembered sets, marking invariants, or relocated-reference correctness. They trade a small amount of application overhead for shorter pauses or reduced scanning.</p>
+        <p class="lang-vn">Concurrent và generational collector cần barrier khi đọc/ghi reference. Barrier giúp duy trì remembered set, marking invariant hoặc tính đúng đắn khi object được relocate. Đổi lại application chịu một ít overhead để có pause ngắn hơn hoặc giảm phạm vi scan.</p>
+      </div>
+    </section>
+
+    <section id="collectors">
+      <div class="section-kicker">10 • Collector selection</div>
+      <h2><span class="lang-en">Compare Java garbage collectors</span><span class="lang-vn">So sánh các Garbage Collector</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Collector</th><th>Main goal</th><th>Good fit</th><th>Trade-offs</th><th>Enable</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Serial GC</strong></td><td>Low overhead, simplicity</td><td>Small heaps, tiny containers, command-line tools</td><td>Single GC thread; pauses increase with live data</td><td><code>-XX:+UseSerialGC</code></td></tr>
+            <tr><td><strong>Parallel GC</strong></td><td>Maximum throughput</td><td>Batch jobs, offline processing, pause-tolerant workloads</td><td>Longer STW pauses; not ideal for strict latency</td><td><code>-XX:+UseParallelGC</code></td></tr>
+            <tr><td><strong>G1 GC</strong></td><td>Balance throughput and predictable pauses</td><td>General-purpose server workloads</td><td>More metadata and concurrent overhead than simple collectors</td><td><code>-XX:+UseG1GC</code></td></tr>
+            <tr><td><strong>Generational ZGC</strong></td><td>Very low pause latency at scale</td><td>Latency-sensitive services, large heaps</td><td>Concurrent CPU/memory headroom required; benchmark workload</td><td><code>-XX:+UseZGC -XX:+ZGenerational</code> on JDK 21</td></tr>
+            <tr><td><strong>Shenandoah</strong></td><td>Low pauses via concurrent evacuation/compaction</td><td>Latency-sensitive OpenJDK distributions that include it</td><td>Availability and behavior depend on JDK distribution/version</td><td><code>-XX:+UseShenandoahGC</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout danger dual">
+        <p class="lang-en"><strong>CMS is legacy.</strong> Do not recommend CMS for modern Java 17/21 systems. Explain it only when discussing historical systems or migrations.</p>
+        <p class="lang-vn"><strong>CMS là collector cũ.</strong> Không nên đề xuất CMS cho hệ thống Java 17/21 mới. Chỉ giải thích CMS khi nói về legacy system hoặc migration.</p>
+      </div>
+      <h3>Selection decision</h3>
+      <pre><code>Need very small footprint / tiny heap?       → Serial GC
+Need maximum throughput; pauses acceptable? → Parallel GC
+Need balanced general-purpose server GC?    → G1 GC
+Need strict low tail latency / large heap?  → Benchmark Generational ZGC
+Using a JDK with Shenandoah and low-latency need? → Benchmark Shenandoah</code></pre>
+      <p class="muted">Collector choice must be based on measured SLOs, allocation rate, live set, heap size, CPU headroom, container limits, and representative load tests.</p>
+    </section>
+
+    <section id="g1">
+      <div class="section-kicker">11 • G1 internals</div>
+      <h2>Garbage-First (G1) deep dive</h2>
+      <div class="diagram">
+        <pre><code>Heap divided into equal-sized regions
+
+[Eden][Eden][Free][Old][Survivor][Old][Humongous][Humongous][Free]
+   └──── Young collection set ────┘       └─ contiguous regions ─┘
+
+G1 chooses regions with high reclaimable garbage first,
+while attempting to meet a pause-time target.</code></pre>
+      </div>
+      <div class="grid-3">
+        <div class="card"><h3>Young GC</h3><p>Evacuates live objects from Eden and Survivor regions. Application threads pause.</p></div>
+        <div class="card"><h3>Concurrent marking</h3><p>Identifies old-region liveness mostly concurrently with the application.</p></div>
+        <div class="card"><h3>Mixed GC</h3><p>Collects young regions plus selected old regions with high reclaimable garbage.</p></div>
+      </div>
+      <h3>Important G1 structures and phases</h3>
+      <ul>
+        <li><strong>Regions:</strong> G1 avoids a single fixed contiguous young/old layout.</li>
+        <li><strong>Collection set (CSet):</strong> Regions selected for an evacuation pause.</li>
+        <li><strong>Remembered sets / card table:</strong> Track cross-region references so G1 avoids scanning the whole heap.</li>
+        <li><strong>SATB marking:</strong> Snapshot-at-the-beginning maintains a logical marking snapshot while the app mutates references.</li>
+        <li><strong>IHOP:</strong> Initiating Heap Occupancy Percent influences when concurrent marking starts; HotSpot can adapt it.</li>
+        <li><strong>Humongous objects:</strong> Large objects occupy one or more contiguous regions and can increase fragmentation pressure.</li>
+      </ul>
+      <h3>Typical G1 failure patterns</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Symptom</th><th>Likely interpretation</th><th>Investigation</th></tr></thead>
+          <tbody>
+            <tr><td>Frequent young GCs</td><td>High allocation rate or small effective young space</td><td>Allocation profiling, GC age logs, object churn</td></tr>
+            <tr><td>Long evacuation pauses</td><td>Large live set in CSet, slow scanning/copying, CPU pressure</td><td>Pause phase breakdown, remembered-set work, CPU throttling</td></tr>
+            <tr><td>Evacuation failure</td><td>Not enough free regions to copy survivors</td><td>Heap headroom, old occupancy, humongous objects</td></tr>
+            <tr><td>Repeated Full GC</td><td>Concurrent cycle too late or severe fragmentation/pressure</td><td>Mark start timing, allocation rate, heap sizing</td></tr>
+            <tr><td>Humongous allocation pressure</td><td>Very large arrays/objects consume contiguous regions</td><td><code>-Xlog:gc+heap=info</code>, payload design</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code># Useful G1 diagnostics
+-Xlog:gc*,gc+ergo=trace,gc+heap=debug,gc+age=trace:file=gc.log:time,uptime,level,tags:filecount=10,filesize=20M</code></pre>
+    </section>
+
+    <section id="zgc">
+      <div class="section-kicker">12 • Concurrent compacting collectors</div>
+      <h2>ZGC and Shenandoah</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Generational ZGC</h3>
+          <p>Designed for very low pause times by performing most marking, relocation, and reference processing concurrently. Generational mode divides objects into young and old generations so profitable young objects can be collected more frequently.</p>
+          <ul>
+            <li>Low pause design independent of scanning the whole heap during pauses.</li>
+            <li>Uses barriers and metadata to handle concurrent relocation.</li>
+            <li>Needs heap headroom because allocation continues during concurrent GC.</li>
+            <li>On JDK 21, enable generational mode explicitly.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Shenandoah</h3>
+          <p>A low-pause collector that performs most work concurrently, including compaction/evacuation. It trades CPU cycles and memory overhead for shorter pauses.</p>
+          <ul>
+            <li>Good candidate for latency-sensitive services.</li>
+            <li>Check whether your JDK distribution includes and supports it.</li>
+            <li>Benchmark with the exact JDK build and workload.</li>
+            <li>Newer JDK work includes generational Shenandoah evolution.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout dual">
+        <p class="lang-en">Low-pause does not mean “free.” Concurrent collectors consume CPU and require allocation headroom. Under CPU throttling or an undersized heap, they can still experience allocation stalls.</p>
+        <p class="lang-vn">Low-pause không có nghĩa là “không tốn chi phí”. Concurrent collector dùng CPU và cần allocation headroom. Khi container bị CPU throttle hoặc heap quá nhỏ, application vẫn có thể gặp allocation stall.</p>
+      </div>
+      <pre><code># Java 21: Generational ZGC
+java -XX:+UseZGC -XX:+ZGenerational \
+     -Xms4g -Xmx4g \
+     -Xlog:gc*:file=gc-zgc.log:time,uptime,level,tags \
+     -jar app.jar</code></pre>
+    </section>
+
+    <section id="jmm">
+      <div class="section-kicker">13 • Concurrency semantics</div>
+      <h2><span class="lang-en">Java Memory Model is not the JVM memory layout</span><span class="lang-vn">Java Memory Model không phải JVM memory layout</span></h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>JVM memory areas</h3>
+          <p>Where runtime data is stored: heap, stacks, method area/metaspace implementation, native stacks, code cache, and off-heap memory.</p>
+        </div>
+        <div class="card">
+          <h3>Java Memory Model (JMM)</h3>
+          <p>Rules for visibility, ordering, synchronization, data races, and legal observations between threads.</p>
+        </div>
+      </div>
+      <h3>Three concurrency properties</h3>
+      <div class="grid-3">
+        <div class="card"><h4>Atomicity</h4><p>Whether an operation is observed as indivisible.</p></div>
+        <div class="card"><h4>Visibility</h4><p>Whether one thread sees another thread's writes.</p></div>
+        <div class="card"><h4>Ordering</h4><p>Which reordering is legal and what execution order is guaranteed.</p></div>
+      </div>
+      <h3>Happens-before essentials</h3>
+      <ul>
+        <li>Program order within one thread.</li>
+        <li>Unlock on a monitor happens-before a later lock on the same monitor.</li>
+        <li>A write to a <code>volatile</code> field happens-before a later read of that field.</li>
+        <li><code>Thread.start()</code> happens-before actions in the started thread.</li>
+        <li>Actions in a thread happen-before another thread successfully returns from <code>join()</code>.</li>
+        <li>Safe publication of correctly constructed objects can rely on final-field semantics and synchronization mechanisms.</li>
+      </ul>
+      <pre><code>class ConfigHolder {
+    private volatile Config config;
+
+    void reload() {
+        config = loadConfig(); // volatile write publishes the new reference
+    }
+
+    Config current() {
+        return config;         // volatile read sees the published reference
+    }
+}</code></pre>
+      <div class="callout warning dual">
+        <p class="lang-en"><code>volatile</code> provides visibility and ordering for the variable, but does not make compound operations such as <code>count++</code> atomic.</p>
+        <p class="lang-vn"><code>volatile</code> đảm bảo visibility và ordering cho biến, nhưng không làm cho compound operation như <code>count++</code> trở thành atomic.</p>
+      </div>
+    </section>
+
+    <section id="oom">
+      <div class="section-kicker">14 • Failure modes</div>
+      <h2><span class="lang-en">OutOfMemoryError taxonomy</span><span class="lang-vn">Phân loại OutOfMemoryError</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Error / symptom</th><th>Likely pool or cause</th><th>First checks</th></tr></thead>
+          <tbody>
+            <tr><td><code>Java heap space</code></td><td>Heap capacity exhausted; leak, undersizing, burst, large object</td><td>Heap usage after GC, dump, allocation rate, retained graph</td></tr>
+            <tr><td><code>GC overhead limit exceeded</code></td><td>Excessive GC with little reclaimed space</td><td>Live set near Xmx, repeated full collections, leak</td></tr>
+            <tr><td><code>Metaspace</code></td><td>Class metadata growth</td><td>Loaded class count, class loaders, dynamic proxy/code generation</td></tr>
+            <tr><td><code>Compressed class space</code></td><td>Class metadata pointer space pressure</td><td>Class loader leak, generated classes</td></tr>
+            <tr><td><code>Direct buffer memory</code></td><td>Direct ByteBuffer / Netty off-heap pressure</td><td>Direct pool metrics, buffer release, MaxDirectMemorySize</td></tr>
+            <tr><td><code>unable to create native thread</code></td><td>Thread count, stack reservation, OS process/thread limits</td><td>Thread dump, <code>-Xss</code>, ulimit, container PID limit</td></tr>
+            <tr><td><code>Requested array size exceeds VM limit</code></td><td>Single array too large</td><td>Input validation, batch/chunk design</td></tr>
+            <tr><td>Container killed with exit 137</td><td>Usually OS/cgroup OOM kill, not necessarily Java OOME</td><td>Pod status/events, cgroup limit, RSS, native memory</td></tr>
+            <tr><td><code>StackOverflowError</code></td><td>Deep/infinite recursion or very large stack frames</td><td>Stack trace, recursion, cyclic traversal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout danger">
+        A heap dump triggered at OOM needs disk space close to the live heap size and may add operational pressure. Configure its location and storage capacity deliberately.
+      </div>
+      <pre><code>-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/var/log/myapp/heapdump.hprof
+-XX:+ExitOnOutOfMemoryError</code></pre>
+    </section>
+
+    <section id="leaks">
+      <div class="section-kicker">15 • Retention</div>
+      <h2><span class="lang-en">Common Java memory leaks</span><span class="lang-vn">Các memory leak phổ biến trong Java</span></h2>
+      <div class="grid-3">
+        <div class="card"><h3>Static collections</h3><p>Global maps/lists retain objects for the lifetime of the class loader.</p></div>
+        <div class="card"><h3>Unbounded cache</h3><p>No maximum size, TTL, weight, or eviction under unusual key cardinality.</p></div>
+        <div class="card"><h3>ThreadLocal</h3><p>Values remain attached to long-lived pooled threads when not removed.</p></div>
+        <div class="card"><h3>Listeners</h3><p>Publisher holds subscriber references after business lifecycle ends.</p></div>
+        <div class="card"><h3>ClassLoader leak</h3><p>Old deployment class loaders retained by static fields, threads, drivers, caches.</p></div>
+        <div class="card"><h3>Off-heap leak</h3><p>Direct buffers, JNI, Netty, native allocators grow outside Java heap.</p></div>
+      </div>
+      <h3>ThreadLocal leak pattern</h3>
+      <pre><code>private static final ThreadLocal&lt;RequestContext&gt; CTX = new ThreadLocal&lt;&gt;();
+
+void handle(Request request) {
+    try {
+        CTX.set(buildContext(request));
+        process(request);
+    } finally {
+        CTX.remove(); // mandatory for pooled threads
+    }
+}</code></pre>
+      <h3>Leak diagnosis logic</h3>
+      <ol>
+        <li>Confirm memory grows across multiple GC cycles.</li>
+        <li>Check <strong>post-GC occupancy</strong>, not only temporary peaks.</li>
+        <li>Take comparable dumps at different times under the same workload.</li>
+        <li>Compare class counts, shallow sizes, retained sizes, and dominators.</li>
+        <li>Use “Path to GC Roots” to identify the exact retaining reference.</li>
+        <li>Fix ownership/lifecycle; do not merely increase <code>-Xmx</code>.</li>
+      </ol>
+    </section>
+
+    <section id="diagnostics">
+      <div class="section-kicker">16 • Troubleshooting</div>
+      <h2><span class="lang-en">Production memory diagnostics</span><span class="lang-vn">Chẩn đoán memory trên production</span></h2>
+      <h3>1. Start with observability</h3>
+      <div class="grid-4">
+        <div class="card"><h4>Heap after GC</h4><p>Best first signal of live-set growth.</p></div>
+        <div class="card"><h4>Allocation rate</h4><p>Explains GC frequency and CPU pressure.</p></div>
+        <div class="card"><h4>Pause p95/p99/max</h4><p>Connect GC to latency SLO impact.</p></div>
+        <div class="card"><h4>RSS vs heap</h4><p>Large gap suggests native/off-heap/thread memory.</p></div>
+      </div>
+      <h3>2. GC logging</h3>
+      <pre><code># Balanced production log for Java 17/21
+-Xlog:gc*,safepoint:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=20M
+
+# G1 investigation
+-Xlog:gc*=debug,gc+ergo*=trace,gc+heap=debug,gc+age=trace:file=gc-debug.log:time,uptime,level,tags</code></pre>
+      <h3>3. jcmd commands</h3>
+      <pre><code>jcmd -l
+jcmd &lt;pid&gt; VM.version
+jcmd &lt;pid&gt; VM.flags
+jcmd &lt;pid&gt; VM.system_properties
+jcmd &lt;pid&gt; GC.heap_info
+jcmd &lt;pid&gt; GC.class_histogram
+jcmd &lt;pid&gt; Thread.print -l
+jcmd &lt;pid&gt; GC.heap_dump /tmp/app-$(date +%s).hprof</code></pre>
+      <h3>4. Native Memory Tracking (NMT)</h3>
+      <pre><code># Must generally be enabled at JVM startup
+-XX:NativeMemoryTracking=summary
+
+jcmd &lt;pid&gt; VM.native_memory summary
+jcmd &lt;pid&gt; VM.native_memory baseline
+# wait during representative workload
+jcmd &lt;pid&gt; VM.native_memory summary.diff</code></pre>
+      <div class="callout warning">
+        NMT tracks HotSpot/JVM native categories, but it does not fully account for every allocation made by arbitrary third-party native code. Correlate with OS tools and container metrics.
+      </div>
+      <h3>5. Java Flight Recorder</h3>
+      <pre><code>jcmd &lt;pid&gt; JFR.start name=memory settings=profile duration=10m filename=/tmp/memory.jfr
+jcmd &lt;pid&gt; JFR.check
+jcmd &lt;pid&gt; JFR.dump name=memory filename=/tmp/memory-now.jfr</code></pre>
+      <p>Use JFR/JMC to correlate allocation hotspots, GC pauses, safepoints, thread activity, locks, CPU, exceptions, and I/O within the same timeline.</p>
+
+      <h3>Incident flow</h3>
+      <pre><code>Alert: memory high
+   │
+   ├─ Heap after GC rising? ── yes → heap retention / live-set analysis
+   │                             └→ histogram + JFR + heap dump
+   │
+   ├─ RSS rising, heap stable? ─ yes → native/off-heap/thread analysis
+   │                             └→ NMT + direct pools + thread count + OS
+   │
+   ├─ GC frequency high, post-GC stable? → allocation churn / undersized heap
+   │
+   └─ Pauses high? → collector phases + CPU throttling + live set + safepoints</code></pre>
+    </section>
+
+    <section id="tuning">
+      <div class="section-kicker">17 • Performance engineering</div>
+      <h2><span class="lang-en">A disciplined GC tuning methodology</span><span class="lang-vn">Phương pháp GC tuning có hệ thống</span></h2>
+      <ol>
+        <li><strong>Define SLOs:</strong> throughput, p99 latency, max pause, memory limit, startup time.</li>
+        <li><strong>Capture a baseline:</strong> same traffic, data volume, CPU/memory limits, and JDK build.</li>
+        <li><strong>Identify the bottleneck:</strong> capacity, allocation rate, live set, CPU, native memory, or safepoints.</li>
+        <li><strong>Change one major variable:</strong> collector, heap, or one relevant tuning family.</li>
+        <li><strong>Run long enough:</strong> include warmup, traffic bursts, cache growth, and scheduled jobs.</li>
+        <li><strong>Compare tail distributions:</strong> averages hide pauses and rare allocation stalls.</li>
+      </ol>
+      <h3>Container memory budgeting</h3>
+      <pre><code>Container limit = 2 GiB
+
+Possible initial budget (workload-dependent):
+  Java heap                 1.1–1.3 GiB
+  Metaspace + code cache    150–250 MiB
+  Direct/native buffers     150–300 MiB
+  Thread stacks             threads × Xss
+  GC/JVM/native headroom    remaining safety margin
+
+Do not blindly set -Xmx equal to the container limit.</code></pre>
+      <h3>Useful options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Purpose</th><th>Guidance</th></tr></thead>
+          <tbody>
+            <tr><td><code>-Xms</code> / <code>-Xmx</code></td><td>Initial/max heap</td><td>Equal sizing improves predictability but commits a clear capacity decision; validate container budget.</td></tr>
+            <tr><td><code>-XX:MaxRAMPercentage</code></td><td>Heap sizing from available/container memory</td><td>Useful for standardized containers; still reserve native headroom.</td></tr>
+            <tr><td><code>-XX:MaxGCPauseMillis</code></td><td>G1 pause-time goal</td><td>A goal, not a hard guarantee. Aggressive goals can cost throughput.</td></tr>
+            <tr><td><code>-XX:MaxDirectMemorySize</code></td><td>Cap direct-buffer memory</td><td>Understand framework pools and failure behavior first.</td></tr>
+            <tr><td><code>-Xss</code></td><td>Thread stack size</td><td>Reducing it permits more threads but increases stack-overflow risk.</td></tr>
+            <tr><td><code>-XX:MaxMetaspaceSize</code></td><td>Cap metaspace</td><td>A safety cap; too small can cause unnecessary OOM.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Recommended starting profiles</h3>
+      <pre><code># General-purpose G1 service
+java -XX:+UseG1GC -Xms2g -Xmx2g \
+  -XX:MaxGCPauseMillis=200 \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -Xlog:gc*,safepoint:file=gc.log:time,uptime,level,tags:filecount=10,filesize=20M \
+  -jar app.jar
+
+# Java 21 latency-focused experiment
+java -XX:+UseZGC -XX:+ZGenerational -Xms4g -Xmx4g \
+  -Xlog:gc*:file=gc.log:time,uptime,level,tags \
+  -jar app.jar</code></pre>
+      <div class="callout success dual">
+        <p class="lang-en"><strong>The best GC tuning is often allocation reduction:</strong> bound caches, batch data, reuse expensive buffers where safe, avoid accidental boxing, stream large results, and remove unnecessary intermediate collections.</p>
+        <p class="lang-vn"><strong>GC tuning hiệu quả nhất thường là giảm allocation:</strong> giới hạn cache, xử lý theo batch, tái sử dụng buffer phù hợp, tránh boxing không cần thiết, stream dữ liệu lớn và loại bỏ intermediate collection dư thừa.</p>
+      </div>
+    </section>
+
+    <section id="examples">
+      <div class="section-kicker">18 • Practical code</div>
+      <h2><span class="lang-en">Code examples and anti-patterns</span><span class="lang-vn">Ví dụ code và anti-pattern</span></h2>
+      <h3>Unbounded cache leak</h3>
+      <pre><code>class PriceService {
+    // BAD: unique product/customer keys can grow forever
+    private final Map&lt;String, Price&gt; cache = new ConcurrentHashMap&lt;&gt;();
+
+    Price get(String key) {
+        return cache.computeIfAbsent(key, this::load);
+    }
+}</code></pre>
+      <pre><code>// Better: use a cache with explicit maximum size, expiration,
+// metrics, and a business-appropriate eviction policy.
+Cache&lt;String, Price&gt; cache = Caffeine.newBuilder()
+    .maximumSize(50_000)
+    .expireAfterAccess(Duration.ofMinutes(15))
+    .recordStats()
+    .build();</code></pre>
+
+      <h3>Allocation-heavy stream pipeline</h3>
+      <pre><code>// Potentially creates multiple intermediate objects/collections.
+List&lt;String&gt; result = orders.stream()
+    .map(Order::getItems)
+    .flatMap(Collection::stream)
+    .filter(Item::isActive)
+    .map(Item::getSku)
+    .distinct()
+    .sorted()
+    .toList();</code></pre>
+      <p class="muted">This is not automatically wrong. Profile before rewriting. For very large datasets, consider database-side filtering, streaming/pagination, bounded aggregation, or specialized data structures.</p>
+
+      <h3>Large file: do not load all bytes</h3>
+      <pre><code>// Risky for a multi-GB file
+byte[] all = Files.readAllBytes(path);
+
+// Better: stream in bounded chunks
+try (InputStream in = Files.newInputStream(path);
+     OutputStream out = response.getOutputStream()) {
+    in.transferTo(out);
+}</code></pre>
+
+      <h3>ClassLoader leak hint</h3>
+      <pre><code>// A library starts a non-daemon thread and keeps a ContextClassLoader
+// from an old deployment. The old application classes remain reachable.
+// Fix lifecycle: stop thread, deregister driver/listener, clear static caches.</code></pre>
+    </section>
+
+    <section id="interview">
+      <div class="section-kicker">19 • Interview</div>
+      <h2><span class="lang-en">Senior Java interview questions and answers</span><span class="lang-vn">Câu hỏi phỏng vấn Senior Java và trả lời</span></h2>
+
+      <details open>
+        <summary>1. What is the difference between heap, stack, and metaspace?</summary>
+        <div class="dual">
+          <p class="lang-en">Heap is shared and primarily stores objects/arrays. Each thread has its own stack containing frames, local values/references, and operand stacks. Metaspace is native memory used by HotSpot for class metadata. GC primarily reclaims heap objects and can unload class metadata when the corresponding class loader becomes unreachable and class unloading occurs.</p>
+          <p class="lang-vn">Heap được share và chủ yếu chứa object/array. Mỗi thread có stack riêng chứa frame, local value/reference và operand stack. Metaspace là native memory HotSpot dùng cho class metadata. GC chủ yếu reclaim object trên heap và có thể unload class metadata khi class loader tương ứng không còn reachable.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>2. Why can a Java process exceed -Xmx?</summary>
+        <p>Because <code>-Xmx</code> limits Java heap, not total process RSS. Metaspace, code cache, thread stacks, direct buffers, GC structures, JNI, and native libraries consume additional memory.</p>
+      </details>
+
+      <details>
+        <summary>3. What makes an object eligible for GC?</summary>
+        <p>No live path exists from any GC root to the object. A null assignment can remove one path but does not guarantee unreachability or immediate collection.</p>
+      </details>
+
+      <details>
+        <summary>4. Minor, major, mixed, and full GC?</summary>
+        <p>Terminology is collector-specific. In generational explanations, a young/minor collection targets young objects. G1 mixed collections include young regions and selected old regions. “Full GC” generally means a broad, expensive collection of most/all heap, usually STW, but always interpret the exact collector log.</p>
+      </details>
+
+      <details>
+        <summary>5. Why does G1 use regions?</summary>
+        <p>Regions let G1 construct collection sets dynamically, prioritize regions with more reclaimable garbage, avoid a fixed contiguous old/young boundary, and incrementally compact by evacuation.</p>
+      </details>
+
+      <details>
+        <summary>6. What is a remembered set?</summary>
+        <p>Metadata recording references from outside a region/generation into it. It reduces the need to scan the entire heap during a partial collection. Write barriers maintain this information.</p>
+      </details>
+
+      <details>
+        <summary>7. What is an allocation rate and why does it matter?</summary>
+        <p>Bytes allocated per unit time. A high allocation rate fills young space quickly, increases GC frequency, consumes copying/marking CPU, and may create allocation stalls even when there is no leak.</p>
+      </details>
+
+      <details>
+        <summary>8. How do you distinguish a leak from high temporary allocation?</summary>
+        <p>A leak normally causes post-GC occupancy/live set to rise over time. Temporary allocation may create high peaks and frequent young GC, but post-GC occupancy returns to a stable baseline.</p>
+      </details>
+
+      <details>
+        <summary>9. G1 vs ZGC?</summary>
+        <p>G1 is a balanced general-purpose regional collector with STW evacuation pauses and concurrent marking. ZGC performs much more work concurrently and targets very low pauses, especially for large heaps, at the cost of concurrent CPU/memory overhead. Benchmark against SLOs.</p>
+      </details>
+
+      <details>
+        <summary>10. Why can ZGC still stall?</summary>
+        <p>If allocation outpaces concurrent reclamation, heap headroom is insufficient, or CPU is throttled, application threads can wait for memory. Low-pause does not remove capacity constraints.</p>
+      </details>
+
+      <details>
+        <summary>11. What is the Java Memory Model?</summary>
+        <p>It defines inter-thread visibility, ordering, synchronization, data-race behavior, and happens-before guarantees. It is not the physical JVM heap/stack layout.</p>
+      </details>
+
+      <details>
+        <summary>12. Does volatile make count++ thread-safe?</summary>
+        <p>No. <code>count++</code> is read-modify-write and is not atomic. Use <code>AtomicInteger</code>, <code>LongAdder</code> for suitable counters, or locking.</p>
+      </details>
+
+      <details>
+        <summary>13. Why is System.gc() discouraged?</summary>
+        <p>It is only a request and can trigger expensive collection behavior depending on flags/collector. Application code should fix lifecycle and sizing rather than using explicit GC as control flow.</p>
+      </details>
+
+      <details>
+        <summary>14. What causes Metaspace OOM?</summary>
+        <p>Too many loaded/generated classes, class-loader leaks, repeated redeployments, dynamic proxies/bytecode generation, or an intentionally small cap. Inspect class-loader statistics and loaded-class growth.</p>
+      </details>
+
+      <details>
+        <summary>15. How would you investigate an OOM in Kubernetes?</summary>
+        <p>First determine Java OOME vs cgroup OOMKill/exit 137. Check pod events and memory limit, compare RSS with heap, inspect GC metrics/logs, thread count, direct buffers, NMT, and take JFR/heap dump when operationally safe.</p>
+      </details>
+
+      <details>
+        <summary>16. Why can too many threads cause OOM with free heap remaining?</summary>
+        <p>Each platform thread reserves/commits native stack memory and consumes OS resources. The process can exhaust native memory or PID/thread limits while Java heap still has free capacity.</p>
+      </details>
+
+      <details>
+        <summary>17. What is a humongous object in G1?</summary>
+        <p>A collector-defined large object, typically large enough to occupy one or more contiguous regions. Frequent large arrays can create region pressure and fragmentation-like issues. Confirm via G1 heap logs rather than guessing.</p>
+      </details>
+
+      <details>
+        <summary>18. Why does increasing Xmx sometimes make latency worse?</summary>
+        <p>A larger heap can reduce GC frequency but may increase live-set scan/evacuation work, delay leak detection, enlarge dumps, and exceed container/native budgets. Collector and workload determine the result.</p>
+      </details>
+
+      <details>
+        <summary>19. Is Xms = Xmx always recommended?</summary>
+        <p>It improves capacity predictability and avoids heap resizing, common for stable server deployments. It is not universally correct for density-sensitive environments; total container memory and startup footprint still matter.</p>
+      </details>
+
+      <details>
+        <summary>20. What are shallow and retained heap sizes?</summary>
+        <p>Shallow size is the object itself. Retained size is the memory that becomes unreachable if the object is removed. Large retained size often identifies a meaningful dominator/leak owner.</p>
+      </details>
+
+      <div class="quiz card">
+        <h3>Quick checkpoint</h3>
+        <p><strong>Question:</strong> Heap usage repeatedly reaches 90%, drops to 35% after GC, and remains near 35% for weeks. Is this automatically a memory leak?</p>
+        <button class="control" onclick="this.nextElementSibling.classList.toggle('visible')">Show answer</button>
+        <div class="answer">No. A stable post-GC baseline suggests temporary allocation pressure rather than retained growth. Investigate allocation rate and GC cost, but do not label it a leak without evidence.</div>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <div class="section-kicker">20 • Runbook</div>
+      <h2><span class="lang-en">Production checklist</span><span class="lang-vn">Checklist production</span></h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Before release</h3>
+          <ul>
+            <li>Set container memory and CPU requests/limits intentionally.</li>
+            <li>Reserve non-heap/native headroom; do not equate limit with Xmx.</li>
+            <li>Enable rotating GC logs.</li>
+            <li>Configure OOM dump path and disk capacity.</li>
+            <li>Expose heap, non-heap, direct-buffer, thread, and GC metrics.</li>
+            <li>Load test with realistic object cardinality and payload sizes.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>During an incident</h3>
+          <ul>
+            <li>Preserve evidence before restarting when safe.</li>
+            <li>Check heap-after-GC trend and RSS-vs-heap gap.</li>
+            <li>Capture JVM flags, histogram, thread dump, JFR.</li>
+            <li>Use heap dump only with space and pause impact understood.</li>
+            <li>Check pod events / OOMKill / CPU throttling.</li>
+            <li>Document exact JDK build and collector.</li>
+          </ul>
+        </div>
+      </div>
+      <h3>One-minute senior answer framework</h3>
+      <pre><code>1. Define the affected memory area.
+2. Explain reachability/allocation/collector behavior.
+3. Separate symptom from root cause.
+4. Name measurable evidence: post-GC heap, allocation rate, RSS, pause phases.
+5. Give production-safe diagnostic commands.
+6. Propose a fix and verify it with a repeatable load test.</code></pre>
+    </section>
+
+    <section id="sources">
+      <div class="section-kicker">References</div>
+      <h2>Official sources</h2>
+      <ul>
+        <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html" target="_blank" rel="noreferrer">Java Virtual Machine Specification — Runtime Data Areas</a></li>
+        <li><a href="https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html" target="_blank" rel="noreferrer">Java Language Specification — Threads and Locks / Memory Model</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/gctuning/" target="_blank" rel="noreferrer">Oracle Java 21 HotSpot GC Tuning Guide</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-g1-garbage-collector1.html" target="_blank" rel="noreferrer">Oracle — G1 Garbage Collector</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html" target="_blank" rel="noreferrer">Oracle — Z Garbage Collector</a></li>
+        <li><a href="https://openjdk.org/jeps/439" target="_blank" rel="noreferrer">OpenJDK JEP 439 — Generational ZGC</a></li>
+        <li><a href="https://openjdk.org/projects/shenandoah/" target="_blank" rel="noreferrer">OpenJDK Shenandoah Project</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/troubleshoot/" target="_blank" rel="noreferrer">Oracle Java 21 Troubleshooting Guide</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html" target="_blank" rel="noreferrer">Oracle — jcmd Command</a></li>
+        <li><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ref/package-summary.html" target="_blank" rel="noreferrer">Java SE 21 API — java.lang.ref</a></li>
+      </ul>
+      <p class="muted">The page focuses on HotSpot/OpenJDK behavior used in common Java 17/21 server deployments. Exact defaults and supported collectors vary by JDK version, distribution, platform, and flags.</p>
+    </section>
+
+    <footer>Java Memory & Garbage Collection • Senior Deep Dive • EN / VN</footer>
+  </main>
+</div>
+
+<script>
+  let langMode = 0; // 0 EN, 1 VN, 2 both
+  function cycleLanguage() {
+    langMode = (langMode + 1) % 3;
+    document.body.classList.toggle('show-vn', langMode === 1);
+    document.body.classList.toggle('show-both', langMode === 2);
+    const labels = ['English', 'Tiếng Việt', 'EN + VN'];
+    document.querySelectorAll('#langBtn').forEach(b => b.textContent = labels[langMode]);
+  }
+  function toggleTheme() {
+    const root = document.documentElement;
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    localStorage.setItem('java-memory-theme', next);
+    const b = document.getElementById('themeBtn');
+    if (b) b.textContent = next === 'dark' ? 'Dark' : 'Light';
+  }
+  const savedTheme = localStorage.getItem('java-memory-theme');
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy';
+    btn.textContent = 'Copy';
+    btn.onclick = async () => {
+      await navigator.clipboard.writeText(pre.innerText.replace(/^Copy\s*/, ''));
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = 'Copy', 1200);
+    };
+    pre.appendChild(btn);
+  });
+
+  const search = document.getElementById('search');
+  search.addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('main section').forEach(section => {
+      section.classList.toggle('search-hidden', q && !section.innerText.toLowerCase().includes(q));
+    });
+  });
+
+  const sections = [...document.querySelectorAll('main section')];
+  const links = [...document.querySelectorAll('nav a')];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id));
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.round(window.scrollY / max * 100) : 0;
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('progressText').textContent = pct + '% read';
+  });
+
+  document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', () => {
+    document.querySelector('aside').classList.remove('open');
+  }));
+</script>
+</body>
+</html>

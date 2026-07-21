@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java Multithreading Learning Guide - EN/VN</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --border: #e5e7eb;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --green-bg: #ecfdf5;
+      --green-border: #10b981;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #f59e0b;
+      --red-bg: #fef2f2;
+      --red-border: #ef4444;
+      --blue-bg: #eff6ff;
+      --blue-border: #3b82f6;
+      --purple-bg: #f5f3ff;
+      --purple-border: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      padding: 42px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: 2.3rem;
+      line-height: 1.2;
+    }
+
+    header p {
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+      opacity: 0.95;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    nav {
+      position: sticky;
+      top: 16px;
+      height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    nav h3 {
+      margin: 0 0 12px;
+      color: var(--primary-dark);
+      font-size: 1rem;
+    }
+
+    nav a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.93rem;
+    }
+
+    nav a:hover {
+      background: var(--blue-bg);
+      color: var(--primary-dark);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .language-tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 247, 251, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 12px 0;
+    }
+
+    .tab-button {
+      border: none;
+      background: var(--card);
+      color: var(--primary-dark);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .tab-button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary-dark);
+      font-size: 1.65rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #111827;
+      margin-top: 26px;
+      font-size: 1.2rem;
+    }
+
+    h4 {
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .summary {
+      background: var(--blue-bg);
+      border-left: 5px solid var(--blue-border);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .success {
+      background: var(--green-bg);
+      border-left: 5px solid var(--green-border);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .warning {
+      background: var(--yellow-bg);
+      border-left: 5px solid var(--yellow-border);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .danger {
+      background: var(--red-bg);
+      border-left: 5px solid var(--red-border);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .note {
+      background: var(--purple-bg);
+      border-left: 5px solid var(--purple-border);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 0.93rem;
+      line-height: 1.55;
+      border: 1px solid #374151;
+    }
+
+    code {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+    }
+
+    p code,
+    li code,
+    td code {
+      background: #eef2ff;
+      color: #1e3a8a;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.93em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #111827;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fafafa;
+    }
+
+    .mini-card h4 {
+      margin: 0 0 8px;
+      color: var(--primary-dark);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pill {
+      background: #eef2ff;
+      color: #1e3a8a;
+      border: 1px solid #c7d2fe;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .flow {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      padding: 14px;
+      border-radius: 12px;
+      white-space: pre-wrap;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      nav {
+        position: static;
+        height: auto;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    @media print {
+      nav, .language-tabs {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      .lang-section {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Java Multithreading Learning Guide</h1>
+    <p>English and Vietnamese versions for interview preparation and real backend development. Covers thread basics, race condition, synchronization, volatile, atomic classes, locks, wait/notify, thread pools, CompletableFuture, concurrent collections, ThreadLocal, and Spring Boot best practices.</p>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <h3>Navigation</h3>
+      <a href="#en-overview">EN - Overview</a>
+      <a href="#en-thread-basics">EN - Thread Basics</a>
+      <a href="#en-race-condition">EN - Race Condition</a>
+      <a href="#en-thread-safety">EN - Thread Safety</a>
+      <a href="#en-synchronized">EN - synchronized</a>
+      <a href="#en-volatile">EN - volatile</a>
+      <a href="#en-atomic">EN - Atomic Classes</a>
+      <a href="#en-locks">EN - Locks</a>
+      <a href="#en-deadlock">EN - Deadlock</a>
+      <a href="#en-wait-notify">EN - wait/notify</a>
+      <a href="#en-blockingqueue">EN - BlockingQueue</a>
+      <a href="#en-executor">EN - ExecutorService</a>
+      <a href="#en-future">EN - Future / CompletableFuture</a>
+      <a href="#en-collections">EN - Concurrent Collections</a>
+      <a href="#en-threadlocal">EN - ThreadLocal</a>
+      <a href="#en-spring">EN - Spring Boot Best Practices</a>
+      <a href="#en-interview">EN - Interview Summary</a>
+      <hr />
+      <a href="#vn-overview">VN - Tổng quan</a>
+      <a href="#vn-thread-basics">VN - Thread cơ bản</a>
+      <a href="#vn-race-condition">VN - Race condition</a>
+      <a href="#vn-thread-safety">VN - Thread-safe</a>
+      <a href="#vn-synchronized">VN - synchronized</a>
+      <a href="#vn-volatile">VN - volatile</a>
+      <a href="#vn-atomic">VN - Atomic classes</a>
+      <a href="#vn-locks">VN - Locks</a>
+      <a href="#vn-deadlock">VN - Deadlock</a>
+      <a href="#vn-wait-notify">VN - wait/notify</a>
+      <a href="#vn-blockingqueue">VN - BlockingQueue</a>
+      <a href="#vn-executor">VN - ExecutorService</a>
+      <a href="#vn-future">VN - Future / CompletableFuture</a>
+      <a href="#vn-collections">VN - Concurrent Collections</a>
+      <a href="#vn-threadlocal">VN - ThreadLocal</a>
+      <a href="#vn-spring">VN - Spring Boot Best Practices</a>
+      <a href="#vn-interview">VN - Tóm tắt phỏng vấn</a>
+    </nav>
+
+    <main>
+      <div class="language-tabs">
+        <button class="tab-button active" onclick="showLang('en')">English Version</button>
+        <button class="tab-button" onclick="showLang('vn')">Vietnamese Version</button>
+      </div>
+
+      <div id="en" class="lang-section active">
+        <section id="en-overview">
+          <h2>1. Overview: What is Multithreading?</h2>
+          <p><strong>Multithreading</strong> means running multiple threads inside the same process. Each thread has its own execution stack, but threads in the same process share heap memory.</p>
+
+          <div class="summary">
+            <strong>Key idea:</strong> Multithreading is easy when tasks are independent. It becomes difficult when multiple threads share and modify the same data.
+          </div>
+
+          <div class="flow">Java Application Process
+ ├── main thread
+ ├── request worker thread 1
+ ├── request worker thread 2
+ ├── background job thread
+ ├── scheduler thread
+ └── GC threads</div>
+
+          <h3>Why do we use multiple threads?</h3>
+          <ul>
+            <li>Handle many HTTP requests at the same time.</li>
+            <li>Run background jobs without blocking the main flow.</li>
+            <li>Call external APIs asynchronously.</li>
+            <li>Process files, messages, or events in parallel.</li>
+            <li>Improve resource utilization, especially for I/O-bound tasks.</li>
+          </ul>
+
+          <h3>Concurrency vs Parallelism</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Meaning</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Concurrency</strong></td>
+                <td>Multiple tasks make progress in the same time period, not necessarily at the exact same instant.</td>
+                <td>One CPU switches between Thread A, B, and C very quickly.</td>
+              </tr>
+              <tr>
+                <td><strong>Parallelism</strong></td>
+                <td>Multiple tasks run at the exact same time on multiple CPU cores.</td>
+                <td>Core 1 runs Thread A, Core 2 runs Thread B.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-thread-basics">
+          <h2>2. Thread Basics in Java</h2>
+
+          <h3>2.1. Create thread by extending Thread</h3>
+          <pre><code>class MyThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println("Running in: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        MyThread thread = new MyThread();
+        thread.start(); // creates a new thread
+    }
+}</code></pre>
+
+          <div class="warning">
+            <strong>Important:</strong> call <code>start()</code>, not <code>run()</code>. Calling <code>run()</code> directly executes the method in the current thread and does not create a new thread.
+          </div>
+
+          <h3>2.2. Create thread by implementing Runnable</h3>
+          <pre><code>class MyTask implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("Task running in: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Thread thread = new Thread(new MyTask());
+        thread.start();
+    }
+}</code></pre>
+
+          <h3>2.3. Create thread using lambda</h3>
+          <pre><code>public class Main {
+    public static void main(String[] args) {
+        Thread thread = new Thread(() -> {
+            System.out.println("Running in: " + Thread.currentThread().getName());
+        });
+
+        thread.start();
+    }
+}</code></pre>
+
+          <h3>2.4. In production, prefer ExecutorService</h3>
+          <pre><code>import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class Main {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        executor.submit(() -> System.out.println("Task 1"));
+        executor.submit(() -> System.out.println("Task 2"));
+
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <div class="success">
+            <strong>Production note:</strong> Avoid creating many raw threads manually. Use a thread pool to reuse threads and control resource usage.
+          </div>
+        </section>
+
+        <section id="en-race-condition">
+          <h2>3. Race Condition and Shared Mutable State</h2>
+
+          <p>The most difficult part of multithreading is not creating threads. The difficult part is handling <strong>shared mutable state</strong>.</p>
+
+          <div class="summary">
+            <strong>Shared mutable state</strong> means many threads access the same data, and at least one thread modifies it.
+          </div>
+
+          <h3>Example: non-thread-safe counter</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public void increment() {
+        count++; // not atomic
+    }
+
+    public int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <pre><code>public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        });
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println(counter.getCount());
+    }
+}</code></pre>
+
+          <p>Expected result is <code>2000</code>, but the actual result may be smaller.</p>
+
+          <h3>Why?</h3>
+          <p><code>count++</code> is not one atomic operation. It has multiple steps:</p>
+          <ol>
+            <li>Read current value.</li>
+            <li>Increase value.</li>
+            <li>Write value back.</li>
+          </ol>
+
+          <div class="flow">count = 10
+
+Thread A reads count = 10
+Thread B reads count = 10
+
+Thread A writes 11
+Thread B writes 11
+
+Expected: 12
+Actual: 11</div>
+
+          <div class="danger">
+            <strong>Race condition:</strong> The result depends on unpredictable thread scheduling. Different runs may produce different results.
+          </div>
+        </section>
+
+        <section id="en-thread-safety">
+          <h2>4. What is Thread-Safe?</h2>
+
+          <p>A piece of code is <strong>thread-safe</strong> if it works correctly when accessed by multiple threads at the same time.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Problem</th>
+                <th>Meaning</th>
+                <th>Common Fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Race condition</td>
+                <td>Multiple threads update shared data incorrectly.</td>
+                <td><code>synchronized</code>, locks, atomic classes, concurrent collections.</td>
+              </tr>
+              <tr>
+                <td>Visibility issue</td>
+                <td>One thread changes data, but another thread does not see the latest value.</td>
+                <td><code>volatile</code>, <code>synchronized</code>, locks, atomic classes.</td>
+              </tr>
+              <tr>
+                <td>Deadlock</td>
+                <td>Threads wait for each other forever.</td>
+                <td>Consistent lock ordering, timeout, smaller lock scope.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Ways to make code thread-safe</h3>
+          <div class="pill-row">
+            <span class="pill">Immutable objects</span>
+            <span class="pill">Local variables</span>
+            <span class="pill">synchronized</span>
+            <span class="pill">ReentrantLock</span>
+            <span class="pill">AtomicInteger</span>
+            <span class="pill">ConcurrentHashMap</span>
+            <span class="pill">BlockingQueue</span>
+          </div>
+        </section>
+
+        <section id="en-synchronized">
+          <h2>5. synchronized</h2>
+
+          <p><code>synchronized</code> ensures that only one thread can enter a critical section at a time for the same lock.</p>
+
+          <h3>5.1. synchronized method</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <h3>5.2. synchronized block</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public void increment() {
+        synchronized (this) {
+            count++;
+        }
+    }
+}</code></pre>
+
+          <p>A synchronized method:</p>
+
+          <pre><code>public synchronized void increment() {
+    count++;
+}</code></pre>
+
+          <p>is similar to:</p>
+
+          <pre><code>public void increment() {
+    synchronized (this) {
+        count++;
+    }
+}</code></pre>
+
+          <div class="success">
+            <strong>Best practice:</strong> Lock only the smallest necessary code block. Do not put slow operations such as external API calls inside synchronized blocks.
+          </div>
+
+          <h3>What lock does synchronized use?</h3>
+          <p>Every Java object has an intrinsic lock, also called a monitor lock. When a thread enters a synchronized block, it acquires that lock. Other threads must wait until the lock is released.</p>
+        </section>
+
+        <section id="en-volatile">
+          <h2>6. volatile</h2>
+
+          <p><code>volatile</code> solves <strong>visibility</strong>, not <strong>atomicity</strong>.</p>
+
+          <h3>Good use case: stop flag</h3>
+          <pre><code>class Worker {
+    private volatile boolean running = true;
+
+    public void run() {
+        while (running) {
+            // do work
+        }
+    }
+
+    public void stop() {
+        running = false;
+    }
+}</code></pre>
+
+          <p>When one thread calls <code>stop()</code>, another thread running the loop can see the updated value.</p>
+
+          <h3>Bad use case: counter</h3>
+          <pre><code>class Counter {
+    private volatile int count = 0;
+
+    public void increment() {
+        count++; // still not atomic
+    }
+}</code></pre>
+
+          <div class="warning">
+            <strong>Important:</strong> <code>volatile</code> does not make <code>count++</code> atomic. It only guarantees that threads see the latest value.
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>volatile</th>
+                <th>synchronized</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Visibility</td>
+                <td>Yes</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Atomicity for compound actions</td>
+                <td>No</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Mutual exclusion</td>
+                <td>No</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Use case</td>
+                <td>Flags, state visibility</td>
+                <td>Critical sections, shared data updates</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-atomic">
+          <h2>7. Atomic Classes</h2>
+
+          <p>Atomic classes provide thread-safe operations without using explicit synchronized blocks.</p>
+
+          <h3>AtomicInteger example</h3>
+          <pre><code>import java.util.concurrent.atomic.AtomicInteger;
+
+class Counter {
+    private final AtomicInteger count = new AtomicInteger(0);
+
+    public void increment() {
+        count.incrementAndGet();
+    }
+
+    public int getCount() {
+        return count.get();
+    }
+}</code></pre>
+
+          <h3>When to use AtomicInteger?</h3>
+          <ul>
+            <li>Simple counters.</li>
+            <li>Retry count.</li>
+            <li>Metrics.</li>
+            <li>Sequence-like values.</li>
+          </ul>
+
+          <div class="note">
+            <strong>Senior note:</strong> Atomic classes often use CAS, meaning Compare-And-Swap. CAS tries to update a value only if the current value is still the expected value.
+          </div>
+
+          <h3>AtomicInteger vs LongAdder</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Best For</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AtomicInteger</code></td>
+                <td>Simple atomic integer updates.</td>
+                <td>Good for moderate contention.</td>
+              </tr>
+              <tr>
+                <td><code>LongAdder</code></td>
+                <td>High-concurrency counters.</td>
+                <td>Often better when many threads update the counter frequently.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-locks">
+          <h2>8. ReentrantLock</h2>
+
+          <p><code>ReentrantLock</code> is a more flexible locking mechanism than <code>synchronized</code>.</p>
+
+          <pre><code>import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class Counter {
+    private int count = 0;
+    private final Lock lock = new ReentrantLock();
+
+    public void increment() {
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <div class="warning">
+            Always release the lock in <code>finally</code>. Otherwise, an exception may prevent the lock from being released.
+          </div>
+
+          <h3>Why use ReentrantLock?</h3>
+          <ul>
+            <li><code>tryLock()</code>: attempt to get lock without waiting forever.</li>
+            <li><code>lockInterruptibly()</code>: allow interruption while waiting.</li>
+            <li>Fair lock option.</li>
+            <li>Multiple <code>Condition</code> objects.</li>
+          </ul>
+
+          <h3>tryLock example</h3>
+          <pre><code>if (lock.tryLock()) {
+    try {
+        // critical section
+    } finally {
+        lock.unlock();
+    }
+} else {
+    // cannot acquire lock
+}</code></pre>
+        </section>
+
+        <section id="en-deadlock">
+          <h2>9. Deadlock</h2>
+
+          <p><strong>Deadlock</strong> happens when threads wait for each other forever.</p>
+
+          <div class="flow">Thread A holds Lock 1 and waits for Lock 2
+Thread B holds Lock 2 and waits for Lock 1
+
+Result: both threads wait forever</div>
+
+          <h3>Deadlock example</h3>
+          <pre><code>public class DeadlockExample {
+    private static final Object LOCK_1 = new Object();
+    private static final Object LOCK_2 = new Object();
+
+    public static void main(String[] args) {
+        Thread t1 = new Thread(() -> {
+            synchronized (LOCK_1) {
+                System.out.println("Thread 1 acquired LOCK_1");
+
+                synchronized (LOCK_2) {
+                    System.out.println("Thread 1 acquired LOCK_2");
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            synchronized (LOCK_2) {
+                System.out.println("Thread 2 acquired LOCK_2");
+
+                synchronized (LOCK_1) {
+                    System.out.println("Thread 2 acquired LOCK_1");
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+    }
+}</code></pre>
+
+          <h3>How to avoid deadlock</h3>
+          <ul>
+            <li>Always acquire locks in the same order.</li>
+            <li>Keep lock scope small.</li>
+            <li>Avoid nested locks when possible.</li>
+            <li>Do not call external systems inside locks.</li>
+            <li>Use <code>tryLock()</code> with timeout if appropriate.</li>
+          </ul>
+        </section>
+
+        <section id="en-wait-notify">
+          <h2>10. wait(), notify(), notifyAll()</h2>
+
+          <p><code>wait()</code>, <code>notify()</code>, and <code>notifyAll()</code> are used for thread communication.</p>
+
+          <div class="warning">
+            They must be called inside a synchronized block or synchronized method.
+          </div>
+
+          <h3>Producer-consumer example</h3>
+          <pre><code>class SharedData {
+    private String data;
+    private boolean hasData = false;
+
+    public synchronized void produce(String value) throws InterruptedException {
+        while (hasData) {
+            wait();
+        }
+
+        data = value;
+        hasData = true;
+
+        notifyAll();
+    }
+
+    public synchronized String consume() throws InterruptedException {
+        while (!hasData) {
+            wait();
+        }
+
+        String value = data;
+        data = null;
+        hasData = false;
+
+        notifyAll();
+
+        return value;
+    }
+}</code></pre>
+
+          <h3>Why use while, not if?</h3>
+          <p>Because of spurious wakeup and multiple waiting threads. After waking up, the thread must re-check the condition.</p>
+
+          <pre><code>// Correct
+while (!condition) {
+    wait();
+}
+
+// Risky
+if (!condition) {
+    wait();
+}</code></pre>
+        </section>
+
+        <section id="en-blockingqueue">
+          <h2>11. BlockingQueue</h2>
+
+          <p>In production, prefer <code>BlockingQueue</code> instead of manually writing low-level <code>wait()</code>/<code>notify()</code> code.</p>
+
+          <pre><code>import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class ProducerConsumerExample {
+    public static void main(String[] args) {
+        BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();
+
+        Thread producer = new Thread(() -> {
+            try {
+                queue.put("Message 1");
+                queue.put("Message 2");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        Thread consumer = new Thread(() -> {
+            try {
+                System.out.println(queue.take());
+                System.out.println(queue.take());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        producer.start();
+        consumer.start();
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>put()</code></td>
+                <td>Blocks if the queue is full.</td>
+              </tr>
+              <tr>
+                <td><code>take()</code></td>
+                <td>Blocks if the queue is empty.</td>
+              </tr>
+              <tr>
+                <td><code>offer()</code></td>
+                <td>Attempts to add without waiting forever.</td>
+              </tr>
+              <tr>
+                <td><code>poll()</code></td>
+                <td>Attempts to retrieve without waiting forever.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="en-executor">
+          <h2>12. ExecutorService and Thread Pool</h2>
+
+          <p>A thread pool manages a group of reusable worker threads.</p>
+
+          <pre><code>import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ExecutorExample {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
+        for (int i = 0; i &lt; 10; i++) {
+            int taskId = i;
+            executor.submit(() -> {
+                System.out.println("Task " + taskId + " running by "
+                        + Thread.currentThread().getName());
+            });
+        }
+
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <h3>Common executor types</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Executor</th>
+                <th>Meaning</th>
+                <th>Production Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>newFixedThreadPool</code></td>
+                <td>Fixed number of threads.</td>
+                <td>Good when you want to control concurrency.</td>
+              </tr>
+              <tr>
+                <td><code>newCachedThreadPool</code></td>
+                <td>Creates threads as needed and reuses idle threads.</td>
+                <td>Be careful. It may create too many threads under heavy load.</td>
+              </tr>
+              <tr>
+                <td><code>newSingleThreadExecutor</code></td>
+                <td>Only one worker thread.</td>
+                <td>Good for sequential background processing.</td>
+              </tr>
+              <tr>
+                <td><code>ScheduledExecutorService</code></td>
+                <td>Runs tasks later or periodically.</td>
+                <td>Useful for scheduled jobs.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            <strong>Senior note:</strong> In real production systems, prefer creating <code>ThreadPoolExecutor</code> explicitly so you can control core size, max size, queue size, rejection policy, and thread naming.
+          </div>
+        </section>
+
+        <section id="en-future">
+          <h2>13. Future and CompletableFuture</h2>
+
+          <h3>13.1. Future</h3>
+          <p><code>Future</code> represents a result that will be available later.</p>
+
+          <pre><code>import java.util.concurrent.*;
+
+public class FutureExample {
+    public static void main(String[] args) throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Future&lt;Integer&gt; future = executor.submit(() -> {
+            Thread.sleep(1000);
+            return 100;
+        });
+
+        Integer result = future.get(); // blocking
+
+        System.out.println(result);
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <div class="warning">
+            <code>future.get()</code> blocks the current thread until the result is ready.
+          </div>
+
+          <h3>13.2. CompletableFuture</h3>
+          <pre><code>import java.util.concurrent.CompletableFuture;
+
+public class CompletableFutureExample {
+    public static void main(String[] args) {
+        CompletableFuture&lt;String&gt; future = CompletableFuture
+                .supplyAsync(() -> "Hello")
+                .thenApply(result -> result + " Java")
+                .thenApply(String::toUpperCase);
+
+        System.out.println(future.join());
+    }
+}</code></pre>
+
+          <h3>Call two independent APIs in parallel</h3>
+          <pre><code>CompletableFuture&lt;String&gt; userFuture =
+        CompletableFuture.supplyAsync(() -> getUser());
+
+CompletableFuture&lt;String&gt; orderFuture =
+        CompletableFuture.supplyAsync(() -> getOrders());
+
+CompletableFuture&lt;Void&gt; combined =
+        CompletableFuture.allOf(userFuture, orderFuture);
+
+combined.join();
+
+String user = userFuture.join();
+String orders = orderFuture.join();</code></pre>
+
+          <div class="success">
+            <strong>Use case:</strong> CompletableFuture is useful when multiple independent tasks can run in parallel and then be combined.
+          </div>
+        </section>
+
+        <section id="en-collections">
+          <h2>14. Thread-Safe Collections</h2>
+
+          <p>Normal collections like <code>ArrayList</code>, <code>HashMap</code>, and <code>HashSet</code> are not thread-safe for concurrent modification.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Use Case</th>
+                <th>Recommended Collection</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Concurrent map access</td>
+                <td><code>ConcurrentHashMap</code></td>
+              </tr>
+              <tr>
+                <td>Read-heavy list, rare writes</td>
+                <td><code>CopyOnWriteArrayList</code></td>
+              </tr>
+              <tr>
+                <td>Producer-consumer queue</td>
+                <td><code>BlockingQueue</code></td>
+              </tr>
+              <tr>
+                <td>Non-blocking queue</td>
+                <td><code>ConcurrentLinkedQueue</code></td>
+              </tr>
+              <tr>
+                <td>Legacy synchronized wrapper</td>
+                <td><code>Collections.synchronizedList()</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>ConcurrentHashMap example</h3>
+          <pre><code>import java.util.concurrent.ConcurrentHashMap;
+
+ConcurrentHashMap&lt;String, Integer&gt; map = new ConcurrentHashMap&lt;&gt;();
+
+map.put("A", 1);
+map.compute("A", (key, oldValue) -> oldValue == null ? 1 : oldValue + 1);</code></pre>
+
+          <h3>CopyOnWriteArrayList</h3>
+          <pre><code>import java.util.concurrent.CopyOnWriteArrayList;
+
+CopyOnWriteArrayList&lt;String&gt; listeners = new CopyOnWriteArrayList&lt;&gt;();
+
+listeners.add("listener-1");
+listeners.add("listener-2");</code></pre>
+
+          <div class="warning">
+            <code>CopyOnWriteArrayList</code> is good for many reads and few writes. It is bad for write-heavy workloads because each write copies the underlying array.
+          </div>
+        </section>
+
+        <section id="en-threadlocal">
+          <h2>15. ThreadLocal</h2>
+
+          <p><code>ThreadLocal</code> stores data separately for each thread.</p>
+
+          <pre><code>public class UserContext {
+    private static final ThreadLocal&lt;String&gt; currentUser = new ThreadLocal&lt;&gt;();
+
+    public static void set(String userId) {
+        currentUser.set(userId);
+    }
+
+    public static String get() {
+        return currentUser.get();
+    }
+
+    public static void clear() {
+        currentUser.remove();
+    }
+}</code></pre>
+
+          <h3>Common use cases</h3>
+          <ul>
+            <li>Current user ID.</li>
+            <li>Tenant ID.</li>
+            <li>Correlation ID.</li>
+            <li>Trace ID.</li>
+            <li>Request context.</li>
+          </ul>
+
+          <div class="danger">
+            <strong>Important:</strong> Always call <code>remove()</code> after using ThreadLocal in thread pools. Otherwise, reused threads may keep old data and cause memory leaks or incorrect request context.
+          </div>
+        </section>
+
+        <section id="en-spring">
+          <h2>16. Spring Boot Multithreading Best Practices</h2>
+
+          <h3>16.1. Spring beans are singleton by default</h3>
+          <p>Most Spring services are singleton beans. Many request threads may use the same service object at the same time.</p>
+
+          <h3>Bad example: shared request state in singleton bean</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    private String currentUserId; // dangerous shared mutable state
+
+    public void pay(String userId) {
+        this.currentUserId = userId;
+        // process payment
+    }
+}</code></pre>
+
+          <div class="danger">
+            If two requests call <code>pay()</code> at the same time, one thread may overwrite <code>currentUserId</code> used by another thread.
+          </div>
+
+          <h3>Good example: use local variables</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    public void pay(String userId) {
+        String currentUserId = userId;
+        // process payment using local variable
+    }
+}</code></pre>
+
+          <h3>16.2. Prefer stateless services</h3>
+          <pre><code>@Service
+public class OrderService {
+
+    public OrderResponse createOrder(OrderRequest request) {
+        // Use method parameters and local variables
+        // Avoid storing request-specific data in fields
+        return new OrderResponse();
+    }
+}</code></pre>
+
+          <h3>16.3. Use @Async carefully</h3>
+          <pre><code>@Service
+public class EmailService {
+
+    @Async
+    public CompletableFuture&lt;Void&gt; sendEmail(String email) {
+        // send email asynchronously
+        return CompletableFuture.completedFuture(null);
+    }
+}</code></pre>
+
+          <div class="warning">
+            For <code>@Async</code>, configure your own executor. Do not blindly rely on defaults in production.
+          </div>
+        </section>
+
+        <section id="en-interview">
+          <h2>17. Interview Summary</h2>
+
+          <h3>Short answer: What is multithreading?</h3>
+          <div class="summary">
+            Multiple threads allow a program to execute multiple tasks concurrently within the same process. In Java, each thread has its own stack but shares heap memory with other threads in the same process.
+          </div>
+
+          <h3>Senior answer</h3>
+          <div class="summary">
+            The main benefit of multithreading is better resource utilization, especially for I/O-bound workloads such as handling HTTP requests, calling external APIs, processing messages, and running background jobs. However, when multiple threads access shared mutable state, we must handle thread-safety issues such as race condition, visibility problems, and deadlocks. In Java, we can manage concurrency using synchronized, volatile, locks, atomic classes, concurrent collections, ExecutorService, CompletableFuture, and BlockingQueue.
+          </div>
+
+          <h3>Recommended learning roadmap</h3>
+          <ol>
+            <li>Thread and process basics.</li>
+            <li>Concurrency vs parallelism.</li>
+            <li>Thread creation with Thread and Runnable.</li>
+            <li>Race condition.</li>
+            <li>synchronized.</li>
+            <li>volatile.</li>
+            <li>AtomicInteger and LongAdder.</li>
+            <li>ReentrantLock.</li>
+            <li>wait/notify.</li>
+            <li>BlockingQueue.</li>
+            <li>ExecutorService.</li>
+            <li>Future and CompletableFuture.</li>
+            <li>ConcurrentHashMap.</li>
+            <li>ThreadLocal.</li>
+            <li>Deadlock, starvation, and livelock.</li>
+            <li>Spring Boot best practices.</li>
+          </ol>
+        </section>
+      </div>
+
+      <div id="vn" class="lang-section">
+        <section id="vn-overview">
+          <h2>1. Tổng quan: Multithreading là gì?</h2>
+          <p><strong>Multithreading</strong> nghĩa là chạy nhiều thread bên trong cùng một process. Mỗi thread có stack riêng, nhưng các thread trong cùng process sẽ chia sẻ heap memory.</p>
+
+          <div class="summary">
+            <strong>Ý quan trọng:</strong> Multithreading dễ khi các task độc lập. Nó trở nên khó khi nhiều thread cùng chia sẻ và thay đổi chung một dữ liệu.
+          </div>
+
+          <div class="flow">Java Application Process
+ ├── main thread
+ ├── request worker thread 1
+ ├── request worker thread 2
+ ├── background job thread
+ ├── scheduler thread
+ └── GC threads</div>
+
+          <h3>Vì sao cần multiple threads?</h3>
+          <ul>
+            <li>Xử lý nhiều HTTP request cùng lúc.</li>
+            <li>Chạy background job mà không block main flow.</li>
+            <li>Gọi external API bất đồng bộ.</li>
+            <li>Xử lý file, message, event song song.</li>
+            <li>Tận dụng tài nguyên tốt hơn, đặc biệt với I/O-bound tasks.</li>
+          </ul>
+
+          <h3>Concurrency vs Parallelism</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Khái niệm</th>
+                <th>Ý nghĩa</th>
+                <th>Ví dụ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Concurrency</strong></td>
+                <td>Nhiều task cùng tiến triển trong cùng một khoảng thời gian, nhưng không nhất thiết chạy đúng cùng một thời điểm.</td>
+                <td>Một CPU chuyển qua lại giữa Thread A, B, C rất nhanh.</td>
+              </tr>
+              <tr>
+                <td><strong>Parallelism</strong></td>
+                <td>Nhiều task chạy thật sự cùng lúc trên nhiều CPU core.</td>
+                <td>Core 1 chạy Thread A, Core 2 chạy Thread B.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-thread-basics">
+          <h2>2. Thread cơ bản trong Java</h2>
+
+          <h3>2.1. Tạo thread bằng cách extends Thread</h3>
+          <pre><code>class MyThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println("Running in: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        MyThread thread = new MyThread();
+        thread.start(); // tạo thread mới
+    }
+}</code></pre>
+
+          <div class="warning">
+            <strong>Quan trọng:</strong> gọi <code>start()</code>, không gọi trực tiếp <code>run()</code>. Nếu gọi <code>run()</code>, nó chỉ chạy như method bình thường trong thread hiện tại, không tạo thread mới.
+          </div>
+
+          <h3>2.2. Tạo thread bằng Runnable</h3>
+          <pre><code>class MyTask implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("Task running in: " + Thread.currentThread().getName());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Thread thread = new Thread(new MyTask());
+        thread.start();
+    }
+}</code></pre>
+
+          <h3>2.3. Tạo thread bằng lambda</h3>
+          <pre><code>public class Main {
+    public static void main(String[] args) {
+        Thread thread = new Thread(() -> {
+            System.out.println("Running in: " + Thread.currentThread().getName());
+        });
+
+        thread.start();
+    }
+}</code></pre>
+
+          <h3>2.4. Production nên dùng ExecutorService</h3>
+          <pre><code>import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class Main {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        executor.submit(() -> System.out.println("Task 1"));
+        executor.submit(() -> System.out.println("Task 2"));
+
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <div class="success">
+            <strong>Production note:</strong> Không nên tự tạo quá nhiều raw threads. Nên dùng thread pool để tái sử dụng thread và kiểm soát tài nguyên tốt hơn.
+          </div>
+        </section>
+
+        <section id="vn-race-condition">
+          <h2>3. Race Condition và Shared Mutable State</h2>
+
+          <p>Phần khó nhất của multithreading không phải là tạo thread. Phần khó nhất là xử lý <strong>shared mutable state</strong>.</p>
+
+          <div class="summary">
+            <strong>Shared mutable state</strong> nghĩa là nhiều thread cùng truy cập một dữ liệu, và ít nhất một thread có thay đổi dữ liệu đó.
+          </div>
+
+          <h3>Ví dụ: counter không thread-safe</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public void increment() {
+        count++; // không atomic
+    }
+
+    public int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <pre><code>public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i &lt; 1000; i++) {
+                counter.increment();
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i &lt; 1000; i++) {
+                counter.increment();
+            }
+        });
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println(counter.getCount());
+    }
+}</code></pre>
+
+          <p>Kỳ vọng kết quả là <code>2000</code>, nhưng thực tế có thể nhỏ hơn.</p>
+
+          <h3>Vì sao?</h3>
+          <p><code>count++</code> không phải một operation atomic. Nó gồm nhiều bước:</p>
+          <ol>
+            <li>Đọc giá trị hiện tại.</li>
+            <li>Tăng giá trị.</li>
+            <li>Ghi giá trị mới trở lại.</li>
+          </ol>
+
+          <div class="flow">count = 10
+
+Thread A đọc count = 10
+Thread B đọc count = 10
+
+Thread A ghi 11
+Thread B ghi 11
+
+Kỳ vọng: 12
+Thực tế: 11</div>
+
+          <div class="danger">
+            <strong>Race condition:</strong> Kết quả phụ thuộc vào thứ tự chạy không thể đoán trước của các thread. Mỗi lần chạy có thể ra kết quả khác nhau.
+          </div>
+        </section>
+
+        <section id="vn-thread-safety">
+          <h2>4. Thread-safe là gì?</h2>
+
+          <p>Một đoạn code được gọi là <strong>thread-safe</strong> nếu nhiều thread truy cập cùng lúc mà kết quả vẫn đúng, không bị corrupt data, không race condition.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Vấn đề</th>
+                <th>Ý nghĩa</th>
+                <th>Cách xử lý phổ biến</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Race condition</td>
+                <td>Nhiều thread update shared data làm kết quả sai.</td>
+                <td><code>synchronized</code>, locks, atomic classes, concurrent collections.</td>
+              </tr>
+              <tr>
+                <td>Visibility issue</td>
+                <td>Một thread thay đổi data nhưng thread khác không thấy giá trị mới.</td>
+                <td><code>volatile</code>, <code>synchronized</code>, locks, atomic classes.</td>
+              </tr>
+              <tr>
+                <td>Deadlock</td>
+                <td>Các thread chờ nhau mãi mãi.</td>
+                <td>Lock ordering, timeout, giới hạn phạm vi lock.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Các cách làm code thread-safe</h3>
+          <div class="pill-row">
+            <span class="pill">Immutable objects</span>
+            <span class="pill">Local variables</span>
+            <span class="pill">synchronized</span>
+            <span class="pill">ReentrantLock</span>
+            <span class="pill">AtomicInteger</span>
+            <span class="pill">ConcurrentHashMap</span>
+            <span class="pill">BlockingQueue</span>
+          </div>
+        </section>
+
+        <section id="vn-synchronized">
+          <h2>5. synchronized</h2>
+
+          <p><code>synchronized</code> đảm bảo tại một thời điểm chỉ có một thread được đi vào critical section với cùng một lock.</p>
+
+          <h3>5.1. synchronized method</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <h3>5.2. synchronized block</h3>
+          <pre><code>class Counter {
+    private int count = 0;
+
+    public void increment() {
+        synchronized (this) {
+            count++;
+        }
+    }
+}</code></pre>
+
+          <p>Synchronized method:</p>
+
+          <pre><code>public synchronized void increment() {
+    count++;
+}</code></pre>
+
+          <p>tương đương gần giống với:</p>
+
+          <pre><code>public void increment() {
+    synchronized (this) {
+        count++;
+    }
+}</code></pre>
+
+          <div class="success">
+            <strong>Best practice:</strong> Chỉ lock phần code nhỏ nhất cần thiết. Không nên gọi external API hoặc xử lý logic chậm bên trong synchronized block.
+          </div>
+
+          <h3>synchronized dùng lock nào?</h3>
+          <p>Mỗi Java object có một intrinsic lock, còn gọi là monitor lock. Khi một thread vào synchronized block, nó lấy lock đó. Các thread khác phải chờ cho tới khi lock được release.</p>
+        </section>
+
+        <section id="vn-volatile">
+          <h2>6. volatile</h2>
+
+          <p><code>volatile</code> xử lý vấn đề <strong>visibility</strong>, không xử lý <strong>atomicity</strong>.</p>
+
+          <h3>Use case tốt: stop flag</h3>
+          <pre><code>class Worker {
+    private volatile boolean running = true;
+
+    public void run() {
+        while (running) {
+            // do work
+        }
+    }
+
+    public void stop() {
+        running = false;
+    }
+}</code></pre>
+
+          <p>Khi một thread gọi <code>stop()</code>, thread đang chạy loop có thể thấy giá trị mới của <code>running</code>.</p>
+
+          <h3>Use case sai: counter</h3>
+          <pre><code>class Counter {
+    private volatile int count = 0;
+
+    public void increment() {
+        count++; // vẫn không atomic
+    }
+}</code></pre>
+
+          <div class="warning">
+            <strong>Quan trọng:</strong> <code>volatile</code> không làm <code>count++</code> trở thành atomic. Nó chỉ đảm bảo các thread thấy giá trị mới nhất.
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>volatile</th>
+                <th>synchronized</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Visibility</td>
+                <td>Có</td>
+                <td>Có</td>
+              </tr>
+              <tr>
+                <td>Atomicity cho compound actions</td>
+                <td>Không</td>
+                <td>Có</td>
+              </tr>
+              <tr>
+                <td>Mutual exclusion</td>
+                <td>Không</td>
+                <td>Có</td>
+              </tr>
+              <tr>
+                <td>Use case</td>
+                <td>Flag, state visibility</td>
+                <td>Critical section, update shared data</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-atomic">
+          <h2>7. Atomic Classes</h2>
+
+          <p>Atomic classes cung cấp các operation thread-safe mà không cần tự viết synchronized block.</p>
+
+          <h3>Ví dụ AtomicInteger</h3>
+          <pre><code>import java.util.concurrent.atomic.AtomicInteger;
+
+class Counter {
+    private final AtomicInteger count = new AtomicInteger(0);
+
+    public void increment() {
+        count.incrementAndGet();
+    }
+
+    public int getCount() {
+        return count.get();
+    }
+}</code></pre>
+
+          <h3>Khi nào dùng AtomicInteger?</h3>
+          <ul>
+            <li>Counter đơn giản.</li>
+            <li>Retry count.</li>
+            <li>Metrics.</li>
+            <li>Sequence-like values.</li>
+          </ul>
+
+          <div class="note">
+            <strong>Senior note:</strong> Atomic classes thường dùng CAS, tức Compare-And-Swap. CAS chỉ update value nếu current value vẫn đúng như expected value.
+          </div>
+
+          <h3>AtomicInteger vs LongAdder</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Phù hợp cho</th>
+                <th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AtomicInteger</code></td>
+                <td>Atomic integer update đơn giản.</td>
+                <td>Tốt khi contention vừa phải.</td>
+              </tr>
+              <tr>
+                <td><code>LongAdder</code></td>
+                <td>Counter có concurrency cao.</td>
+                <td>Thường tốt hơn khi nhiều thread update counter liên tục.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-locks">
+          <h2>8. ReentrantLock</h2>
+
+          <p><code>ReentrantLock</code> là cơ chế lock linh hoạt hơn <code>synchronized</code>.</p>
+
+          <pre><code>import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class Counter {
+    private int count = 0;
+    private final Lock lock = new ReentrantLock();
+
+    public void increment() {
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getCount() {
+        return count;
+    }
+}</code></pre>
+
+          <div class="warning">
+            Luôn release lock trong <code>finally</code>. Nếu không, exception có thể làm lock không được release.
+          </div>
+
+          <h3>Vì sao dùng ReentrantLock?</h3>
+          <ul>
+            <li><code>tryLock()</code>: thử lấy lock mà không chờ mãi mãi.</li>
+            <li><code>lockInterruptibly()</code>: cho phép interrupt khi đang chờ lock.</li>
+            <li>Có fair lock option.</li>
+            <li>Hỗ trợ nhiều <code>Condition</code>.</li>
+          </ul>
+
+          <h3>Ví dụ tryLock</h3>
+          <pre><code>if (lock.tryLock()) {
+    try {
+        // critical section
+    } finally {
+        lock.unlock();
+    }
+} else {
+    // không lấy được lock
+}</code></pre>
+        </section>
+
+        <section id="vn-deadlock">
+          <h2>9. Deadlock</h2>
+
+          <p><strong>Deadlock</strong> xảy ra khi các thread chờ nhau mãi mãi.</p>
+
+          <div class="flow">Thread A giữ Lock 1 và chờ Lock 2
+Thread B giữ Lock 2 và chờ Lock 1
+
+Kết quả: cả hai thread chờ mãi mãi</div>
+
+          <h3>Ví dụ deadlock</h3>
+          <pre><code>public class DeadlockExample {
+    private static final Object LOCK_1 = new Object();
+    private static final Object LOCK_2 = new Object();
+
+    public static void main(String[] args) {
+        Thread t1 = new Thread(() -> {
+            synchronized (LOCK_1) {
+                System.out.println("Thread 1 acquired LOCK_1");
+
+                synchronized (LOCK_2) {
+                    System.out.println("Thread 1 acquired LOCK_2");
+                }
+            }
+        });
+
+        Thread t2 = new Thread(() -> {
+            synchronized (LOCK_2) {
+                System.out.println("Thread 2 acquired LOCK_2");
+
+                synchronized (LOCK_1) {
+                    System.out.println("Thread 2 acquired LOCK_1");
+                }
+            }
+        });
+
+        t1.start();
+        t2.start();
+    }
+}</code></pre>
+
+          <h3>Cách tránh deadlock</h3>
+          <ul>
+            <li>Luôn lấy lock theo cùng một thứ tự.</li>
+            <li>Giữ phạm vi lock càng nhỏ càng tốt.</li>
+            <li>Tránh nested locks nếu có thể.</li>
+            <li>Không gọi external system bên trong lock.</li>
+            <li>Dùng <code>tryLock()</code> với timeout nếu phù hợp.</li>
+          </ul>
+        </section>
+
+        <section id="vn-wait-notify">
+          <h2>10. wait(), notify(), notifyAll()</h2>
+
+          <p><code>wait()</code>, <code>notify()</code>, <code>notifyAll()</code> dùng để các thread giao tiếp với nhau.</p>
+
+          <div class="warning">
+            Các method này phải được gọi bên trong synchronized block hoặc synchronized method.
+          </div>
+
+          <h3>Ví dụ producer-consumer</h3>
+          <pre><code>class SharedData {
+    private String data;
+    private boolean hasData = false;
+
+    public synchronized void produce(String value) throws InterruptedException {
+        while (hasData) {
+            wait();
+        }
+
+        data = value;
+        hasData = true;
+
+        notifyAll();
+    }
+
+    public synchronized String consume() throws InterruptedException {
+        while (!hasData) {
+            wait();
+        }
+
+        String value = data;
+        data = null;
+        hasData = false;
+
+        notifyAll();
+
+        return value;
+    }
+}</code></pre>
+
+          <h3>Vì sao dùng while, không dùng if?</h3>
+          <p>Vì có thể có spurious wakeup hoặc nhiều thread cùng được đánh thức. Sau khi wake up, thread phải check lại condition.</p>
+
+          <pre><code>// Đúng
+while (!condition) {
+    wait();
+}
+
+// Rủi ro
+if (!condition) {
+    wait();
+}</code></pre>
+        </section>
+
+        <section id="vn-blockingqueue">
+          <h2>11. BlockingQueue</h2>
+
+          <p>Trong production, nên ưu tiên <code>BlockingQueue</code> thay vì tự viết code cấp thấp với <code>wait()</code>/<code>notify()</code>.</p>
+
+          <pre><code>import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class ProducerConsumerExample {
+    public static void main(String[] args) {
+        BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();
+
+        Thread producer = new Thread(() -> {
+            try {
+                queue.put("Message 1");
+                queue.put("Message 2");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        Thread consumer = new Thread(() -> {
+            try {
+                System.out.println(queue.take());
+                System.out.println(queue.take());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        producer.start();
+        consumer.start();
+    }
+}</code></pre>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Hành vi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>put()</code></td>
+                <td>Block nếu queue đầy.</td>
+              </tr>
+              <tr>
+                <td><code>take()</code></td>
+                <td>Block nếu queue rỗng.</td>
+              </tr>
+              <tr>
+                <td><code>offer()</code></td>
+                <td>Thử add mà không chờ mãi mãi.</td>
+              </tr>
+              <tr>
+                <td><code>poll()</code></td>
+                <td>Thử lấy data mà không chờ mãi mãi.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="vn-executor">
+          <h2>12. ExecutorService và Thread Pool</h2>
+
+          <p>Thread pool quản lý một nhóm worker threads có thể tái sử dụng.</p>
+
+          <pre><code>import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ExecutorExample {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
+        for (int i = 0; i &lt; 10; i++) {
+            int taskId = i;
+            executor.submit(() -> {
+                System.out.println("Task " + taskId + " running by "
+                        + Thread.currentThread().getName());
+            });
+        }
+
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <h3>Các loại executor phổ biến</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Executor</th>
+                <th>Ý nghĩa</th>
+                <th>Production note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>newFixedThreadPool</code></td>
+                <td>Số lượng thread cố định.</td>
+                <td>Tốt khi muốn kiểm soát concurrency.</td>
+              </tr>
+              <tr>
+                <td><code>newCachedThreadPool</code></td>
+                <td>Tạo thread khi cần và reuse idle threads.</td>
+                <td>Cẩn thận vì workload lớn có thể tạo quá nhiều thread.</td>
+              </tr>
+              <tr>
+                <td><code>newSingleThreadExecutor</code></td>
+                <td>Chỉ có một worker thread.</td>
+                <td>Tốt cho xử lý tuần tự.</td>
+              </tr>
+              <tr>
+                <td><code>ScheduledExecutorService</code></td>
+                <td>Chạy task sau một khoảng delay hoặc định kỳ.</td>
+                <td>Hữu ích cho scheduled jobs.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            <strong>Senior note:</strong> Trong production, nên tạo <code>ThreadPoolExecutor</code> rõ ràng để control core size, max size, queue size, rejection policy và thread name.
+          </div>
+        </section>
+
+        <section id="vn-future">
+          <h2>13. Future và CompletableFuture</h2>
+
+          <h3>13.1. Future</h3>
+          <p><code>Future</code> đại diện cho kết quả sẽ có trong tương lai.</p>
+
+          <pre><code>import java.util.concurrent.*;
+
+public class FutureExample {
+    public static void main(String[] args) throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Future&lt;Integer&gt; future = executor.submit(() -> {
+            Thread.sleep(1000);
+            return 100;
+        });
+
+        Integer result = future.get(); // blocking
+
+        System.out.println(result);
+        executor.shutdown();
+    }
+}</code></pre>
+
+          <div class="warning">
+            <code>future.get()</code> sẽ block thread hiện tại cho tới khi có kết quả.
+          </div>
+
+          <h3>13.2. CompletableFuture</h3>
+          <pre><code>import java.util.concurrent.CompletableFuture;
+
+public class CompletableFutureExample {
+    public static void main(String[] args) {
+        CompletableFuture&lt;String&gt; future = CompletableFuture
+                .supplyAsync(() -> "Hello")
+                .thenApply(result -> result + " Java")
+                .thenApply(String::toUpperCase);
+
+        System.out.println(future.join());
+    }
+}</code></pre>
+
+          <h3>Gọi 2 API độc lập song song</h3>
+          <pre><code>CompletableFuture&lt;String&gt; userFuture =
+        CompletableFuture.supplyAsync(() -> getUser());
+
+CompletableFuture&lt;String&gt; orderFuture =
+        CompletableFuture.supplyAsync(() -> getOrders());
+
+CompletableFuture&lt;Void&gt; combined =
+        CompletableFuture.allOf(userFuture, orderFuture);
+
+combined.join();
+
+String user = userFuture.join();
+String orders = orderFuture.join();</code></pre>
+
+          <div class="success">
+            <strong>Use case:</strong> CompletableFuture hữu ích khi nhiều task độc lập có thể chạy song song rồi combine kết quả.
+          </div>
+        </section>
+
+        <section id="vn-collections">
+          <h2>14. Thread-Safe Collections</h2>
+
+          <p>Các collection thường như <code>ArrayList</code>, <code>HashMap</code>, <code>HashSet</code> không thread-safe khi nhiều thread cùng modify.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Use case</th>
+                <th>Collection nên dùng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Concurrent map access</td>
+                <td><code>ConcurrentHashMap</code></td>
+              </tr>
+              <tr>
+                <td>List đọc nhiều, ghi ít</td>
+                <td><code>CopyOnWriteArrayList</code></td>
+              </tr>
+              <tr>
+                <td>Producer-consumer queue</td>
+                <td><code>BlockingQueue</code></td>
+              </tr>
+              <tr>
+                <td>Non-blocking queue</td>
+                <td><code>ConcurrentLinkedQueue</code></td>
+              </tr>
+              <tr>
+                <td>Legacy synchronized wrapper</td>
+                <td><code>Collections.synchronizedList()</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Ví dụ ConcurrentHashMap</h3>
+          <pre><code>import java.util.concurrent.ConcurrentHashMap;
+
+ConcurrentHashMap&lt;String, Integer&gt; map = new ConcurrentHashMap&lt;&gt;();
+
+map.put("A", 1);
+map.compute("A", (key, oldValue) -> oldValue == null ? 1 : oldValue + 1);</code></pre>
+
+          <h3>CopyOnWriteArrayList</h3>
+          <pre><code>import java.util.concurrent.CopyOnWriteArrayList;
+
+CopyOnWriteArrayList&lt;String&gt; listeners = new CopyOnWriteArrayList&lt;&gt;();
+
+listeners.add("listener-1");
+listeners.add("listener-2");</code></pre>
+
+          <div class="warning">
+            <code>CopyOnWriteArrayList</code> phù hợp khi đọc rất nhiều và ghi rất ít. Không phù hợp nếu write-heavy, vì mỗi lần write nó copy underlying array.
+          </div>
+        </section>
+
+        <section id="vn-threadlocal">
+          <h2>15. ThreadLocal</h2>
+
+          <p><code>ThreadLocal</code> lưu data riêng cho từng thread.</p>
+
+          <pre><code>public class UserContext {
+    private static final ThreadLocal&lt;String&gt; currentUser = new ThreadLocal&lt;&gt;();
+
+    public static void set(String userId) {
+        currentUser.set(userId);
+    }
+
+    public static String get() {
+        return currentUser.get();
+    }
+
+    public static void clear() {
+        currentUser.remove();
+    }
+}</code></pre>
+
+          <h3>Use cases phổ biến</h3>
+          <ul>
+            <li>Current user ID.</li>
+            <li>Tenant ID.</li>
+            <li>Correlation ID.</li>
+            <li>Trace ID.</li>
+            <li>Request context.</li>
+          </ul>
+
+          <div class="danger">
+            <strong>Quan trọng:</strong> Luôn gọi <code>remove()</code> sau khi dùng ThreadLocal trong thread pool. Nếu không, thread được reuse có thể giữ data cũ, gây memory leak hoặc sai request context.
+          </div>
+        </section>
+
+        <section id="vn-spring">
+          <h2>16. Best Practices trong Spring Boot</h2>
+
+          <h3>16.1. Spring beans mặc định là singleton</h3>
+          <p>Hầu hết Spring services là singleton beans. Nhiều request threads có thể dùng chung một service object cùng lúc.</p>
+
+          <h3>Ví dụ sai: lưu request state trong singleton bean</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    private String currentUserId; // shared mutable state nguy hiểm
+
+    public void pay(String userId) {
+        this.currentUserId = userId;
+        // process payment
+    }
+}</code></pre>
+
+          <div class="danger">
+            Nếu hai request gọi <code>pay()</code> cùng lúc, thread này có thể overwrite <code>currentUserId</code> của thread khác.
+          </div>
+
+          <h3>Ví dụ đúng: dùng local variables</h3>
+          <pre><code>@Service
+public class PaymentService {
+
+    public void pay(String userId) {
+        String currentUserId = userId;
+        // process payment using local variable
+    }
+}</code></pre>
+
+          <h3>16.2. Ưu tiên stateless services</h3>
+          <pre><code>@Service
+public class OrderService {
+
+    public OrderResponse createOrder(OrderRequest request) {
+        // Dùng method parameters và local variables
+        // Không lưu request-specific data vào field
+        return new OrderResponse();
+    }
+}</code></pre>
+
+          <h3>16.3. Dùng @Async cẩn thận</h3>
+          <pre><code>@Service
+public class EmailService {
+
+    @Async
+    public CompletableFuture&lt;Void&gt; sendEmail(String email) {
+        // send email asynchronously
+        return CompletableFuture.completedFuture(null);
+    }
+}</code></pre>
+
+          <div class="warning">
+            Với <code>@Async</code>, nên configure executor riêng. Không nên phụ thuộc mù quáng vào default trong production.
+          </div>
+        </section>
+
+        <section id="vn-interview">
+          <h2>17. Tóm tắt phỏng vấn</h2>
+
+          <h3>Câu trả lời ngắn: Multithreading là gì?</h3>
+          <div class="summary">
+            Multiple threads cho phép chương trình xử lý nhiều task đồng thời trong cùng một process. Trong Java, mỗi thread có stack riêng nhưng chia sẻ heap memory với các thread khác trong cùng process.
+          </div>
+
+          <h3>Câu trả lời senior hơn</h3>
+          <div class="summary">
+            Lợi ích chính của multithreading là tận dụng tài nguyên tốt hơn, đặc biệt với I/O-bound workloads như xử lý HTTP request, gọi external API, process messages và chạy background jobs. Tuy nhiên, khi nhiều thread truy cập shared mutable state, mình phải xử lý các vấn đề thread-safety như race condition, visibility problem và deadlock. Trong Java, mình có thể quản lý concurrency bằng synchronized, volatile, locks, atomic classes, concurrent collections, ExecutorService, CompletableFuture và BlockingQueue.
+          </div>
+
+          <h3>Roadmap học recommended</h3>
+          <ol>
+            <li>Thread và process cơ bản.</li>
+            <li>Concurrency vs parallelism.</li>
+            <li>Tạo thread bằng Thread và Runnable.</li>
+            <li>Race condition.</li>
+            <li>synchronized.</li>
+            <li>volatile.</li>
+            <li>AtomicInteger và LongAdder.</li>
+            <li>ReentrantLock.</li>
+            <li>wait/notify.</li>
+            <li>BlockingQueue.</li>
+            <li>ExecutorService.</li>
+            <li>Future và CompletableFuture.</li>
+            <li>ConcurrentHashMap.</li>
+            <li>ThreadLocal.</li>
+            <li>Deadlock, starvation, livelock.</li>
+            <li>Best practices trong Spring Boot.</li>
+          </ol>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="footer">
+    Java Multithreading Learning Guide - EN/VN version
+  </div>
+
+  <script>
+    function showLang(lang) {
+      const sections = document.querySelectorAll('.lang-section');
+      const buttons = document.querySelectorAll('.tab-button');
+
+      sections.forEach(section => section.classList.remove('active'));
+      buttons.forEach(button => button.classList.remove('active'));
+
+      document.getElementById(lang).classList.add('active');
+
+      if (lang === 'en') {
+        buttons[0].classList.add('active');
+      } else {
+        buttons[1].classList.add('active');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

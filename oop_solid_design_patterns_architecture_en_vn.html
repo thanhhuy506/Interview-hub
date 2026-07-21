@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OOP SOLID Design Patterns Architecture EN VN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#132033;--muted:#667085;--blue:#2563eb;--green:#0f766e;--dark:#0f172a;--border:#d9e2ef;--code:#0b1120}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--dark);color:#f8fafc;padding:28px 22px}
+main{padding:38px;max-width:1280px}
+.badge{display:inline-block;background:rgba(37,99,235,.25);color:#bfdbfe;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+h1{font-size:22px;line-height:1.25}aside p{color:#cbd5e1;font-size:14px}.toc-title{color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;margin:24px 0 8px}
+nav ul{padding:0;margin:0;list-style:none}nav a{display:block;color:#dbeafe;padding:8px 10px;border-radius:10px;text-decoration:none;font-size:14px}nav a:hover{background:rgba(59,130,246,.18);color:white}
+.hero{background:linear-gradient(135deg,#111827,#1e3a8a,#0f766e);color:white;border-radius:30px;padding:42px;margin-bottom:26px;box-shadow:0 18px 40px rgba(15,23,42,.08)}
+.hero h2{font-size:40px;line-height:1.1;margin:0 0 12px;letter-spacing:-.04em}.hero p{color:#dbeafe;font-size:17px}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.tags span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800}
+section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;margin:22px 0;box-shadow:0 12px 30px rgba(15,23,42,.04)}
+section h2{margin-top:0;border-bottom:1px solid var(--border);padding-bottom:12px;font-size:28px}h3{color:#1e3a8a;margin-top:28px}h4{color:#0f766e;margin-top:22px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:18px}.card h4{margin:0 0 8px;color:#0f172a}.card p{margin:0;color:var(--muted)}
+.note,.warn,.danger,.ok{border-radius:14px;padding:14px 16px;margin:16px 0;border:1px solid}.note{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}.danger{background:#fef2f2;border-color:#fecaca;color:#991b1b}.ok{background:#ecfdf5;border-color:#bbf7d0;color:#166534}
+table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;font-size:14px}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{background:#f1f5f9}tr:last-child td{border-bottom:none}
+pre{background:var(--code);color:#e5e7eb;border-radius:16px;padding:18px 20px;overflow:auto;font-size:13.3px;line-height:1.6}code{font-family:SFMono-Regular,Consolas,monospace}p code,li code,td code{background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 6px;font-size:.92em}
+.diagram{background:#f8fafc;border:1px dashed #94a3b8;border-radius:16px;padding:18px;margin:18px 0;overflow:auto;white-space:pre;font-family:SFMono-Regular,Consolas,monospace;font-size:13.2px}
+.qa{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0}.qa strong{color:#1e3a8a}.interview{background:#0f172a;color:#e5e7eb}.interview h2,.interview h3{color:#fff}.interview .qa{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+@media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto}main{padding:22px}.grid,.grid3{grid-template-columns:1fr}.hero h2{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<span class="badge">Senior Java Backend</span>
+<h1>OOP / SOLID / Patterns / Architecture</h1>
+<p>Deep-dive EN/VN web notes with examples and interview Q&A.</p>
+<div class="toc-title">English</div>
+<nav><ul>
+<li><a href="#en-overview">Big Picture</a></li>
+<li><a href="#en-oop">OOP Basic → Advanced</a></li>
+<li><a href="#en-solid">SOLID</a></li>
+<li><a href="#en-patterns">Java Design Patterns</a></li>
+<li><a href="#en-architecture">Architecture Patterns</a></li>
+<li><a href="#en-qa">Interview Q&A</a></li>
+</ul></nav>
+<div class="toc-title">Vietnamese</div>
+<nav><ul>
+<li><a href="#vi-overview">Tổng quan</a></li>
+<li><a href="#vi-oop">OOP cơ bản → nâng cao</a></li>
+<li><a href="#vi-solid">SOLID</a></li>
+<li><a href="#vi-patterns">Java Design Patterns</a></li>
+<li><a href="#vi-architecture">Architecture Patterns</a></li>
+<li><a href="#vi-qa">Câu hỏi phỏng vấn</a></li>
+</ul></nav>
+</aside>
+<main>
+<div class="hero">
+<h2>OOP, SOLID, Java Design Patterns & Architecture Design Patterns</h2>
+<p>From basic to advanced. Designed for Senior Java Backend interview preparation with real Java/Spring examples and bilingual EN/VN explanations.</p>
+<div class="tags"><span>OOP</span><span>SOLID</span><span>Strategy</span><span>Factory</span><span>Builder</span><span>Adapter</span><span>Proxy</span><span>Layered</span><span>Hexagonal</span><span>Clean Architecture</span><span>DDD</span><span>CQRS</span></div>
+</div>
+
+<section id="en-overview">
+<h2>1. Big Picture</h2>
+<p class="lead">OOP gives basic modeling tools. SOLID gives maintainability principles. Design patterns solve repeated object-level design problems. Architecture patterns organize the whole application or system.</p>
+<div class="diagram">OOP → classes, objects, encapsulation, abstraction, inheritance, polymorphism
+SOLID → low coupling, high cohesion, testability, safe changes
+Design Patterns → reusable object-level solutions
+Architecture Patterns → boundaries, dependencies, layers, use cases, infrastructure separation</div>
+<div class="grid">
+<div class="card"><h4>OOP</h4><p>Model business concepts as objects with state and behavior.</p></div>
+<div class="card"><h4>SOLID</h4><p>Reduce coupling and make code easier to test and change.</p></div>
+<div class="card"><h4>Design Patterns</h4><p>Reusable solutions: Strategy, Factory, Adapter, Decorator, Observer, etc.</p></div>
+<div class="card"><h4>Architecture Patterns</h4><p>System structure: Layered, Hexagonal, Clean Architecture, CQRS, DDD.</p></div>
+</div>
+<div class="note"><b>Senior mindset:</b> Do not memorize pattern names only. Explain the problem, the pattern, trade-offs, and a real production use case.</div>
+</section>
+
+<section id="en-oop">
+<h2>2. OOP Basic → Advanced</h2>
+<h3>What is OOP?</h3>
+<p>OOP is a programming paradigm that organizes software around objects. An object combines data and behavior. In Java, a class is a blueprint and an object is a runtime instance.</p>
+<pre><code>public class BankAccount {
+    private final String accountNo;
+    private BigDecimal balance;
+
+    public BankAccount(String accountNo, BigDecimal initialBalance) {
+        this.accountNo = accountNo;
+        this.balance = initialBalance;
+    }
+
+    public void deposit(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        this.balance = this.balance.add(amount);
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+}</code></pre>
+
+<h3>Four Pillars of OOP</h3>
+<table><thead><tr><th>Pillar</th><th>Meaning</th><th>Java Example</th><th>Why it matters</th></tr></thead><tbody>
+<tr><td>Encapsulation</td><td>Hide internal state and expose controlled behavior.</td><td><code>private</code> fields, methods</td><td>Protect invariants and avoid invalid state.</td></tr>
+<tr><td>Abstraction</td><td>Expose essential behavior and hide details.</td><td>Interface, abstract class</td><td>Reduce coupling.</td></tr>
+<tr><td>Inheritance</td><td>Create a type from another type.</td><td><code>extends</code></td><td>Reuse common behavior, but can create tight coupling.</td></tr>
+<tr><td>Polymorphism</td><td>Same contract, different implementations.</td><td>Overriding, interface implementation</td><td>Removes if/else explosion.</td></tr>
+</tbody></table>
+
+<h3>Encapsulation is business protection</h3>
+<pre><code>public class Order {
+    private OrderStatus status;
+
+    public void cancel() {
+        if (status == OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Shipped order cannot be cancelled");
+        }
+        this.status = OrderStatus.CANCELLED;
+    }
+}</code></pre>
+<p>Real encapsulation means other classes cannot put the object into an invalid state.</p>
+
+<h3>Abstraction and Polymorphism</h3>
+<pre><code>public interface PaymentGateway {
+    PaymentResult charge(PaymentRequest request);
+}
+
+public class StripePaymentGateway implements PaymentGateway {
+    public PaymentResult charge(PaymentRequest request) {
+        return PaymentResult.success();
+    }
+}
+
+public class OrderService {
+    private final PaymentGateway paymentGateway;
+
+    public OrderService(PaymentGateway paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+
+    public void checkout(Order order) {
+        paymentGateway.charge(new PaymentRequest(order.getTotalAmount()));
+    }
+}</code></pre>
+
+<h3>Composition over Inheritance</h3>
+<p>Composition builds behavior by combining objects. It is usually more flexible than deep inheritance.</p>
+<div class="diagram">Inheritance:
+VipInternationalOrder extends InternationalOrder extends SpecialOrder extends Order
+
+Composition:
+Order has DiscountPolicy
+Order has ShippingPolicy
+Order has TaxPolicy</div>
+<pre><code>public class PricingService {
+    private final DiscountPolicy discountPolicy;
+    private final TaxPolicy taxPolicy;
+
+    public PricingService(DiscountPolicy discountPolicy, TaxPolicy taxPolicy) {
+        this.discountPolicy = discountPolicy;
+        this.taxPolicy = taxPolicy;
+    }
+
+    public BigDecimal calculateFinalPrice(Order order) {
+        BigDecimal discount = discountPolicy.calculateDiscount(order);
+        BigDecimal tax = taxPolicy.calculateTax(order);
+        return order.getTotalAmount().subtract(discount).add(tax);
+    }
+}</code></pre>
+
+<h3>Association, Aggregation, Composition</h3>
+<table><thead><tr><th>Relationship</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+<tr><td>Association</td><td>Objects know/use each other.</td><td>Customer uses SupportTicket.</td></tr>
+<tr><td>Aggregation</td><td>Whole-part, but part can live independently.</td><td>Department has Employees.</td></tr>
+<tr><td>Composition</td><td>Strong ownership; part lifecycle depends on whole.</td><td>Order has OrderItems.</td></tr>
+</tbody></table>
+
+<h3>Advanced OOP Notes</h3>
+<ul>
+<li><b>Cohesion:</b> a class/module should focus on one responsibility area.</li>
+<li><b>Coupling:</b> depend on abstractions and stable contracts, not concrete infrastructure.</li>
+<li><b>Immutable objects:</b> safer for multi-threading and easier reasoning.</li>
+<li><b>Anemic domain model:</b> object has only getters/setters and all business logic lives in services; often not ideal for rich domain.</li>
+<li><b>God service:</b> one service handles too many responsibilities.</li>
+</ul>
+</section>
+
+<section id="en-solid">
+<h2>3. SOLID Principles</h2>
+<p class="lead">SOLID helps create maintainable, testable, and change-friendly object-oriented code.</p>
+<table><thead><tr><th>Principle</th><th>Meaning</th><th>Core Question</th></tr></thead><tbody>
+<tr><td>SRP</td><td>Single Responsibility Principle</td><td>Does this class have one main reason to change?</td></tr>
+<tr><td>OCP</td><td>Open/Closed Principle</td><td>Can we add behavior without modifying stable code?</td></tr>
+<tr><td>LSP</td><td>Liskov Substitution Principle</td><td>Can subtype replace parent without breaking behavior?</td></tr>
+<tr><td>ISP</td><td>Interface Segregation Principle</td><td>Are clients forced to depend on unused methods?</td></tr>
+<tr><td>DIP</td><td>Dependency Inversion Principle</td><td>Does high-level logic depend on abstractions?</td></tr>
+</tbody></table>
+
+<h3>SRP — Single Responsibility Principle</h3>
+<p>A class should have one main responsibility. It does not mean only one method.</p>
+<pre><code>public class OrderService {
+    private final OrderRepository orderRepository;
+    private final PaymentService paymentService;
+    private final EmailService emailService;
+
+    public void placeOrder(OrderRequest request) {
+        Order order = Order.create(request);
+        paymentService.pay(order);
+        orderRepository.save(order);
+        emailService.sendOrderConfirmation(order);
+    }
+}</code></pre>
+
+<h3>OCP — Open/Closed Principle</h3>
+<pre><code>public interface PaymentMethod {
+    PaymentResult pay(PaymentRequest request);
+}
+
+@Component("creditCard")
+public class CreditCardPayment implements PaymentMethod {
+    public PaymentResult pay(PaymentRequest request) {
+        return PaymentResult.success();
+    }
+}
+
+@Component("bankTransfer")
+public class BankTransferPayment implements PaymentMethod {
+    public PaymentResult pay(PaymentRequest request) {
+        return PaymentResult.success();
+    }
+}
+
+@Service
+public class PaymentRouter {
+    private final Map&lt;String, PaymentMethod&gt; paymentMethods;
+
+    public PaymentRouter(Map&lt;String, PaymentMethod&gt; paymentMethods) {
+        this.paymentMethods = paymentMethods;
+    }
+
+    public PaymentResult pay(String method, PaymentRequest request) {
+        PaymentMethod paymentMethod = paymentMethods.get(method);
+        if (paymentMethod == null) {
+            throw new IllegalArgumentException("Unsupported payment method");
+        }
+        return paymentMethod.pay(request);
+    }
+}</code></pre>
+
+<h3>LSP — Liskov Substitution Principle</h3>
+<div class="danger"><b>Violation:</b> subclass overrides a method and throws <code>UnsupportedOperationException</code> for behavior promised by parent.</div>
+<pre><code>public interface WithdrawableAccount {
+    void withdraw(BigDecimal amount);
+}
+
+public class SavingAccount implements WithdrawableAccount {
+    public void withdraw(BigDecimal amount) {
+        // withdraw logic
+    }
+}
+
+public class FixedDepositAccount {
+    // no withdraw method because fixed deposit does not support it
+}</code></pre>
+
+<h3>ISP — Interface Segregation Principle</h3>
+<pre><code>public interface Printable {
+    void print(Document document);
+}
+
+public interface Scannable {
+    void scan(Document document);
+}
+
+public class BasicPrinter implements Printable {
+    public void print(Document document) {
+        // print only
+    }
+}</code></pre>
+
+<h3>DIP — Dependency Inversion Principle</h3>
+<pre><code>public interface NotificationSender {
+    void send(String recipient, String message);
+}
+
+public class EmailNotificationSender implements NotificationSender {
+    public void send(String recipient, String message) {
+        // send email
+    }
+}
+
+public class UserRegistrationService {
+    private final NotificationSender notificationSender;
+
+    public UserRegistrationService(NotificationSender notificationSender) {
+        this.notificationSender = notificationSender;
+    }
+}</code></pre>
+<div class="note"><b>Spring relation:</b> Dependency Injection helps implement DIP by injecting abstractions into high-level services.</div>
+</section>
+
+<section id="en-patterns">
+<h2>4. Java Design Patterns</h2>
+<p class="lead">Design patterns are reusable solutions to common design problems. Use them when they solve a real problem, not to make code look advanced.</p>
+
+<h3>Pattern Categories</h3>
+<table><thead><tr><th>Category</th><th>Purpose</th><th>Common Patterns</th></tr></thead><tbody>
+<tr><td>Creational</td><td>Object creation</td><td>Singleton, Factory, Abstract Factory, Builder, Prototype</td></tr>
+<tr><td>Structural</td><td>Object/class composition</td><td>Adapter, Decorator, Facade, Proxy, Composite, Bridge</td></tr>
+<tr><td>Behavioral</td><td>Object communication and behavior</td><td>Strategy, Template Method, Observer, Command, Chain of Responsibility, State</td></tr>
+</tbody></table>
+
+<h3>Singleton</h3>
+<p>In Spring, singleton bean scope already gives one bean instance per ApplicationContext.</p>
+<pre><code>@Service
+public class ExchangeRateService {
+    // Spring manages this as singleton bean by default
+}</code></pre>
+<div class="warn"><b>Important:</b> Singleton does not mean thread-safe if the bean has mutable shared state.</div>
+
+<h3>Factory Method</h3>
+<pre><code>public interface NotificationSender {
+    void send(String message);
+}
+
+public class NotificationSenderFactory {
+    public NotificationSender create(String type) {
+        return switch (type) {
+            case "EMAIL" -> new EmailSender();
+            case "SMS" -> new SmsSender();
+            default -> throw new IllegalArgumentException("Unsupported type");
+        };
+    }
+}</code></pre>
+
+<h3>Builder</h3>
+<pre><code>public class User {
+    private final String username;
+    private final String email;
+    private final boolean active;
+
+    private User(Builder builder) {
+        this.username = builder.username;
+        this.email = builder.email;
+        this.active = builder.active;
+    }
+
+    public static class Builder {
+        private String username;
+        private String email;
+        private boolean active = true;
+
+        public Builder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public User build() {
+            if (username == null || email == null) {
+                throw new IllegalStateException("username and email are required");
+            }
+            return new User(this);
+        }
+    }
+}</code></pre>
+
+<h3>Adapter</h3>
+<p>Adapter converts an incompatible external interface into an interface expected by the application.</p>
+<pre><code>public interface PaymentGateway {
+    PaymentResult charge(PaymentRequest request);
+}
+
+public class PspPaymentAdapter implements PaymentGateway {
+    private final ExternalPspClient client;
+
+    public PspPaymentAdapter(ExternalPspClient client) {
+        this.client = client;
+    }
+
+    public PaymentResult charge(PaymentRequest request) {
+        ExternalPspRequest externalRequest = mapToExternal(request);
+        ExternalPspResponse response = client.makePayment(externalRequest);
+        return mapToInternal(response);
+    }
+}</code></pre>
+
+<h3>Decorator</h3>
+<pre><code>public class LoggingPaymentGateway implements PaymentGateway {
+    private final PaymentGateway delegate;
+
+    public LoggingPaymentGateway(PaymentGateway delegate) {
+        this.delegate = delegate;
+    }
+
+    public PaymentResult charge(PaymentRequest request) {
+        long start = System.currentTimeMillis();
+        try {
+            return delegate.charge(request);
+        } finally {
+            System.out.println("Payment took " + (System.currentTimeMillis() - start) + "ms");
+        }
+    }
+}</code></pre>
+
+<h3>Facade</h3>
+<pre><code>@Service
+public class CheckoutFacade {
+    private final OrderService orderService;
+    private final PaymentService paymentService;
+    private final InventoryService inventoryService;
+
+    public CheckoutResult checkout(CheckoutRequest request) {
+        Order order = orderService.createOrder(request);
+        inventoryService.reserve(order);
+        paymentService.pay(order);
+        return CheckoutResult.success(order.getId());
+    }
+}</code></pre>
+
+<h3>Proxy</h3>
+<p>Spring AOP uses proxies for transactions, caching, security, and async execution.</p>
+<pre><code>@Service
+public class OrderService {
+    @Transactional
+    public void createOrder() {
+        // Spring proxy opens transaction before method
+        // and commits/rolls back after method
+    }
+}</code></pre>
+
+<h3>Strategy</h3>
+<pre><code>public interface ShippingFeeStrategy {
+    BigDecimal calculate(Order order);
+}
+
+@Component("standard")
+public class StandardShippingFee implements ShippingFeeStrategy {
+    public BigDecimal calculate(Order order) {
+        return new BigDecimal("5.00");
+    }
+}
+
+@Component("express")
+public class ExpressShippingFee implements ShippingFeeStrategy {
+    public BigDecimal calculate(Order order) {
+        return new BigDecimal("15.00");
+    }
+}
+
+@Service
+public class ShippingFeeService {
+    private final Map&lt;String, ShippingFeeStrategy&gt; strategies;
+
+    public ShippingFeeService(Map&lt;String, ShippingFeeStrategy&gt; strategies) {
+        this.strategies = strategies;
+    }
+
+    public BigDecimal calculate(String type, Order order) {
+        return strategies.get(type).calculate(order);
+    }
+}</code></pre>
+
+<h3>Template Method</h3>
+<pre><code>public abstract class FileImportJob {
+    public final void execute() {
+        List&lt;String&gt; lines = readFile();
+        validate(lines);
+        save(lines);
+        notifyResult();
+    }
+
+    protected abstract List&lt;String&gt; readFile();
+    protected abstract void validate(List&lt;String&gt; lines);
+    protected abstract void save(List&lt;String&gt; lines);
+
+    protected void notifyResult() {
+        // default hook
+    }
+}</code></pre>
+
+<h3>Observer</h3>
+<pre><code>public record OrderCreatedEvent(Long orderId) {}
+
+@Service
+public class OrderService {
+    private final ApplicationEventPublisher publisher;
+
+    public void createOrder() {
+        publisher.publishEvent(new OrderCreatedEvent(100L));
+    }
+}
+
+@Component
+public class SendEmailWhenOrderCreated {
+    @EventListener
+    public void handle(OrderCreatedEvent event) {
+        // send email
+    }
+}</code></pre>
+
+<h3>Chain of Responsibility</h3>
+<pre><code>public interface OrderValidator {
+    void validate(OrderRequest request);
+}
+
+@Component
+public class StockValidator implements OrderValidator {
+    public void validate(OrderRequest request) {
+        // validate stock
+    }
+}
+
+@Component
+public class PaymentLimitValidator implements OrderValidator {
+    public void validate(OrderRequest request) {
+        // validate payment limit
+    }
+}
+
+@Service
+public class OrderValidationService {
+    private final List&lt;OrderValidator&gt; validators;
+
+    public void validate(OrderRequest request) {
+        validators.forEach(v -> v.validate(request));
+    }
+}</code></pre>
+
+<h3>State</h3>
+<pre><code>public enum OrderStatus {
+    CREATED {
+        public OrderStatus pay() { return PAID; }
+    },
+    PAID {
+        public OrderStatus ship() { return SHIPPED; }
+    },
+    SHIPPED;
+
+    public OrderStatus pay() {
+        throw new IllegalStateException("Cannot pay from " + this);
+    }
+
+    public OrderStatus ship() {
+        throw new IllegalStateException("Cannot ship from " + this);
+    }
+}</code></pre>
+</section>
+
+<section id="en-architecture">
+<h2>5. Architecture Design Patterns</h2>
+
+<h3>Layered Architecture</h3>
+<div class="diagram">Controller Layer
+  ↓
+Service Layer
+  ↓
+Repository Layer
+  ↓
+Database</div>
+<p>Good for simple enterprise and CRUD applications. Risk: can become database-centric and anemic if all logic is in services and entities have no behavior.</p>
+
+<h3>Hexagonal Architecture / Ports and Adapters</h3>
+<p>Separates application core from external details. Domain and use cases depend on ports. Infrastructure implements adapters.</p>
+<div class="diagram">Inbound Adapter: REST Controller
+  ↓
+Inbound Port: CreateOrderUseCase
+  ↓
+Application Service / Domain Model
+  ↓
+Outbound Ports: PaymentPort, OrderRepositoryPort
+  ↓
+Outbound Adapters: JPA, WebClient, Kafka</div>
+<pre><code>public interface CreateOrderUseCase {
+    OrderResult create(CreateOrderCommand command);
+}
+
+public interface PaymentPort {
+    PaymentResult pay(Order order);
+}
+
+public class CreateOrderService implements CreateOrderUseCase {
+    private final PaymentPort paymentPort;
+    private final OrderRepositoryPort orderRepository;
+
+    public OrderResult create(CreateOrderCommand command) {
+        Order order = Order.create(command);
+        paymentPort.pay(order);
+        orderRepository.save(order);
+        return OrderResult.from(order);
+    }
+}</code></pre>
+
+<h3>Clean Architecture</h3>
+<div class="diagram">Outer Layer:
+Controllers, DB, Web, Frameworks
+  ↓
+Interface Adapters:
+Presenters, Gateways, Repositories
+  ↓
+Use Cases:
+Application business rules
+  ↓
+Entities:
+Enterprise business rules</div>
+<p>Dependencies point inward. Business rules should not depend on frameworks, database, or UI.</p>
+
+<h3>DDD Tactical Patterns</h3>
+<table><thead><tr><th>Pattern</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+<tr><td>Entity</td><td>Object with identity and lifecycle.</td><td>Order, Customer, Account.</td></tr>
+<tr><td>Value Object</td><td>Object defined by value, usually immutable.</td><td>Money, Address, Email.</td></tr>
+<tr><td>Aggregate</td><td>Consistency boundary with aggregate root.</td><td>Order aggregate contains OrderItems.</td></tr>
+<tr><td>Repository</td><td>Abstraction for retrieving/persisting aggregates.</td><td>OrderRepository.</td></tr>
+<tr><td>Domain Service</td><td>Domain logic that does not belong naturally to one entity.</td><td>TransferMoneyService.</td></tr>
+</tbody></table>
+
+<h3>CQRS</h3>
+<p>CQRS separates command/write model from query/read model.</p>
+<pre><code>public interface OrderCommandService {
+    Long createOrder(CreateOrderCommand command);
+    void cancelOrder(Long orderId);
+}
+
+public interface OrderQueryService {
+    OrderDetailDto getOrderDetail(Long orderId);
+    Page&lt;OrderSummaryDto&gt; searchOrders(OrderSearchCriteria criteria);
+}</code></pre>
+
+<h3>Event-Driven Architecture</h3>
+<div class="diagram">Order Service publishes OrderCreated
+  ↓
+Inventory Service reserves stock
+Payment Service creates payment intent
+Email Service sends confirmation</div>
+
+<h3>Pattern Comparison</h3>
+<table><thead><tr><th>Pattern</th><th>Best For</th><th>Trade-off</th></tr></thead><tbody>
+<tr><td>Layered</td><td>Simple CRUD, common enterprise apps.</td><td>Can become DB-centric.</td></tr>
+<tr><td>Hexagonal</td><td>Complex business logic, integrations, testability.</td><td>More interfaces and discipline.</td></tr>
+<tr><td>Clean Architecture</td><td>Long-lived business-critical systems.</td><td>More structure upfront.</td></tr>
+<tr><td>CQRS</td><td>Different read/write models, optimized queries.</td><td>More complexity.</td></tr>
+<tr><td>Event-Driven</td><td>Async workflows, decoupled services.</td><td>Eventual consistency, harder debugging.</td></tr>
+</tbody></table>
+</section>
+
+<section id="en-qa" class="interview">
+<h2>6. Common Interview Questions & Answers — English</h2>
+<div class="qa"><p><strong>Q1. What are the four pillars of OOP?</strong></p><p>A: Encapsulation, abstraction, inheritance, and polymorphism. Encapsulation protects state, abstraction hides details behind contracts, inheritance models “is-a” relationships, and polymorphism allows different implementations through the same interface.</p></div>
+<div class="qa"><p><strong>Q2. Why prefer composition over inheritance?</strong></p><p>A: Inheritance creates tight coupling to the parent class. Composition is more flexible because behavior can be assembled from smaller components and replaced independently. In Spring, Strategy pattern and DI are common composition techniques.</p></div>
+<div class="qa"><p><strong>Q3. Explain SOLID shortly.</strong></p><p>A: SRP means one reason to change. OCP means open for extension but closed for modification. LSP means subclasses must be substitutable. ISP means clients should not depend on unused methods. DIP means high-level modules depend on abstractions, not details.</p></div>
+<div class="qa"><p><strong>Q4. Which SOLID principle is related to Spring DI?</strong></p><p>A: Dependency Inversion Principle. High-level services depend on interfaces, and Spring injects concrete implementations. This reduces coupling and improves testability.</p></div>
+<div class="qa"><p><strong>Q5. Strategy vs Factory?</strong></p><p>A: Factory is about object creation. Strategy is about interchangeable behavior or algorithms. A factory may locate or create strategies, but the intent is different.</p></div>
+<div class="qa"><p><strong>Q6. Adapter vs Facade?</strong></p><p>A: Adapter converts an incompatible interface to the expected interface. Facade simplifies a complex subsystem with a simpler API.</p></div>
+<div class="qa"><p><strong>Q7. Which design patterns are common in Spring?</strong></p><p>A: Singleton for beans, Proxy for AOP and transactions, Factory for bean creation, Strategy for business algorithms, Adapter for external APIs, Observer for events, Template Method for repeated flows, and Chain of Responsibility for filters/validators.</p></div>
+<div class="qa"><p><strong>Q8. Layered vs Hexagonal Architecture?</strong></p><p>A: Layered separates controller, service, repository, and database. Hexagonal separates core business logic from external adapters using ports. Hexagonal improves testability and protects business logic from frameworks but adds structure.</p></div>
+<div class="qa"><p><strong>Q9. When would you use CQRS?</strong></p><p>A: When read and write requirements are significantly different. Writes may need strict domain rules, while reads need optimized projections/search. CQRS adds complexity, so it should not be used for simple CRUD without need.</p></div>
+</section>
+
+<section id="vi-overview">
+<h2>7. Tổng quan</h2>
+<p class="lead">OOP giúp model business bằng object. SOLID giúp code dễ maintain. Design patterns là giải pháp reusable cho vấn đề design thường gặp. Architecture patterns tổ chức cấu trúc toàn bộ application hoặc system.</p>
+<div class="diagram">OOP → class, object, encapsulation, abstraction, inheritance, polymorphism
+SOLID → low coupling, high cohesion, testability
+Design Patterns → giải pháp object-level reusable
+Architecture Patterns → boundary, dependency, layer, use case, infrastructure separation</div>
+<div class="note"><b>Mindset Senior:</b> Không học thuộc tên pattern. Khi phỏng vấn, hãy nói problem, pattern giải quyết gì, trade-off, và ví dụ thực tế trong Java/Spring.</div>
+</section>
+
+<section id="vi-oop">
+<h2>8. OOP cơ bản → nâng cao</h2>
+<h3>OOP là gì?</h3>
+<p>OOP là lập trình hướng đối tượng. Object kết hợp data và behavior. Trong Java, class là blueprint, object là instance runtime.</p>
+<pre><code>public class BankAccount {
+    private final String accountNo;
+    private BigDecimal balance;
+
+    public BankAccount(String accountNo, BigDecimal initialBalance) {
+        this.accountNo = accountNo;
+        this.balance = initialBalance;
+    }
+
+    public void deposit(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        this.balance = this.balance.add(amount);
+    }
+}</code></pre>
+
+<h3>4 tính chất OOP</h3>
+<table><thead><tr><th>Tính chất</th><th>Ý nghĩa</th><th>Ví dụ Java</th><th>Vì sao quan trọng</th></tr></thead><tbody>
+<tr><td>Encapsulation</td><td>Che giấu internal state, expose behavior có kiểm soát.</td><td><code>private</code> fields</td><td>Bảo vệ invariant, tránh invalid state.</td></tr>
+<tr><td>Abstraction</td><td>Ẩn implementation detail sau contract.</td><td>Interface, abstract class</td><td>Giảm coupling.</td></tr>
+<tr><td>Inheritance</td><td>Tạo type mới từ type có sẵn.</td><td><code>extends</code></td><td>Reuse behavior nhưng dễ coupling nếu lạm dụng.</td></tr>
+<tr><td>Polymorphism</td><td>Cùng contract, nhiều implementation.</td><td>Override, implements</td><td>Giảm if/else, tăng flexibility.</td></tr>
+</tbody></table>
+
+<h3>Encapsulation đúng nghĩa</h3>
+<pre><code>public class Order {
+    private OrderStatus status;
+
+    public void cancel() {
+        if (status == OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Shipped order cannot be cancelled");
+        }
+        this.status = OrderStatus.CANCELLED;
+    }
+}</code></pre>
+
+<h3>Abstraction + Polymorphism</h3>
+<pre><code>public interface PaymentGateway {
+    PaymentResult charge(PaymentRequest request);
+}
+
+public class StripePaymentGateway implements PaymentGateway {
+    public PaymentResult charge(PaymentRequest request) {
+        return PaymentResult.success();
+    }
+}
+
+public class OrderService {
+    private final PaymentGateway paymentGateway;
+
+    public void checkout(Order order) {
+        paymentGateway.charge(new PaymentRequest(order.getTotalAmount()));
+    }
+}</code></pre>
+
+<h3>Composition over Inheritance</h3>
+<p>Composition nghĩa là ghép behavior từ nhiều object thay vì kế thừa sâu. Trong business system, composition thường flexible hơn inheritance.</p>
+<div class="diagram">Inheritance:
+VipInternationalOrder extends InternationalOrder extends SpecialOrder extends Order
+
+Composition:
+Order has DiscountPolicy
+Order has ShippingPolicy
+Order has TaxPolicy</div>
+
+<h3>OOP nâng cao cần nhớ</h3>
+<ul>
+<li><b>Cohesion:</b> class/module tập trung vào một nhóm responsibility rõ ràng.</li>
+<li><b>Coupling:</b> depend vào abstraction, không depend trực tiếp infrastructure.</li>
+<li><b>Immutable object:</b> dễ reasoning, an toàn hơn cho multi-thread.</li>
+<li><b>Anemic domain model:</b> entity chỉ có getter/setter, logic nằm hết trong service.</li>
+<li><b>God service:</b> một service làm quá nhiều responsibility.</li>
+</ul>
+</section>
+
+<section id="vi-solid">
+<h2>9. SOLID Principles</h2>
+<p class="lead">SOLID là 5 nguyên tắc giúp code OOP maintainable, testable và dễ thay đổi hơn.</p>
+<table><thead><tr><th>Principle</th><th>Ý nghĩa</th><th>Câu hỏi chính</th></tr></thead><tbody>
+<tr><td>SRP</td><td>Single Responsibility Principle</td><td>Class này có một lý do chính để thay đổi không?</td></tr>
+<tr><td>OCP</td><td>Open/Closed Principle</td><td>Có add behavior mới mà ít sửa code cũ không?</td></tr>
+<tr><td>LSP</td><td>Liskov Substitution Principle</td><td>Subclass thay parent có làm hỏng behavior không?</td></tr>
+<tr><td>ISP</td><td>Interface Segregation Principle</td><td>Client có bị ép depend method không dùng không?</td></tr>
+<tr><td>DIP</td><td>Dependency Inversion Principle</td><td>High-level logic có depend abstraction không?</td></tr>
+</tbody></table>
+
+<h3>SRP</h3>
+<p>Một class nên có một responsibility chính. Không có nghĩa là chỉ được có một method.</p>
+
+<h3>OCP</h3>
+<pre><code>public interface PaymentMethod {
+    PaymentResult pay(PaymentRequest request);
+}
+
+@Component("creditCard")
+public class CreditCardPayment implements PaymentMethod {
+    public PaymentResult pay(PaymentRequest request) {
+        return PaymentResult.success();
+    }
+}
+
+@Service
+public class PaymentRouter {
+    private final Map&lt;String, PaymentMethod&gt; paymentMethods;
+
+    public PaymentResult pay(String method, PaymentRequest request) {
+        return paymentMethods.get(method).pay(request);
+    }
+}</code></pre>
+
+<h3>LSP</h3>
+<p>Subclass phải thay thế được parent mà không phá expected behavior. Nếu parent có <code>withdraw()</code> nhưng subclass throw unsupported thì đang vi phạm LSP.</p>
+
+<h3>ISP</h3>
+<pre><code>public interface Printable {
+    void print(Document document);
+}
+
+public interface Scannable {
+    void scan(Document document);
+}
+
+public class BasicPrinter implements Printable {
+    public void print(Document document) {
+        // print only
+    }
+}</code></pre>
+
+<h3>DIP</h3>
+<pre><code>public interface NotificationSender {
+    void send(String recipient, String message);
+}
+
+public class UserRegistrationService {
+    private final NotificationSender notificationSender;
+
+    public UserRegistrationService(NotificationSender notificationSender) {
+        this.notificationSender = notificationSender;
+    }
+}</code></pre>
+<div class="note"><b>Liên hệ Spring:</b> DI trong Spring giúp implement DIP bằng cách inject abstraction vào service.</div>
+</section>
+
+<section id="vi-patterns">
+<h2>10. Java Design Patterns</h2>
+<p class="lead">Design patterns là các giải pháp reusable cho design problems phổ biến. Không nên dùng pattern chỉ để code trông “cao cấp”.</p>
+<table><thead><tr><th>Category</th><th>Mục đích</th><th>Patterns</th></tr></thead><tbody>
+<tr><td>Creational</td><td>Object creation</td><td>Singleton, Factory, Abstract Factory, Builder, Prototype</td></tr>
+<tr><td>Structural</td><td>Object/class composition</td><td>Adapter, Decorator, Facade, Proxy, Composite, Bridge</td></tr>
+<tr><td>Behavioral</td><td>Object communication and behavior</td><td>Strategy, Template Method, Observer, Command, Chain of Responsibility, State</td></tr>
+</tbody></table>
+
+<h3>Singleton</h3>
+<p>Trong Spring, bean mặc định là singleton trong ApplicationContext.</p>
+<pre><code>@Service
+public class ExchangeRateService {
+    // Spring-managed singleton bean
+}</code></pre>
+<div class="warn"><b>Lưu ý:</b> Singleton không đồng nghĩa thread-safe nếu có mutable shared state.</div>
+
+<h3>Factory</h3>
+<pre><code>public class NotificationSenderFactory {
+    public NotificationSender create(String type) {
+        return switch (type) {
+            case "EMAIL" -> new EmailSender();
+            case "SMS" -> new SmsSender();
+            default -> throw new IllegalArgumentException("Unsupported type");
+        };
+    }
+}</code></pre>
+
+<h3>Builder</h3>
+<p>Dùng khi object có nhiều optional fields hoặc construction phức tạp.</p>
+
+<h3>Adapter</h3>
+<p>Dùng khi tích hợp external API có interface không giống interface nội bộ.</p>
+
+<h3>Facade</h3>
+<p>Cung cấp interface đơn giản cho subsystem phức tạp, ví dụ CheckoutFacade gọi Order, Inventory, Payment.</p>
+
+<h3>Proxy</h3>
+<p>Spring dùng proxy cho <code>@Transactional</code>, <code>@Cacheable</code>, <code>@Async</code>, method security.</p>
+
+<h3>Strategy</h3>
+<pre><code>public interface ShippingFeeStrategy {
+    BigDecimal calculate(Order order);
+}
+
+@Component("standard")
+public class StandardShippingFee implements ShippingFeeStrategy {
+    public BigDecimal calculate(Order order) {
+        return new BigDecimal("5.00");
+    }
+}
+
+@Component("express")
+public class ExpressShippingFee implements ShippingFeeStrategy {
+    public BigDecimal calculate(Order order) {
+        return new BigDecimal("15.00");
+    }
+}</code></pre>
+
+<h3>Observer</h3>
+<pre><code>public record OrderCreatedEvent(Long orderId) {}
+
+@Component
+public class SendEmailWhenOrderCreated {
+    @EventListener
+    public void handle(OrderCreatedEvent event) {
+        // send email
+    }
+}</code></pre>
+
+<h3>Chain of Responsibility</h3>
+<p>Hay dùng cho validator chain, servlet filters, security filters, approval workflow.</p>
+</section>
+
+<section id="vi-architecture">
+<h2>11. Architecture Design Patterns</h2>
+
+<h3>Layered Architecture</h3>
+<div class="diagram">Controller Layer
+  ↓
+Service Layer
+  ↓
+Repository Layer
+  ↓
+Database</div>
+<p>Phù hợp CRUD/simple enterprise app. Rủi ro là DB-centric và anemic domain nếu không cẩn thận.</p>
+
+<h3>Hexagonal Architecture / Ports and Adapters</h3>
+<p>Tách application core khỏi external details như DB, REST client, Kafka, framework.</p>
+<div class="diagram">Inbound Adapter: REST Controller
+  ↓
+Inbound Port: CreateOrderUseCase
+  ↓
+Application Service / Domain Model
+  ↓
+Outbound Ports: PaymentPort, OrderRepositoryPort
+  ↓
+Outbound Adapters: JPA, WebClient, Kafka</div>
+
+<h3>Clean Architecture</h3>
+<p>Business rules không phụ thuộc framework, DB, UI. Dependencies hướng vào trong.</p>
+<div class="diagram">Outer Layer: Controllers, DB, Web, Frameworks
+  ↓
+Interface Adapters: Presenters, Gateways, Repositories
+  ↓
+Use Cases: Application business rules
+  ↓
+Entities: Enterprise business rules</div>
+
+<h3>DDD Tactical Patterns</h3>
+<table><thead><tr><th>Pattern</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead><tbody>
+<tr><td>Entity</td><td>Object có identity và lifecycle.</td><td>Order, Customer, Account.</td></tr>
+<tr><td>Value Object</td><td>Object định nghĩa bởi value, thường immutable.</td><td>Money, Address, Email.</td></tr>
+<tr><td>Aggregate</td><td>Consistency boundary với aggregate root.</td><td>Order aggregate chứa OrderItems.</td></tr>
+<tr><td>Repository</td><td>Abstraction để retrieve/persist aggregate.</td><td>OrderRepository.</td></tr>
+<tr><td>Domain Service</td><td>Domain logic không tự nhiên thuộc về một entity.</td><td>TransferMoneyService.</td></tr>
+</tbody></table>
+
+<h3>CQRS</h3>
+<p>CQRS tách command/write model và query/read model. Hữu ích khi read/write requirements rất khác nhau.</p>
+
+<h3>Event-Driven Architecture</h3>
+<div class="diagram">Order Service publishes OrderCreated
+  ↓
+Inventory Service reserves stock
+Payment Service creates payment intent
+Email Service sends confirmation</div>
+</section>
+
+<section id="vi-qa" class="interview">
+<h2>12. Câu hỏi phỏng vấn phổ biến — Vietnamese</h2>
+<div class="qa"><p><strong>Q1. 4 tính chất OOP là gì?</strong></p><p>A: Encapsulation, abstraction, inheritance, polymorphism. Encapsulation bảo vệ state và invariant. Abstraction ẩn detail sau contract. Inheritance mô hình hóa quan hệ “is-a”. Polymorphism cho phép nhiều implementation qua cùng interface.</p></div>
+<div class="qa"><p><strong>Q2. Vì sao ưu tiên composition hơn inheritance?</strong></p><p>A: Inheritance coupling chặt với parent class. Composition flexible hơn vì behavior được ghép từ component nhỏ và thay thế độc lập. Trong Spring, Strategy pattern và DI là cách dùng composition phổ biến.</p></div>
+<div class="qa"><p><strong>Q3. Giải thích SOLID ngắn gọn.</strong></p><p>A: SRP một lý do thay đổi. OCP mở rộng được mà ít sửa code cũ. LSP subclass thay parent không phá behavior. ISP không ép client depend method không dùng. DIP high-level module depend abstraction thay vì detail.</p></div>
+<div class="qa"><p><strong>Q4. SOLID principle nào liên quan tới Spring DI?</strong></p><p>A: DIP. Service depend interface, Spring inject implementation. Code giảm coupling và dễ test hơn.</p></div>
+<div class="qa"><p><strong>Q5. Strategy khác Factory thế nào?</strong></p><p>A: Factory lo tạo object. Strategy lo thay thế behavior/algorithm. Factory có thể tạo strategy, nhưng intent khác nhau.</p></div>
+<div class="qa"><p><strong>Q6. Adapter khác Facade thế nào?</strong></p><p>A: Adapter chuyển interface không tương thích thành interface app cần. Facade đơn giản hóa một subsystem phức tạp.</p></div>
+<div class="qa"><p><strong>Q7. Pattern nào hay gặp trong Spring?</strong></p><p>A: Singleton cho bean, Proxy cho AOP/transaction, Factory cho bean creation, Strategy cho business algorithm, Adapter cho external API, Observer cho event, Template Method cho processing flow, Chain of Responsibility cho filters/validators.</p></div>
+<div class="qa"><p><strong>Q8. Layered khác Hexagonal thế nào?</strong></p><p>A: Layered chia controller/service/repository/database, đơn giản nhưng dễ DB-centric. Hexagonal tách core business khỏi external adapters bằng ports, tăng testability nhưng cần structure và discipline hơn.</p></div>
+<div class="qa"><p><strong>Q9. Khi nào dùng CQRS?</strong></p><p>A: Khi read và write requirements khác biệt lớn. Write cần domain validation/consistency, read cần projection/search tối ưu. Không nên dùng cho CRUD đơn giản nếu không có nhu cầu thật.</p></div>
+</section>
+
+<section>
+<h2>Sources / Nguồn tham khảo</h2>
+<ul>
+<li>Design Patterns: Elements of Reusable Object-Oriented Software — Gang of Four</li>
+<li>Robert C. Martin — SOLID Principles / Clean Architecture</li>
+<li>Martin Fowler — Patterns of Enterprise Application Architecture</li>
+<li>Eric Evans — Domain-Driven Design</li>
+<li>Java/Spring enterprise design examples based on common backend production patterns.</li>
+</ul>
+</section>
+
+<div class="footer">Created for Senior Java Backend interview preparation — OOP / SOLID / Java Design Patterns / Architecture Design Patterns EN-VN.</div>
+</main>
+</div>
+</body>
+</html>

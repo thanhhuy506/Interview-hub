@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="59 culture-fit interview questions with senior software engineer sample answers for nine years of experience.">
+<title>Senior Software Engineer Culture-Fit Interview Guide</title>
+<style>
+:root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --text: #182033;
+    --muted: #667085;
+    --line: #e4e7ec;
+    --brand: #3157d5;
+    --brand-2: #6c47d9;
+    --brand-soft: #eef2ff;
+    --success: #18794e;
+    --warning: #a15c00;
+    --shadow: 0 12px 36px rgba(24, 32, 51, 0.08);
+    --radius: 18px;
+}
+[data-theme="dark"] {
+    --bg: #101522;
+    --surface: #171e2e;
+    --surface-2: #111827;
+    --text: #edf2ff;
+    --muted: #aab4c8;
+    --line: #2c3548;
+    --brand: #88a1ff;
+    --brand-2: #b28cff;
+    --brand-soft: #202b4f;
+    --success: #65d6a3;
+    --warning: #ffbf69;
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.65;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+a { color: var(--brand); }
+.hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(120deg, #183a9e 0%, #4931a9 52%, #7a3db5 100%);
+    padding: 64px 28px 54px;
+}
+.hero::before, .hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(255,255,255,.09);
+}
+.hero::before { width: 360px; height: 360px; right: -110px; top: -180px; }
+.hero::after { width: 240px; height: 240px; left: -80px; bottom: -160px; }
+.hero-inner {
+    width: min(1180px, 100%);
+    margin: auto;
+    position: relative;
+    z-index: 1;
+}
+.eyebrow {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    font-size: .84rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+h1 {
+    margin: 18px 0 12px;
+    max-width: 900px;
+    font-size: clamp(2.25rem, 5vw, 4.7rem);
+    line-height: 1.04;
+    letter-spacing: -.045em;
+}
+.hero p {
+    max-width: 800px;
+    margin: 0;
+    color: rgba(255,255,255,.86);
+    font-size: 1.08rem;
+}
+.hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+.stat {
+    min-width: 145px;
+    padding: 12px 15px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 14px;
+    background: rgba(255,255,255,.1);
+    backdrop-filter: blur(8px);
+}
+.stat strong { display:block; font-size:1.25rem; }
+.stat span { color:rgba(255,255,255,.75); font-size:.85rem; }
+.page {
+    width: min(1240px, calc(100% - 32px));
+    margin: -24px auto 56px;
+    position: relative;
+    z-index: 2;
+}
+.toolbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 230px auto auto;
+    gap: 10px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 10px;
+    z-index: 10;
+}
+.search-wrap { position:relative; }
+.search-wrap::before {
+    content: "⌕";
+    position:absolute;
+    left:14px; top:9px;
+    color:var(--muted);
+    font-size:1.25rem;
+}
+input[type="search"], select, textarea {
+    width: 100%;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+input[type="search"], select {
+    height: 44px;
+    padding: 0 14px;
+}
+input[type="search"] { padding-left: 41px; }
+textarea {
+    padding: 12px;
+    resize: vertical;
+    min-height: 105px;
+}
+input:focus, select:focus, textarea:focus {
+    outline: 3px solid color-mix(in srgb, var(--brand) 20%, transparent);
+    border-color: var(--brand);
+}
+.btn {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--text);
+    background: var(--surface-2);
+    font-weight: 700;
+}
+.btn:hover { border-color: var(--brand); }
+.btn.primary { color:#fff; background:var(--brand); border-color:var(--brand); }
+.layout {
+    display:grid;
+    grid-template-columns: 255px minmax(0, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+}
+.sidebar {
+    position: sticky;
+    top: 92px;
+    align-self: start;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+.sidebar h2 {
+    margin:0 0 12px;
+    font-size:.82rem;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+}
+.nav-item {
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    text-align:left;
+    color:var(--text);
+    background:transparent;
+    border:0;
+    border-radius:12px;
+    padding:10px;
+    margin:3px 0;
+}
+.nav-item:hover, .nav-item.active { background:var(--brand-soft); color:var(--brand); }
+.nav-icon { font-size:1.18rem; }
+.nav-item strong { display:block; font-size:.9rem; }
+.nav-item small { display:block; color:var(--muted); font-size:.75rem; margin-top:1px; }
+.progress-box {
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+}
+.progress-label {
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:.82rem;
+    margin-bottom:7px;
+}
+.progress-track {
+    height:9px;
+    overflow:hidden;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+}
+.progress-bar {
+    width:0;
+    height:100%;
+    background:linear-gradient(90deg, var(--brand), var(--brand-2));
+    transition:width .25s ease;
+}
+.sidebar-actions {
+    display:grid;
+    gap:8px;
+    margin-top:14px;
+}
+.sidebar-actions button {
+    padding:9px 11px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--text);
+    background:var(--surface-2);
+    font-size:.84rem;
+    font-weight:700;
+}
+.intro {
+    padding: 24px;
+    margin-bottom:18px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+}
+.intro h2 { margin:0 0 8px; font-size:1.35rem; }
+.intro p { margin:7px 0; color:var(--muted); }
+.framework {
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+    margin-top:16px;
+}
+.framework div {
+    padding:10px;
+    border-radius:11px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    font-size:.82rem;
+}
+.framework strong { display:block; color:var(--brand); }
+.result-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin: 6px 2px 12px;
+    color:var(--muted);
+    font-size:.88rem;
+}
+.question-card {
+    margin-bottom:14px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+    box-shadow:0 4px 14px rgba(24,32,51,.035);
+    transition:transform .15s ease, border-color .15s ease;
+}
+.question-card:hover { border-color:color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.question-card.hidden { display:none; }
+.question-card.highlight { animation:flash 1.2s ease; }
+@keyframes flash {
+    0%,100% { box-shadow:0 4px 14px rgba(24,32,51,.035); }
+    35% { box-shadow:0 0 0 5px color-mix(in srgb, var(--brand) 25%, transparent); }
+}
+.card-top {
+    display:grid;
+    grid-template-columns:54px minmax(0,1fr) auto;
+    gap:14px;
+    align-items:start;
+    padding:20px 20px 14px;
+}
+.question-number {
+    width:48px;
+    height:48px;
+    display:grid;
+    place-items:center;
+    border-radius:14px;
+    color:var(--brand);
+    background:var(--brand-soft);
+    font-weight:900;
+    font-size:.95rem;
+}
+.category-label {
+    color:var(--brand);
+    font-size:.75rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+}
+.question-main h3 {
+    margin:4px 0 0;
+    font-size:1.15rem;
+    line-height:1.38;
+}
+.practice-check {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:7px 10px;
+    border-radius:999px;
+    color:var(--muted);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    font-size:.78rem;
+    font-weight:700;
+    white-space:nowrap;
+}
+.practice-check input { accent-color:var(--success); }
+.answer-panel {
+    display:none;
+    padding:0 24px 22px 88px;
+}
+.question-card.open .answer-panel { display:block; }
+.answer-heading {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-top:15px;
+    border-top:1px solid var(--line);
+    color:var(--brand);
+    font-weight:800;
+}
+.copy-answer {
+    padding:6px 10px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    color:var(--text);
+    background:var(--surface-2);
+    font-size:.78rem;
+    font-weight:700;
+}
+.answer-text p { margin:12px 0; }
+.senior-signal {
+    margin:18px 0;
+    padding:12px 14px;
+    border-left:4px solid var(--brand);
+    border-radius:8px;
+    background:var(--brand-soft);
+    font-size:.9rem;
+}
+.notes-label {
+    display:block;
+    margin:16px 0 6px;
+    font-weight:800;
+    font-size:.88rem;
+}
+.card-actions {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 20px;
+    border-top:1px solid var(--line);
+    background:var(--surface-2);
+}
+.toggle-answer, .random-next {
+    border:0;
+    color:var(--brand);
+    background:transparent;
+    font-weight:800;
+}
+.chevron {
+    display:inline-block;
+    margin-left:6px;
+    transition:transform .2s;
+}
+.question-card.open .chevron { transform:rotate(180deg); }
+.random-next { color:var(--muted); font-size:.82rem; }
+.empty {
+    display:none;
+    padding:40px;
+    text-align:center;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    color:var(--muted);
+    background:var(--surface);
+}
+.practice-mode .answer-panel { display:none !important; }
+.practice-mode .question-card.open .answer-panel { display:block !important; }
+.practice-mode .question-card:not(.open) .toggle-answer span:first-child::after {
+    content:" when ready";
+}
+.footer {
+    padding:30px 20px 50px;
+    text-align:center;
+    color:var(--muted);
+    font-size:.84rem;
+}
+.toast {
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:30;
+    opacity:0;
+    transform:translateY(15px);
+    pointer-events:none;
+    padding:11px 15px;
+    color:#fff;
+    background:#182033;
+    border-radius:11px;
+    transition:.2s ease;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+@media (max-width: 950px) {
+    .toolbar { grid-template-columns:1fr 1fr; }
+    .layout { grid-template-columns:1fr; }
+    .sidebar { position:static; }
+    .sidebar h2, .nav-item { display:none; }
+    .sidebar-actions { grid-template-columns:repeat(3,1fr); }
+}
+@media (max-width: 650px) {
+    .hero { padding:48px 20px 44px; }
+    .page { width:min(100% - 18px, 1240px); }
+    .toolbar { grid-template-columns:1fr; position:static; }
+    .framework { grid-template-columns:1fr 1fr; }
+    .card-top { grid-template-columns:44px minmax(0,1fr); padding:16px; }
+    .question-number { width:42px; height:42px; }
+    .practice-check { grid-column:2; justify-self:start; }
+    .answer-panel { padding:0 16px 18px; }
+    .card-actions { padding:11px 16px; }
+    .sidebar-actions { grid-template-columns:1fr; }
+}
+@media print {
+    .hero { color:#000; background:#fff; padding:20px 0; }
+    .hero p, .stat span { color:#444; }
+    .hero-stats, .toolbar, .sidebar, .card-actions, .practice-check,
+    .copy-answer, textarea, .notes-label, .random-next { display:none !important; }
+    .page { width:100%; margin:0; }
+    .layout { display:block; }
+    .question-card { break-inside:avoid; box-shadow:none; }
+    .answer-panel { display:block !important; padding:0 20px 18px 88px; }
+    .question-card.hidden { display:block; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+    <div class="hero-inner">
+        <span class="eyebrow">Senior Interview Workbook · 9 Years Experience</span>
+        <h1>Software Engineer<br>Culture-Fit Interview Guide</h1>
+        <p>
+            59 interview questions with clear senior-level sample answers.
+            Written in practical English for approximately IELTS 5.5–6.5.
+        </p>
+        <div class="hero-stats">
+            <div class="stat"><strong>59</strong><span>Interview questions</span></div>
+            <div class="stat"><strong>6</strong><span>Core categories</span></div>
+            <div class="stat"><strong>STAR</strong><span>Answer framework</span></div>
+            <div class="stat"><strong>Senior</strong><span>Ownership & trade-offs</span></div>
+        </div>
+    </div>
+</header>
+
+<main class="page">
+    <section class="toolbar" aria-label="Study controls">
+        <div class="search-wrap">
+            <input id="searchInput" type="search" placeholder="Search questions or answers…">
+        </div>
+        <select id="categorySelect" aria-label="Filter category">
+            <option value="all">All categories</option>
+            <option value="teamwork">Collaboration &amp; Teamwork</option>
+<option value="communication">Communication Skills</option>
+<option value="problem-solving">Problem-Solving &amp; Critical Thinking</option>
+<option value="work-style">Work &amp; Learning Style</option>
+<option value="values">Cultural Values</option>
+<option value="pressure">Working Under Pressure</option>
+        </select>
+        <button id="practiceModeBtn" class="btn" type="button">Mock mode</button>
+        <button id="randomBtn" class="btn primary" type="button">Random question</button>
+    </section>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Categories</h2>
+            <button class="nav-item active" data-filter="all">
+                <span class="nav-icon">📋</span>
+                <span><strong>All Questions</strong><small>59 questions</small></span>
+            </button>
+            <button class="nav-item" data-filter="teamwork">
+        <span class="nav-icon">🤝</span>
+        <span><strong>Collaboration &amp; Teamwork</strong><small>10 questions</small></span>
+    </button>
+<button class="nav-item" data-filter="communication">
+        <span class="nav-icon">💬</span>
+        <span><strong>Communication Skills</strong><small>10 questions</small></span>
+    </button>
+<button class="nav-item" data-filter="problem-solving">
+        <span class="nav-icon">🧠</span>
+        <span><strong>Problem-Solving &amp; Critical Thinking</strong><small>10 questions</small></span>
+    </button>
+<button class="nav-item" data-filter="work-style">
+        <span class="nav-icon">📚</span>
+        <span><strong>Work &amp; Learning Style</strong><small>10 questions</small></span>
+    </button>
+<button class="nav-item" data-filter="values">
+        <span class="nav-icon">🧭</span>
+        <span><strong>Cultural Values</strong><small>10 questions</small></span>
+    </button>
+<button class="nav-item" data-filter="pressure">
+        <span class="nav-icon">🚨</span>
+        <span><strong>Working Under Pressure</strong><small>9 questions</small></span>
+    </button>
+            <div class="progress-box">
+                <div class="progress-label">
+                    <span>Practice progress</span>
+                    <strong id="progressText">0 / 59</strong>
+                </div>
+                <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+            </div>
+            <div class="sidebar-actions">
+                <button id="expandAllBtn" type="button">Expand visible</button>
+                <button id="themeBtn" type="button">Dark mode</button>
+                <button id="printBtn" type="button">Print / Save PDF</button>
+                <button id="resetBtn" type="button">Reset progress</button>
+            </div>
+        </aside>
+
+        <section class="content">
+            <div class="intro">
+                <h2>How to answer like a senior engineer</h2>
+                <p>
+                    Do not memorize every sentence. Replace the sample project details with your real experience.
+                    Use “I” for your actions and “we” for the team result.
+                </p>
+                <div class="framework">
+                    <div><strong>S — Situation</strong>Give short project context.</div>
+                    <div><strong>T — Task</strong>Explain your responsibility.</div>
+                    <div><strong>A — Action</strong>Show what you personally did.</div>
+                    <div><strong>R — Result</strong>Give outcome and lesson.</div>
+                </div>
+            </div>
+
+            <div class="result-row">
+                <span id="resultCount">Showing 59 questions</span>
+                <span>Notes and progress are saved in this browser.</span>
+            </div>
+
+            <div id="questions">
+                
+    <article class="question-card" id="question-1" data-category="teamwork" data-number="1">
+        <div class="card-top">
+            <div class="question-number">01</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>Tell me about a conflict with a teammate. How did you resolve it?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="1">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, another senior engineer and I disagreed about an integration design. He preferred synchronous communication because it was simpler. I preferred an asynchronous recovery flow because the external provider was sometimes slow and unstable.</p>
+<p>I arranged a short design discussion instead of continuing the argument in code-review comments. We compared both options using response time, failure handling, maintenance cost, and business needs. We also built a small proof of concept.</p>
+<p>We finally used a mixed design: synchronous processing for the normal flow and asynchronous retry for failed requests. The key point was that we focused on evidence and project requirements, not personal opinions.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-1">My real example / notes</label>
+            <textarea id="notes-1" data-notes="1" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-2" data-category="teamwork" data-number="2">
+        <div class="card-top">
+            <div class="question-number">02</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>How do you explain a complex issue to non-technical teammates?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="2">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I remove unnecessary technical terms and start with the business impact. For example, instead of saying, “The downstream API causes thread-pool exhaustion,” I say, “Our service is waiting too long for another system. Many requests are waiting at the same time, so new customers may also see delays.”</p>
+<p>I explain what happened, who is affected, what we are doing now, and what the permanent solution will be. I may use a simple diagram or one real customer example.</p>
+<p>At the end, I ask whether the explanation is clear and invite questions. My goal is not to show technical knowledge. My goal is to help the stakeholder make a correct decision.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-2">My real example / notes</label>
+            <textarea id="notes-2" data-notes="2" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-3" data-category="teamwork" data-number="3">
+        <div class="card-top">
+            <div class="question-number">03</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>What is your approach to giving feedback about code or a technical design?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="3">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>My feedback focuses on the work, not the person. I normally explain what I noticed, why it may cause a problem, and what improvement I suggest.</p>
+<p>For example: “This loop performs one database query for every record. With large data, it may cause an N+1 query problem. Could we load the required data in one query or use batch fetching?”</p>
+<p>For small issues, a pull-request comment is enough. For an important design concern, I prefer a short discussion because written comments may create misunderstanding.</p>
+<p>I also mention good parts of the implementation. Code review should improve code quality and help the engineer grow.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-3">My real example / notes</label>
+            <textarea id="notes-3" data-notes="3" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-4" data-category="teamwork" data-number="4">
+        <div class="card-top">
+            <div class="question-number">04</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>Have you led a team? What challenges did you face?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="4">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Yes. I have worked as a technical leader and team leader. One challenge was that team members had different experience levels. Some engineers could design a feature independently, while others needed more guidance.</p>
+<p>I divided work based on risk and experience, assigned clear owners, reviewed complex designs before coding, and paired less-experienced members with senior engineers. I also held short blocker discussions instead of adding many long meetings.</p>
+<p>Another challenge was balancing coding with leadership. I learned to delegate normal implementation and focus my time on architecture, high-risk features, reviews, production incidents, and removing blockers. My goal is to make the whole team successful, not to personally control every task.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-4">My real example / notes</label>
+            <textarea id="notes-4" data-notes="4" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-5" data-category="teamwork" data-number="5">
+        <div class="card-top">
+            <div class="question-number">05</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>What is your opinion about pair programming and code reviews?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="5">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I support both, but I use them for the right situation.</p>
+<p>Code review should be part of normal development. It helps find defects, share knowledge, improve readability, and maintain common standards. Reviewers should focus on correctness, security, performance, and maintainability—not personal formatting preferences.</p>
+<p>Pair programming is useful for complex logic, production defects, security-sensitive code, onboarding, and unfamiliar technology. I do not think every simple task needs pair programming because it can be expensive.</p>
+<p>The purpose is not to follow a process blindly. The purpose is to improve quality, reduce risk, and spread knowledge across the team.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-5">My real example / notes</label>
+            <textarea id="notes-5" data-notes="5" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-6" data-category="teamwork" data-number="6">
+        <div class="card-top">
+            <div class="question-number">06</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>What did you like and dislike about your previous development process?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="6">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I liked having clear pull-request reviews, automated tests, CI checks, and regular communication with business teams. These practices reduced production defects and made releases safer.</p>
+<p>One weakness was that some requirement changes were shared only through chat messages. The official ticket and acceptance criteria were not updated, so developers and testers sometimes had different understandings.</p>
+<p>I suggested recording important decisions in the ticket and reviewing acceptance criteria before implementation. For complex features, we added a short refinement or flow-review session.</p>
+<p>I do not expect a process to be perfect. I try to understand why a problem happens and suggest a practical improvement instead of only complaining.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-6">My real example / notes</label>
+            <textarea id="notes-6" data-notes="6" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-7" data-category="teamwork" data-number="7">
+        <div class="card-top">
+            <div class="question-number">07</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>How do you gain support for a new technical approach?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="7">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I start with the current problem, not with the technology I want to use. I explain how often the problem happens, its business impact, and the risk of doing nothing.</p>
+<p>Then I compare the current approach and the proposed approach based on benefits, cost, complexity, migration effort, operational support, and long-term maintenance. For a large change, I prefer a small proof of concept with real measurements.</p>
+<p>I also ask teammates to challenge the proposal. If they identify a valid concern, I update the design.</p>
+<p>People support a solution more easily when the problem is clear, evidence is available, and they are involved in the decision.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-7">My real example / notes</label>
+            <textarea id="notes-7" data-notes="7" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-8" data-category="teamwork" data-number="8">
+        <div class="card-top">
+            <div class="question-number">08</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>What role do you normally take in a group project?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="8">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I normally act as a technical owner and facilitator. I help the team understand the business goal, divide the work, identify risks, and agree on the main design.</p>
+<p>I often take responsibility for difficult backend areas such as security, transaction management, external integrations, or production readiness. However, I do not want every decision to depend on me. I encourage engineers to propose designs and fully own features.</p>
+<p>I provide direction and support, but I also give people space to make decisions. As a senior engineer, my goal is not to write the most code. My goal is to help the team deliver a reliable system and become more independent.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-8">My real example / notes</label>
+            <textarea id="notes-8" data-notes="8" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-9" data-category="teamwork" data-number="9">
+        <div class="card-top">
+            <div class="question-number">09</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>When did you last ask a teammate for help?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="9">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Recently, I investigated an authentication and SSL issue. I checked application logs, request configuration, certificates, and environment variables, but the deployed environment behaved differently from local testing.</p>
+<p>I asked a DevOps engineer to check the container, network, and certificate configuration with me. We compared environments and found that the certificate chain was incomplete in one deployment.</p>
+<p>A senior engineer should investigate carefully first, but should not waste many hours protecting their ego. Asking the right person for help can reduce recovery time and improve the final solution. I also share my findings clearly so the teammate does not need to repeat all previous investigation.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-9">My real example / notes</label>
+            <textarea id="notes-9" data-notes="9" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-10" data-category="teamwork" data-number="10">
+        <div class="card-top">
+            <div class="question-number">10</div>
+            <div class="question-main">
+                <div class="category-label">Collaboration &amp; Teamwork</div>
+                <h3>How would you manage a teammate who is consistently underperforming?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="10">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I would first speak with the person privately. I would not immediately assume they lack ability. The cause may be unclear requirements, missing knowledge, too many tasks, personal difficulty, or weak communication.</p>
+<p>I would give specific examples of the performance gap, listen to their view, and agree on clear expectations and a short improvement plan. Support could include smaller tasks, pairing, training, better documentation, and more frequent check-ins.</p>
+<p>I would monitor progress and give honest feedback. If there were still no improvement after reasonable support, I would involve the engineering manager and follow the company’s performance process. The process should be fair, respectful, and evidence-based.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-10">My real example / notes</label>
+            <textarea id="notes-10" data-notes="10" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-11" data-category="communication" data-number="11">
+        <div class="card-top">
+            <div class="question-number">11</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How would you explain a technical problem to a business stakeholder?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="11">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I structure the explanation around business impact. For example: “Some customers cannot complete payment because the provider is returning errors. About five percent of transactions are affected. We have confirmed that no customer was charged twice. We activated a safe retry process and are investigating the provider response.”</p>
+<p>I clearly separate confirmed facts, assumptions, temporary actions, permanent actions, and decisions needed from the stakeholder.</p>
+<p>I avoid class names, stack traces, and low-level implementation details unless they are requested. Stakeholders need enough information to understand the risk and make a decision. They usually do not need an engineering lecture.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-11">My real example / notes</label>
+            <textarea id="notes-11" data-notes="11" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-12" data-category="communication" data-number="12">
+        <div class="card-top">
+            <div class="question-number">12</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How do you confirm requirements before starting development?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="12">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I begin with the business goal, not only the requested API or screen. Then I clarify the main user flow, acceptance criteria, validation, error cases, permissions, data changes, external-system behavior, performance expectations, and monitoring needs.</p>
+<p>For a complex feature, I create a flow diagram, API contract, or example request and response. I review it with the product owner, tester, frontend engineer, and related backend teams.</p>
+<p>At the end, I summarize the agreed behavior in the official ticket. This creates one common reference. It also helps us discover missing cases before coding, when changes are much cheaper.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-12">My real example / notes</label>
+            <textarea id="notes-12" data-notes="12" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-13" data-category="communication" data-number="13">
+        <div class="card-top">
+            <div class="question-number">13</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>Tell me about a time you convinced the team to use your technical solution.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="13">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In a microservice project, we needed to update our database and publish an event. The first proposal was to save the record and then directly send the message.</p>
+<p>I explained a failure case: the database transaction could succeed, but message publishing could fail. The systems would then become inconsistent.</p>
+<p>I proposed the transactional outbox pattern. The business change and outbox event would be stored in one database transaction. A separate worker would publish the event and retry safely.</p>
+<p>I presented the failure scenarios and a small implementation example. After comparing reliability and complexity, the team accepted the approach for critical events.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-13">My real example / notes</label>
+            <textarea id="notes-13" data-notes="13" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-14" data-category="communication" data-number="14">
+        <div class="card-top">
+            <div class="question-number">14</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How would you tell your manager that a deadline will be missed?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="14">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I communicate as soon as I see a serious risk. I do not wait until the deadline.</p>
+<p>I explain the current progress, reason for the delay, remaining work, impact, recovery options, and my recommendation. For example: “The provider changed part of the API behavior, so we need two more days for integration testing. We can keep the original date by removing the optional report, or move the complete release by two days. I recommend releasing the core flow first.”</p>
+<p>A senior engineer should not only report a problem. I bring realistic options, explain the trade-offs, and keep the manager updated until the risk is closed.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-14">My real example / notes</label>
+            <textarea id="notes-14" data-notes="14" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-15" data-category="communication" data-number="15">
+        <div class="card-top">
+            <div class="question-number">15</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How do you gather feedback from clients and stakeholders?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="15">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Before development, I clarify goals, pain points, and success criteria. During development, I arrange short demos so stakeholders can see real behavior instead of only reading a document. After release, I review production metrics, support tickets, user feedback, and operational issues.</p>
+<p>I ask focused questions such as: “Which step is confusing?”, “What information is missing?”, and “What would prevent users from completing this flow?”</p>
+<p>I document important feedback, confirm priority with the product owner, and convert approved changes into clear tasks. Feedback is useful only when it becomes an agreed action or a clear decision not to act.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-15">My real example / notes</label>
+            <textarea id="notes-15" data-notes="15" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-16" data-category="communication" data-number="16">
+        <div class="card-top">
+            <div class="question-number">16</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How do you share knowledge or train teammates on a new technology?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="16">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I combine explanation with hands-on practice. First, I explain why the technology is needed and how it fits our architecture. Then I demonstrate a small working example. After that, the teammate implements a simple task while I support and review them.</p>
+<p>I normally provide setup instructions, example code, common mistakes, troubleshooting steps, and recommended practices. For important topics, I store the material in the team wiki or record the session.</p>
+<p>Training is successful when the teammate can apply the knowledge independently. A presentation alone is not enough. I review the first real implementation and encourage the engineer to teach the next person.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-16">My real example / notes</label>
+            <textarea id="notes-16" data-notes="16" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-17" data-category="communication" data-number="17">
+        <div class="card-top">
+            <div class="question-number">17</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>Have you presented technical information to executives or senior managers?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="17">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Yes. When speaking with senior managers, I focus on customer impact, risk, cost, timeline, and available options.</p>
+<p>For example, before a production release, one external integration had not completed all failure tests. I explained the possible customer impact, probability of failure, rollback plan, and cost of delaying the release. I then gave a clear recommendation.</p>
+<p>I did not present low-level code details because they were not needed for the decision. A useful executive presentation is short, fact-based, and connected to business outcomes. It should make the decision easier, not prove that the engineer knows many technical terms.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-17">My real example / notes</label>
+            <textarea id="notes-17" data-notes="17" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-18" data-category="communication" data-number="18">
+        <div class="card-top">
+            <div class="question-number">18</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How do you raise concerns about requirements or deadlines?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="18">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I raise concerns early and respectfully. First, I make sure I understand the business reason. Then I explain the risk with evidence.</p>
+<p>For example: “We can deliver the full scope by Friday, but removing integration testing creates a high risk in the payment flow. A failure may affect customer transactions.”</p>
+<p>I avoid saying only that something is impossible. I offer alternatives such as reducing scope, releasing in phases, adding a temporary manual control, or changing the date.</p>
+<p>If the business accepts a reasonable risk, I document the decision. However, I still protect minimum standards for security, data integrity, critical testing, and rollback.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-18">My real example / notes</label>
+            <textarea id="notes-18" data-notes="18" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-19" data-category="communication" data-number="19">
+        <div class="card-top">
+            <div class="question-number">19</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>What communication problems have you faced in distributed teams?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="19">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I have worked with members in different countries and time zones. Common problems included delayed responses, language differences, missing context, and decisions made in a small meeting without informing the wider team.</p>
+<p>To reduce these problems, I record important decisions in tickets, documents, or architecture decision records. Before a meeting ends, I confirm the decision, owner, and deadline.</p>
+<p>For urgent incidents, we define a clear escalation channel. For normal work, we use asynchronous communication and avoid unnecessary meetings.</p>
+<p>I also use simple English, short sentences, diagrams, and concrete examples. Clear communication is more important than using advanced vocabulary.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-19">My real example / notes</label>
+            <textarea id="notes-19" data-notes="19" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-20" data-category="communication" data-number="20">
+        <div class="card-top">
+            <div class="question-number">20</div>
+            <div class="question-main">
+                <div class="category-label">Communication Skills</div>
+                <h3>How do you debug a complex problem with other engineers?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="20">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>First, we agree on the exact symptom, impact, time range, and affected environment. Then we divide the investigation instead of having everyone check the same thing.</p>
+<p>One engineer may check application logs, another the database, another infrastructure and network, and another recent deployments. We use the same request ID and timestamp and share findings in one channel.</p>
+<p>For a major incident, one person coordinates actions and stakeholder updates. This prevents random changes and duplicated work.</p>
+<p>After recovery, we document the root cause, contributing factors, recovery steps, and prevention actions. Collaborative debugging works best when facts and responsibilities are clear.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-20">My real example / notes</label>
+            <textarea id="notes-20" data-notes="20" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-21" data-category="problem-solving" data-number="21">
+        <div class="card-top">
+            <div class="question-number">21</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>Tell me about a difficult technical issue you debugged.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="21">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, some payment requests were processed more than once when users retried quickly or when the provider response was delayed.</p>
+<p>The issue happened only under specific timing conditions. I added trace IDs and reviewed application logs, database updates, and provider requests. I found a race condition: two requests could read the same pending status before either transaction completed.</p>
+<p>We introduced an idempotency key, a unique database constraint, and an atomic status update. We also added concurrency tests and monitoring for duplicate attempts.</p>
+<p>The solution prevented duplicate processing and improved our ability to investigate similar cases. The lesson was that payment operations must be designed for retries and concurrent requests from the beginning.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-21">My real example / notes</label>
+            <textarea id="notes-21" data-notes="21" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-22" data-category="problem-solving" data-number="22">
+        <div class="card-top">
+            <div class="question-number">22</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>How do you learn a new framework or programming language?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="22">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I start with official documentation and understand the problem the technology solves. Next, I build a small proof of concept covering setup, the main programming model, error handling, testing, security, performance, and deployment.</p>
+<p>Then I compare it with technology I already know. I focus on important differences instead of trying to memorize every feature.</p>
+<p>Before production use, I review maintenance activity, community support, limitations, and operational requirements. For example, when learning reactive programming, I studied backpressure, non-blocking I/O, error propagation, testing, and the risk of calling blocking code.</p>
+<p>I learn in this order: concept, small example, failure cases, and careful production use.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-22">My real example / notes</label>
+            <textarea id="notes-22" data-notes="22" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-23" data-category="problem-solving" data-number="23">
+        <div class="card-top">
+            <div class="question-number">23</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>Tell me about building a system from scratch with limited guidance.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="23">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I worked on a backend system where high-level business needs existed, but the technical architecture was not defined.</p>
+<p>I identified the main business flows, actors, security boundaries, data ownership, and external integrations. Then I designed the service structure, database model, API contracts, error-handling strategy, and deployment approach.</p>
+<p>I reviewed the design with frontend, infrastructure, security, testing, and business teams. We implemented one core flow first to validate our assumptions.</p>
+<p>I also created reusable components for validation, exception handling, security, logging, and API responses. Starting with one vertical flow helped us discover incorrect assumptions before building the whole system.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-23">My real example / notes</label>
+            <textarea id="notes-23" data-notes="23" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-24" data-category="problem-solving" data-number="24">
+        <div class="card-top">
+            <div class="question-number">24</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>How do you find the root cause of a performance problem?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="24">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I do not optimize based only on feeling. I begin with measurements.</p>
+<p>I confirm the slow operation and expected response time. Then I check metrics and distributed traces to find which layer uses the most time. I review database execution plans and query counts, external API latency, thread and connection pools, CPU, memory, and garbage collection.</p>
+<p>I reproduce the problem with realistic data or load, change one area, and measure again.</p>
+<p>For example, an API may be slow because of an N+1 query, but it may also spend most of its time waiting for another service. Measurement prevents us from optimizing the wrong component.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-24">My real example / notes</label>
+            <textarea id="notes-24" data-notes="24" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-25" data-category="problem-solving" data-number="25">
+        <div class="card-top">
+            <div class="question-number">25</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>How do you choose between several technical solutions?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="25">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I compare solutions using project-specific criteria: business needs, reliability, security, performance, delivery time, operational complexity, team knowledge, maintenance cost, migration effort, and vendor dependency.</p>
+<p>For an important decision, I create a short architecture decision record. It describes the problem, options, trade-offs, decision, and consequences.</p>
+<p>I avoid selecting a technology only because it is popular. The best solution should fit the current scale and risk while allowing reasonable future growth.</p>
+<p>I normally prefer the simplest design that safely meets the requirement. Extra complexity is justified only when it solves a real problem that we can explain and measure.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-25">My real example / notes</label>
+            <textarea id="notes-25" data-notes="25" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-26" data-category="problem-solving" data-number="26">
+        <div class="card-top">
+            <div class="question-number">26</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>What do you do when requirements are unclear or contradictory?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="26">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I identify the exact conflict and show it with a concrete example. For instance: “One rule says users can cancel at any time, but another says cancellation is unavailable after payment. What should happen after payment but before fulfillment?”</p>
+<p>I bring the product owner, business analyst, tester, and technical owners into the discussion. I explain the customer, data, integration, and timeline impact of each option.</p>
+<p>After a decision, I update the acceptance criteria, flow diagram, and API contract. I do not allow developers to make important business decisions silently because different people may implement different interpretations.</p>
+<p>Clear examples normally resolve ambiguity faster than long general discussions.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-26">My real example / notes</label>
+            <textarea id="notes-26" data-notes="26" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-27" data-category="problem-solving" data-number="27">
+        <div class="card-top">
+            <div class="question-number">27</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>How do you evaluate a third-party library or external service?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="27">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I review more than the feature list. I check security history, maintenance activity, release frequency, license, documentation, support, compatibility, performance, failure behavior, data privacy, vendor lock-in, and migration options.</p>
+<p>For an external service, I also review its SLA, rate limits, timeout behavior, retry rules, authentication, monitoring, and cost.</p>
+<p>For an important dependency, I build a proof of concept and test failure cases. I also ask what happens if the library is no longer maintained or the service becomes unavailable.</p>
+<p>Every critical dependency should have an operational plan and, when practical, an exit strategy.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-27">My real example / notes</label>
+            <textarea id="notes-27" data-notes="27" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-28" data-category="problem-solving" data-number="28">
+        <div class="card-top">
+            <div class="question-number">28</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>How would you recover from serious technical debt?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="28">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>First, I create a technical-debt inventory. I classify items by production risk, change frequency, defect rate, security impact, and development cost.</p>
+<p>I prioritize debt that causes incidents, blocks important features, creates security risk, makes every change expensive, or has no test coverage.</p>
+<p>I would not stop all feature work for a large rewrite unless the system was truly unsafe. I prefer incremental improvement: add tests, define clear boundaries, replace one component at a time, and measure progress.</p>
+<p>Technical debt should be included in product planning because it has a business cost. It affects delivery speed, defect rate, operational effort, and the ability to respond to change.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-28">My real example / notes</label>
+            <textarea id="notes-28" data-notes="28" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-29" data-category="problem-solving" data-number="29">
+        <div class="card-top">
+            <div class="question-number">29</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>What is your production debugging process?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="29">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>My first goal is to protect customers and stabilize the service.</p>
+<p>I confirm impact and severity, start an incident channel, check recent changes, and review metrics, logs, traces, database health, and alerts. Then we decide whether to roll back, disable a feature, or apply a safe workaround. After recovery, we continue root-cause analysis and communicate status regularly.</p>
+<p>During the incident, I avoid many uncontrolled changes. Every action should have an owner, expected result, and rollback plan.</p>
+<p>Afterward, we write a blameless incident review and create prevention actions such as tests, alerts, automation, configuration checks, or architecture improvements.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-29">My real example / notes</label>
+            <textarea id="notes-29" data-notes="29" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-30" data-category="problem-solving" data-number="30">
+        <div class="card-top">
+            <div class="question-number">30</div>
+            <div class="question-main">
+                <div class="category-label">Problem-Solving &amp; Critical Thinking</div>
+                <h3>When do you use a workaround instead of rebuilding correctly?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="30">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I consider urgency, customer impact, safety, reversibility, and long-term cost.</p>
+<p>A workaround is acceptable when there is urgent production impact, the change is low risk, it can be removed easily, monitoring exists, and a follow-up task has an owner and deadline.</p>
+<p>A workaround is not acceptable if it can create security problems, data corruption, or uncontrolled financial impact. For example, temporarily disabling a non-critical feature may be safer than performing a large redesign during an incident.</p>
+<p>After the system is stable, we review the root cause and implement a proper solution. Temporary code should not silently become permanent architecture.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-30">My real example / notes</label>
+            <textarea id="notes-30" data-notes="30" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-31" data-category="work-style" data-number="31">
+        <div class="card-top">
+            <div class="question-number">31</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>Describe your ideal working environment and development process.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="31">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I work best in an environment with clear goals, open communication, and technical ownership.</p>
+<p>I prefer a process where requirements are refined before development, but engineers can still challenge and improve them. Complex work should have an early design discussion. Changes should be small and reviewable, with automated tests, CI checks, safe deployment, monitoring, and blameless incident reviews.</p>
+<p>I do not need every process to be strict. However, decisions and responsibilities should be clear.</p>
+<p>A good environment gives engineers freedom to solve problems while maintaining common standards for security, quality, and maintainability. It also supports knowledge sharing instead of depending on one expert.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-31">My real example / notes</label>
+            <textarea id="notes-31" data-notes="31" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-32" data-category="work-style" data-number="32">
+        <div class="card-top">
+            <div class="question-number">32</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>What productivity and time-management methods do you use?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="32">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I prioritize work based on business value, urgency, risk, and dependency. For a large task, I divide it into smaller deliverables so progress is visible and blockers appear early.</p>
+<p>At the start of each day, I review the most important outcomes and protect focus time for difficult work. I also reserve capacity for code reviews, team support, and unexpected production issues.</p>
+<p>As a leader, I do not attend every meeting. I join when I can make a decision, remove a blocker, or provide important context.</p>
+<p>If priorities conflict, I confirm them with the project manager instead of trying to complete everything at the same time.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-32">My real example / notes</label>
+            <textarea id="notes-32" data-notes="32" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-33" data-category="work-style" data-number="33">
+        <div class="card-top">
+            <div class="question-number">33</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>How do you stay motivated and continue developing professionally?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="33">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I am motivated when I can solve real business problems, improve system reliability, and help other engineers grow.</p>
+<p>For professional development, I select a few focus areas instead of following every new technology. I combine official documentation, technical articles or books, small proof-of-concept projects, production experience, and knowledge-sharing sessions.</p>
+<p>I also learn from incidents and code reviews. Real production problems often teach more than a simple tutorial.</p>
+<p>My main growth areas are distributed systems, cloud architecture, security, performance engineering, and technical leadership. I connect learning to current project needs whenever possible, so the knowledge becomes practical and useful.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-33">My real example / notes</label>
+            <textarea id="notes-33" data-notes="33" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-34" data-category="work-style" data-number="34">
+        <div class="card-top">
+            <div class="question-number">34</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>What are your strengths and weaknesses as a developer?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="34">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>My main strengths are ownership, backend system design, debugging, and communication between technical and business teams. I am comfortable handling a feature from requirement clarification through design, implementation, testing, deployment, and production support.</p>
+<p>I also enjoy mentoring engineers and improving common development practices.</p>
+<p>One weakness is that I sometimes investigate technical details too deeply before confirming whether the extra improvement is necessary for the current scope.</p>
+<p>I manage this by time-boxing investigations, checking business priority early, and separating required work from optional improvement. This helps me protect technical quality without delaying delivery unnecessarily.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-34">My real example / notes</label>
+            <textarea id="notes-34" data-notes="34" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-35" data-category="work-style" data-number="35">
+        <div class="card-top">
+            <div class="question-number">35</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>How have you taught yourself a new framework?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="35">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>When I needed to use Spring WebFlux and reactive database access, I first studied the reactive model and non-blocking I/O.</p>
+<p>I built a small service with WebFlux, R2DBC, validation, error handling, and integration tests. I compared it with traditional Spring MVC to understand where reactive programming gave value and where it added complexity.</p>
+<p>I also tested common mistakes, such as calling a blocking API inside a reactive pipeline. After understanding the basics, I applied it to one project flow and reviewed its behavior under load.</p>
+<p>My learning method is: understand the concept, build a small example, test failure cases, and apply it carefully.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-35">My real example / notes</label>
+            <textarea id="notes-35" data-notes="35" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-36" data-category="work-style" data-number="36">
+        <div class="card-top">
+            <div class="question-number">36</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>Have you contributed to open-source projects or published code?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="36">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I have not been a major maintainer of a public open-source project, so I answer this honestly.</p>
+<p>Most of my reusable contributions have been inside company projects. I have created shared modules, coding examples, architecture documents, troubleshooting guides, and common components for exception handling, security, API responses, and logging.</p>
+<p>I also share knowledge through code reviews and internal technical sessions.</p>
+<p>I am interested in contributing more publicly through small bug fixes, documentation improvements, or example projects. However, I believe internal contributions are also valuable when they reduce repeated work and help several teams deliver more consistently.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-36">My real example / notes</label>
+            <textarea id="notes-36" data-notes="36" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-37" data-category="work-style" data-number="37">
+        <div class="card-top">
+            <div class="question-number">37</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>What is the most difficult technical challenge you handled recently?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="37">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>One difficult challenge was designing a secure authentication and authorization flow for different user types.</p>
+<p>The system included customer login, email OTP, administrator TOTP, token validation, and permission control. It integrated with cloud identity services and needed to pass security testing.</p>
+<p>The difficult part was not only login. We also needed to handle token expiry, retry limits, user status, authorization scope, auditing, error responses, and recovery.</p>
+<p>I separated authentication from authorization, documented each flow, created security tests, and reviewed the design with infrastructure and security teams. The system was released successfully and passed the required security checks.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-37">My real example / notes</label>
+            <textarea id="notes-37" data-notes="37" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-38" data-category="work-style" data-number="38">
+        <div class="card-top">
+            <div class="question-number">38</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>How do you balance independent work and collaboration?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="38">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I work independently when the goal and technical boundaries are clear. I do not need constant supervision for normal implementation or investigation.</p>
+<p>However, I collaborate early for decisions that affect other services, teams, security, data models, or long-term architecture. Waiting until code review is too late for a major design disagreement.</p>
+<p>My normal approach is to confirm requirements, discuss high-risk decisions, implement independently, share progress and blockers, request review at useful stages, and support integration testing.</p>
+<p>Independence means taking ownership, not working in isolation. Collaboration means using the team’s knowledge without creating unnecessary meetings.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-38">My real example / notes</label>
+            <textarea id="notes-38" data-notes="38" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-39" data-category="work-style" data-number="39">
+        <div class="card-top">
+            <div class="question-number">39</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>What technical areas do you want to develop in the long term?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="39">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I want to continue developing in distributed system design, cloud architecture, application security, and system reliability.</p>
+<p>As systems grow, difficult problems are often not inside one method. They involve consistency between services, failure recovery, observability, scalability, and safe deployment.</p>
+<p>I also want to grow further as a technical leader. This includes improving architecture decisions, mentoring senior engineers, communicating with business leaders, and helping teams deliver consistently.</p>
+<p>I still want to remain hands-on because implementation and production experience help me make better architecture decisions. My long-term goal is to combine strong technical depth with effective engineering leadership.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-39">My real example / notes</label>
+            <textarea id="notes-39" data-notes="39" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-40" data-category="work-style" data-number="40">
+        <div class="card-top">
+            <div class="question-number">40</div>
+            <div class="question-main">
+                <div class="category-label">Work &amp; Learning Style</div>
+                <h3>Tell me about using an unfamiliar technology.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="40">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, I needed to integrate a cloud authorization service that I had not used before.</p>
+<p>I studied its authorization model, policy language, request format, and security limitations. Then I created a proof of concept with a simple user-resource permission model.</p>
+<p>I tested allowed access, denied access, missing policies, incorrect user scope, service unavailability, and performance impact. I reviewed the design with the security team and created a reusable integration component.</p>
+<p>The main lesson was not to treat a new security product as a black box. I needed to understand both how to use it and how it could fail.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-40">My real example / notes</label>
+            <textarea id="notes-40" data-notes="40" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-41" data-category="values" data-number="41">
+        <div class="card-top">
+            <div class="question-number">41</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>What professional values are most important to you?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="41">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>My main values are ownership, honesty, respect, quality, and continuous learning.</p>
+<p>Ownership means I do not stop after writing code. I care about testing, deployment, monitoring, and production results. Honesty means I report risks and mistakes early. Hiding a problem normally makes it more expensive.</p>
+<p>Respect means I listen to different opinions and give feedback about the work, not the person. Quality means building safe and maintainable software while understanding practical business limits.</p>
+<p>Continuous learning is important because technology and business needs always change. I try to demonstrate these values through daily decisions, not only mention them during interviews.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-41">My real example / notes</label>
+            <textarea id="notes-41" data-notes="41" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-42" data-category="values" data-number="42">
+        <div class="card-top">
+            <div class="question-number">42</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>How did your values affect your last career move?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="42">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>My career decisions are mainly influenced by growth, meaningful responsibility, technical challenge, and team culture.</p>
+<p>After gaining strong implementation experience, I wanted opportunities where I could contribute to architecture, mentor engineers, and own important backend systems. I also wanted to work with modern technology and more complex business problems.</p>
+<p>I value a culture where engineers can raise concerns, discuss trade-offs openly, and improve existing processes.</p>
+<p>Salary and title are important, but they are not the only factors. I prefer a role where I can continue learning, create measurable impact, and work with people who take responsibility for the product.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-42">My real example / notes</label>
+            <textarea id="notes-42" data-notes="42" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-43" data-category="values" data-number="43">
+        <div class="card-top">
+            <div class="question-number">43</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>What team culture helps you perform well?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="43">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I perform well in a culture based on trust, ownership, open communication, and constructive feedback.</p>
+<p>Team members should be able to disagree about a technical decision without creating personal conflict. Mistakes should be discussed honestly so the team can learn, while people still take responsibility for their actions.</p>
+<p>I also value clear goals. Engineers should understand why a feature matters, not only receive a list of tasks.</p>
+<p>A strong team shares knowledge and does not depend on one expert for every critical area. Quality should also be a shared responsibility among engineering, product, testing, and operations—not only the developer’s responsibility.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-43">My real example / notes</label>
+            <textarea id="notes-43" data-notes="43" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-44" data-category="values" data-number="44">
+        <div class="card-top">
+            <div class="question-number">44</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>Which parts of our company’s mission connect with you?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="44">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>This answer should be customized for each company.</p>
+<p>A strong example is: “I connect most with your focus on making the customer experience simpler and more reliable. In my previous projects, I worked on authentication, payment, and order systems that directly affected customers. I learned that even a small technical failure can reduce customer trust.</p>
+<p>I am interested in this role because it combines backend engineering with real business impact. I also noticed that your company values ownership and continuous improvement. These values match how I work: I take responsibility from design through production and improve both the product and the development process.”</p>
+<p>Before the interview, add details from the company’s real mission.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-44">My real example / notes</label>
+            <textarea id="notes-44" data-notes="44" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-45" data-category="values" data-number="45">
+        <div class="card-top">
+            <div class="question-number">45</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>What environment helps you be creative and innovative?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="45">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I am most creative when the problem and constraints are clear, but the team has freedom to explore solutions.</p>
+<p>Innovation does not always mean using new technology. It may mean simplifying a workflow, removing unnecessary processing, improving failure recovery, or automating a manual operation.</p>
+<p>I prefer an environment where engineers can propose ideas, test them with a small proof of concept, and receive quick feedback. Psychological safety is also important. People should be able to suggest an idea that may not work without being blamed.</p>
+<p>At the same time, innovation should connect to customer value. Technical creativity without a useful result can become unnecessary complexity.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-45">My real example / notes</label>
+            <textarea id="notes-45" data-notes="45" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-46" data-category="values" data-number="46">
+        <div class="card-top">
+            <div class="question-number">46</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>How do you balance technical excellence and practical delivery?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="46">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I first identify minimum quality standards that cannot be removed. These normally include security, data integrity, critical testing, error handling, logging, and rollback capability.</p>
+<p>Then I separate required design work from improvements that can be completed later. We may not build the most flexible architecture in the first release, but we should avoid a design that makes future change impossible.</p>
+<p>I discuss trade-offs openly and document important technical debt with an owner and target date.</p>
+<p>Technical excellence does not mean always building the most complex solution. It means making a responsible engineering decision for the current business context while protecting the system’s future maintainability.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-46">My real example / notes</label>
+            <textarea id="notes-46" data-notes="46" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-47" data-category="values" data-number="47">
+        <div class="card-top">
+            <div class="question-number">47</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>Tell me about an ethical problem you faced at work.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="47">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, there was pressure to reduce testing to meet an important delivery date. The change affected customer transactions, so releasing without sufficient testing could have produced incorrect financial results.</p>
+<p>I explained the risk clearly and did not agree to remove the critical tests. However, I also understood the business deadline.</p>
+<p>I proposed reducing the release scope and delivering only the fully tested core flow. Less-important features moved to a later release.</p>
+<p>This protected customer data while still meeting the main business goal. Deadlines are important, but they should not justify hiding risk or knowingly creating serious security, financial, or data-integrity problems.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-47">My real example / notes</label>
+            <textarea id="notes-47" data-notes="47" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-48" data-category="values" data-number="48">
+        <div class="card-top">
+            <div class="question-number">48</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>What motivates you about software engineering?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="48">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I enjoy turning unclear business problems into reliable systems.</p>
+<p>I like the complete process: understanding the requirement, designing the solution, implementing it, investigating unexpected behavior, and seeing it operate successfully in production.</p>
+<p>I am also motivated by difficult problems that require more than coding, such as transaction consistency, security, performance, or communication between several teams.</p>
+<p>As a senior engineer, I get satisfaction from helping another engineer become more independent. A strong solution is valuable, but building a stronger team has a larger long-term impact.</p>
+<p>Software engineering continues to motivate me because there is always another area to improve or learn.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-48">My real example / notes</label>
+            <textarea id="notes-48" data-notes="48" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-49" data-category="values" data-number="49">
+        <div class="card-top">
+            <div class="question-number">49</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>How do you feel about non-coding duties such as meetings?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="49">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I consider non-coding work an important part of senior engineering.</p>
+<p>Design discussions, requirement clarification, incident reviews, mentoring, planning, and stakeholder communication can prevent more problems than writing additional code.</p>
+<p>However, meetings need a clear purpose. A meeting should help the team make a decision, solve a problem, share important information, or align responsibilities. If the same result can be achieved with a short written update, I prefer the written update.</p>
+<p>As a leader, I balance these duties by delegating implementation and protecting focus time. My value should be measured by project outcomes, not only by lines of code.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-49">My real example / notes</label>
+            <textarea id="notes-49" data-notes="49" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-50" data-category="values" data-number="50">
+        <div class="card-top">
+            <div class="question-number">50</div>
+            <div class="question-main">
+                <div class="category-label">Cultural Values</div>
+                <h3>Which engineering practices are most important to you?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="50">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>The most important practices are clear ownership, small reviewable changes, automated testing, constructive code review, continuous integration, safe deployment and rollback, useful monitoring, written technical decisions, knowledge sharing, and blameless incident reviews.</p>
+<p>These practices support each other. CI/CD is not enough if tests are unreliable. Monitoring is not enough if nobody owns the alerts.</p>
+<p>I also value continuous improvement. The team should regularly review which practices provide value and which have become unnecessary steps.</p>
+<p>A good engineering culture does not follow a practice only because it is popular. It understands the problem that each practice is intended to solve.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-50">My real example / notes</label>
+            <textarea id="notes-50" data-notes="50" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-51" data-category="pressure" data-number="51">
+        <div class="card-top">
+            <div class="question-number">51</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>Tell me about delivering under a very tight deadline.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="51">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, we had a fixed production date connected to a business launch.</p>
+<p>I separated critical scope from optional scope and identified high-risk areas: security, external integration, data migration, and rollback. We divided work into small deliverables and reviewed progress every day. Experienced engineers owned the highest-risk components, and integration testing started early instead of waiting for all development to finish.</p>
+<p>We also prepared monitoring and a rollback plan before release.</p>
+<p>We delivered the critical scope on time and moved low-priority improvements to the next release. Scope control was more effective and safer than asking everyone to work unlimited overtime.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-51">My real example / notes</label>
+            <textarea id="notes-51" data-notes="51" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-52" data-category="pressure" data-number="52">
+        <div class="card-top">
+            <div class="question-number">52</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>How do you work with a rushed or low-quality codebase?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="52">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I stabilize it before attempting a large redesign.</p>
+<p>I identify critical business flows, current incidents, frequently changed areas, missing tests, security risks, and highly coupled components. Before changing unclear legacy behavior, I add characterization tests that record what the system currently does.</p>
+<p>Then I improve the code incrementally. I may extract one service, simplify one dependency, improve one query, or replace one component at a time.</p>
+<p>I avoid a full rewrite unless there is strong evidence that incremental improvement is more expensive or unsafe. Rewrites can introduce new defects and lose hidden business rules that have developed over many years.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-52">My real example / notes</label>
+            <textarea id="notes-52" data-notes="52" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-53" data-category="pressure" data-number="53">
+        <div class="card-top">
+            <div class="question-number">53</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>Tell me about missing an important milestone.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="53">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one project, an external provider delivered its test environment later than expected. Our implementation was mostly complete, but end-to-end testing could not finish by the original milestone.</p>
+<p>I informed the project manager as soon as the risk became clear. I explained what was complete, what was blocked, and which options were available.</p>
+<p>We used a mock service to continue internal testing, but I clearly stated that this did not replace real provider testing. We moved the external integration release while allowing unrelated features to continue.</p>
+<p>Afterward, we added earlier provider checkpoints and dependency-risk reviews to future project plans.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-53">My real example / notes</label>
+            <textarea id="notes-53" data-notes="53" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-54" data-category="pressure" data-number="54">
+        <div class="card-top">
+            <div class="question-number">54</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>How do you manage stakeholders who provide conflicting requirements?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="54">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I bring the conflict into one clear discussion instead of allowing engineering to receive separate instructions.</p>
+<p>I identify the shared business goal, document each requirement, and explain where they conflict. Then I present options with customer, cost, schedule, data, and technical impact. I also confirm who has final decision authority, normally the product owner or business owner.</p>
+<p>After the decision, I update the official requirements and communicate the result to all affected teams.</p>
+<p>Engineering should help stakeholders understand consequences, but engineers should not silently choose between competing business priorities. A documented decision also prevents the same conflict from returning during testing.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-54">My real example / notes</label>
+            <textarea id="notes-54" data-notes="54" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-55" data-category="pressure" data-number="55">
+        <div class="card-top">
+            <div class="question-number">55</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>Have you designed a resilient or failover solution?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="55">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Yes. For integrations with unstable external systems, I have used timeouts, limited retries with backoff, circuit breakers, idempotency keys, queues, dead-letter queues, health checks, monitoring, and manual replay tools.</p>
+<p>For example, when a provider is unavailable, the system should not send unlimited requests. A circuit breaker temporarily stops calls, while failed business operations are stored safely for later retry.</p>
+<p>Retries must be designed carefully because they can create duplicate transactions. That is why idempotency and clear operation status are also required.</p>
+<p>Resilience is a complete design. Adding one retry annotation without considering duplicates, overload, monitoring, and recovery is not enough.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-55">My real example / notes</label>
+            <textarea id="notes-55" data-notes="55" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-56" data-category="pressure" data-number="56">
+        <div class="card-top">
+            <div class="question-number">56</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>What do you do when you feel burned out?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="56">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I try to identify the problem early instead of waiting until my performance is seriously affected.</p>
+<p>I review whether the cause is temporary pressure, unclear priorities, too many responsibilities, or lack of rest. I discuss workload and priority with my manager when needed.</p>
+<p>I protect focus time, reduce unnecessary meetings, delegate suitable work, take proper breaks, and use leave when necessary. I avoid making regular late work a normal solution.</p>
+<p>As a leader, I also watch for these signs in team members. Continuous overtime is not a good project-management strategy. A sustainable team normally produces better quality and more predictable results.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-56">My real example / notes</label>
+            <textarea id="notes-56" data-notes="56" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-57" data-category="pressure" data-number="57">
+        <div class="card-top">
+            <div class="question-number">57</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>How do you maintain standards when pressured to cut corners?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="57">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>I identify which standards are flexible and which are not.</p>
+<p>We may postpone code cleanup, advanced automation, or a non-critical performance improvement. However, I would not remove essential security validation, data-integrity protection, critical testing, or rollback capability.</p>
+<p>I explain the risk in business terms and suggest safer trade-offs: reduce scope, release in phases, use a feature flag, add temporary monitoring, or change the deadline.</p>
+<p>If the business accepts reasonable technical debt, I document it with an owner and target date.</p>
+<p>Speed is sometimes necessary, but hidden and uncontrolled risk is not a responsible trade-off.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-57">My real example / notes</label>
+            <textarea id="notes-57" data-notes="57" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-58" data-category="pressure" data-number="58">
+        <div class="card-top">
+            <div class="question-number">58</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>Tell me about a stressful production incident.</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="58">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>In one incident, an important customer operation started failing after a release.</p>
+<p>I helped confirm the impact and stopped unrelated changes. We checked monitoring, logs, traces, database status, and deployment differences. Responsibilities were divided so investigation and stakeholder communication happened in parallel.</p>
+<p>We found an environment configuration difference. We rolled back the affected deployment, verified customer recovery, and monitored the service closely.</p>
+<p>After the incident, we added automated configuration validation and improved the deployment checklist.</p>
+<p>During a stressful incident, I focus on facts, clear ownership, and reversible actions. Panic and random changes normally increase recovery time.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-58">My real example / notes</label>
+            <textarea id="notes-58" data-notes="58" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+    <article class="question-card" id="question-59" data-category="pressure" data-number="59">
+        <div class="card-top">
+            <div class="question-number">59</div>
+            <div class="question-main">
+                <div class="category-label">Working Under Pressure</div>
+                <h3>Have you handled an urgent customer-facing issue?</h3>
+            </div>
+            <label class="practice-check" title="Mark as practiced">
+                <input type="checkbox" data-practiced="59">
+                <span>Practiced</span>
+            </label>
+        </div>
+
+        <div class="answer-panel">
+            <div class="answer-heading">
+                <span>Senior sample answer</span>
+                <button class="copy-answer" type="button">Copy answer</button>
+            </div>
+            <div class="answer-text"><p>Yes. I have handled urgent issues related to authentication, payment, and order processing.</p>
+<p>My first step is to understand how many customers are affected and whether there is security, financial, or data-integrity risk. Then I help stabilize the service through rollback, feature control, manual recovery, or another safe action.</p>
+<p>At the same time, I provide support and business teams with clear updates they can communicate to customers.</p>
+<p>After recovery, I make sure affected records are identified and corrected. We then complete a root-cause review and prevention plan.</p>
+<p>A technical fix is not complete until the customer impact is also handled.</p></div>
+            <div class="senior-signal">
+                <strong>Senior signal:</strong>
+                Show ownership, your personal action, a clear trade-off, and a measurable or practical result.
+            </div>
+            <label class="notes-label" for="notes-59">My real example / notes</label>
+            <textarea id="notes-59" data-notes="59" rows="4"
+                placeholder="Write your own project example here. Use Situation → Task → Action → Result."></textarea>
+        </div>
+
+        <div class="card-actions">
+            <button class="toggle-answer" type="button" aria-expanded="false">
+                <span>Show answer</span><span class="chevron">⌄</span>
+            </button>
+            <button class="random-next" type="button">Practice another</button>
+        </div>
+    </article>
+    
+            </div>
+            <div id="emptyState" class="empty">
+                <h3>No matching question</h3>
+                <p>Try a different keyword or category.</p>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="footer">
+    Questions are paraphrased and organized from Paraform’s
+    “59 Most Effective Software Engineer Culture Fit Interview Questions” article.
+    Sample answers are customized for a senior backend software engineer with around nine years of experience.
+</footer>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(() => {
+    const cards = [...document.querySelectorAll('.question-card')];
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const resultCount = document.getElementById('resultCount');
+    const emptyState = document.getElementById('emptyState');
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
+    const practiceModeBtn = document.getElementById('practiceModeBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const toast = document.getElementById('toast');
+
+    const state = {
+        category: 'all',
+        practiced: JSON.parse(localStorage.getItem('cultureFitPracticed') || '{}'),
+        notes: JSON.parse(localStorage.getItem('cultureFitNotes') || '{}'),
+        mockMode: false
+    };
+
+    const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+    };
+
+    const save = () => {
+        localStorage.setItem('cultureFitPracticed', JSON.stringify(state.practiced));
+        localStorage.setItem('cultureFitNotes', JSON.stringify(state.notes));
+    };
+
+    const updateProgress = () => {
+        const count = Object.values(state.practiced).filter(Boolean).length;
+        progressText.textContent = `${count} / 59`;
+        progressBar.style.width = `${(count / 59) * 100}%`;
+    };
+
+    const applyFilters = () => {
+        const term = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+        cards.forEach(card => {
+            const categoryMatch = state.category === 'all' || card.dataset.category === state.category;
+            const textMatch = !term || card.textContent.toLowerCase().includes(term);
+            const show = categoryMatch && textMatch;
+            card.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        resultCount.textContent = `Showing ${visible} question${visible === 1 ? '' : 's'}`;
+        emptyState.style.display = visible ? 'none' : 'block';
+    };
+
+    const setCategory = (category) => {
+        state.category = category;
+        categorySelect.value = category;
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === category);
+        });
+        applyFilters();
+    };
+
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => setCategory(btn.dataset.filter));
+    });
+
+    categorySelect.addEventListener('change', () => setCategory(categorySelect.value));
+    searchInput.addEventListener('input', applyFilters);
+
+    cards.forEach(card => {
+        const number = card.dataset.number;
+        const checkbox = card.querySelector('[data-practiced]');
+        const notes = card.querySelector('[data-notes]');
+        const toggle = card.querySelector('.toggle-answer');
+        const toggleText = toggle.querySelector('span:first-child');
+
+        checkbox.checked = Boolean(state.practiced[number]);
+        notes.value = state.notes[number] || '';
+
+        checkbox.addEventListener('change', () => {
+            state.practiced[number] = checkbox.checked;
+            save();
+            updateProgress();
+        });
+
+        notes.addEventListener('input', () => {
+            state.notes[number] = notes.value;
+            save();
+        });
+
+        toggle.addEventListener('click', () => {
+            const open = card.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', String(open));
+            toggleText.textContent = open ? 'Hide answer' : 'Show answer';
+        });
+
+        card.querySelector('.copy-answer').addEventListener('click', async () => {
+            const answer = card.querySelector('.answer-text').innerText.trim();
+            try {
+                await navigator.clipboard.writeText(answer);
+                showToast('Answer copied');
+            } catch {
+                showToast('Copy is not available in this browser');
+            }
+        });
+
+        card.querySelector('.random-next').addEventListener('click', () => openRandomQuestion());
+    });
+
+    const visibleCards = () => cards.filter(card => !card.classList.contains('hidden'));
+
+    const openRandomQuestion = () => {
+        const pool = visibleCards();
+        if (!pool.length) return;
+        cards.forEach(card => {
+            card.classList.remove('open', 'highlight');
+            const text = card.querySelector('.toggle-answer span:first-child');
+            text.textContent = 'Show answer';
+        });
+        const card = pool[Math.floor(Math.random() * pool.length)];
+        card.classList.add('highlight');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    document.getElementById('randomBtn').addEventListener('click', openRandomQuestion);
+
+    document.getElementById('expandAllBtn').addEventListener('click', (event) => {
+        const visible = visibleCards();
+        const shouldOpen = visible.some(card => !card.classList.contains('open'));
+        visible.forEach(card => {
+            card.classList.toggle('open', shouldOpen);
+            card.querySelector('.toggle-answer').setAttribute('aria-expanded', String(shouldOpen));
+            card.querySelector('.toggle-answer span:first-child').textContent = shouldOpen ? 'Hide answer' : 'Show answer';
+        });
+        event.currentTarget.textContent = shouldOpen ? 'Collapse visible' : 'Expand visible';
+    });
+
+    practiceModeBtn.addEventListener('click', () => {
+        state.mockMode = !state.mockMode;
+        document.body.classList.toggle('practice-mode', state.mockMode);
+        practiceModeBtn.textContent = state.mockMode ? 'Exit mock mode' : 'Mock mode';
+        practiceModeBtn.classList.toggle('primary', state.mockMode);
+        cards.forEach(card => {
+            card.classList.remove('open');
+            card.querySelector('.toggle-answer span:first-child').textContent = 'Show answer';
+        });
+        showToast(state.mockMode ? 'Mock interview mode enabled' : 'Study mode enabled');
+    });
+
+    const preferredTheme = localStorage.getItem('cultureFitTheme');
+    if (preferredTheme === 'dark') {
+        document.documentElement.dataset.theme = 'dark';
+        themeBtn.textContent = 'Light mode';
+    }
+
+    themeBtn.addEventListener('click', () => {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+        localStorage.setItem('cultureFitTheme', dark ? 'light' : 'dark');
+        themeBtn.textContent = dark ? 'Dark mode' : 'Light mode';
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!confirm('Reset all practiced questions and personal notes?')) return;
+        state.practiced = {};
+        state.notes = {};
+        localStorage.removeItem('cultureFitPracticed');
+        localStorage.removeItem('cultureFitNotes');
+        document.querySelectorAll('[data-practiced]').forEach(input => input.checked = false);
+        document.querySelectorAll('[data-notes]').forEach(area => area.value = '');
+        updateProgress();
+        showToast('Progress and notes reset');
+    });
+
+    updateProgress();
+    applyFilters();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Study Hub</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel-strong: #f8fafc;
+      --text: #182131;
+      --muted: #637083;
+      --soft: #e8edf5;
+      --border: #d9e1ec;
+      --java: #c2410c;
+      --spring: #15803d;
+      --backend: #2563eb;
+      --db: #0f766e;
+      --kafka: #4338ca;
+      --microservice: #be123c;
+      --jvm: #9333ea;
+      --ops: #7c3aed;
+      --monitoring: #0f766e;
+      --senior: #be123c;
+      --behavior: #a16207;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.10), transparent 24rem),
+        linear-gradient(145deg, #f4f7fb 0%, #eef4f1 45%, #f9f6f1 100%);
+      color: var(--text);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.86);
+      border-right: 1px solid rgba(217, 225, 236, 0.9);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #172033;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(23, 32, 51, 0.22);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .search {
+      position: relative;
+    }
+
+    .search svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #768497;
+      pointer-events: none;
+    }
+
+    .search input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      padding: 0 14px 0 42px;
+      outline: none;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+    }
+
+    .search input:focus {
+      border-color: #557296;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .filter-btn {
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      color: #40516a;
+      font-size: 0.83rem;
+      font-weight: 700;
+      transition: 160ms ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: #172033;
+      border-color: #172033;
+      color: #fff;
+    }
+
+    .library {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .library::-webkit-scrollbar,
+    .reader-frame::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .library::-webkit-scrollbar-thumb {
+      background: #bcc7d5;
+      border-radius: 999px;
+    }
+
+    .doc-card {
+      display: grid;
+      grid-template-columns: 4px minmax(0, 1fr);
+      gap: 12px;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.82);
+      text-align: left;
+      color: var(--text);
+      transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .doc-card:hover,
+    .doc-card.active {
+      border-color: rgba(23, 32, 51, 0.45);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.09);
+    }
+
+    .doc-card.active {
+      background: #fff;
+    }
+
+    .stripe {
+      width: 4px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .doc-title {
+      display: block;
+      margin: 0 0 7px;
+      font-size: 0.96rem;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+
+    .doc-summary {
+      display: block;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .doc-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      color: #738197;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .doc-meta span {
+      overflow-wrap: anywhere;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .selected h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .selected p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .icon-btn,
+    .text-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #25324a;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+      transition: 160ms ease;
+    }
+
+    .icon-btn {
+      width: 42px;
+    }
+
+    .text-btn {
+      gap: 8px;
+      padding: 0 14px;
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+
+    .icon-btn:hover,
+    .text-btn:hover {
+      border-color: rgba(23, 32, 51, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      min-height: 80px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.28rem;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .reader {
+      overflow: hidden;
+      border: 1px solid rgba(217, 225, 236, 0.95);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .reader-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 46px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+      color: #526177;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .reader-head span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 214px);
+      min-height: 640px;
+      border: 0;
+      background: #fff;
+    }
+
+    .empty-state {
+      display: none;
+      padding: 22px;
+      border: 1px dashed #aeb9c8;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.68);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1120px) {
+      .app {
+        grid-template-columns: 330px minmax(0, 1fr);
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 880px) {
+      .app {
+        display: block;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        padding: 18px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .library {
+        max-height: 360px;
+      }
+
+      .main {
+        padding: 18px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      iframe {
+        height: 72vh;
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .filters,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .brand h1 {
+        font-size: 1.08rem;
+      }
+
+      .doc-card {
+        grid-template-columns: 3px minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Interview guide navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 4.5H5A2.5 2.5 0 0 0 2.5 7v11.5H18A2.5 2.5 0 0 0 20.5 16V5.5H8A2 2 0 0 0 6 7.5v11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 8h8M8 11h7M8 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Interview Study Hub</h1>
+          <p>Java, Spring, backend, DevOps</p>
+        </div>
+      </div>
+
+      <label class="search" for="searchInput">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" type="search" placeholder="Search guides, tags, filenames..." autocomplete="off" />
+      </label>
+
+      <div class="filters" aria-label="Topic filters">
+        <button class="filter-btn active" type="button" data-filter="all">All</button>
+        <button class="filter-btn" type="button" data-filter="senior">Senior</button>
+        <button class="filter-btn" type="button" data-filter="java">Java</button>
+        <button class="filter-btn" type="button" data-filter="jvm">JVM</button>
+        <button class="filter-btn" type="button" data-filter="spring">Spring</button>
+        <button class="filter-btn" type="button" data-filter="backend">Backend</button>
+        <button class="filter-btn" type="button" data-filter="db">DB</button>
+        <button class="filter-btn" type="button" data-filter="kafka">Kafka</button>
+        <button class="filter-btn" type="button" data-filter="microservice">Microservice</button>
+        <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
+        <button class="filter-btn" type="button" data-filter="ops">Ops</button>
+        <button class="filter-btn" type="button" data-filter="architecture">Design</button>
+      </div>
+
+      <div id="library" class="library" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state">No guides match that search. Try a broader keyword such as Java, Spring, transaction, JWT, monitoring, or microservice.</div>
+    </aside>
+
+    <main class="main">
+      <section class="topbar" aria-label="Selected guide">
+        <div class="selected">
+          <h2 id="selectedTitle">Interview guide</h2>
+          <p id="selectedSummary">Choose a guide from the left to read it here.</p>
+        </div>
+        <div class="actions">
+          <button id="copyLinkBtn" class="icon-btn" type="button" title="Copy link to selected guide" aria-label="Copy link">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L10.9 5.03" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 0 0 7.07 7.07l1.22-1.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <a id="openLink" class="text-btn" href="#" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Open
+          </a>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Library summary">
+        <div class="stat">
+          <strong id="totalDocs">0</strong>
+          <span>HTML Guides</span>
+        </div>
+        <div class="stat">
+          <strong id="visibleDocs">0</strong>
+          <span>Visible Now</span>
+        </div>
+        <div class="stat">
+          <strong>EN/VN</strong>
+          <span>Language Format</span>
+        </div>
+        <div class="stat">
+          <strong id="selectedCategory">Guide</strong>
+          <span>Selected Topic</span>
+        </div>
+      </section>
+
+      <section class="reader" aria-label="Embedded guide reader">
+        <div class="reader-head">
+          <span id="readerPath">No file selected</span>
+          <span id="copyStatus" aria-live="polite"></span>
+        </div>
+        <iframe id="readerFrame" title="Selected interview guide"></iframe>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const docs = [
+      {
+        id: "java-core",
+        title: "Java Core Basics",
+        summary: "Foundations, OOP basics, language rules, keywords, exceptions, generics, and interview fundamentals.",
+        file: "java_core.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "core", "oop", "generics", "exceptions", "basics"]
+      },
+      {
+        id: "java8-senior-guide",
+        title: "Java 8 Senior Guide",
+        summary: "Senior-focused Java 8 guide covering Stream API, Optional, @Transactional, try-with-resources, HashMap internals, complexity, and practical interview explanations.",
+        file: "java8-senior-guide.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "java 8", "stream api", "optional", "transactional", "try-with-resources", "hashmap", "senior"]
+      },
+      {
+        id: "java-collections",
+        title: "Java Collections Deep Dive",
+        summary: "Collection hierarchy, List, Set, Map, HashMap internals, equals/hashCode, queues, and concurrent collections.",
+        file: "java_collections_deep_dive_en_vn.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "collections", "hashmap", "equals", "hashcode", "concurrent"]
+      },
+      {
+        id: "java-collections-production",
+        title: "Java Collections Internals and Production",
+        summary: "Collections hierarchy, memory cost, ArrayList, LinkedList, HashMap, Set, Map variants, queues, iterators, concurrent collections, immutable views, and senior selection rules.",
+        file: "java-collections-internals-production-en-vn.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "collections", "internals", "production", "arraylist", "hashmap", "concurrenthashmap", "iterator"]
+      },
+      {
+        id: "java-multithreading",
+        title: "Java Multithreading",
+        summary: "Thread basics, race conditions, synchronized, volatile, atomic classes, locks, executors, and CompletableFuture.",
+        file: "java_multithreading_en_vn.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "thread", "concurrency", "executor", "future", "lock"]
+      },
+      {
+        id: "java-multithreading-senior",
+        title: "Java Multithreading Senior Interview",
+        summary: "Senior guide for Java threading, lifecycle, Java Memory Model, race conditions, locks, atomics, executors, virtual threads, Spring concurrency, testing, and production debugging.",
+        file: "java_multithreading_senior_interview.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "multithreading", "senior", "jmm", "race condition", "executor", "virtual threads", "spring"]
+      },
+      {
+        id: "java-multithreading-2026",
+        title: "Java Multithreading 2026 Senior Concepts",
+        summary: "EN/VN deep concept guide for modern senior multithreading interviews, process vs thread, synchronization, visibility, locks, async, reactive, and production patterns.",
+        file: "java-multithreading-2026-senior-deep-concepts-en-vn.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "multithreading", "2026", "senior", "thread", "sync", "async", "reactive"]
+      },
+      {
+        id: "java-sync-async-deep-dive",
+        title: "Java Multithreading, Synchronous and Asynchronous",
+        summary: "Deep dive on multithreading, synchronous execution, asynchronous execution, blocking, non-blocking, CompletableFuture, and senior backend interview scenarios.",
+        file: "java_multithreading_sync_async_senior_interview.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "multithreading", "synchronous", "asynchronous", "blocking", "non-blocking", "completablefuture"]
+      },
+      {
+        id: "senior-sync-async-synchronized",
+        title: "Senior Java: Sync, Async and synchronized",
+        summary: "Focused senior notes on synchronous vs asynchronous processing, synchronized, thread safety, shared state, and practical backend explanation style.",
+        file: "senior_java_sync_async_synchronized.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "sync", "async", "synchronized", "thread safety", "backend"]
+      },
+      {
+        id: "hashmap-internals",
+        title: "HashMap Internals",
+        summary: "HashMap structure, put/get/remove flow, collision handling, resize mechanism, equals/hashCode contract, and thread safety.",
+        file: "hashmap_internal_deep_dive.html",
+        category: "Java",
+        filter: "java",
+        accent: "var(--java)",
+        tags: ["java", "hashmap", "internal", "collision", "resize", "equals", "hashcode"]
+      },
+      {
+        id: "jvm-zero-to-senior",
+        title: "JVM From Zero to Senior",
+        summary: "Easy EN/VN JVM guide covering JDK, JRE, JVM, class loading, runtime memory, stack, heap, object lifecycle, GC, JIT, JMM, errors, and production investigation.",
+        file: "jvm-from-zero-to-senior-easy-en-vn.html",
+        category: "JVM",
+        filter: "jvm",
+        accent: "var(--jvm)",
+        tags: ["jvm", "jdk", "jre", "classloader", "stack", "heap", "gc", "jit", "jmm"]
+      },
+      {
+        id: "java-memory-stack-heap-gc",
+        title: "Java Stack, Heap and Garbage Collection",
+        summary: "Senior EN/VN deep dive into Java stack, heap, JVM memory areas, object layout, allocation, reachability, GC roots, collectors, memory leaks, OOM, and production diagnostics.",
+        file: "java-memory-stack-heap-gc-deep-dive-en-vn.html",
+        category: "JVM",
+        filter: "jvm",
+        accent: "var(--jvm)",
+        tags: ["java", "jvm", "memory", "stack", "heap", "garbage collection", "gc", "oom", "diagnostics"]
+      },
+      {
+        id: "reflection-aop",
+        title: "Java Reflection and Spring AOP",
+        summary: "Reflection APIs, runtime metadata, proxies, join points, advice, Spring AOP internals, and practical examples.",
+        file: "java_reflection_spring_aop_deep_dive_en_vn.html",
+        category: "Java/Spring",
+        filter: "spring",
+        accent: "var(--spring)",
+        tags: ["java", "reflection", "spring", "aop", "proxy", "annotation"]
+      },
+      {
+        id: "spring-boot",
+        title: "Spring and Spring Boot",
+        summary: "Spring IoC, dependency injection, beans, scopes, Boot auto-configuration, profiles, REST, testing, and production basics.",
+        file: "spring_springboot_learning_en_vn.html",
+        category: "Spring",
+        filter: "spring",
+        accent: "var(--spring)",
+        tags: ["spring", "spring boot", "ioc", "bean", "di", "profile", "rest"]
+      },
+      {
+        id: "spring-security",
+        title: "Spring Security Deep Dive",
+        summary: "Security architecture, authentication flow, JWT, OAuth2/OIDC, refresh tokens, authorization, CSRF, CORS, and password security.",
+        file: "spring_security_deep_dive_en_vn.html",
+        category: "Spring",
+        filter: "spring",
+        accent: "var(--spring)",
+        tags: ["spring", "security", "jwt", "oauth2", "csrf", "cors", "auth"]
+      },
+      {
+        id: "oauth2-oidc-jwt-deep-dive",
+        title: "OAuth 2.0, OIDC and JWT Deep Dive",
+        summary: "Security interview guide explaining OAuth authorization, OIDC authentication, tokens, JWT claims/signing/encryption, Authorization Code with PKCE, refresh tokens, and senior caveats.",
+        file: "oauth2-oidc-jwt-deep-dive-interview-guide-v4.html",
+        category: "Spring",
+        filter: "spring",
+        accent: "var(--spring)",
+        tags: ["oauth2", "oidc", "jwt", "security", "authentication", "authorization", "pkce", "refresh token"]
+      },
+      {
+        id: "jpa-hibernate",
+        title: "JPA, Hibernate and Transaction",
+        summary: "JPA, Hibernate fetching, cache levels, application and database layers, ACID, isolation levels, and N+1 query.",
+        file: "jpa_hibernate_transaction_interview_updated.html",
+        category: "DB",
+        filter: "db",
+        accent: "var(--db)",
+        tags: ["jpa", "hibernate", "transaction", "acid", "isolation", "n+1", "cache"]
+      },
+      {
+        id: "advanced-backend",
+        title: "Advanced Backend Concepts",
+        summary: "Backend roadmap, sorting internals, HashMap concepts, B-tree indexes, locking, async programming, WebFlux, and coupling patterns.",
+        file: "advanced_backend_concepts_en_vn.html",
+        category: "Backend",
+        filter: "backend",
+        accent: "var(--backend)",
+        tags: ["backend", "database", "index", "locking", "webflux", "async", "patterns"]
+      },
+      {
+        id: "database-acid-isolation-performance",
+        title: "Database, Transactions, ACID and Performance",
+        summary: "Senior Java guide for database correctness, Spring transaction boundaries, @Transactional special cases, ACID, isolation levels, locking, blocking, deadlocks, indexing, and evidence-based performance tuning.",
+        file: "database-acid-isolation-performance-senior-guide-v2.html",
+        category: "DB",
+        filter: "db",
+        accent: "var(--db)",
+        tags: ["database", "spring transaction", "acid", "isolation", "locking", "deadlock", "index", "performance"]
+      },
+      {
+        id: "composite-index-query-optimization",
+        title: "Composite Index and SQL Query Optimization",
+        summary: "Senior backend guide for B-tree indexes, composite index column order, leftmost-prefix rule, equality vs range columns, covering indexes, selectivity, cardinality, ORDER BY, and query plans.",
+        file: "composite-index-query-optimization-senior-guide.html",
+        category: "DB",
+        filter: "db",
+        accent: "var(--db)",
+        tags: ["database", "sql", "composite index", "query optimization", "b-tree", "leftmost prefix", "covering index", "cardinality"]
+      },
+      {
+        id: "microservice-transaction-management",
+        title: "Microservice Transaction Management",
+        summary: "Senior guide for local transactions, distributed transaction problems, transactional outbox, inbox pattern, idempotent consumers, Saga, compensation, and consistency trade-offs.",
+        file: "microservice-transaction-management-senior-guide.html",
+        category: "Microservice",
+        filter: "microservice",
+        accent: "var(--microservice)",
+        tags: ["microservice", "transaction", "distributed transaction", "outbox", "inbox", "idempotency", "saga", "compensation"]
+      },
+      {
+        id: "dynamic-retry-configuration",
+        title: "Dynamic Retry Configuration in Microservices",
+        summary: "Senior Java guide for dynamic retry counts, production retry design, externalized config, rolling reload, runtime hot reload, backoff, timeout budget, idempotency, and safe operations.",
+        file: "dynamic-retry-configuration-microservices-senior-guide.html",
+        category: "Microservice",
+        filter: "microservice",
+        accent: "var(--microservice)",
+        tags: ["microservice", "retry", "dynamic configuration", "backoff", "timeout", "idempotency", "hot reload", "resilience"]
+      },
+      {
+        id: "kafka-message-queues",
+        title: "Kafka and Message Queues Senior Guide",
+        summary: "Deep dive into Kafka and message queues, mental model, topics, partitions, producers, consumers, offsets, delivery guarantees, retries, DLQ, and senior interview scenarios.",
+        file: "kafka-and-message-queues-senior-guide.html",
+        category: "Kafka",
+        filter: "kafka",
+        accent: "var(--kafka)",
+        tags: ["kafka", "message queue", "producer", "consumer", "offset", "delivery guarantee", "retry", "dlq"]
+      },
+      {
+        id: "java-backend-interview-introduction",
+        title: "Java Backend Interview Introduction",
+        summary: "Prepared self-introduction, biggest challenge answer, recommended full answer, and natural speaking style for Java backend interviews.",
+        file: "java_backend_interview_introduction.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["interview", "introduction", "senior", "java backend", "self introduction", "challenge"]
+      },
+      {
+        id: "senior-java-backend-roadmap",
+        title: "Senior Java Backend Deep Dive",
+        summary: "Senior interview roadmap covering Java threading, Spring, sorting and hashing internals, database indexes, locking, reactive programming, and microservice coupling.",
+        file: "senior_java_backend_deep_dive_interview.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "backend", "threading", "spring", "database", "reactive", "microservice"]
+      },
+      {
+        id: "senior-thread-redis-reactive-collection",
+        title: "Senior Java Backend: Threading, Redis, Reactive, Collection",
+        summary: "Senior add-on topics for thread safety, thread pools, database connection pools, Redis caching patterns, WebFlux, and Java collections.",
+        file: "senior_java_backend_thread_redis_reactive_collection.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "thread safe", "thread pool", "redis", "cache", "reactive", "webflux", "collection"]
+      },
+      {
+        id: "epam-senior-script",
+        title: "EPAM Java Backend Senior Interview Script",
+        summary: "Formatted senior-level answer scripts for coding, technical, pure technical, and techno-managerial interview rounds.",
+        file: "epam_java_backend_interview_senior_script.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "epam", "interview", "coding", "java", "backend", "managerial", "script"]
+      },
+      {
+        id: "senior-study-three-rounds",
+        title: "Senior Java Interview Study: 3 Rounds",
+        summary: "Study website for three senior interview rounds, weak-point review, answer scripts, Java/SQL scripts, raw scripts, and a 7-day practice plan.",
+        file: "interview_rounds_senior_study_v2.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "interview", "three rounds", "study", "java", "sql", "practice"]
+      },
+      {
+        id: "three-rounds-senior-scripts",
+        title: "3 Interview Rounds: Senior Scripts",
+        summary: "Formatted scripts and senior answers for Java Core, Stream API, Collections, Spring Boot, microservices, cloud, DevOps, architecture, DDD, SQL, and coding.",
+        file: "interview_3_rounds_senior_scripts_v4.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "interview", "java core", "stream api", "collections", "spring boot", "microservices", "cloud", "devops", "ddd", "sql"]
+      },
+      {
+        id: "senior-java-natural-answers",
+        title: "Senior Java Interview Answers Natural Style",
+        summary: "Natural senior-style answer bank for Java streams, CRUD APIs, GC, collections, Spring scopes, exception handling, HashMap, transactions, security, Saga, Kafka, SQL, and behavioral questions.",
+        file: "senior_java_interview_answers_natural_style.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "interview answers", "natural style", "spring", "kafka", "sql", "behavioral"]
+      },
+      {
+        id: "senior-java-session-1-2",
+        title: "Senior Java Interview Answers: Session 1 and 2",
+        summary: "Session-based senior Java interview answer sheet with natural explanations, coding topics, Spring Boot, architecture, distributed systems, and production examples.",
+        file: "senior_java_interview_answers_session_1_2.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "interview", "session 1", "session 2", "answers", "spring boot", "architecture"]
+      },
+      {
+        id: "senior-java-interview-9-years",
+        title: "Senior Java Interview: 9 Years Experience",
+        summary: "Senior-level Java interview question bank and answers for Java core, collections, concurrency, Spring Boot, transactions, database, indexing, locking, microservices, Kafka, and architecture.",
+        file: "senior-java-interview-9-years.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "9 years", "interview", "spring boot", "database", "microservices", "kafka", "architecture"]
+      },
+      {
+        id: "senior-java-interview-deep-dive",
+        title: "Senior Java Interview Deep Dive",
+        summary: "Deep-dive interview questions and answers for a 9-year Java backend profile, with senior explanation style and production-oriented reasoning.",
+        file: "senior-java-interview-deep-dive.html",
+        category: "Senior",
+        filter: "senior",
+        accent: "var(--senior)",
+        tags: ["senior", "java", "deep dive", "9 years", "interview", "backend", "production", "answers"]
+      },
+      {
+        id: "senior-behavioral-teamwork-agile",
+        title: "Senior Behavioral, Teamwork and Agile Interview Guide",
+        summary: "Senior guide for behavioral interviews, ownership, accountability, culture fit, teamwork, conflict, communication, feedback, Agile/Scrum, SDLC, ticket workflow, and production working process.",
+        file: "senior_behavioral_teamwork_agile_interview_guide.html",
+        category: "Behavior",
+        filter: "behavior",
+        accent: "var(--behavior)",
+        tags: ["senior", "behavioral", "teamwork", "agile", "scrum", "culture", "conflict", "communication", "sdlc"]
+      },
+      {
+        id: "senior-java-hr-leadership-agile",
+        title: "Senior Java HR, Leadership and Agile Answers",
+        summary: "Senior Java backend answer guide for HR, career motivation, leadership, teamwork, conflict handling, ownership, Agile/Scrum, and real interview speaking style.",
+        file: "senior_java_hr_leadership_agile_interview.html",
+        category: "Behavior",
+        filter: "behavior",
+        accent: "var(--behavior)",
+        tags: ["senior", "java", "hr", "leadership", "agile", "teamwork", "conflict", "career", "behavior"]
+      },
+      {
+        id: "senior-software-engineer-culture-fit",
+        title: "Senior Software Engineer Culture-Fit Interview",
+        summary: "Culture-fit interview guide for senior software engineers, including ownership, collaboration, communication, conflict, team values, and senior behavioral answer structure.",
+        file: "senior_software_engineer_culture_fit_interview.html",
+        category: "Behavior",
+        filter: "behavior",
+        accent: "var(--behavior)",
+        tags: ["senior", "software engineer", "culture fit", "behavior", "teamwork", "communication", "ownership", "collaboration"]
+      },
+      {
+        id: "agile-scrum-master-interview",
+        title: "Agile and Scrum Master Interview Guide",
+        summary: "Agile and Scrum interview guide with senior answer framing, Scrum roles, ceremonies, delivery process, collaboration, and working-process questions.",
+        file: "agile_scrum_master_interview_guide.html",
+        category: "Behavior",
+        filter: "behavior",
+        accent: "var(--behavior)",
+        tags: ["agile", "scrum", "scrum master", "behavior", "teamwork", "delivery", "process", "interview"]
+      },
+      {
+        id: "oop-solid-patterns",
+        title: "OOP, SOLID, Patterns and Architecture",
+        summary: "Object-oriented design, SOLID principles, Java design patterns, architecture patterns, and senior interview answers.",
+        file: "oop_solid_design_patterns_architecture_en_vn.html",
+        category: "Design",
+        filter: "architecture",
+        accent: "#b45309",
+        tags: ["oop", "solid", "design pattern", "architecture", "clean code"]
+      },
+      {
+        id: "java-oop-solid-masterclass",
+        title: "Java OOP, SOLID and Architecture Masterclass",
+        summary: "Masterclass page for OOP, SOLID, design patterns, Java architecture, clean design thinking, and interview-ready explanations.",
+        file: "java_oop_solid_design_patterns_architecture_masterclass.html",
+        category: "Design",
+        filter: "architecture",
+        accent: "#b45309",
+        tags: ["java", "oop", "solid", "design patterns", "architecture", "masterclass"]
+      },
+      {
+        id: "java-design-patterns-senior",
+        title: "Java Design Patterns Senior Deep Dive",
+        summary: "Senior interview guide for design patterns as reusable decisions, principles before patterns, creational, structural, behavioral, enterprise, and application patterns.",
+        file: "java-design-patterns-deep-dive-senior-interview-guide.html",
+        category: "Design",
+        filter: "architecture",
+        accent: "#b45309",
+        tags: ["java", "design patterns", "senior", "creational", "structural", "behavioral", "enterprise patterns"]
+      },
+      {
+        id: "monitoring",
+        title: "Spring Actuator, Prometheus and Grafana",
+        summary: "Actuator, Micrometer, Prometheus, Grafana dashboards, alerts, JVM troubleshooting, latency, CPU, and DB pool checks.",
+        file: "spring_actuator_prometheus_grafana_monitoring_en_vn.html",
+        category: "Ops",
+        filter: "ops",
+        accent: "var(--monitoring)",
+        tags: ["spring", "actuator", "prometheus", "grafana", "monitoring", "jvm", "alert"]
+      },
+      {
+        id: "microservice-devops",
+        title: "Microservice, Cloud, DevOps and Agile",
+        summary: "Microservice fundamentals, advanced topics, cloud, DevOps, CI/CD, SQL migration, Agile/Scrum, and soft skills.",
+        file: "microservice_cloud_devops_agile_deep_dive_en_vn.html",
+        category: "Microservice",
+        filter: "microservice",
+        accent: "var(--microservice)",
+        tags: ["microservice", "cloud", "devops", "ci/cd", "sql migration", "agile", "scrum"]
+      }
+    ];
+
+    const library = document.getElementById("library");
+    const searchInput = document.getElementById("searchInput");
+    const filterButtons = Array.from(document.querySelectorAll(".filter-btn"));
+    const emptyState = document.getElementById("emptyState");
+    const selectedTitle = document.getElementById("selectedTitle");
+    const selectedSummary = document.getElementById("selectedSummary");
+    const selectedCategory = document.getElementById("selectedCategory");
+    const totalDocs = document.getElementById("totalDocs");
+    const visibleDocs = document.getElementById("visibleDocs");
+    const readerFrame = document.getElementById("readerFrame");
+    const readerPath = document.getElementById("readerPath");
+    const openLink = document.getElementById("openLink");
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+    const copyStatus = document.getElementById("copyStatus");
+
+    let activeFilter = "all";
+    let selectedId = "";
+
+    function getInitialDocId() {
+      const hash = window.location.hash.replace("#", "");
+      return docs.some((doc) => doc.id === hash) ? hash : docs[0].id;
+    }
+
+    function matchesSearch(doc, query) {
+      if (!query) {
+        return true;
+      }
+
+      const content = [
+        doc.title,
+        doc.summary,
+        doc.file,
+        doc.category,
+        doc.filter,
+        ...doc.tags
+      ].join(" ").toLowerCase();
+
+      return content.includes(query.toLowerCase());
+    }
+
+    function matchesFilter(doc) {
+      return activeFilter === "all" || doc.filter === activeFilter;
+    }
+
+    function renderLibrary() {
+      const query = searchInput.value.trim();
+      const visible = docs.filter((doc) => matchesFilter(doc) && matchesSearch(doc, query));
+
+      library.innerHTML = visible.map((doc) => `
+        <button class="doc-card ${doc.id === selectedId ? "active" : ""}" type="button" data-id="${doc.id}" style="--accent: ${doc.accent}">
+          <span class="stripe" aria-hidden="true"></span>
+          <span>
+            <strong class="doc-title">${doc.title}</strong>
+            <span class="doc-summary">${doc.summary}</span>
+            <span class="doc-meta">
+              <span>${doc.category}</span>
+              <span>${doc.file}</span>
+            </span>
+          </span>
+        </button>
+      `).join("");
+
+      visibleDocs.textContent = visible.length;
+      emptyState.style.display = visible.length ? "none" : "block";
+
+      Array.from(library.querySelectorAll(".doc-card")).forEach((card) => {
+        card.addEventListener("click", () => selectDoc(card.dataset.id, true));
+      });
+    }
+
+    function selectDoc(id, updateHash) {
+      const doc = docs.find((item) => item.id === id) || docs[0];
+      selectedId = doc.id;
+      selectedTitle.textContent = doc.title;
+      selectedSummary.textContent = doc.summary;
+      selectedCategory.textContent = doc.category;
+      readerPath.textContent = doc.file;
+      readerFrame.src = doc.file;
+      openLink.href = doc.file;
+
+      if (updateHash) {
+        history.replaceState(null, "", `#${doc.id}`);
+      }
+
+      copyStatus.textContent = "";
+      renderLibrary();
+    }
+
+    function copySelectedLink() {
+      const url = new URL(window.location.href);
+      url.hash = selectedId;
+
+      const copyWithFallback = () => {
+        const textArea = document.createElement("textarea");
+        textArea.value = url.toString();
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        const copied = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        return copied ? Promise.resolve() : Promise.reject(new Error("copy failed"));
+      };
+
+      const copyAction = navigator.clipboard
+        ? navigator.clipboard.writeText(url.toString())
+        : copyWithFallback();
+
+      copyAction.catch(copyWithFallback).then(() => {
+        copyStatus.textContent = "Copied";
+        setTimeout(() => {
+          copyStatus.textContent = "";
+        }, 1800);
+      }).catch(() => {
+        copyStatus.textContent = "Copy unavailable";
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.filter;
+        filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+        renderLibrary();
+      });
+    });
+
+    searchInput.addEventListener("input", renderLibrary);
+    copyLinkBtn.addEventListener("click", copySelectedLink);
+    window.addEventListener("hashchange", () => selectDoc(getInitialDocId(), false));
+
+    totalDocs.textContent = docs.length;
+    selectDoc(getInitialDocId(), false);
+  </script>
+</body>
+</html>

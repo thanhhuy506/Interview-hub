@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java OOP, SOLID, Design Patterns & Architecture Masterclass</title>
+  <style>
+    :root{
+      --bg:#f3f6fb;--surface:#fff;--surface2:#eef3f9;--text:#172033;--muted:#66728a;
+      --primary:#2563eb;--secondary:#0f766e;--border:#d8e1ec;--code:#0f172a;--codeText:#e5edf8;
+      --warn:#b45309;--good:#047857;--danger:#b91c1c;--shadow:0 10px 30px rgba(23,32,51,.08)
+    }
+    body.dark{
+      --bg:#0b1220;--surface:#111a2b;--surface2:#172238;--text:#edf4ff;--muted:#aab7cb;
+      --primary:#60a5fa;--secondary:#5eead4;--border:#2a3952;--code:#050914;--codeText:#dbeafe;
+      --warn:#fbbf24;--good:#34d399;--danger:#f87171;--shadow:0 12px 34px rgba(0,0,0,.25)
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.72}
+    .layout{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+    aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--surface);border-right:1px solid var(--border);padding:22px 16px}
+    .brand{font-weight:900;font-size:1.1rem;line-height:1.4;margin-bottom:16px}
+    .brand span{color:var(--primary)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    button{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:800}
+    nav a{display:block;text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:9px;margin:2px 0;font-size:.93rem}
+    nav a:hover,nav a.active{background:var(--surface2);color:var(--primary)}
+    main{max-width:1180px;width:100%;margin:auto;padding:38px 42px 80px}
+    .hero{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);box-shadow:var(--shadow);border-radius:24px;padding:34px;margin-bottom:30px}
+    h1{font-size:clamp(2rem,4vw,3.3rem);line-height:1.15;margin:8px 0 16px}
+    h2{font-size:2rem;margin-top:0} h3{margin-top:26px}
+    .lead{font-size:1.08rem;color:var(--muted);max-width:940px}
+    .eyebrow{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);font-weight:900}
+    section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;margin:26px 0;box-shadow:var(--shadow)}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .card{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:18px}
+    .card h3,.card h4{margin-top:0}
+    .note{border-left:4px solid var(--primary);background:var(--surface2);padding:14px 16px;border-radius:10px;margin:16px 0}
+    .senior{border-left-color:var(--secondary)} .warning{border-left-color:var(--warn)} .danger{border-left-color:var(--danger)}
+    pre{overflow:auto;background:var(--code);color:var(--codeText);padding:18px;border-radius:14px;line-height:1.55}
+    code{font-family:Consolas,"SFMono-Regular",monospace}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.95rem}
+    th,td{border:1px solid var(--border);padding:12px;text-align:left;vertical-align:top}
+    th{background:var(--surface2)}
+    details{border:1px solid var(--border);border-radius:14px;margin:12px 0;overflow:hidden}
+    summary{cursor:pointer;background:var(--surface2);padding:15px 17px;font-weight:900}
+    details>div{padding:17px}
+    .tag{display:inline-block;padding:4px 9px;border-radius:99px;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary);font-size:.75rem;font-weight:900;margin:3px}
+    .flow{font-family:Consolas,monospace;background:var(--code);color:var(--codeText);padding:18px;border-radius:14px;white-space:pre-wrap}
+    .compare strong{color:var(--primary)}
+    .qa h4{margin-bottom:6px}
+    .small{font-size:.9rem}.muted{color:var(--muted)} .good{color:var(--good);font-weight:900}
+    ul li,ol li{margin:7px 0}
+    .tocbox{background:var(--surface2);padding:16px;border-radius:14px;border:1px solid var(--border)}
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr} aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}
+      nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))} main{padding:22px 16px 60px}
+      .grid,.grid3{grid-template-columns:1fr} section{padding:20px}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Java <span>Design Masterclass</span><br><span class="small muted">OOP · SOLID · Patterns · Architecture</span></div>
+  <div class="controls">
+    <button id="themeBtn">🌙 Theme</button>
+    <button id="expandBtn">Expand all</button>
+  </div>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#oop">1. OOP</a>
+    <a href="#encapsulation">1.1 Encapsulation</a>
+    <a href="#abstraction">1.2 Abstraction</a>
+    <a href="#inheritance">1.3 Inheritance</a>
+    <a href="#polymorphism">1.4 Polymorphism</a>
+    <a href="#composition">1.5 Composition</a>
+    <a href="#solid">2. SOLID</a>
+    <a href="#patterns">3. Design Patterns</a>
+    <a href="#creational">3.1 Creational</a>
+    <a href="#structural">3.2 Structural</a>
+    <a href="#behavioral">3.3 Behavioral</a>
+    <a href="#springpatterns">3.4 Patterns in Spring</a>
+    <a href="#architecture">4. Architecture</a>
+    <a href="#layered">4.1 Layered</a>
+    <a href="#hexagonal">4.2 Hexagonal</a>
+    <a href="#clean">4.3 Clean</a>
+    <a href="#ddd">4.4 DDD</a>
+    <a href="#modular">4.5 Modular Monolith</a>
+    <a href="#microservices">4.6 Microservices</a>
+    <a href="#decision">5. How to Choose</a>
+    <a href="#interview">6. Interview Q&A</a>
+  </nav>
+</aside>
+
+<main>
+<div class="hero" id="overview">
+  <div class="eyebrow">Senior Java Learning Website</div>
+  <h1>OOP, SOLID, Design Patterns & Java Architecture</h1>
+  <p class="lead">
+    This website explains each topic in clear English. Difficult technical terms include Vietnamese meaning.
+    Each section covers the concept, why it exists, how it works, when to use it, when not to use it,
+    trade-offs (sự đánh đổi), common mistakes, real code, production examples, and senior interview answers.
+  </p>
+  <span class="tag">Java</span><span class="tag">Spring Boot</span><span class="tag">System Design</span><span class="tag">Senior Interview</span>
+  <div class="tocbox" style="margin-top:20px">
+    <strong>How to study:</strong>
+    <ol>
+      <li>Read the concept first.</li>
+      <li>Study the bad example.</li>
+      <li>Study the improved design.</li>
+      <li>Read the trade-off section.</li>
+      <li>Practice the interview answer aloud.</li>
+    </ol>
+  </div>
+</div>
+
+<section id="oop">
+<h2>1. Object-Oriented Programming — OOP (lập trình hướng đối tượng)</h2>
+<p>
+OOP is a way to design software around objects. An object has state (trạng thái) and behavior (hành vi).
+The real purpose of OOP is not only to put code inside classes. Its main purpose is to protect business rules,
+reduce coupling (mức độ phụ thuộc), and make change safer.
+</p>
+<div class="flow">Business problem
+     ↓
+Create domain objects
+     ↓
+Put data + behavior together
+     ↓
+Protect rules inside the object
+     ↓
+Reduce incorrect usage from outside</div>
+<div class="note senior">
+<strong>Senior view:</strong> Good OOP is about protecting invariants (quy tắc luôn phải đúng), not about creating many classes.
+</div>
+</section>
+
+<section id="encapsulation">
+<h2>1.1 Encapsulation (đóng gói)</h2>
+<p><strong>Meaning:</strong> Hide internal data and allow access only through safe methods.</p>
+<p><strong>Why it exists:</strong> Without encapsulation, any code can change object state and break business rules.</p>
+
+<h3>Bad example</h3>
+<pre><code>public class BankAccount {
+    public BigDecimal balance;
+}
+
+// Anywhere in the system:
+account.balance = new BigDecimal("-1000000");</code></pre>
+<p>The object can enter an invalid state.</p>
+
+<h3>Good example</h3>
+<pre><code>public class BankAccount {
+    private BigDecimal balance;
+
+    public BankAccount(BigDecimal openingBalance) {
+        if (openingBalance.signum() &lt; 0) {
+            throw new IllegalArgumentException("Opening balance cannot be negative");
+        }
+        this.balance = openingBalance;
+    }
+
+    public void withdraw(BigDecimal amount) {
+        if (amount == null || amount.signum() &lt;= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        if (balance.compareTo(amount) &lt; 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
+        balance = balance.subtract(amount);
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+}</code></pre>
+
+<h3>How it works</h3>
+<ol>
+  <li>The field is <code>private</code>.</li>
+  <li>Outside code cannot change it directly.</li>
+  <li>All changes must go through methods.</li>
+  <li>The method checks business rules.</li>
+  <li>The object always stays valid.</li>
+</ol>
+
+<div class="grid">
+<div class="card"><h3>Use when</h3><ul><li>Object has business rules.</li><li>State must be protected.</li><li>You want easier testing.</li></ul></div>
+<div class="card"><h3>Do not misunderstand</h3><ul><li>Encapsulation is not only getters and setters.</li><li>A setter for every field may still expose too much.</li><li>Prefer business methods such as <code>activate()</code>, <code>cancel()</code>, <code>withdraw()</code>.</li></ul></div>
+</div>
+
+<div class="note warning">
+<strong>Common mistake:</strong> Using Lombok <code>@Data</code> on domain entities may generate setters for all fields and break encapsulation.
+</div>
+
+<details>
+<summary>Interview question: What is encapsulation?</summary>
+<div class="qa">
+<p><strong>Senior answer:</strong></p>
+<p>
+“Encapsulation means an object protects its own state and exposes only safe operations. In real projects,
+I do not create setters for every field. I prefer business methods such as cancelOrder or approvePayment,
+because these methods can enforce rules. This reduces invalid state and makes the domain model easier to maintain.”
+</p>
+</div>
+</details>
+</section>
+
+<section id="abstraction">
+<h2>1.2 Abstraction (trừu tượng)</h2>
+<p><strong>Meaning:</strong> Show what a component can do, but hide how it does it.</p>
+<pre><code>public interface PaymentGateway {
+    PaymentResult charge(PaymentRequest request);
+}</code></pre>
+<p>The service only knows it can charge a payment. It does not need to know the vendor API details.</p>
+
+<h3>Real project example</h3>
+<div class="flow">CheckoutService
+     ↓
+PaymentGateway interface
+     ↓
+StripeGateway / PaypalGateway / BankGateway</div>
+
+<pre><code>@Service
+public class CheckoutService {
+    private final PaymentGateway paymentGateway;
+
+    public CheckoutService(PaymentGateway paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+
+    public PaymentResult checkout(PaymentRequest request) {
+        return paymentGateway.charge(request);
+    }
+}</code></pre>
+
+<div class="note">
+<strong>Why useful:</strong> You can replace the payment provider without changing the core checkout flow.
+</div>
+
+<table>
+<tr><th>Abstraction</th><th>Encapsulation</th></tr>
+<tr><td>Hides implementation detail.</td><td>Protects internal state.</td></tr>
+<tr><td>Focuses on “what”.</td><td>Focuses on “safe access”.</td></tr>
+<tr><td>Often uses interfaces or abstract classes.</td><td>Often uses private fields and controlled methods.</td></tr>
+</table>
+
+<details>
+<summary>Interview question: Abstraction vs Encapsulation?</summary>
+<div>
+<p><strong>Senior answer:</strong></p>
+<p>
+“Abstraction hides complexity and exposes a stable contract. Encapsulation protects object state.
+For example, PaymentGateway is abstraction because callers do not know the provider details.
+BankAccount is encapsulation because its balance can only change through valid business methods.”
+</p>
+</div>
+</details>
+</section>
+
+<section id="inheritance">
+<h2>1.3 Inheritance (kế thừa)</h2>
+<p>Inheritance means one class extends another class and receives its behavior.</p>
+<pre><code>class Employee {
+    void work() {}
+}
+
+class Developer extends Employee {
+    void writeCode() {}
+}</code></pre>
+
+<h3>Main risk</h3>
+<p>Inheritance creates strong coupling. The child depends on the parent design.</p>
+
+<div class="note danger">
+<strong>Bad inheritance:</strong> If the child cannot fully follow the parent contract, the design may break Liskov Substitution Principle.
+</div>
+
+<pre><code>class Bird {
+    void fly() {}
+}
+
+class Penguin extends Bird {
+    @Override
+    void fly() {
+        throw new UnsupportedOperationException();
+    }
+}</code></pre>
+
+<p>Penguin is a bird in real life, but not every real-world relationship should become inheritance in code.</p>
+
+<h3>When to use</h3>
+<ul>
+<li>There is a real and stable “is-a” relationship.</li>
+<li>The child can follow all parent behavior.</li>
+<li>The base behavior is truly shared.</li>
+</ul>
+
+<h3>When not to use</h3>
+<ul>
+<li>You only want code reuse.</li>
+<li>The hierarchy changes often.</li>
+<li>The child needs to disable parent methods.</li>
+</ul>
+
+<details>
+<summary>Interview question: Why prefer composition over inheritance?</summary>
+<div>
+<p><strong>Senior answer:</strong></p>
+<p>
+“Inheritance creates tight coupling and a fixed hierarchy. Composition is more flexible because I can replace or combine behaviors.
+I use inheritance only when there is a stable is-a relationship and the subtype can fully follow the parent contract.”
+</p>
+</div>
+</details>
+</section>
+
+<section id="polymorphism">
+<h2>1.4 Polymorphism (đa hình)</h2>
+<p>Polymorphism allows different implementations to be used through the same type.</p>
+<pre><code>public interface NotificationSender {
+    void send(String message);
+}
+
+public class EmailSender implements NotificationSender {
+    public void send(String message) {
+        System.out.println("Send email: " + message);
+    }
+}
+
+public class SmsSender implements NotificationSender {
+    public void send(String message) {
+        System.out.println("Send SMS: " + message);
+    }
+}</code></pre>
+
+<pre><code>List&lt;NotificationSender&gt; senders =
+        List.of(new EmailSender(), new SmsSender());
+
+for (NotificationSender sender : senders) {
+    sender.send("Order completed");
+}</code></pre>
+
+<p>The same method call produces different behavior based on the real object.</p>
+
+<div class="note senior">
+<strong>Production value:</strong> Polymorphism removes large if-else chains and makes extension easier.
+</div>
+</section>
+
+<section id="composition">
+<h2>1.5 Composition (kết hợp đối tượng)</h2>
+<p>Composition means a class uses other objects to build behavior.</p>
+<pre><code>class OrderService {
+    private final PaymentGateway paymentGateway;
+    private final OrderRepository orderRepository;
+    private final NotificationSender notificationSender;
+}</code></pre>
+
+<p>This is more flexible than extending one large base class.</p>
+
+<table>
+<tr><th>Inheritance</th><th>Composition</th></tr>
+<tr><td>Strong relationship.</td><td>Flexible relationship.</td></tr>
+<tr><td>Compile-time hierarchy.</td><td>Can replace behavior.</td></tr>
+<tr><td>Harder to test.</td><td>Easier to mock and test.</td></tr>
+<tr><td>Risk of fragile base class.</td><td>Better separation of responsibility.</td></tr>
+</table>
+</section>
+
+<section id="solid">
+<h2>2. SOLID Principles</h2>
+<p>SOLID is a group of design guidelines that help code become easier to change, test, and maintain.</p>
+
+<details open>
+<summary>S — Single Responsibility Principle</summary>
+<div>
+<p>A class should have one main reason to change.</p>
+<pre><code>// Bad
+class OrderService {
+    void validate() {}
+    void saveToDatabase() {}
+    void sendEmail() {}
+    void createPdf() {}
+}</code></pre>
+<pre><code>// Better
+class OrderValidator {}
+class OrderRepository {}
+class OrderNotifier {}
+class InvoiceGenerator {}
+class OrderApplicationService {}</code></pre>
+<p><strong>Do not overdo it:</strong> One method per class is not always good design.</p>
+<p><strong>Senior answer:</strong> “I use SRP based on business responsibility, not method count. If validation, persistence, and notification change for different reasons, I separate them.”</p>
+</div>
+</details>
+
+<details>
+<summary>O — Open/Closed Principle</summary>
+<div>
+<p>Open for extension, closed for modification.</p>
+<pre><code>interface DiscountPolicy {
+    BigDecimal apply(Order order);
+}
+
+class VipDiscount implements DiscountPolicy {}
+class SeasonalDiscount implements DiscountPolicy {}</code></pre>
+<p>New discount rules can be added without changing old rules.</p>
+<div class="note warning"><strong>Pitfall:</strong> Do not create abstractions before variation exists.</div>
+<p><strong>Senior answer:</strong> “I apply OCP around real change points, such as payment providers or pricing rules. I avoid adding interfaces for stable code because that creates unnecessary complexity.”</p>
+</div>
+</details>
+
+<details>
+<summary>L — Liskov Substitution Principle</summary>
+<div>
+<p>A child type must safely replace its parent type.</p>
+<pre><code>interface WritableFile {
+    void write(String data);
+}
+
+interface ReadableFile {
+    String read();
+}</code></pre>
+<p>Split contracts when not every subtype supports all behavior.</p>
+<p><strong>Senior answer:</strong> “A subtype should not surprise the caller. If it throws unsupported exceptions for normal parent behavior, the abstraction is probably wrong.”</p>
+</div>
+</details>
+
+<details>
+<summary>I — Interface Segregation Principle</summary>
+<div>
+<p>Clients should not depend on methods they do not use.</p>
+<pre><code>interface Printer { void print(); }
+interface Scanner { void scan(); }
+interface Fax { void fax(); }</code></pre>
+<p><strong>Senior answer:</strong> “I prefer small role-based interfaces. This reduces fake methods and makes implementations and tests clearer.”</p>
+</div>
+</details>
+
+<details>
+<summary>D — Dependency Inversion Principle</summary>
+<div>
+<p>High-level business logic should depend on abstractions, not vendor or infrastructure details.</p>
+<pre><code>class PaymentService {
+    private final PaymentGateway gateway;
+
+    PaymentService(PaymentGateway gateway) {
+        this.gateway = gateway;
+    }
+}</code></pre>
+<p>Spring DI helps inject dependencies, but DI is not automatically good architecture.</p>
+<p><strong>Senior answer:</strong> “I put interfaces around unstable infrastructure or business variation. The application service depends on a contract, and adapters implement that contract.”</p>
+</div>
+</details>
+</section>
+
+<section id="patterns">
+<h2>3. Design Patterns</h2>
+<p>
+A design pattern is a reusable design idea. It is not a fixed code template.
+Use a pattern only when it solves a real problem.
+</p>
+<table>
+<tr><th>Group</th><th>Goal</th><th>Examples</th></tr>
+<tr><td>Creational</td><td>Control object creation.</td><td>Factory, Builder, Singleton, Prototype</td></tr>
+<tr><td>Structural</td><td>Combine classes and objects.</td><td>Adapter, Decorator, Facade, Proxy</td></tr>
+<tr><td>Behavioral</td><td>Organize behavior and communication.</td><td>Strategy, Observer, Template Method, Chain</td></tr>
+</table>
+</section>
+
+<section id="creational">
+<h2>3.1 Creational Patterns</h2>
+
+<h3>Factory Pattern</h3>
+<p><strong>Problem:</strong> Client code knows too much about object creation.</p>
+<pre><code>public class PaymentProcessorFactory {
+    public static PaymentProcessor create(PaymentType type) {
+        return switch (type) {
+            case CARD -&gt; new CardProcessor();
+            case BANK_TRANSFER -&gt; new BankTransferProcessor();
+            case WALLET -&gt; new WalletProcessor();
+        };
+    }
+}</code></pre>
+<div class="flow">Client
+  ↓ asks for type
+Factory
+  ↓ creates correct object
+Concrete implementation</div>
+<p><strong>Use when:</strong> Object creation depends on runtime input.</p>
+<p><strong>Avoid when:</strong> Constructor injection is already simple enough.</p>
+
+<h3>Builder Pattern</h3>
+<p>Builder helps create complex or immutable objects.</p>
+<pre><code>Customer customer = Customer.builder()
+    .name("Huy")
+    .email("huy@example.com")
+    .active(true)
+    .build();</code></pre>
+<p><strong>Benefit:</strong> Clearer than a constructor with many parameters.</p>
+<p><strong>Pitfall:</strong> Do not use Builder for simple objects with two fields.</p>
+
+<h3>Singleton Pattern</h3>
+<p>Singleton gives one shared instance.</p>
+<p>Spring beans are singleton-scoped by default.</p>
+<div class="note danger">
+<strong>Important:</strong> Singleton does not mean thread-safe. Mutable fields inside a singleton bean may cause race conditions.
+</div>
+
+<details>
+<summary>Interview: Factory vs Builder?</summary>
+<div>
+<p><strong>Answer:</strong> Factory chooses which object to create. Builder controls how a complex object is built step by step.</p>
+</div>
+</details>
+</section>
+
+<section id="structural">
+<h2>3.2 Structural Patterns</h2>
+<div class="grid">
+<div class="card">
+<h3>Adapter</h3>
+<p>Converts one interface into another expected interface.</p>
+<pre><code>class StripeAdapter implements PaymentGateway {
+    private final StripeClient client;
+
+    public PaymentResult charge(PaymentRequest request) {
+        StripeResponse response = client.pay(...);
+        return map(response);
+    }
+}</code></pre>
+<p><strong>Real use:</strong> Wrap third-party SDKs.</p>
+</div>
+<div class="card">
+<h3>Facade</h3>
+<p>Provides one simple entry point over many services.</p>
+<pre><code>class CheckoutFacade {
+    void checkout() {
+        inventory.reserve();
+        payment.charge();
+        order.create();
+        notification.send();
+    }
+}</code></pre>
+<p><strong>Use:</strong> Simplify complex workflows.</p>
+</div>
+<div class="card">
+<h3>Decorator</h3>
+<p>Adds behavior without changing the original class.</p>
+<p><strong>Examples:</strong> logging, metrics, retry, caching.</p>
+</div>
+<div class="card">
+<h3>Proxy</h3>
+<p>Controls access to another object.</p>
+<p><strong>Spring examples:</strong> <code>@Transactional</code>, <code>@Cacheable</code>, Spring AOP.</p>
+</div>
+</div>
+
+<details>
+<summary>Interview: Adapter vs Facade?</summary>
+<div>
+<p>
+<strong>Adapter</strong> changes an interface so two incompatible parts can work together.
+<strong>Facade</strong> gives a simpler interface over a complex subsystem.
+</p>
+</div>
+</details>
+</section>
+
+<section id="behavioral">
+<h2>3.3 Behavioral Patterns</h2>
+
+<h3>Strategy Pattern</h3>
+<p><strong>Problem:</strong> Large if-else logic for different algorithms.</p>
+<pre><code>interface ShippingStrategy {
+    BigDecimal calculate(Order order);
+}
+
+class StandardShipping implements ShippingStrategy {}
+class ExpressShipping implements ShippingStrategy {}</code></pre>
+
+<h3>Spring Strategy Example</h3>
+<pre><code>@Component("STANDARD")
+class StandardShipping implements ShippingStrategy {}
+
+@Component("EXPRESS")
+class ExpressShipping implements ShippingStrategy {}
+
+@Service
+class ShippingService {
+    private final Map&lt;String, ShippingStrategy&gt; strategies;
+
+    ShippingService(Map&lt;String, ShippingStrategy&gt; strategies) {
+        this.strategies = strategies;
+    }
+
+    BigDecimal calculate(String type, Order order) {
+        ShippingStrategy strategy = strategies.get(type);
+        if (strategy == null) {
+            throw new IllegalArgumentException("Unsupported shipping type");
+        }
+        return strategy.calculate(order);
+    }
+}</code></pre>
+
+<p>Spring injects all implementations into the map.</p>
+
+<h3>Observer Pattern</h3>
+<p>One component publishes an event. Other components react.</p>
+<pre><code>applicationEventPublisher.publishEvent(
+    new OrderCompletedEvent(orderId)
+);</code></pre>
+<p><strong>Real use:</strong> Email, audit log, analytics, Kafka event.</p>
+<p><strong>Risks:</strong> Hidden flow, duplicate events, ordering, retry, eventual consistency (nhất quán cuối cùng).</p>
+
+<h3>Chain of Responsibility</h3>
+<p>A request goes through many handlers.</p>
+<div class="flow">Request
+  ↓
+Authentication Filter
+  ↓
+Authorization Filter
+  ↓
+Validation Filter
+  ↓
+Controller</div>
+<p><strong>Real examples:</strong> Servlet Filter, Spring Security filter chain.</p>
+
+<details>
+<summary>Interview: Strategy vs State?</summary>
+<div>
+<p>
+Strategy selects an algorithm from outside. State changes object behavior based on its current internal state.
+They can look similar in code, but the purpose is different.
+</p>
+</div>
+</details>
+</section>
+
+<section id="springpatterns">
+<h2>3.4 Design Patterns Used in Spring</h2>
+<table>
+<tr><th>Pattern</th><th>Spring Example</th><th>Purpose</th></tr>
+<tr><td>Singleton</td><td>Default bean scope</td><td>Reuse one bean instance</td></tr>
+<tr><td>Factory</td><td>BeanFactory, ApplicationContext</td><td>Create and manage beans</td></tr>
+<tr><td>Proxy</td><td>@Transactional, @Cacheable</td><td>Method interception</td></tr>
+<tr><td>Template Method</td><td>JdbcTemplate, RestTemplate</td><td>Fix common process, customize steps</td></tr>
+<tr><td>Strategy</td><td>Multiple interface implementations</td><td>Choose behavior</td></tr>
+<tr><td>Observer</td><td>ApplicationEventPublisher</td><td>Event handling</td></tr>
+<tr><td>Adapter</td><td>HandlerAdapter</td><td>Support different handler types</td></tr>
+</table>
+</section>
+
+<section id="architecture">
+<h2>4. Java Architecture Styles</h2>
+<p>
+Architecture defines boundaries, dependency direction, deployment style, and where business rules live.
+</p>
+</section>
+
+<section id="layered">
+<h2>4.1 Layered Architecture</h2>
+<div class="flow">Controller
+   ↓
+Service
+   ↓
+Repository
+   ↓
+Database</div>
+<p><strong>Good for:</strong> CRUD systems, small to medium projects, simple business logic.</p>
+<p><strong>Weakness:</strong> Service classes may become very large and domain logic may become weak.</p>
+
+<pre><code>@RestController
+class OrderController {
+    private final OrderService orderService;
+}
+
+@Service
+class OrderService {
+    private final OrderRepository orderRepository;
+}
+
+@Repository
+interface OrderRepository extends JpaRepository&lt;OrderEntity, Long&gt; {}</code></pre>
+
+<details>
+<summary>Interview: When is Layered Architecture enough?</summary>
+<div>
+<p>
+“It is enough when the system is mainly CRUD, the domain is simple, and the team benefits more from simplicity than from extra abstraction.”
+</p>
+</div>
+</details>
+</section>
+
+<section id="hexagonal">
+<h2>4.2 Hexagonal Architecture — Ports and Adapters</h2>
+<div class="flow">REST Adapter
+    ↓
+Input Port
+    ↓
+Application Core
+    ↓
+Output Port
+   ↙       ↘
+DB Adapter  Kafka Adapter</div>
+
+<p><strong>Port:</strong> Interface defined by the core.</p>
+<p><strong>Adapter:</strong> Infrastructure implementation of that interface.</p>
+
+<pre><code>// Core
+public interface OrderRepositoryPort {
+    Order save(Order order);
+}
+
+// Infrastructure
+@Repository
+class JpaOrderRepositoryAdapter implements OrderRepositoryPort {
+    private final SpringDataOrderRepository repository;
+}</code></pre>
+
+<p><strong>Use when:</strong> Many integrations, strong testing need, long-term domain complexity.</p>
+<p><strong>Cost:</strong> More interfaces, mapping, packages, and learning effort.</p>
+</section>
+
+<section id="clean">
+<h2>4.3 Clean Architecture</h2>
+<table>
+<tr><th>Layer</th><th>Role</th></tr>
+<tr><td>Entities</td><td>Core business rules</td></tr>
+<tr><td>Use Cases</td><td>Application workflows</td></tr>
+<tr><td>Interface Adapters</td><td>Controllers, presenters, gateways</td></tr>
+<tr><td>Frameworks</td><td>Spring, database, messaging</td></tr>
+</table>
+<p>Dependencies point inward.</p>
+<div class="note senior">
+The business core should not depend directly on Spring annotations, JPA entities, or Kafka classes.
+</div>
+</section>
+
+<section id="ddd">
+<h2>4.4 Domain-Driven Design — DDD (thiết kế hướng miền nghiệp vụ)</h2>
+<div class="grid3">
+<div class="card"><h3>Entity</h3><p>Has identity and lifecycle.</p></div>
+<div class="card"><h3>Value Object</h3><p>Immutable, compared by value.</p></div>
+<div class="card"><h3>Aggregate</h3><p>Consistency boundary.</p></div>
+<div class="card"><h3>Aggregate Root</h3><p>Main entry point of aggregate.</p></div>
+<div class="card"><h3>Domain Service</h3><p>Business logic not owned by one entity.</p></div>
+<div class="card"><h3>Bounded Context</h3><p>Boundary where one model and language are valid.</p></div>
+</div>
+
+<h3>Example: Order Aggregate</h3>
+<pre><code>public class Order {
+    private final OrderId id;
+    private final List&lt;OrderItem&gt; items;
+    private OrderStatus status;
+
+    public void cancel() {
+        if (status == OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Shipped order cannot be cancelled");
+        }
+        status = OrderStatus.CANCELLED;
+    }
+}</code></pre>
+
+<div class="note warning">
+DDD is not only creating a “domain” folder. It requires business language, clear rules, and clear boundaries.
+</div>
+</section>
+
+<section id="modular">
+<h2>4.5 Modular Monolith</h2>
+<p>A modular monolith is one deployable application with strong internal module boundaries.</p>
+<div class="flow">Single Application
+ ├── Order Module
+ ├── Payment Module
+ ├── Customer Module
+ └── Notification Module</div>
+
+<p><strong>Advantages:</strong> Simple deployment, easy local development, no network calls between modules.</p>
+<p><strong>Use when:</strong> Small to medium team, domain still changing, microservices are not required yet.</p>
+<p><strong>Risk:</strong> If boundaries are weak, it becomes a large monolith.</p>
+</section>
+
+<section id="microservices">
+<h2>4.6 Microservices Architecture</h2>
+<p>Microservices split the system into independently deployable services.</p>
+<table>
+<tr><th>Benefit</th><th>Cost</th></tr>
+<tr><td>Independent deployment</td><td>Distributed transactions</td></tr>
+<tr><td>Independent scaling</td><td>Network failure</td></tr>
+<tr><td>Team ownership</td><td>Observability complexity</td></tr>
+<tr><td>Fault isolation</td><td>Retry and duplicate processing</td></tr>
+</table>
+
+<div class="note senior">
+<strong>Senior rule:</strong> Start with modular monolith unless independent deployment, scaling, ownership, or compliance clearly needs microservices.
+</div>
+
+<details>
+<summary>Interview: Why not always use microservices?</summary>
+<div>
+<p>
+“Microservices solve organizational and scaling problems, but they create distributed system problems.
+For a small team or simple domain, a modular monolith is usually easier, cheaper, and safer.”
+</p>
+</div>
+</details>
+</section>
+
+<section id="decision">
+<h2>5. How a Senior Chooses the Design</h2>
+<table>
+<tr><th>Situation</th><th>Good Choice</th></tr>
+<tr><td>Simple CRUD</td><td>Layered Architecture</td></tr>
+<tr><td>Many external systems</td><td>Hexagonal Architecture</td></tr>
+<tr><td>Complex domain rules</td><td>DDD + Clean/Hexagonal</td></tr>
+<tr><td>Small team, changing domain</td><td>Modular Monolith</td></tr>
+<tr><td>Many teams, independent deployment</td><td>Microservices</td></tr>
+</table>
+
+<h3>Senior decision checklist</h3>
+<ul>
+<li>What changes most often?</li>
+<li>Where are the business rules?</li>
+<li>Which parts need independent deployment?</li>
+<li>What consistency level is required?</li>
+<li>Can the team operate distributed systems?</li>
+<li>Does abstraction reduce complexity or only move it?</li>
+</ul>
+</section>
+
+<section id="interview">
+<h2>6. Common Senior Interview Questions and Strong Answers</h2>
+
+<details open>
+<summary>1. What is OOP?</summary>
+<div><p>
+“OOP organizes software around objects that own state and behavior. In real systems, I use OOP mainly to protect business rules,
+reduce coupling, and make change safer. I prefer composition, clear interfaces, and domain methods over deep inheritance.”
+</p></div>
+</details>
+
+<details>
+<summary>2. What are the four pillars of OOP?</summary>
+<div><p>
+“They are encapsulation, abstraction, inheritance, and polymorphism. Encapsulation protects state.
+Abstraction hides complexity. Inheritance reuses behavior through an is-a relationship.
+Polymorphism allows different implementations through the same contract.”
+</p></div>
+</details>
+
+<details>
+<summary>3. Can we achieve encapsulation without abstraction?</summary>
+<div><p>
+“Yes. A class can keep fields private and expose safe methods without using an interface.
+Encapsulation protects state, while abstraction hides implementation detail. They often work together, but they are different ideas.”
+</p></div>
+</details>
+
+<details>
+<summary>4. Why is composition better than inheritance?</summary>
+<div><p>
+“Composition is more flexible and creates lower coupling. I can replace dependencies, test them independently, and combine behaviors.
+Inheritance is useful only when the subtype fully follows the parent contract.”
+</p></div>
+</details>
+
+<details>
+<summary>5. Explain SOLID with a real example.</summary>
+<div><p>
+“In a payment system, SRP separates payment logic, persistence, and notification.
+OCP allows adding a new provider without changing the main payment flow.
+LSP ensures each provider follows the same contract.
+ISP keeps interfaces small.
+DIP makes the service depend on PaymentGateway instead of a vendor SDK.”
+</p></div>
+</details>
+
+<details>
+<summary>6. Can violating OCP ever be acceptable?</summary>
+<div><p>
+“Yes. For simple, stable, or temporary code, direct modification may be cheaper than adding abstraction.
+I apply OCP when I see real variation or repeated change, not before.”
+</p></div>
+</details>
+
+<details>
+<summary>7. Which design patterns do you use most in Spring?</summary>
+<div><p>
+“I often use Strategy for business rules, Adapter for external systems, Facade for workflows,
+Builder for immutable objects, Proxy through Spring AOP, and Chain of Responsibility for filters.”
+</p></div>
+</details>
+
+<details>
+<summary>8. Strategy vs Factory?</summary>
+<div><p>
+“Factory decides which object to create. Strategy decides which behavior or algorithm to execute.
+They are often used together.”
+</p></div>
+</details>
+
+<details>
+<summary>9. Adapter vs Facade?</summary>
+<div><p>
+“Adapter makes incompatible interfaces work together.
+Facade gives a simpler interface over a complex subsystem.”
+</p></div>
+</details>
+
+<details>
+<summary>10. Layered vs Hexagonal Architecture?</summary>
+<div><p>
+“Layered architecture is simple and suitable for CRUD systems.
+Hexagonal architecture protects the core behind ports and adapters, which is useful when integration and testing are important.”
+</p></div>
+</details>
+
+<details>
+<summary>11. Clean Architecture vs Hexagonal Architecture?</summary>
+<div><p>
+“They share the same main idea: business logic should not depend on infrastructure.
+Hexagonal uses ports and adapters. Clean Architecture gives more explicit inner layers such as entities and use cases.”
+</p></div>
+</details>
+
+<details>
+<summary>12. DDD vs Clean Architecture?</summary>
+<div><p>
+“DDD focuses on modeling the business domain and language.
+Clean Architecture focuses on dependency direction and separation.
+They can be used together.”
+</p></div>
+</details>
+
+<details>
+<summary>13. Monolith vs Modular Monolith vs Microservices?</summary>
+<div><p>
+“A basic monolith may have weak boundaries. A modular monolith keeps one deployment but strong modules.
+Microservices split modules into separate deployable services. I prefer modular monolith first unless there is a clear need for independent deployment.”
+</p></div>
+</details>
+
+<details>
+<summary>14. What is an anemic domain model?</summary>
+<div><p>
+“It is a domain model with only fields and getters/setters, while all business logic stays in services.
+It may be acceptable for simple CRUD, but for complex domains it often weakens encapsulation.”
+</p></div>
+</details>
+
+<details>
+<summary>15. What is overengineering?</summary>
+<div><p>
+“Overengineering means adding more patterns, interfaces, or layers than the problem needs.
+A good senior design balances flexibility and simplicity.”
+</p></div>
+</details>
+
+<div class="note senior">
+<strong>Interview structure:</strong> Definition → problem solved → how it works → project example → trade-off → when not to use.
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+const btn=document.getElementById('themeBtn');
+const expand=document.getElementById('expandBtn');
+if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark');
+btn.onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light')};
+let opened=false;
+expand.onclick=()=>{opened=!opened;document.querySelectorAll('details').forEach(d=>d.open=opened);expand.textContent=opened?'Collapse all':'Expand all'};
+const links=[...document.querySelectorAll('nav a')];
+const sections=[...document.querySelectorAll('main [id]')];
+window.addEventListener('scroll',()=>{
+ let current=sections[0]?.id;
+ for(const s of sections){if(window.scrollY>=s.offsetTop-140)current=s.id}
+ links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current))
+});
+</script>
+</body>
+</html>

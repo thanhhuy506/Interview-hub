@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spring Boot Actuator Prometheus Grafana Production Monitoring EN VN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#132033;--muted:#667085;--blue:#2563eb;--green:#0f766e;--dark:#0f172a;--border:#d9e2ef;--code:#0b1120;--soft-blue:#eff6ff;--soft-green:#ecfdf5;--soft-yellow:#fffbeb;--soft-red:#fef2f2}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);line-height:1.72}.layout{display:grid;grid-template-columns:340px 1fr;min-height:100vh}aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--dark);color:#f8fafc;padding:28px 22px}main{padding:38px;max-width:1320px;width:100%}.badge{display:inline-block;background:rgba(37,99,235,.25);color:#bfdbfe;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}h1{font-size:22px;line-height:1.25}aside p{color:#cbd5e1;font-size:14px}.toc-title{color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;margin:24px 0 8px;letter-spacing:.08em}nav ul{padding:0;margin:0;list-style:none}nav a{display:block;color:#dbeafe;padding:8px 10px;border-radius:10px;text-decoration:none;font-size:14px}nav a:hover{background:rgba(59,130,246,.18);color:white}.hero{background:linear-gradient(135deg,#111827,#1e3a8a,#0f766e);color:white;border-radius:30px;padding:42px;margin-bottom:26px;box-shadow:0 18px 40px rgba(15,23,42,.08)}.hero h2{font-size:40px;line-height:1.1;margin:0 0 12px;letter-spacing:-.04em}.hero p{color:#dbeafe;font-size:17px;max-width:1050px}.tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.tags span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800}section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;margin:22px 0;box-shadow:0 12px 30px rgba(15,23,42,.04)}section h2{margin-top:0;border-bottom:1px solid var(--border);padding-bottom:12px;font-size:28px;letter-spacing:-.025em}h3{color:#1e3a8a;margin-top:28px;font-size:21px}h4{color:#0f766e;margin-top:22px;font-size:17px}.lead{color:var(--muted);font-size:16px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0}.card{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:18px}.card h4{margin:0 0 8px;color:#0f172a}.card p{margin:0;color:var(--muted)}.note,.warn,.danger,.ok{border-radius:14px;padding:14px 16px;margin:16px 0;border:1px solid}.note{background:var(--soft-blue);border-color:#bfdbfe;color:#1e3a8a}.ok{background:var(--soft-green);border-color:#bbf7d0;color:#166534}.warn{background:var(--soft-yellow);border-color:#fde68a;color:#92400e}.danger{background:var(--soft-red);border-color:#fecaca;color:#991b1b}table{width:100%;border-collapse:collapse;margin:18px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;font-size:14px}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{background:#f1f5f9;color:#0f172a;font-weight:900}tr:last-child td{border-bottom:none}pre{background:var(--code);color:#e5e7eb;border-radius:16px;padding:18px 20px;overflow:auto;font-size:13.3px;line-height:1.6;border:1px solid rgba(255,255,255,.08)}code{font-family:SFMono-Regular,Consolas,monospace}p code,li code,td code{background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 6px;font-size:.92em}.diagram{background:#f8fafc;border:1px dashed #94a3b8;border-radius:16px;padding:18px;margin:18px 0;overflow:auto;white-space:pre;font-family:SFMono-Regular,Consolas,monospace;font-size:13.2px;line-height:1.65}.qa{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0}.qa strong{color:#1e3a8a}.interview{background:#0f172a;color:#e5e7eb}.interview h2,.interview h3{color:#fff}.interview .qa{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}.checklist li::marker{content:"✅ "}.avoid li::marker{content:"⚠️ "}.footer{text-align:center;color:var(--muted);padding:32px 0 10px;font-size:13px}@media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto}main{padding:22px}.grid,.grid3{grid-template-columns:1fr}.hero h2{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<span class="badge">Senior Java Backend</span>
+<h1>Spring Actuator / Prometheus / Grafana</h1>
+<p>Step-by-step EN/VN notes for monitoring Spring Boot in production and troubleshooting JVM OOM/errors.</p>
+<div class="toc-title">English</div>
+<nav><ul>
+<li><a href="#en-overview">Big Picture</a></li>
+<li><a href="#en-actuator">Spring Boot Actuator</a></li>
+<li><a href="#en-metrics">Micrometer Metrics</a></li>
+<li><a href="#en-setup">Step-by-step Setup</a></li>
+<li><a href="#en-prometheus">Prometheus</a></li>
+<li><a href="#en-grafana">Grafana</a></li>
+<li><a href="#en-alerting">Alerting</a></li>
+<li><a href="#en-production">Production Checks</a></li>
+<li><a href="#en-oom">JVM OOM Troubleshooting</a></li>
+<li><a href="#en-errors">Errors / Latency / Incidents</a></li>
+<li><a href="#en-qa">Interview Q&A</a></li>
+</ul></nav>
+<div class="toc-title">Vietnamese</div>
+<nav><ul>
+<li><a href="#vi-overview">Tổng quan</a></li>
+<li><a href="#vi-actuator">Spring Boot Actuator</a></li>
+<li><a href="#vi-metrics">Micrometer Metrics</a></li>
+<li><a href="#vi-setup">Setup từng bước</a></li>
+<li><a href="#vi-prometheus">Prometheus</a></li>
+<li><a href="#vi-grafana">Grafana</a></li>
+<li><a href="#vi-alerting">Alerting</a></li>
+<li><a href="#vi-production">Check production</a></li>
+<li><a href="#vi-oom">JVM OOM</a></li>
+<li><a href="#vi-errors">Errors / Latency</a></li>
+<li><a href="#vi-qa">Câu hỏi phỏng vấn</a></li>
+</ul></nav>
+</aside>
+<main>
+<div class="hero">
+<h2>Monitoring Spring Boot Applications with Actuator, Prometheus, Grafana and JVM Production Troubleshooting</h2>
+<p>Learn how to expose application/JVM metrics, scrape them with Prometheus, visualize them in Grafana, create alerts, and investigate production issues such as JVM OutOfMemoryError, high latency, high error rate, CPU spike, thread deadlock and DB connection pool exhaustion.</p>
+<div class="tags"><span>Actuator</span><span>Micrometer</span><span>Prometheus</span><span>Grafana</span><span>PromQL</span><span>Alerts</span><span>JVM</span><span>OOM</span><span>Heap Dump</span><span>Thread Dump</span><span>GC</span><span>Kubernetes</span><span>Production</span></div>
+</div>
+
+<section id="en-overview">
+<h2>1. Big Picture</h2>
+<p class="lead">Production monitoring answers four questions: Is the application alive? Is it healthy? Is it fast? Is it consuming resources normally?</p>
+<div class="diagram">Spring Boot App
+  ↓ exposes metrics via Actuator + Micrometer
+/actuator/health
+/actuator/prometheus
+  ↓ scraped by
+Prometheus
+  ↓ queried by PromQL
+Grafana dashboards + Alerts
+  ↓ notify team
+Slack / Email / PagerDuty / Ops channel
+  ↓ troubleshoot
+logs + metrics + traces + heap dump + thread dump</div>
+<div class="grid">
+<div class="card"><h4>Actuator</h4><p>Exposes production-ready endpoints: health, metrics, prometheus, info, loggers, env, threaddump, heapdump.</p></div>
+<div class="card"><h4>Micrometer</h4><p>Application metrics facade used by Spring Boot to publish metrics to monitoring systems.</p></div>
+<div class="card"><h4>Prometheus</h4><p>Pull-based time-series database. It scrapes metrics endpoints and stores numeric time-series.</p></div>
+<div class="card"><h4>Grafana</h4><p>Visualization and alerting UI. It queries Prometheus and builds dashboards/alerts.</p></div>
+</div>
+<div class="note"><b>Senior mindset:</b> Monitoring is not only dashboards. Good production monitoring needs metrics, logs, traces, alert rules, runbooks, ownership, and incident response.</div>
+</section>
+
+<section id="en-actuator">
+<h2>2. Spring Boot Actuator</h2>
+<h3>What is Actuator?</h3>
+<p>Spring Boot Actuator provides production-ready endpoints to monitor and manage a Spring Boot application through HTTP or JMX.</p>
+<table><thead><tr><th>Endpoint</th><th>Purpose</th><th>Production Notes</th></tr></thead><tbody>
+<tr><td><code>/actuator/health</code></td><td>Application health status.</td><td>Expose safely. Often used by load balancer/Kubernetes probes.</td></tr>
+<tr><td><code>/actuator/info</code></td><td>Application build/version info.</td><td>Useful for release verification.</td></tr>
+<tr><td><code>/actuator/metrics</code></td><td>Available metric names and details.</td><td>Usually internal only.</td></tr>
+<tr><td><code>/actuator/prometheus</code></td><td>Prometheus scrape format.</td><td>Expose to Prometheus only, not public internet.</td></tr>
+<tr><td><code>/actuator/loggers</code></td><td>View/change log levels.</td><td>Powerful; protect strictly.</td></tr>
+<tr><td><code>/actuator/threaddump</code></td><td>Thread dump.</td><td>Sensitive; internal/admin only.</td></tr>
+<tr><td><code>/actuator/heapdump</code></td><td>Heap dump.</td><td>Very sensitive and large; avoid public exposure.</td></tr>
+<tr><td><code>/actuator/env</code></td><td>Environment/config properties.</td><td>May expose secrets. Do not expose publicly.</td></tr>
+</tbody></table>
+
+<h3>Minimal Actuator dependency</h3>
+<h4>Gradle</h4>
+<pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}</code></pre>
+<h4>Maven</h4>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+<h3>Expose safe endpoints</h3>
+<pre><code>management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true</code></pre>
+
+<div class="danger"><b>Production warning:</b> Do not expose all endpoints publicly using <code>include: *</code>. Endpoints like <code>env</code>, <code>heapdump</code>, <code>threaddump</code>, <code>loggers</code> can leak sensitive information or affect runtime behavior.</div>
+
+<h3>Liveness and Readiness</h3>
+<p>For Kubernetes, liveness tells whether the app should be restarted; readiness tells whether the app can receive traffic.</p>
+<pre><code>management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true</code></pre>
+<pre><code>readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 20
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 20</code></pre>
+</section>
+
+<section id="en-metrics">
+<h2>3. Micrometer Metrics</h2>
+<p>Spring Boot uses Micrometer as a vendor-neutral metrics facade. Micrometer can export metrics to Prometheus, Datadog, New Relic and other monitoring systems.</p>
+<h3>Important default metrics</h3>
+<table><thead><tr><th>Metric</th><th>Meaning</th><th>Useful for</th></tr></thead><tbody>
+<tr><td><code>jvm_memory_used_bytes</code></td><td>JVM memory used by area/id.</td><td>Heap/non-heap monitoring, OOM prevention.</td></tr>
+<tr><td><code>jvm_memory_max_bytes</code></td><td>Max memory available.</td><td>Memory utilization ratio.</td></tr>
+<tr><td><code>jvm_gc_pause_seconds</code></td><td>GC pause time.</td><td>GC pressure and latency impact.</td></tr>
+<tr><td><code>jvm_threads_live_threads</code></td><td>Live thread count.</td><td>Thread leak detection.</td></tr>
+<tr><td><code>process_cpu_usage</code></td><td>Process CPU usage.</td><td>CPU pressure.</td></tr>
+<tr><td><code>system_cpu_usage</code></td><td>System CPU usage.</td><td>Node/container pressure.</td></tr>
+<tr><td><code>http_server_requests_seconds_count</code></td><td>HTTP request count.</td><td>Traffic rate, error rate.</td></tr>
+<tr><td><code>http_server_requests_seconds_sum</code></td><td>Total request duration.</td><td>Average latency.</td></tr>
+<tr><td><code>hikaricp_connections_active</code></td><td>Active DB connections.</td><td>DB pool exhaustion.</td></tr>
+<tr><td><code>hikaricp_connections_pending</code></td><td>Threads waiting for DB connections.</td><td>DB bottleneck.</td></tr>
+</tbody></table>
+
+<h3>Custom metrics example</h3>
+<pre><code>@Service
+public class PaymentService {
+    private final Counter paymentSuccessCounter;
+    private final Timer paymentTimer;
+
+    public PaymentService(MeterRegistry registry) {
+        this.paymentSuccessCounter = Counter.builder("payment_success_total")
+            .description("Total successful payments")
+            .tag("provider", "psp")
+            .register(registry);
+
+        this.paymentTimer = Timer.builder("payment_duration")
+            .description("Payment processing duration")
+            .register(registry);
+    }
+
+    public void pay() {
+        paymentTimer.record(() -> {
+            // call external payment provider
+            paymentSuccessCounter.increment();
+        });
+    }
+}</code></pre>
+<div class="warn"><b>Metric cardinality warning:</b> Do not use high-cardinality tags such as userId, email, orderId, requestId. They create too many time-series and can overload Prometheus.</div>
+</section>
+
+<section id="en-setup">
+<h2>4. Step-by-step Setup: Spring Boot + Prometheus + Grafana</h2>
+<h3>Step 1 — Add dependencies</h3>
+<h4>Gradle</h4>
+<pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}</code></pre>
+<h4>Maven</h4>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.micrometer&lt;/groupId&gt;
+    &lt;artifactId&gt;micrometer-registry-prometheus&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+<h3>Step 2 — Configure application.yml</h3>
+<pre><code>server:
+  port: 8080
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: order-service
+      environment: local
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 300ms, 1s, 3s</code></pre>
+
+<h3>Step 3 — Verify locally</h3>
+<pre><code>curl http://localhost:8081/actuator/health
+curl http://localhost:8081/actuator/metrics
+curl http://localhost:8081/actuator/prometheus</code></pre>
+
+<h3>Step 4 — Prometheus config</h3>
+<pre><code># prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          application: 'order-service'
+          environment: 'local'</code></pre>
+
+<h3>Step 5 — Docker Compose for local lab</h3>
+<pre><code>version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus</code></pre>
+
+<h3>Step 6 — Add Prometheus datasource in Grafana</h3>
+<ol>
+<li>Open Grafana: <code>http://localhost:3000</code>.</li>
+<li>Login with admin/admin.</li>
+<li>Go to Connections → Data sources.</li>
+<li>Add Prometheus.</li>
+<li>URL: <code>http://prometheus:9090</code> when Grafana runs in Docker Compose.</li>
+<li>Save & Test.</li>
+</ol>
+</section>
+
+<section id="en-prometheus">
+<h2>5. Prometheus and PromQL</h2>
+<h3>Prometheus model</h3>
+<p>Prometheus scrapes metrics endpoints, stores time-series, and lets you query them using PromQL.</p>
+<div class="diagram">Metric sample:
+http_server_requests_seconds_count{application="order-service",method="GET",uri="/api/orders",status="200"} 12045
+
+metric name: http_server_requests_seconds_count
+labels: application, method, uri, status
+value: 12045</div>
+
+<h3>Useful PromQL for Spring Boot</h3>
+<table><thead><tr><th>Goal</th><th>PromQL</th></tr></thead><tbody>
+<tr><td>Request rate</td><td><code>sum(rate(http_server_requests_seconds_count{application="order-service"}[5m]))</code></td></tr>
+<tr><td>Error rate percentage</td><td><code>sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) * 100</code></td></tr>
+<tr><td>Average latency</td><td><code>sum(rate(http_server_requests_seconds_sum[5m])) / sum(rate(http_server_requests_seconds_count[5m]))</code></td></tr>
+<tr><td>P95 latency</td><td><code>histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))</code></td></tr>
+<tr><td>Heap usage ratio</td><td><code>sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"}) * 100</code></td></tr>
+<tr><td>GC pause rate</td><td><code>sum(rate(jvm_gc_pause_seconds_sum[5m]))</code></td></tr>
+<tr><td>Live threads</td><td><code>jvm_threads_live_threads</code></td></tr>
+<tr><td>Active DB connections</td><td><code>hikaricp_connections_active</code></td></tr>
+<tr><td>Pending DB connections</td><td><code>hikaricp_connections_pending</code></td></tr>
+</tbody></table>
+
+<h3>Prometheus scrape target status</h3>
+<p>In Prometheus UI, go to <code>Status → Targets</code>. The target should be <code>UP</code>. If target is DOWN, check network, port, metrics path, security, DNS and firewall.</p>
+</section>
+
+<section id="en-grafana">
+<h2>6. Grafana Dashboard</h2>
+<h3>Recommended dashboard panels</h3>
+<table><thead><tr><th>Panel</th><th>PromQL / Metric</th><th>Why it matters</th></tr></thead><tbody>
+<tr><td>Application UP</td><td><code>up{job="order-service"}</code></td><td>Checks whether Prometheus can scrape the app.</td></tr>
+<tr><td>Request rate</td><td><code>sum(rate(http_server_requests_seconds_count[5m]))</code></td><td>Traffic volume.</td></tr>
+<tr><td>Error rate</td><td><code>sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))</code></td><td>Server-side failures.</td></tr>
+<tr><td>P95/P99 latency</td><td><code>histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le))</code></td><td>User experience and SLA/SLO.</td></tr>
+<tr><td>Heap usage</td><td><code>jvm_memory_used_bytes{area="heap"}</code></td><td>OOM early signal.</td></tr>
+<tr><td>GC pause</td><td><code>jvm_gc_pause_seconds_sum</code></td><td>GC pressure.</td></tr>
+<tr><td>Threads</td><td><code>jvm_threads_live_threads</code></td><td>Thread leak/blocking issue.</td></tr>
+<tr><td>DB pool</td><td><code>hikaricp_connections_active</code>, <code>hikaricp_connections_pending</code></td><td>DB bottleneck.</td></tr>
+<tr><td>CPU</td><td><code>process_cpu_usage</code></td><td>CPU saturation.</td></tr>
+</tbody></table>
+
+<h3>Dashboard design advice</h3>
+<ul class="checklist">
+<li>Start with golden signals: traffic, errors, latency, saturation.</li>
+<li>Add JVM memory, GC, threads and DB connection pool panels.</li>
+<li>Use environment/application labels to filter dashboard.</li>
+<li>Do not create too many panels with high-cardinality labels.</li>
+<li>Dashboard should support incident debugging, not just look nice.</li>
+</ul>
+</section>
+
+<section id="en-alerting">
+<h2>7. Alerting</h2>
+<h3>Prometheus alert rules</h3>
+<pre><code># alerts.yml
+groups:
+  - name: spring-boot-app-alerts
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="order-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Order service is down"
+          description: "Prometheus cannot scrape order-service for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate"
+          description: "5xx error rate is above 5% for 5 minutes."
+
+      - alert: HighHeapUsage
+        expr: |
+          sum(jvm_memory_used_bytes{area="heap"})
+          /
+          sum(jvm_memory_max_bytes{area="heap"}) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JVM heap usage"
+          description: "Heap usage is above 85% for 10 minutes."
+
+      - alert: DbPoolExhaustion
+        expr: hikaricp_connections_pending > 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DB connection pool has pending connections"
+          description: "Threads are waiting for DB connections. Check slow queries or pool size."</code></pre>
+
+<h3>Load alert rules in Prometheus</h3>
+<pre><code># prometheus.yml
+global:
+  scrape_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8081']</code></pre>
+
+<h3>Alerting best practices</h3>
+<ul class="checklist">
+<li>Alert on user impact: high error rate, high latency, app down, DB pool exhaustion.</li>
+<li>Avoid noisy alerts for short temporary spikes.</li>
+<li>Use <code>for:</code> duration to reduce noise.</li>
+<li>Every alert should have a runbook or clear next action.</li>
+<li>Separate warning and critical severity.</li>
+<li>Test alert rules before production.</li>
+</ul>
+</section>
+
+<section id="en-production">
+<h2>8. How to Check Production Java Application</h2>
+<h3>Production check flow</h3>
+<div class="diagram">Incident / alert fired
+  ↓
+1. Check dashboard: UP, traffic, errors, latency, CPU, memory, GC, DB pool
+  ↓
+2. Check logs by traceId/requestId/time window
+  ↓
+3. Check recent deployment/config changes
+  ↓
+4. Check dependency health: DB, Redis, Kafka, external APIs
+  ↓
+5. Check JVM: heap, GC, threads, deadlocks
+  ↓
+6. Mitigate: rollback, scale, restart, disable feature flag, increase pool carefully
+  ↓
+7. Root cause analysis and postmortem</div>
+
+<h3>Useful Linux commands</h3>
+<pre><code># Find Java process
+ps -ef | grep java
+jps -lv
+
+# CPU and memory
+top -Hp &lt;pid&gt;
+free -m
+vmstat 1
+
+# Disk
+df -h
+du -sh logs/*
+
+# Network ports
+ss -lntp
+lsof -i :8080
+
+# Logs
+journalctl -u order-service -f
+tail -f /var/log/order-service/application.log</code></pre>
+
+<h3>Useful Kubernetes commands</h3>
+<pre><code># Pod status
+kubectl get pods -n production
+kubectl describe pod &lt;pod-name&gt; -n production
+
+# Logs
+kubectl logs &lt;pod-name&gt; -n production --tail=200
+kubectl logs &lt;pod-name&gt; -n production -f
+kubectl logs &lt;pod-name&gt; -n production --previous
+
+# Resources
+kubectl top pod &lt;pod-name&gt; -n production
+kubectl top node
+
+# Exec into pod
+kubectl exec -it &lt;pod-name&gt; -n production -- sh
+
+# Events
+kubectl get events -n production --sort-by=.lastTimestamp</code></pre>
+
+<h3>Useful JVM commands</h3>
+<pre><code># JVM flags and system properties
+jcmd &lt;pid&gt; VM.flags
+jcmd &lt;pid&gt; VM.system_properties
+
+# Heap info
+jcmd &lt;pid&gt; GC.heap_info
+jcmd &lt;pid&gt; GC.class_histogram
+
+# Thread dump
+jcmd &lt;pid&gt; Thread.print
+jstack &lt;pid&gt;
+
+# Heap dump
+jcmd &lt;pid&gt; GC.heap_dump /tmp/heapdump.hprof
+jmap -dump:live,format=b,file=/tmp/heapdump.hprof &lt;pid&gt;</code></pre>
+
+<div class="danger"><b>Production caution:</b> Heap dump can be huge and may pause the JVM or consume disk. It can contain sensitive data. Use carefully and protect the file.</div>
+</section>
+
+<section id="en-oom">
+<h2>9. JVM OutOfMemoryError Troubleshooting</h2>
+<h3>Common OOM types</h3>
+<table><thead><tr><th>OOM Type</th><th>Meaning</th><th>Common Causes</th></tr></thead><tbody>
+<tr><td><code>Java heap space</code></td><td>Heap cannot allocate object.</td><td>Memory leak, loading too much data, large cache, large file in memory.</td></tr>
+<tr><td><code>GC overhead limit exceeded</code></td><td>JVM spends too much time in GC with little memory reclaimed.</td><td>Heap nearly full, memory leak, excessive object allocation.</td></tr>
+<tr><td><code>Metaspace</code></td><td>Class metadata memory exhausted.</td><td>Classloader leak, dynamic class generation.</td></tr>
+<tr><td><code>Direct buffer memory</code></td><td>Off-heap direct buffer exhausted.</td><td>Netty/NIO buffer leak, too much direct memory.</td></tr>
+<tr><td><code>Unable to create new native thread</code></td><td>OS cannot create more threads.</td><td>Thread leak, too many pools, OS limit, memory limit.</td></tr>
+</tbody></table>
+
+<h3>Enable heap dump on OOM</h3>
+<pre><code>java \
+  -Xms512m \
+  -Xmx1024m \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -XX:HeapDumpPath=/var/log/order-service/heapdump.hprof \
+  -XX:+ExitOnOutOfMemoryError \
+  -jar app.jar</code></pre>
+
+<h3>Enable GC logging</h3>
+<pre><code># Java 17+
+-Xlog:gc*,safepoint:file=/var/log/order-service/gc.log:time,uptime,level,tags:filecount=5,filesize=20M</code></pre>
+
+<h3>OOM investigation steps</h3>
+<ol>
+<li>Check Grafana heap trend. Is heap increasing and never dropping after GC?</li>
+<li>Check GC pause and frequency. Is JVM doing constant full GC?</li>
+<li>Check recent deployment, traffic spike, batch job, new cache, new endpoint.</li>
+<li>Collect heap dump if safe.</li>
+<li>Analyze heap dump with Eclipse MAT / VisualVM / YourKit.</li>
+<li>Look for dominator tree, biggest retained objects, duplicate strings, large maps/lists/caches.</li>
+<li>Check thread dump for blocked threads or too many threads.</li>
+<li>Mitigate: rollback, scale out, reduce traffic, disable feature, increase memory only if root cause known.</li>
+</ol>
+
+<h3>Typical OOM root causes in Spring apps</h3>
+<ul class="avoid">
+<li>Loading millions of DB rows into memory instead of paging/streaming.</li>
+<li>Unbounded cache using HashMap/ConcurrentHashMap.</li>
+<li>Reading large files fully into byte array/string.</li>
+<li>Too many pending async tasks.</li>
+<li>WebClient/Netty direct memory leak or large buffers.</li>
+<li>ThreadLocal leak.</li>
+<li>Hibernate session holding too many managed entities in persistence context.</li>
+<li>Large response aggregation in memory.</li>
+</ul>
+
+<h3>Code examples: bad vs better</h3>
+<h4>Bad: load all rows</h4>
+<pre><code>List&lt;Order&gt; orders = orderRepository.findAll();
+for (Order order : orders) {
+    export(order);
+}</code></pre>
+<h4>Better: paging</h4>
+<pre><code>PageRequest pageRequest = PageRequest.of(0, 1000);
+Page&lt;Order&gt; page;
+
+do {
+    page = orderRepository.findAll(pageRequest);
+    page.getContent().forEach(this::export);
+    pageRequest = pageRequest.next();
+} while (page.hasNext());</code></pre>
+
+<h4>Bad: unbounded cache</h4>
+<pre><code>private final Map&lt;String, UserProfile&gt; cache = new ConcurrentHashMap&lt;&gt;();
+
+public UserProfile get(String userId) {
+    return cache.computeIfAbsent(userId, this::loadProfile);
+}</code></pre>
+<h4>Better: bounded cache</h4>
+<pre><code>Caffeine.newBuilder()
+    .maximumSize(10_000)
+    .expireAfterWrite(Duration.ofMinutes(30))
+    .recordStats()
+    .build(userId -> loadProfile(userId));</code></pre>
+</section>
+
+<section id="en-errors">
+<h2>10. Error, Latency, CPU, Thread and DB Pool Troubleshooting</h2>
+<h3>High 5xx error rate</h3>
+<table><thead><tr><th>Check</th><th>How</th></tr></thead><tbody>
+<tr><td>Which endpoint?</td><td>Grafana panel grouped by <code>uri</code>, <code>status</code>.</td></tr>
+<tr><td>Which exception?</td><td>Application logs with timestamp/traceId.</td></tr>
+<tr><td>Recent change?</td><td>Deployment version, config, DB migration.</td></tr>
+<tr><td>Dependency failure?</td><td>DB/Redis/Kafka/external API dashboards and logs.</td></tr>
+</tbody></table>
+
+<h3>High latency</h3>
+<ul class="checklist">
+<li>Check P95/P99 latency by endpoint.</li>
+<li>Check DB query time and connection pool pending count.</li>
+<li>Check external API timeout/retry behavior.</li>
+<li>Check GC pauses and CPU saturation.</li>
+<li>Check thread pool queue and blocking calls.</li>
+<li>Use distributed tracing to identify slow span.</li>
+</ul>
+
+<h3>High CPU</h3>
+<pre><code># Find Java process and hot threads
+jps -lv
+top -Hp &lt;pid&gt;
+
+# Convert native thread id to hex
+printf "%x\n" &lt;thread-id&gt;
+
+# Find thread in dump
+jcmd &lt;pid&gt; Thread.print | grep -A 30 &lt;hex-thread-id&gt;</code></pre>
+<p>Common causes: tight loop, excessive JSON serialization, regex issue, high GC, crypto/compression, too many requests, logging too much.</p>
+
+<h3>Thread deadlock / blocked threads</h3>
+<pre><code>jcmd &lt;pid&gt; Thread.print &gt; /tmp/thread-dump.txt
+# Look for BLOCKED, WAITING, deadlock section, same lock monitor.</code></pre>
+
+<h3>DB connection pool exhaustion</h3>
+<p>Symptoms: high <code>hikaricp_connections_active</code>, <code>hikaricp_connections_pending > 0</code>, slow requests, timeout waiting for connection.</p>
+<ul class="checklist">
+<li>Check slow SQL and missing indexes.</li>
+<li>Check transaction too long.</li>
+<li>Check connection leak.</li>
+<li>Check pool size relative to DB max connections.</li>
+<li>Check if external calls are executed inside DB transaction.</li>
+</ul>
+
+<pre><code>spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      leak-detection-threshold: 60000</code></pre>
+<div class="warn"><b>Senior note:</b> Increasing DB pool size is not always the solution. It can overload the database. First check slow queries, long transactions and connection leaks.</div>
+</section>
+
+<section id="en-qa" class="interview">
+<h2>11. Interview Q&A — English</h2>
+<div class="qa"><p><strong>Q1. What is Spring Boot Actuator?</strong></p><p>A: Actuator provides production-ready endpoints for monitoring and managing Spring Boot applications. It exposes health, metrics, info, Prometheus metrics, loggers, thread dump and heap dump endpoints. In production, only safe endpoints should be exposed and sensitive endpoints must be protected.</p></div>
+<div class="qa"><p><strong>Q2. How do you monitor a Spring Boot app with Prometheus and Grafana?</strong></p><p>A: Add actuator and micrometer-registry-prometheus dependencies, expose /actuator/prometheus, configure Prometheus to scrape that endpoint, add Prometheus as a Grafana data source, create dashboards for traffic, errors, latency, JVM memory, GC, threads and DB pool, then configure alerts for high error rate, high latency, app down and high heap usage.</p></div>
+<div class="qa"><p><strong>Q3. What is Micrometer?</strong></p><p>A: Micrometer is a vendor-neutral application metrics facade. Spring Boot uses it to collect and export metrics to systems such as Prometheus, Datadog or New Relic. It is similar in spirit to SLF4J, but for metrics/observability.</p></div>
+<div class="qa"><p><strong>Q4. What metrics are important for Java production monitoring?</strong></p><p>A: The most important metrics are request rate, error rate, latency percentiles, JVM heap/non-heap usage, GC pause time, CPU usage, live thread count, DB connection pool active/pending connections, and dependency metrics such as Redis/Kafka/external API latency.</p></div>
+<div class="qa"><p><strong>Q5. How do you troubleshoot JVM OutOfMemoryError in production?</strong></p><p>A: First check heap usage and GC trend in Grafana. Then check logs for OOM type. If safe, collect heap dump and thread dump. Analyze heap dump with MAT or VisualVM to find retained objects and leak suspects. Check recent deployments, large queries, unbounded caches, large file processing, ThreadLocal leaks, and Hibernate persistence context. Mitigate with rollback, scaling, traffic reduction or memory increase only after understanding the cause.</p></div>
+<div class="qa"><p><strong>Q6. What is the difference between liveness and readiness?</strong></p><p>A: Liveness tells the platform whether the app is alive or should be restarted. Readiness tells whether the app is ready to receive traffic. A temporary dependency issue should usually make readiness fail, not necessarily liveness, otherwise the app may restart unnecessarily.</p></div>
+<div class="qa"><p><strong>Q7. How do you alert effectively?</strong></p><p>A: Alert on user impact and actionable symptoms: app down, high 5xx rate, high latency, DB pool exhaustion, high heap usage for a sustained period. Use a for-duration to avoid noise, set severity levels, and attach runbooks or next actions.</p></div>
+<div class="qa"><p><strong>Q8. What should not be exposed publicly in Actuator?</strong></p><p>A: Endpoints such as env, heapdump, threaddump, loggers and config-related endpoints should not be publicly exposed because they may leak secrets, sensitive data or allow runtime behavior changes. Prometheus endpoint should be reachable only from the monitoring network.</p></div>
+</section>
+
+<section id="vi-overview">
+<h2>12. Tổng quan</h2>
+<p class="lead">Monitoring production trả lời các câu hỏi: app còn sống không, có healthy không, có chậm không, resource có bất thường không, và khi có incident thì phải check từ đâu.</p>
+<div class="diagram">Spring Boot App
+  ↓ expose metrics bằng Actuator + Micrometer
+/actuator/health
+/actuator/prometheus
+  ↓ Prometheus scrape
+Prometheus
+  ↓ PromQL
+Grafana dashboards + Alerts
+  ↓ notify team
+Slack / Email / PagerDuty / Ops channel
+  ↓ troubleshoot
+logs + metrics + traces + heap dump + thread dump</div>
+<div class="note"><b>Mindset Senior:</b> Monitoring không chỉ là dashboard. Production monitoring tốt cần metrics, logs, traces, alert rules, runbook, ownership và incident response.</div>
+</section>
+
+<section id="vi-actuator">
+<h2>13. Spring Boot Actuator</h2>
+<p>Spring Boot Actuator cung cấp các endpoint production-ready để monitor và manage Spring Boot application qua HTTP hoặc JMX.</p>
+<table><thead><tr><th>Endpoint</th><th>Mục đích</th><th>Production notes</th></tr></thead><tbody>
+<tr><td><code>/actuator/health</code></td><td>Trạng thái health của app.</td><td>Có thể expose an toàn hơn, dùng cho LB/Kubernetes probes.</td></tr>
+<tr><td><code>/actuator/info</code></td><td>Build/version info.</td><td>Hữu ích để verify release.</td></tr>
+<tr><td><code>/actuator/metrics</code></td><td>Danh sách metric names/details.</td><td>Nên internal only.</td></tr>
+<tr><td><code>/actuator/prometheus</code></td><td>Prometheus scrape format.</td><td>Chỉ cho Prometheus access, không public internet.</td></tr>
+<tr><td><code>/actuator/loggers</code></td><td>Xem/đổi log level.</td><td>Rất mạnh, cần protect chặt.</td></tr>
+<tr><td><code>/actuator/threaddump</code></td><td>Thread dump.</td><td>Sensitive, chỉ internal/admin.</td></tr>
+<tr><td><code>/actuator/heapdump</code></td><td>Heap dump.</td><td>Rất sensitive và file lớn, không public.</td></tr>
+<tr><td><code>/actuator/env</code></td><td>Environment/config.</td><td>Có thể leak secret, không public.</td></tr>
+</tbody></table>
+
+<h3>Dependencies</h3>
+<pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}</code></pre>
+
+<h3>Expose endpoints</h3>
+<pre><code>management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true</code></pre>
+<div class="danger"><b>Cảnh báo:</b> Không dùng <code>include: *</code> public. Các endpoint như env, heapdump, threaddump, loggers có thể leak data hoặc thay đổi runtime behavior.</div>
+</section>
+
+<section id="vi-metrics">
+<h2>14. Micrometer Metrics</h2>
+<p>Spring Boot dùng Micrometer làm metrics facade trung lập vendor. Micrometer export metrics sang Prometheus, Datadog, New Relic...</p>
+<table><thead><tr><th>Metric</th><th>Ý nghĩa</th><th>Dùng để</th></tr></thead><tbody>
+<tr><td><code>jvm_memory_used_bytes</code></td><td>Memory JVM đang dùng.</td><td>Monitor heap/non-heap, phòng OOM.</td></tr>
+<tr><td><code>jvm_gc_pause_seconds</code></td><td>GC pause time.</td><td>GC pressure và latency.</td></tr>
+<tr><td><code>jvm_threads_live_threads</code></td><td>Số live threads.</td><td>Detect thread leak.</td></tr>
+<tr><td><code>http_server_requests_seconds_count</code></td><td>Số HTTP requests.</td><td>Traffic/error rate.</td></tr>
+<tr><td><code>http_server_requests_seconds_sum</code></td><td>Tổng duration requests.</td><td>Average latency.</td></tr>
+<tr><td><code>hikaricp_connections_active</code></td><td>DB connections active.</td><td>DB pool usage.</td></tr>
+<tr><td><code>hikaricp_connections_pending</code></td><td>Threads đang đợi DB connection.</td><td>DB bottleneck.</td></tr>
+</tbody></table>
+
+<h3>Custom metric example</h3>
+<pre><code>@Service
+public class PaymentService {
+    private final Counter paymentSuccessCounter;
+
+    public PaymentService(MeterRegistry registry) {
+        this.paymentSuccessCounter = Counter.builder("payment_success_total")
+            .description("Total successful payments")
+            .tag("provider", "psp")
+            .register(registry);
+    }
+
+    public void pay() {
+        // call PSP
+        paymentSuccessCounter.increment();
+    }
+}</code></pre>
+<div class="warn"><b>Cảnh báo cardinality:</b> Không dùng tag có cardinality cao như userId, email, orderId, requestId. Nó tạo quá nhiều time-series và làm Prometheus nặng.</div>
+</section>
+
+<section id="vi-setup">
+<h2>15. Setup từng bước</h2>
+<h3>Step 1 — Add dependencies</h3>
+<pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}</code></pre>
+
+<h3>Step 2 — application.yml</h3>
+<pre><code>management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: order-service
+      environment: local
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99</code></pre>
+
+<h3>Step 3 — Verify</h3>
+<pre><code>curl http://localhost:8081/actuator/health
+curl http://localhost:8081/actuator/metrics
+curl http://localhost:8081/actuator/prometheus</code></pre>
+
+<h3>Step 4 — prometheus.yml</h3>
+<pre><code>global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          application: 'order-service'
+          environment: 'local'</code></pre>
+
+<h3>Step 5 — Docker Compose</h3>
+<pre><code>version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus</code></pre>
+</section>
+
+<section id="vi-prometheus">
+<h2>16. Prometheus và PromQL</h2>
+<p>Prometheus scrape metrics endpoint, lưu time-series và query bằng PromQL.</p>
+<table><thead><tr><th>Mục tiêu</th><th>PromQL</th></tr></thead><tbody>
+<tr><td>Request rate</td><td><code>sum(rate(http_server_requests_seconds_count{application="order-service"}[5m]))</code></td></tr>
+<tr><td>Error rate %</td><td><code>sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) * 100</code></td></tr>
+<tr><td>Average latency</td><td><code>sum(rate(http_server_requests_seconds_sum[5m])) / sum(rate(http_server_requests_seconds_count[5m]))</code></td></tr>
+<tr><td>P95 latency</td><td><code>histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, uri))</code></td></tr>
+<tr><td>Heap usage %</td><td><code>sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"}) * 100</code></td></tr>
+<tr><td>GC pause</td><td><code>sum(rate(jvm_gc_pause_seconds_sum[5m]))</code></td></tr>
+<tr><td>DB pending</td><td><code>hikaricp_connections_pending</code></td></tr>
+</tbody></table>
+</section>
+
+<section id="vi-grafana">
+<h2>17. Grafana Dashboard</h2>
+<h3>Nên có các panel</h3>
+<ul class="checklist">
+<li>Application UP: <code>up{job="order-service"}</code></li>
+<li>Request rate</li>
+<li>Error rate 4xx/5xx</li>
+<li>P95/P99 latency</li>
+<li>Heap/non-heap memory</li>
+<li>GC pause và GC frequency</li>
+<li>Live threads</li>
+<li>CPU process/system</li>
+<li>HikariCP active/pending/idle connections</li>
+<li>External API latency/error nếu có custom metrics/tracing</li>
+</ul>
+<h3>Grafana setup</h3>
+<ol>
+<li>Mở <code>http://localhost:3000</code>.</li>
+<li>Login admin/admin.</li>
+<li>Connections → Data sources → Add Prometheus.</li>
+<li>URL nếu dùng Docker Compose: <code>http://prometheus:9090</code>.</li>
+<li>Save & Test.</li>
+<li>Tạo dashboard hoặc import dashboard JVM/Spring Boot.</li>
+</ol>
+</section>
+
+<section id="vi-alerting">
+<h2>18. Alerting</h2>
+<pre><code>groups:
+  - name: spring-boot-app-alerts
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="order-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Order service is down"
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: HighHeapUsage
+        expr: |
+          sum(jvm_memory_used_bytes{area="heap"})
+          /
+          sum(jvm_memory_max_bytes{area="heap"}) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+
+      - alert: DbPoolExhaustion
+        expr: hikaricp_connections_pending > 0
+        for: 3m
+        labels:
+          severity: critical</code></pre>
+<ul class="checklist">
+<li>Alert theo user impact: app down, 5xx cao, latency cao, DB pool pending, heap cao.</li>
+<li>Dùng <code>for:</code> để tránh noise do spike ngắn.</li>
+<li>Mỗi alert nên có runbook/next action.</li>
+<li>Phân loại warning/critical.</li>
+</ul>
+</section>
+
+<section id="vi-production">
+<h2>19. Check production Java application</h2>
+<div class="diagram">Alert fired
+  ↓
+1. Check dashboard: UP, traffic, errors, latency, CPU, memory, GC, DB pool
+  ↓
+2. Check logs theo traceId/requestId/time window
+  ↓
+3. Check recent deployment/config changes
+  ↓
+4. Check dependency: DB, Redis, Kafka, external APIs
+  ↓
+5. Check JVM: heap, GC, threads, deadlocks
+  ↓
+6. Mitigate: rollback, scale, restart, disable feature flag
+  ↓
+7. RCA/postmortem</div>
+
+<h3>Linux commands</h3>
+<pre><code>ps -ef | grep java
+jps -lv
+top -Hp &lt;pid&gt;
+free -m
+vmstat 1
+df -h
+ss -lntp
+tail -f /var/log/order-service/application.log</code></pre>
+
+<h3>Kubernetes commands</h3>
+<pre><code>kubectl get pods -n production
+kubectl describe pod &lt;pod-name&gt; -n production
+kubectl logs &lt;pod-name&gt; -n production --tail=200
+kubectl logs &lt;pod-name&gt; -n production --previous
+kubectl top pod &lt;pod-name&gt; -n production
+kubectl get events -n production --sort-by=.lastTimestamp</code></pre>
+
+<h3>JVM commands</h3>
+<pre><code>jcmd &lt;pid&gt; VM.flags
+jcmd &lt;pid&gt; GC.heap_info
+jcmd &lt;pid&gt; GC.class_histogram
+jcmd &lt;pid&gt; Thread.print
+jcmd &lt;pid&gt; GC.heap_dump /tmp/heapdump.hprof</code></pre>
+</section>
+
+<section id="vi-oom">
+<h2>20. JVM OutOfMemoryError Troubleshooting</h2>
+<table><thead><tr><th>OOM Type</th><th>Ý nghĩa</th><th>Nguyên nhân phổ biến</th></tr></thead><tbody>
+<tr><td><code>Java heap space</code></td><td>Heap không allocate được object.</td><td>Memory leak, load quá nhiều data, cache quá lớn, file lớn trong memory.</td></tr>
+<tr><td><code>GC overhead limit exceeded</code></td><td>JVM tốn nhiều thời gian GC nhưng reclaim ít.</td><td>Heap gần full, leak, allocation quá nhiều.</td></tr>
+<tr><td><code>Metaspace</code></td><td>Class metadata hết memory.</td><td>Classloader leak, dynamic class generation.</td></tr>
+<tr><td><code>Direct buffer memory</code></td><td>Off-heap direct buffer hết.</td><td>Netty/NIO buffer leak, direct memory quá nhiều.</td></tr>
+<tr><td><code>Unable to create new native thread</code></td><td>OS không tạo được thread mới.</td><td>Thread leak, quá nhiều pools, OS limit, memory limit.</td></tr>
+</tbody></table>
+
+<h3>Enable heap dump khi OOM</h3>
+<pre><code>java \
+  -Xms512m \
+  -Xmx1024m \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  -XX:HeapDumpPath=/var/log/order-service/heapdump.hprof \
+  -XX:+ExitOnOutOfMemoryError \
+  -jar app.jar</code></pre>
+
+<h3>GC logging Java 17+</h3>
+<pre><code>-Xlog:gc*,safepoint:file=/var/log/order-service/gc.log:time,uptime,level,tags:filecount=5,filesize=20M</code></pre>
+
+<h3>Các bước điều tra OOM</h3>
+<ol>
+<li>Check heap trend trên Grafana: heap có tăng mãi và không giảm sau GC không?</li>
+<li>Check GC pause/frequency: có full GC liên tục không?</li>
+<li>Check deployment gần nhất, traffic spike, batch job, cache mới, endpoint mới.</li>
+<li>Nếu an toàn, lấy heap dump và thread dump.</li>
+<li>Analyze heap dump bằng Eclipse MAT / VisualVM / YourKit.</li>
+<li>Xem dominator tree, retained objects lớn nhất, large Map/List/cache.</li>
+<li>Mitigate: rollback, scale out, giảm traffic, disable feature, tăng memory chỉ khi hiểu nguyên nhân.</li>
+</ol>
+
+<h3>Root causes thường gặp</h3>
+<ul class="avoid">
+<li>Load hàng triệu rows vào memory thay vì paging/streaming.</li>
+<li>Unbounded cache dùng HashMap/ConcurrentHashMap.</li>
+<li>Read file lớn toàn bộ vào byte array/string.</li>
+<li>Quá nhiều async tasks pending.</li>
+<li>ThreadLocal leak.</li>
+<li>Hibernate persistence context giữ quá nhiều managed entities.</li>
+<li>Aggregate response quá lớn trong memory.</li>
+</ul>
+</section>
+
+<section id="vi-errors">
+<h2>21. Errors / Latency / CPU / DB Pool</h2>
+<h3>High 5xx error rate</h3>
+<ul class="checklist">
+<li>Endpoint nào lỗi? Group by <code>uri</code>, <code>status</code>.</li>
+<li>Exception gì? Check logs theo timestamp/traceId.</li>
+<li>Có deploy/config/DB migration mới không?</li>
+<li>Dependency nào fail? DB/Redis/Kafka/external API.</li>
+</ul>
+
+<h3>High latency</h3>
+<ul class="checklist">
+<li>Check P95/P99 latency theo endpoint.</li>
+<li>Check DB query time và Hikari pending connections.</li>
+<li>Check external API timeout/retry.</li>
+<li>Check GC pauses và CPU.</li>
+<li>Check thread pool queue/blocking calls.</li>
+<li>Dùng distributed tracing để tìm span chậm.</li>
+</ul>
+
+<h3>High CPU</h3>
+<pre><code>jps -lv
+top -Hp &lt;pid&gt;
+printf "%x\n" &lt;thread-id&gt;
+jcmd &lt;pid&gt; Thread.print | grep -A 30 &lt;hex-thread-id&gt;</code></pre>
+
+<h3>DB pool exhaustion</h3>
+<p>Triệu chứng: <code>hikaricp_connections_active</code> cao, <code>hikaricp_connections_pending > 0</code>, request chậm, timeout đợi connection.</p>
+<ul class="checklist">
+<li>Check slow SQL và missing indexes.</li>
+<li>Check transaction quá dài.</li>
+<li>Check connection leak.</li>
+<li>Check pool size so với DB max connections.</li>
+<li>Không gọi external API lâu bên trong DB transaction.</li>
+</ul>
+</section>
+
+<section id="vi-qa" class="interview">
+<h2>22. Câu hỏi phỏng vấn — Vietnamese</h2>
+<div class="qa"><p><strong>Q1. Spring Boot Actuator là gì?</strong></p><p>A: Actuator cung cấp production-ready endpoints để monitor và manage Spring Boot application như health, metrics, info, prometheus, loggers, threaddump, heapdump. Production chỉ nên expose endpoint an toàn và protect endpoint nhạy cảm.</p></div>
+<div class="qa"><p><strong>Q2. Monitor Spring Boot bằng Prometheus/Grafana như thế nào?</strong></p><p>A: Add actuator và micrometer-registry-prometheus, expose /actuator/prometheus, cấu hình Prometheus scrape endpoint này, add Prometheus datasource vào Grafana, tạo dashboard cho traffic, errors, latency, JVM memory, GC, threads, DB pool, sau đó tạo alerts cho app down, error rate cao, latency cao, heap cao.</p></div>
+<div class="qa"><p><strong>Q3. Micrometer là gì?</strong></p><p>A: Micrometer là vendor-neutral metrics facade. Spring Boot dùng Micrometer để collect/export metrics sang Prometheus, Datadog, New Relic... Có thể hiểu giống SLF4J nhưng cho metrics/observability.</p></div>
+<div class="qa"><p><strong>Q4. Metrics quan trọng cho Java production?</strong></p><p>A: Request rate, error rate, latency percentiles, JVM heap/non-heap, GC pause, CPU, live threads, DB connection pool active/pending, Redis/Kafka/external API latency/error.</p></div>
+<div class="qa"><p><strong>Q5. Troubleshoot OutOfMemoryError thế nào?</strong></p><p>A: Check heap/GC trend trên Grafana, check log OOM type, lấy heap dump/thread dump nếu an toàn, analyze bằng MAT/VisualVM để tìm retained objects/leak suspects, check recent deployment, large query, unbounded cache, large file, ThreadLocal leak, Hibernate persistence context. Mitigate bằng rollback/scale/disable feature/tăng memory sau khi hiểu nguyên nhân.</p></div>
+<div class="qa"><p><strong>Q6. Liveness khác readiness?</strong></p><p>A: Liveness cho platform biết app còn sống hay cần restart. Readiness cho biết app có sẵn sàng nhận traffic không. Dependency temporary issue thường nên làm readiness fail, không nhất thiết liveness fail, để tránh restart không cần thiết.</p></div>
+<div class="qa"><p><strong>Q7. Alert thế nào cho hiệu quả?</strong></p><p>A: Alert theo user impact và actionable symptoms: app down, 5xx cao, latency cao, DB pool exhaustion, heap cao kéo dài. Dùng for-duration để tránh noise, có severity và runbook/next action.</p></div>
+<div class="qa"><p><strong>Q8. Endpoint Actuator nào không nên public?</strong></p><p>A: env, heapdump, threaddump, loggers, config-related endpoints không nên public vì có thể leak secrets/sensitive data hoặc thay đổi runtime behavior. Prometheus endpoint chỉ nên cho monitoring network access.</p></div>
+</section>
+
+<section>
+<h2>Quick Senior Checklist</h2>
+<ul class="checklist">
+<li>Expose only required Actuator endpoints.</li>
+<li>Use Micrometer Prometheus registry.</li>
+<li>Prometheus scrapes <code>/actuator/prometheus</code>.</li>
+<li>Grafana queries Prometheus and visualizes golden signals.</li>
+<li>Monitor traffic, errors, latency, saturation.</li>
+<li>Monitor JVM heap, GC pause, threads, CPU.</li>
+<li>Monitor DB pool active/pending connections.</li>
+<li>Create actionable alerts with runbooks.</li>
+<li>Enable heap dump on OOM and GC logs.</li>
+<li>Use heap dump/thread dump carefully in production.</li>
+<li>For incidents, check dashboard → logs → recent changes → dependencies → JVM.</li>
+</ul>
+</section>
+
+<section>
+<h2>Sources / Nguồn tham khảo</h2>
+<ul>
+<li>Spring Boot Actuator production-ready features and metrics documentation.</li>
+<li>Spring Boot Prometheus actuator endpoint documentation.</li>
+<li>Micrometer official overview.</li>
+<li>Prometheus configuration and alerting rule documentation.</li>
+<li>Grafana Prometheus datasource and Grafana Alerting documentation.</li>
+</ul>
+</section>
+
+<div class="footer">Created for Senior Java Backend interview preparation — Spring Actuator / Prometheus / Grafana / JVM Production Troubleshooting EN/VN.</div>
+</main>
+</div>
+</body>
+</html>

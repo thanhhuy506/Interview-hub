@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Dynamic retry configuration in Java microservices with Spring Boot, Resilience4j, Spring Cloud Config and Kubernetes." />
+  <title>Dynamic Retry Configuration in Microservices — Senior Java Guide</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --text: #172033;
+      --muted: #5e6b7c;
+      --primary: #3158d4;
+      --primary-soft: rgba(49, 88, 212, .11);
+      --accent: #087f8c;
+      --success: #087f5b;
+      --warning: #b35c00;
+      --danger: #c92a2a;
+      --border: #dce3ec;
+      --code-bg: #101722;
+      --code-text: #e7edf5;
+      --shadow: 0 14px 34px rgba(28, 39, 60, .08);
+      --radius: 16px;
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --surface: #151b23;
+      --surface-2: #1b2430;
+      --text: #e7edf5;
+      --muted: #a9b5c4;
+      --primary: #91a7ff;
+      --primary-soft: rgba(145, 167, 255, .12);
+      --accent: #66d9e8;
+      --success: #63e6be;
+      --warning: #ffc078;
+      --danger: #ffa8a8;
+      --border: #2b3745;
+      --code-bg: #070b10;
+      --code-text: #e8edf4;
+      --shadow: 0 14px 34px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.67;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      background: var(--surface); border-right: 1px solid var(--border); padding: 22px 18px;
+    }
+    .brand { font-weight: 850; font-size: 1.05rem; }
+    .brand-sub { color: var(--muted); font-size: .82rem; margin: 4px 0 16px; }
+    .search {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface-2); color: var(--text); padding: 10px 12px; margin-bottom: 12px;
+    }
+    .actions { display: flex; gap: 8px; margin-bottom: 14px; }
+    button {
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+      padding: 8px 10px; border-radius: 9px; cursor: pointer;
+    }
+    button:hover { border-color: var(--primary); }
+    nav a {
+      display: block; color: var(--muted); padding: 7px 9px; margin: 2px 0;
+      border-radius: 8px; font-size: .89rem;
+    }
+    nav a:hover, nav a.active { color: var(--primary); background: var(--primary-soft); text-decoration: none; }
+    main { min-width: 0; }
+    .hero {
+      padding: 66px clamp(24px, 6vw, 90px) 52px;
+      background: linear-gradient(135deg, rgba(49,88,212,.16), rgba(8,127,140,.09));
+      border-bottom: 1px solid var(--border);
+    }
+    .eyebrow {
+      display: inline-block; border: 1px solid var(--border); background: var(--surface);
+      color: var(--primary); border-radius: 999px; padding: 5px 10px;
+      font-size: .76rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    }
+    h1 { font-size: clamp(2.2rem, 5vw, 4.5rem); line-height: 1.07; margin: 18px 0 14px; max-width: 1100px; }
+    .hero p { max-width: 900px; color: var(--muted); font-size: 1.09rem; }
+    .hero-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 26px; max-width: 1000px; }
+    .metric {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+      box-shadow: var(--shadow); padding: 14px;
+    }
+    .metric strong { display: block; color: var(--primary); font-size: 1.2rem; }
+    .content { padding: 34px clamp(20px, 5vw, 74px) 90px; max-width: 1480px; }
+    section {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: clamp(22px, 4vw, 42px); margin: 24px 0; scroll-margin-top: 18px;
+    }
+    h2 { margin-top: 0; font-size: clamp(1.6rem,3vw,2.35rem); line-height: 1.2; }
+    h3 { margin-top: 30px; font-size: 1.32rem; }
+    h4 { margin-top: 22px; font-size: 1.08rem; }
+    p, li { max-width: 1080px; }
+    .lead { font-size: 1.08rem; color: var(--muted); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+    .card { border: 1px solid var(--border); background: var(--surface-2); border-radius: 13px; padding: 18px; }
+    .card h3, .card h4 { margin-top: 0; }
+    .callout {
+      border-left: 5px solid var(--primary); background: var(--surface-2);
+      padding: 15px 18px; border-radius: 0 12px 12px 0; margin: 18px 0;
+    }
+    .callout.success { border-left-color: var(--success); }
+    .callout.warning { border-left-color: var(--warning); }
+    .callout.danger { border-left-color: var(--danger); }
+    .tag {
+      display: inline-block; background: var(--primary-soft); color: var(--primary);
+      border-radius: 999px; font-size: .75rem; padding: 3px 8px; margin: 2px;
+    }
+    .diagram {
+      white-space: pre; overflow: auto; font-family: "SFMono-Regular", Consolas, monospace;
+      background: var(--surface-2); border: 1px dashed var(--border); border-radius: 12px;
+      padding: 18px; line-height: 1.45;
+    }
+    pre {
+      background: var(--code-bg); color: var(--code-text); border-radius: 12px;
+      padding: 18px; overflow: auto; font-size: .86rem; line-height: 1.55;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    :not(pre) > code { border: 1px solid var(--border); background: var(--surface-2); padding: 2px 5px; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: .92rem; }
+    th, td { border: 1px solid var(--border); padding: 11px 12px; vertical-align: top; text-align: left; }
+    th { background: var(--surface-2); }
+    .table-wrap { overflow-x: auto; }
+    .flow-step { display: flex; gap: 14px; align-items: flex-start; margin: 15px 0; }
+    .num {
+      min-width: 32px; height: 32px; display: grid; place-items: center;
+      border-radius: 50%; color: white; background: var(--primary); font-weight: 800;
+    }
+    details { border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); margin: 12px 0; }
+    summary { cursor: pointer; font-weight: 780; padding: 16px 18px; }
+    details > div { border-top: 1px solid var(--border); padding: 15px 18px 18px; }
+    .senior { color: var(--success); font-weight: 780; }
+    .small { font-size: .85rem; color: var(--muted); }
+    .hidden-by-search { display: none !important; }
+    footer { padding: 28px clamp(20px,5vw,74px) 60px; color: var(--muted); }
+    @media(max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+      nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .grid-3, .hero-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width: 650px) {
+      nav, .grid-2, .grid-3, .hero-grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 38px; }
+    }
+    @media print {
+      aside, .search, .actions { display: none !important; }
+      .layout { display: block; }
+      body { background: white; color: black; }
+      section { box-shadow: none; break-inside: avoid; }
+      details > div { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Dynamic Retry Guide</div>
+    <div class="brand-sub">Spring Boot • Resilience4j • Kubernetes</div>
+    <input id="searchBox" class="search" placeholder="Search the document..." />
+    <div class="actions">
+      <button id="themeBtn">Dark mode</button>
+      <button onclick="window.print()">Print</button>
+    </div>
+    <nav id="toc">
+      <a href="#answer">1. Direct Answer</a>
+      <a href="#meaning">2. What “Dynamic” Means</a>
+      <a href="#retry-model">3. Retry Mental Model</a>
+      <a href="#derive">4. Derive Attempt Count</a>
+      <a href="#configuration">5. Configuration Model</a>
+      <a href="#level-1">6. Level 1: Externalized</a>
+      <a href="#level-2">7. Level 2: Rolling Reload</a>
+      <a href="#level-3">8. Level 3: Hot Reload</a>
+      <a href="#architecture">9. Recommended Architecture</a>
+      <a href="#code">10. Complete Java Example</a>
+      <a href="#spring-cloud">11. Spring Cloud Config</a>
+      <a href="#kubernetes">12. Kubernetes Options</a>
+      <a href="#resilience4j">13. Resilience4j Details</a>
+      <a href="#policy">14. Retry Policy Rules</a>
+      <a href="#budget">15. Timeout Budget</a>
+      <a href="#safety">16. Runtime Safety</a>
+      <a href="#governance">17. Governance & Security</a>
+      <a href="#monitoring">18. Monitoring</a>
+      <a href="#testing">19. Testing</a>
+      <a href="#async">20. Kafka/Queue Retry</a>
+      <a href="#failure">21. Failure Scenarios</a>
+      <a href="#antipatterns">22. Anti-patterns</a>
+      <a href="#interview">23. Senior Interview Q&A</a>
+      <a href="#checklist">24. Production Checklist</a>
+      <a href="#references">25. Official References</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <span class="eyebrow">Deep Dive • Runtime Reload • Production Safety</span>
+      <h1>Dynamic Retry Configuration in Microservices</h1>
+      <p>
+        A detailed guide to configuring retry count, delay, backoff, exception rules and time budgets
+        without hard-coding them in Java. It covers externalized configuration, rolling restart,
+        true hot reload, atomic policy replacement, Spring Cloud Config, Kubernetes and Resilience4j.
+      </p>
+      <div>
+        <span class="tag">Java 17/21</span><span class="tag">Spring Boot</span>
+        <span class="tag">Resilience4j</span><span class="tag">Spring Cloud Config</span>
+        <span class="tag">Kubernetes</span><span class="tag">Senior Interview</span>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><strong>3 levels</strong>of dynamic configuration</div>
+        <div class="metric"><strong>Atomic swap</strong>for runtime safety</div>
+        <div class="metric"><strong>Complete code</strong>with validation</div>
+        <div class="metric"><strong>25 sections</strong>for production use</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <section id="answer" data-search>
+        <h2>1. Direct Answer: Can Retry Count Be Dynamic?</h2>
+        <p class="lead"><strong>Yes.</strong> The number of retry attempts can be externalized and changed without modifying or rebuilding application code.</p>
+
+        <div class="callout success">
+          The recommended model is: Java code refers to a named policy such as
+          <code>inventory-service</code>, while <code>maxAttempts</code>, delay, backoff and retryable
+          errors live in external configuration.
+        </div>
+
+        <pre><code class="yaml">remote-clients:
+  policies:
+    inventory-service:
+      enabled: true
+      max-attempts: 3
+      initial-delay: 150ms
+      multiplier: 2.0
+      max-delay: 1s
+      jitter-factor: 0.20</code></pre>
+
+        <p>However, the word <strong>dynamic</strong> has three different meanings:</p>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Externalized</h3>
+            <p>Change YAML, environment variables or ConfigMap. The application loads the new value at startup.</p>
+            <p><strong>Restart required.</strong></p>
+          </div>
+          <div class="card">
+            <h3>Rolling reload</h3>
+            <p>Update configuration and roll pods gradually. Old pods use the old policy; new pods use the new policy.</p>
+            <p><strong>No full outage.</strong></p>
+          </div>
+          <div class="card">
+            <h3>True hot reload</h3>
+            <p>Running instances receive a refresh event and atomically replace the policy in memory.</p>
+            <p><strong>No pod restart.</strong></p>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          “Not hard-coded” does not automatically mean “hot reload.” An environment variable is external,
+          but a running process does not see its changed value unless it restarts.
+        </div>
+      </section>
+
+      <section id="meaning" data-search>
+        <h2>2. What “Dynamic” Should Mean in a Production Design</h2>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>Capability</th><th>Question</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Externalized configuration</td><td>Can the value change without changing source code?</td><td>YAML, env variable, ConfigMap, Config Server.</td></tr>
+            <tr><td>Centralized configuration</td><td>Can many services read policies from one controlled source?</td><td>Spring Cloud Config backed by Git.</td></tr>
+            <tr><td>Runtime refresh</td><td>Can a running process observe the new value?</td><td><code>/actuator/refresh</code>, Bus refresh, config watcher.</td></tr>
+            <tr><td>Policy replacement</td><td>Does the actual retry object use the new value?</td><td>Recreate and atomically replace <code>Retry</code>.</td></tr>
+            <tr><td>Fleet consistency</td><td>Do all pods use the same configuration version?</td><td>Config version metadata and rollout status.</td></tr>
+            <tr><td>Safe rollback</td><td>Can an invalid change be reversed quickly?</td><td>Git revert or configuration version rollback.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Dynamic configuration is a distributed-systems problem</h3>
+        <p>Once multiple pods exist, a change is not instantaneous everywhere:</p>
+        <div class="diagram">Config version 18 published
+        ↓
+Pod A receives it at 10:00:01
+Pod B receives it at 10:00:03
+Pod C is temporarily disconnected and still uses version 17
+        ↓
+For a short period, the fleet is mixed</div>
+
+        <p>The system must therefore answer:</p>
+        <ul>
+          <li>Is a mixed policy version acceptable for a few seconds?</li>
+          <li>How do we know which version each pod is using?</li>
+          <li>What happens when one pod rejects the configuration?</li>
+          <li>Should the whole change be rolled back?</li>
+        </ul>
+      </section>
+
+      <section id="retry-model" data-search>
+        <h2>3. Correct Retry Mental Model</h2>
+        <p>A retry policy is not only a number.</p>
+
+        <pre><code>RetryPolicy =
+  enabled
+  + total attempts
+  + retryable exceptions/statuses
+  + ignored exceptions/statuses
+  + initial delay
+  + backoff algorithm
+  + maximum delay
+  + jitter
+  + per-attempt timeout
+  + total deadline
+  + idempotency requirement</code></pre>
+
+        <h3><code>maxAttempts</code> normally includes the first call</h3>
+        <div class="diagram">maxAttempts = 3
+
+Attempt 1 = initial request
+Attempt 2 = first retry
+Attempt 3 = second retry
+
+Total executions = 3</div>
+
+        <div class="callout danger">
+          Do not call the configuration <code>retryCount</code> unless the meaning is extremely clear.
+          Some teams interpret “retry count 3” as three retries after the initial attempt, producing four total calls.
+          Prefer <code>maxAttempts</code> and document that it includes the initial call.
+        </div>
+
+        <h3>Retry is only for transient failures</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Usually retry</th><th>Usually do not retry</th><th>Needs explicit rule</th></tr></thead>
+          <tbody>
+            <tr><td>Connection reset, connect timeout, temporary HTTP 502/503/504.</td><td>Validation error, HTTP 400, authentication failure, insufficient balance.</td><td>HTTP 409, HTTP 429, read timeout after state-changing POST.</td></tr>
+            <tr><td>Deadlock or serialization conflict where operation is safe to repeat.</td><td>Permanent business rejection.</td><td>External provider returned unknown result.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="derive" data-search>
+        <h2>4. How to Derive the Number of Attempts</h2>
+        <p class="lead">Do not make the number dynamic so operators can choose any value. Make it configurable within a validated safety envelope.</p>
+
+        <h3>Start with the end-to-end deadline</h3>
+        <pre><code>worst_case_duration ≈
+  Σ(per_attempt_timeout)
+  + Σ(backoff_delay)
+  + local_processing_overhead</code></pre>
+
+        <h3>Example</h3>
+        <pre><code>Overall API deadline:       1,500 ms
+Local work and safety:        250 ms
+Available remote-call budget: 1,250 ms
+
+Attempt 1 timeout: 300 ms
+Backoff:          100 ms
+Attempt 2 timeout: 300 ms
+Backoff:          200 ms
+Attempt 3 timeout: 300 ms
+Estimated total: 1,200 ms</code></pre>
+
+        <p>Three total attempts fit narrowly. Four attempts would likely violate the caller’s deadline.</p>
+
+        <h3>Starting guidance</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Operation</th><th>Typical starting point</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>User-facing internal GET</td><td>2–3 total attempts</td><td>Short transient errors may recover, but user latency is limited.</td></tr>
+            <tr><td>State-changing POST without idempotency</td><td>1 attempt</td><td>A timeout may hide a successful remote mutation.</td></tr>
+            <tr><td>State-changing call with idempotency key</td><td>2 total attempts initially</td><td>Safer, but still bounded by deadline and provider contract.</td></tr>
+            <tr><td>Background asynchronous job</td><td>Several delayed attempts</td><td>No request thread is held; recovery may take minutes or hours.</td></tr>
+            <tr><td>Database deadlock retry</td><td>2–3 total attempts</td><td>Often transient, but repeated conflicts indicate contention.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout">
+          A dynamic setting should have a business-approved range such as <code>1..5</code>, not <code>1..10,000</code>.
+        </div>
+      </section>
+
+      <section id="configuration" data-search>
+        <h2>5. Recommended Configuration Model</h2>
+
+        <pre><code class="yaml">remote-clients:
+  global-defaults:
+    enabled: true
+    max-attempts: 2
+    initial-delay: 100ms
+    multiplier: 2.0
+    max-delay: 1s
+    jitter-factor: 0.20
+    per-attempt-timeout: 500ms
+    total-timeout: 1500ms
+
+  policies:
+    inventory-service:
+      max-attempts: 3
+      initial-delay: 120ms
+      retry-http-statuses: [502, 503, 504]
+
+    payment-provider:
+      max-attempts: 2
+      initial-delay: 300ms
+      per-attempt-timeout: 800ms
+      total-timeout: 2s
+      require-idempotency-key: true
+      retry-http-statuses: [502, 503, 504]
+
+    customer-profile:
+      enabled: false
+      max-attempts: 1</code></pre>
+
+        <h3>Why configure per dependency?</h3>
+        <ul>
+          <li>Inventory may recover quickly from a short pod restart.</li>
+          <li>A payment provider call has duplicate-charge risk.</li>
+          <li>A profile query may be optional and should fail fast to cache.</li>
+          <li>A high-traffic dependency may allow fewer retries than a low-traffic dependency.</li>
+        </ul>
+
+        <h3>Suggested property names</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Property</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>enabled</code></td><td>Turns retry on or off without code changes.</td></tr>
+            <tr><td><code>max-attempts</code></td><td>Total calls, including the first call.</td></tr>
+            <tr><td><code>initial-delay</code></td><td>Delay before the first retry.</td></tr>
+            <tr><td><code>multiplier</code></td><td>Exponential backoff multiplier.</td></tr>
+            <tr><td><code>max-delay</code></td><td>Upper bound for calculated backoff.</td></tr>
+            <tr><td><code>jitter-factor</code></td><td>Random variation to avoid synchronized retries.</td></tr>
+            <tr><td><code>per-attempt-timeout</code></td><td>Maximum duration of one remote call.</td></tr>
+            <tr><td><code>total-timeout</code></td><td>Maximum duration of the entire retry operation.</td></tr>
+            <tr><td><code>retry-http-statuses</code></td><td>Explicit retriable HTTP results.</td></tr>
+            <tr><td><code>require-idempotency-key</code></td><td>Safety guard for state-changing calls.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="level-1" data-search>
+        <h2>6. Level 1: Externalized Configuration</h2>
+        <p>This removes hard-coded values but requires application restart to apply changes.</p>
+
+        <h3>Environment variables</h3>
+        <pre><code class="yaml">remote-clients:
+  policies:
+    inventory-service:
+      max-attempts: ${INVENTORY_MAX_ATTEMPTS:3}
+      initial-delay: ${INVENTORY_INITIAL_DELAY:150ms}</code></pre>
+
+        <h3>Advantages</h3>
+        <ul>
+          <li>Simple and compatible with normal Spring Boot.</li>
+          <li>Works well with Helm, Docker and Kubernetes.</li>
+          <li>Easy to audit through deployment manifests.</li>
+          <li>No runtime consistency complexity.</li>
+        </ul>
+
+        <h3>Limitation</h3>
+        <p>Environment variables are read when the process starts. Updating a Kubernetes ConfigMap does not update environment variables inside an existing process.</p>
+
+        <div class="callout success">
+          For many systems, this is enough. A controlled rolling restart is often safer than hot reload for a high-risk payment policy.
+        </div>
+      </section>
+
+      <section id="level-2" data-search>
+        <h2>7. Level 2: Dynamic Through Rolling Reload</h2>
+
+        <div class="diagram">1. Update Git/ConfigMap
+2. Validate configuration
+3. Trigger Deployment rollout
+4. New pods start with policy version 19
+5. Readiness checks pass
+6. Old version 18 pods terminate gradually</div>
+
+        <h3>Why this is a good default</h3>
+        <ul>
+          <li>No full service outage.</li>
+          <li>Each pod starts with one immutable policy version.</li>
+          <li>Rollback is easy using the previous Deployment or Git revision.</li>
+          <li>Startup validation can reject dangerous configuration.</li>
+          <li>No need to mutate live retry objects.</li>
+        </ul>
+
+        <h3>Version checksum rollout</h3>
+        <pre><code class="yaml">spec:
+  template:
+    metadata:
+      annotations:
+        config-checksum: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"</code></pre>
+
+        <p>Changing the ConfigMap changes the pod-template checksum, so Kubernetes creates a new ReplicaSet and performs a rolling update.</p>
+
+        <h3>Temporary mixed versions</h3>
+        <p>During the rollout, some pods may use attempt count 2 while others use 3. Usually this is acceptable for resilience settings, but it must be visible through metrics and logs.</p>
+      </section>
+
+      <section id="level-3" data-search>
+        <h2>8. Level 3: True Runtime Hot Reload</h2>
+
+        <div class="diagram">Configuration Repository
+       ↓ change + approval
+Config Server / Config Watcher
+       ↓ refresh event
+Spring Environment rebinds properties
+       ↓ validation
+DynamicRetryPolicyManager builds a NEW policy object
+       ↓ atomic swap
+New requests use version 20
+In-flight requests finish with version 19</div>
+
+        <h3>Key principle: replace, do not mutate partially</h3>
+        <p>Build a complete immutable policy first. Validate it. Then replace the current reference in one atomic operation.</p>
+
+        <pre><code class="java">AtomicReference&lt;RetryPolicySnapshot&gt; currentPolicy;</code></pre>
+
+        <p>This avoids a request seeing:</p>
+        <pre><code>maxAttempts = new value
+initialDelay = old value
+totalTimeout = new value
+retryStatuses = old value</code></pre>
+
+        <h3>Desired behavior</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h3>In-flight request</h3>
+            <p>Captures policy version 19 at call start and uses it until completion.</p>
+          </div>
+          <div class="card">
+            <h3>New request</h3>
+            <p>Reads policy version 20 after the atomic swap.</p>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          Refreshing <code>@ConfigurationProperties</code> is not enough if a Retry object was already created from the old values.
+          The actual runtime policy object must be recreated or otherwise refreshed by the integration being used.
+        </div>
+      </section>
+
+      <section id="architecture" data-search>
+        <h2>9. Recommended Production Architecture</h2>
+
+        <div class="diagram">                         ┌──────────────────────────┐
+                         │ Git Configuration Repo   │
+                         │ reviewed + versioned     │
+                         └────────────┬─────────────┘
+                                      ↓
+                         ┌──────────────────────────┐
+                         │ Spring Cloud Config     │
+                         └────────────┬─────────────┘
+                                      ↓ refresh/bus
+┌─────────────────────────────────────────────────────────────────┐
+│ Order Service Pod                                               │
+│                                                                 │
+│ @ConfigurationProperties                                       │
+│          ↓                                                      │
+│ RetryPolicyValidator                                            │
+│          ↓                                                      │
+│ DynamicRetryPolicyManager                                       │
+│ AtomicReference&lt;Map&lt;dependency, policy snapshot&gt;&gt;              │
+│          ↓                                                      │
+│ ResilientHttpExecutor → Timeout → Retry → Circuit Breaker       │
+│          ↓                                                      │
+│ Inventory / Payment / Customer services                         │
+└─────────────────────────────────────────────────────────────────┘
+                                      ↓
+                       Metrics: policy version, attempts,
+                       retries, failures, budget exhaustion</div>
+
+        <h3>Responsibility separation</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td><code>RetryPolicyProperties</code></td><td>Bind external configuration.</td></tr>
+            <tr><td><code>RetryPolicyValidator</code></td><td>Reject unsafe combinations and invalid ranges.</td></tr>
+            <tr><td><code>RetryPolicySnapshot</code></td><td>Immutable runtime representation with version metadata.</td></tr>
+            <tr><td><code>DynamicRetryPolicyManager</code></td><td>Build and atomically publish policies.</td></tr>
+            <tr><td><code>ResilientHttpExecutor</code></td><td>Execute a call using one captured policy snapshot.</td></tr>
+            <tr><td>Metrics/audit listener</td><td>Record policy changes and runtime behavior.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="code" data-search>
+        <h2>10. Complete Java Implementation</h2>
+
+        <h3>10.1 Configuration properties</h3>
+        <pre><code class="java">package com.example.resilience.config;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+@Validated
+@ConfigurationProperties(prefix = "remote-clients")
+public class RetryPolicyProperties {
+
+    @Valid
+    private Policy globalDefaults = new Policy();
+
+    @Valid
+    private Map&lt;String, Policy&gt; policies = new HashMap&lt;&gt;();
+
+    public Policy getGlobalDefaults() {
+        return globalDefaults;
+    }
+
+    public void setGlobalDefaults(Policy globalDefaults) {
+        this.globalDefaults = globalDefaults;
+    }
+
+    public Map&lt;String, Policy&gt; getPolicies() {
+        return policies;
+    }
+
+    public void setPolicies(Map&lt;String, Policy&gt; policies) {
+        this.policies = policies;
+    }
+
+    public static class Policy {
+        private boolean enabled = true;
+
+        @Min(1)
+        @Max(5)
+        private int maxAttempts = 2;
+
+        @NotNull
+        private Duration initialDelay = Duration.ofMillis(100);
+
+        @DecimalMin("1.0")
+        @DecimalMax("5.0")
+        private double multiplier = 2.0;
+
+        @NotNull
+        private Duration maxDelay = Duration.ofSeconds(1);
+
+        @DecimalMin("0.0")
+        @DecimalMax("0.5")
+        private double jitterFactor = 0.20;
+
+        @NotNull
+        private Duration perAttemptTimeout = Duration.ofMillis(500);
+
+        @NotNull
+        private Duration totalTimeout = Duration.ofMillis(1500);
+
+        private Set&lt;Integer&gt; retryHttpStatuses =
+                new HashSet&lt;&gt;(Set.of(502, 503, 504));
+
+        private boolean requireIdempotencyKey;
+
+        // Getters and setters omitted here only to reduce document length.
+        // In production, add all standard getters and setters.
+    }
+}</code></pre>
+
+        <h3>10.2 Immutable runtime snapshot</h3>
+        <pre><code class="java">package com.example.resilience.runtime;
+
+import io.github.resilience4j.retry.Retry;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Set;
+
+public record RetryPolicySnapshot(
+        String dependency,
+        long version,
+        Instant loadedAt,
+        boolean enabled,
+        int maxAttempts,
+        Duration perAttemptTimeout,
+        Duration totalTimeout,
+        Set&lt;Integer&gt; retryHttpStatuses,
+        boolean requireIdempotencyKey,
+        Retry retry) {
+}</code></pre>
+
+        <h3>10.3 Backoff with jitter</h3>
+        <pre><code class="java">package com.example.resilience.runtime;
+
+import io.github.resilience4j.core.IntervalFunction;
+
+import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
+
+public final class BackoffFunctions {
+
+    private BackoffFunctions() {
+    }
+
+    public static IntervalFunction exponentialWithJitter(
+            Duration initialDelay,
+            double multiplier,
+            Duration maxDelay,
+            double jitterFactor) {
+
+        long initialMillis = initialDelay.toMillis();
+        long maximumMillis = maxDelay.toMillis();
+
+        return attempt -&gt; {
+            double exponential =
+                    initialMillis * Math.pow(multiplier, Math.max(0, attempt - 1));
+
+            long baseDelay = Math.min((long) exponential, maximumMillis);
+
+            double min = 1.0 - jitterFactor;
+            double max = 1.0 + jitterFactor;
+            double randomFactor =
+                    ThreadLocalRandom.current().nextDouble(min, max);
+
+            return Math.max(0L, (long) (baseDelay * randomFactor));
+        };
+    }
+}</code></pre>
+
+        <h3>10.4 Validator</h3>
+        <pre><code class="java">package com.example.resilience.runtime;
+
+import com.example.resilience.config.RetryPolicyProperties.Policy;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+
+@Component
+public class RetryPolicyValidator {
+
+    public void validate(String dependency, Policy policy) {
+        require(policy.getMaxAttempts() &gt;= 1,
+                dependency + ": maxAttempts must be at least 1");
+
+        require(policy.getMaxAttempts() &lt;= 5,
+                dependency + ": maxAttempts cannot exceed 5");
+
+        require(!policy.getInitialDelay().isNegative(),
+                dependency + ": initialDelay cannot be negative");
+
+        require(policy.getMaxDelay().compareTo(policy.getInitialDelay()) &gt;= 0,
+                dependency + ": maxDelay must be greater than or equal to initialDelay");
+
+        require(policy.getPerAttemptTimeout().compareTo(Duration.ZERO) &gt; 0,
+                dependency + ": perAttemptTimeout must be positive");
+
+        require(policy.getTotalTimeout()
+                        .compareTo(policy.getPerAttemptTimeout()) &gt;= 0,
+                dependency + ": totalTimeout must cover at least one attempt");
+
+        Duration estimatedWorstCase = estimateWorstCase(policy);
+
+        require(estimatedWorstCase.compareTo(policy.getTotalTimeout()) &lt;= 0,
+                dependency + ": configured attempts and backoff exceed totalTimeout");
+    }
+
+    private Duration estimateWorstCase(Policy policy) {
+        long totalMillis =
+                policy.getPerAttemptTimeout().toMillis()
+                        * policy.getMaxAttempts();
+
+        long delay = policy.getInitialDelay().toMillis();
+
+        for (int retryIndex = 1;
+             retryIndex &lt; policy.getMaxAttempts();
+             retryIndex++) {
+
+            totalMillis += Math.min(
+                    delay,
+                    policy.getMaxDelay().toMillis());
+
+            delay = (long) (delay * policy.getMultiplier());
+        }
+
+        return Duration.ofMillis(totalMillis);
+    }
+
+    private void require(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+}</code></pre>
+
+        <h3>10.5 Dynamic policy manager with atomic replacement</h3>
+        <pre><code class="java">package com.example.resilience.runtime;
+
+import com.example.resilience.config.RetryPolicyProperties;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import org.springframework.context.event.EventListener;
+import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+
+@Component
+public class DynamicRetryPolicyManager {
+
+    private final RetryPolicyProperties properties;
+    private final RetryPolicyValidator validator;
+
+    private final AtomicLong versionSequence = new AtomicLong();
+    private final AtomicReference&lt;Map&lt;String, RetryPolicySnapshot&gt;&gt;
+            snapshots = new AtomicReference&lt;&gt;(Map.of());
+
+    public DynamicRetryPolicyManager(
+            RetryPolicyProperties properties,
+            RetryPolicyValidator validator) {
+        this.properties = properties;
+        this.validator = validator;
+        reload();
+    }
+
+    public RetryPolicySnapshot get(String dependency) {
+        RetryPolicySnapshot snapshot =
+                snapshots.get().get(dependency);
+
+        if (snapshot == null) {
+            throw new IllegalArgumentException(
+                    "No retry policy configured for: " + dependency);
+        }
+
+        return snapshot;
+    }
+
+    public synchronized void reload() {
+        long newVersion = versionSequence.incrementAndGet();
+        Map&lt;String, RetryPolicySnapshot&gt; next = new HashMap&lt;&gt;();
+
+        properties.getPolicies().forEach((dependency, policy) -&gt; {
+            validator.validate(dependency, policy);
+
+            RetryConfig retryConfig = RetryConfig.custom()
+                    .maxAttempts(policy.getMaxAttempts())
+                    .intervalFunction(
+                            BackoffFunctions.exponentialWithJitter(
+                                    policy.getInitialDelay(),
+                                    policy.getMultiplier(),
+                                    policy.getMaxDelay(),
+                                    policy.getJitterFactor()))
+                    .retryOnException(
+                            RetryExceptionClassifier::isTransient)
+                    .build();
+
+            Retry retry = Retry.of(
+                    dependency + "-v" + newVersion,
+                    retryConfig);
+
+            next.put(
+                    dependency,
+                    new RetryPolicySnapshot(
+                            dependency,
+                            newVersion,
+                            Instant.now(),
+                            policy.isEnabled(),
+                            policy.getMaxAttempts(),
+                            policy.getPerAttemptTimeout(),
+                            policy.getTotalTimeout(),
+                            Set.copyOf(policy.getRetryHttpStatuses()),
+                            policy.isRequireIdempotencyKey(),
+                            retry));
+        });
+
+        // Publish the whole map in one atomic operation.
+        snapshots.set(Collections.unmodifiableMap(next));
+    }
+
+    @EventListener(EnvironmentChangeEvent.class)
+    public void onEnvironmentChange(EnvironmentChangeEvent event) {
+        boolean relevant = event.getKeys().stream()
+                .anyMatch(key -&gt; key.startsWith("remote-clients."));
+
+        if (relevant) {
+            reload();
+        }
+    }
+}</code></pre>
+
+        <h3>10.6 Exception classifier</h3>
+        <pre><code class="java">public final class RetryExceptionClassifier {
+
+    private RetryExceptionClassifier() {
+    }
+
+    public static boolean isTransient(Throwable throwable) {
+        return throwable instanceof java.net.ConnectException
+                || throwable instanceof java.net.SocketTimeoutException
+                || throwable instanceof java.io.IOException
+                || throwable instanceof TemporaryRemoteServiceException;
+    }
+}</code></pre>
+
+        <h3>10.7 Executor captures one snapshot per operation</h3>
+        <pre><code class="java">package com.example.resilience.runtime;
+
+import io.github.resilience4j.retry.Retry;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.Callable;
+
+@Component
+public class ResilientCallExecutor {
+
+    private final DynamicRetryPolicyManager policyManager;
+
+    public ResilientCallExecutor(
+            DynamicRetryPolicyManager policyManager) {
+        this.policyManager = policyManager;
+    }
+
+    public &lt;T&gt; T execute(
+            String dependency,
+            boolean stateChanging,
+            String idempotencyKey,
+            Callable&lt;T&gt; operation) throws Exception {
+
+        RetryPolicySnapshot snapshot =
+                policyManager.get(dependency);
+
+        validateInvocationSafety(
+                snapshot,
+                stateChanging,
+                idempotencyKey);
+
+        Callable&lt;T&gt; decorated =
+                snapshot.enabled()
+                        ? Retry.decorateCallable(snapshot.retry(), operation)
+                        : operation;
+
+        // This request keeps using this captured snapshot,
+        // even if a new policy is published during execution.
+        return decorated.call();
+    }
+
+    private void validateInvocationSafety(
+            RetryPolicySnapshot snapshot,
+            boolean stateChanging,
+            String idempotencyKey) {
+
+        if (stateChanging
+                &amp;&amp; snapshot.requireIdempotencyKey()
+                &amp;&amp; (idempotencyKey == null
+                    || idempotencyKey.isBlank())) {
+
+            throw new IllegalArgumentException(
+                    "Idempotency key is required for "
+                            + snapshot.dependency());
+        }
+    }
+}</code></pre>
+
+        <h3>10.8 Client usage</h3>
+        <pre><code class="java">@Component
+public class PaymentProviderClient {
+
+    private final ResilientCallExecutor executor;
+    private final PaymentHttpClient httpClient;
+
+    public PaymentProviderClient(
+            ResilientCallExecutor executor,
+            PaymentHttpClient httpClient) {
+        this.executor = executor;
+        this.httpClient = httpClient;
+    }
+
+    public PaymentResponse charge(PaymentRequest request)
+            throws Exception {
+
+        String idempotencyKey =
+                "payment:" + request.paymentId();
+
+        return executor.execute(
+                "payment-provider",
+                true,
+                idempotencyKey,
+                () -&gt; httpClient.charge(
+                        request,
+                        idempotencyKey));
+    }
+}</code></pre>
+
+        <div class="callout warning">
+          The sample focuses on dynamic Retry replacement. In a real application, enforce the
+          per-attempt timeout and total deadline with the HTTP client and/or a TimeLimiter.
+          Retry alone does not stop a hanging network call.
+        </div>
+      </section>
+
+      <section id="spring-cloud" data-search>
+        <h2>11. Spring Cloud Config and Refresh Flow</h2>
+
+        <h3>Config client</h3>
+        <pre><code class="yaml">spring:
+  application:
+    name: order-service
+  config:
+    import: optional:configserver:http://config-server:8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh</code></pre>
+
+        <h3>Configuration repository</h3>
+        <pre><code>config-repository/
+  order-service.yml
+  order-service-dev.yml
+  order-service-prod.yml</code></pre>
+
+        <h3>Refresh choices</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Method</th><th>Use</th><th>Concern</th></tr></thead>
+          <tbody>
+            <tr><td>Manual refresh endpoint</td><td>Small environments or controlled operator action.</td><td>Must call every instance or route correctly.</td></tr>
+            <tr><td>Spring Cloud Bus</td><td>Broadcast refresh to a fleet through a broker.</td><td>Secure the endpoint and monitor delivery.</td></tr>
+            <tr><td>Deployment pipeline</td><td>Config change triggers rolling restart.</td><td>Not true hot reload, but often safer.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Bean refresh versus policy refresh</h3>
+        <p><code>@RefreshScope</code> can recreate a bean when its cached instance is cleared. <code>@ConfigurationProperties</code> can be rebound. The exact approach depends on library integration and version.</p>
+
+        <div class="callout">
+          A robust implementation explicitly listens for relevant configuration changes and rebuilds the runtime policy.
+          This makes the behavior visible and testable instead of assuming a third-party bean changed internally.
+        </div>
+
+        <h3>Do not expose refresh publicly</h3>
+        <ul>
+          <li>Keep actuator endpoints on a management network.</li>
+          <li>Require authentication and authorization.</li>
+          <li>Log who initiated the refresh.</li>
+          <li>Do not expose arbitrary environment mutation endpoints to normal clients.</li>
+        </ul>
+      </section>
+
+      <section id="kubernetes" data-search>
+        <h2>12. Kubernetes Configuration Options</h2>
+
+        <h3>Option A: Environment variables</h3>
+        <pre><code class="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-retry
+data:
+  INVENTORY_MAX_ATTEMPTS: "3"
+  PAYMENT_MAX_ATTEMPTS: "2"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: order-service
+          envFrom:
+            - configMapRef:
+                name: order-service-retry</code></pre>
+        <p><strong>Behavior:</strong> existing containers do not receive new environment-variable values. Roll the pods.</p>
+
+        <h3>Option B: Mounted ConfigMap file</h3>
+        <pre><code class="yaml">volumeMounts:
+  - name: retry-config
+    mountPath: /config/retry
+    readOnly: true
+
+volumes:
+  - name: retry-config
+    configMap:
+      name: order-service-retry</code></pre>
+        <p>Kubernetes can update projected ConfigMap volume files after a delay. The application must still watch or re-read the file. A <code>subPath</code> mount does not receive ConfigMap updates.</p>
+
+        <h3>Option C: Spring Cloud Kubernetes watcher</h3>
+        <p>A configuration watcher can publish a refresh event when ConfigMaps or Secrets change. Only beans and runtime components designed to refresh will actually use the new values.</p>
+
+        <h3>Recommended choices</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Requirement</th><th>Choice</th></tr></thead>
+          <tbody>
+            <tr><td>Simple and safest</td><td>ConfigMap/env variables + checksum-triggered rolling restart.</td></tr>
+            <tr><td>Fast runtime change</td><td>Mounted file or watcher + validated atomic policy swap.</td></tr>
+            <tr><td>Many Spring services</td><td>Spring Cloud Config + Bus or controlled rollout.</td></tr>
+            <tr><td>High-risk payment settings</td><td>Approval workflow + canary/rolling rollout, not unrestricted hot edit.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="resilience4j" data-search>
+        <h2>13. Resilience4j Implementation Details</h2>
+
+        <h3>RetryRegistry</h3>
+        <p>Resilience4j provides an in-memory <code>RetryRegistry</code> to create and retrieve named Retry instances.</p>
+
+        <pre><code class="java">RetryRegistry registry = RetryRegistry.ofDefaults();
+Retry retry = registry.retry("inventory-service", retryConfig);</code></pre>
+
+        <h3>Two implementation approaches</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Annotation approach</h3>
+            <pre><code>@Retry(name = "inventoryService")
+public InventoryResponse reserve(...) { ... }</code></pre>
+            <p>Simple, but runtime refresh behavior depends on Spring AOP, auto-configuration and how the registry bean is refreshed.</p>
+          </div>
+          <div class="card">
+            <h3>Functional approach</h3>
+            <pre><code>Retry.decorateCallable(snapshot.retry(), call)</code></pre>
+            <p>More explicit. The application can capture an immutable version and atomically replace future policies.</p>
+          </div>
+        </div>
+
+        <h3>Recommendation</h3>
+        <p>Use annotations for stable startup configuration. Prefer a functional wrapper or custom executor when true per-policy hot reload, versioning and auditability are hard requirements.</p>
+
+        <h3>Avoid creating one Retry object per request</h3>
+        <p>Create one immutable Retry object per dependency and configuration version, then reuse it. Rebuilding on every call wastes objects, complicates metrics and can leak event listeners if managed poorly.</p>
+
+        <h3>Ordering with other resilience patterns</h3>
+        <div class="diagram">Overall deadline
+    ↓
+Bulkhead / concurrency limit
+    ↓
+Circuit breaker
+    ↓
+Retry
+    ↓
+Per-attempt timeout
+    ↓
+Remote call</div>
+
+        <p>The exact decorator order changes behavior. For example, placing Circuit Breaker inside Retry may record every attempt; placing it outside may record the final operation result. Choose deliberately and test metrics.</p>
+      </section>
+
+      <section id="policy" data-search>
+        <h2>14. Retry Policy Rules</h2>
+
+        <h3>HTTP classification</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Result</th><th>Default action</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td>Connect timeout</td><td>Retry</td><td>No connection was established; usually safe for an idempotent operation.</td></tr>
+            <tr><td>Read timeout</td><td>Conditional</td><td>Remote may have completed the operation before response was lost.</td></tr>
+            <tr><td>HTTP 502/503/504</td><td>Retry</td><td>Usually transient, with bounded backoff.</td></tr>
+            <tr><td>HTTP 429</td><td>Retry conditionally</td><td>Respect <code>Retry-After</code>; avoid adding load too early.</td></tr>
+            <tr><td>HTTP 400/401/403</td><td>Do not retry</td><td>Request or authorization must change.</td></tr>
+            <tr><td>HTTP 404</td><td>Usually no retry</td><td>May be eventually consistent only in explicitly designed flows.</td></tr>
+            <tr><td>HTTP 409</td><td>Business-specific</td><td>Optimistic conflict may retry; “already completed” should not.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Result-based retry</h3>
+        <p>Not every retry is exception-based. An API might return HTTP 200 with a temporary state:</p>
+        <pre><code class="json">{
+  "status": "PROCESSING",
+  "retryAfterSeconds": 5
+}</code></pre>
+        <p>For long waiting, prefer asynchronous polling or scheduling rather than holding a synchronous retry loop.</p>
+
+        <h3>Idempotency rule</h3>
+        <div class="callout danger">
+          Never dynamically increase retries for a state-changing operation unless duplicate effects are prevented.
+          A read timeout after <code>POST /charge</code> is an unknown outcome, not proof that the charge failed.
+        </div>
+      </section>
+
+      <section id="budget" data-search>
+        <h2>15. Timeout and Retry Budget Validation</h2>
+
+        <h3>Budget validator should reject unsafe configuration</h3>
+        <pre><code>maxAttempts = 5
+perAttemptTimeout = 1 second
+initialDelay = 500 ms
+multiplier = 2
+totalTimeout = 2 seconds
+
+This is impossible.
+Five attempts alone require up to 5 seconds.</code></pre>
+
+        <h3>Deadline propagation</h3>
+        <div class="diagram">API Gateway deadline: 2,000 ms
+        ↓ remaining 1,850 ms
+Order Service
+        ↓ remaining 1,500 ms
+Inventory Client retries
+        ↓
+Each attempt checks remaining time before starting</div>
+
+        <p>A senior design propagates a deadline or calculates remaining time. It does not start another retry when only 50 ms remain but the connect timeout is 500 ms.</p>
+
+        <h3>Example decision</h3>
+        <pre><code class="java">if (remainingBudget.compareTo(perAttemptTimeout) &lt; 0) {
+    throw new RetryBudgetExhaustedException();
+}</code></pre>
+      </section>
+
+      <section id="safety" data-search>
+        <h2>16. Runtime Safety for Hot Reload</h2>
+
+        <h3>Use immutable snapshots</h3>
+        <ul>
+          <li>Copy sets and maps with <code>Set.copyOf</code> and unmodifiable collections.</li>
+          <li>Do not expose mutable configuration beans directly to request threads.</li>
+          <li>Publish the complete map atomically.</li>
+        </ul>
+
+        <h3>Reject invalid refresh, keep last known good</h3>
+        <div class="diagram">Receive version 21
+      ↓ validate
+Invalid: maxAttempts = 50
+      ↓
+Reject version 21
+Keep version 20 active
+Emit alert and audit record</div>
+
+        <pre><code class="java">public synchronized ReloadResult tryReload() {
+    Map&lt;String, RetryPolicySnapshot&gt; candidate = buildCandidate();
+
+    try {
+        validateAll(candidate);
+        snapshots.set(candidate);
+        return ReloadResult.applied(candidateVersion);
+    } catch (RuntimeException invalid) {
+        return ReloadResult.rejected(
+                candidateVersion,
+                invalid.getMessage());
+    }
+}</code></pre>
+
+        <h3>Do not change an in-flight request midway</h3>
+        <p>Suppose attempt 1 used max attempts 3. During its backoff, config changes to 1. Changing its rule midway creates difficult, non-deterministic behavior. Capture the snapshot once at operation start.</p>
+
+        <h3>Prevent refresh storms</h3>
+        <ul>
+          <li>Debounce repeated file-system change notifications.</li>
+          <li>Refresh only when relevant keys change.</li>
+          <li>Do not rebuild every policy for unrelated log-level changes if avoidable.</li>
+          <li>Limit who can publish a refresh event.</li>
+        </ul>
+      </section>
+
+      <section id="governance" data-search>
+        <h2>17. Governance and Security</h2>
+
+        <h3>Why retry configuration is operationally dangerous</h3>
+        <p>Changing attempts from 2 to 5 can multiply traffic during an outage. If five upstream services each retry, amplification can cascade through the system.</p>
+
+        <div class="diagram">10,000 incoming requests
+× 5 total attempts
+= up to 50,000 downstream calls
+
+If another layer retries 3 times:
+50,000 × 3 = 150,000 calls</div>
+
+        <h3>Controls</h3>
+        <ul>
+          <li>Git pull request and approval for production changes.</li>
+          <li>Schema validation in CI.</li>
+          <li>Maximum limits enforced in code.</li>
+          <li>Canary rollout for large changes.</li>
+          <li>Audit log including old value, new value, author and reason.</li>
+          <li>Automatic rollback if error rate or latency worsens.</li>
+          <li>Separate permissions for viewing and modifying config.</li>
+        </ul>
+
+        <h3>Example policy change record</h3>
+        <pre><code class="json">{
+  "service": "order-service",
+  "dependency": "inventory-service",
+  "oldVersion": 18,
+  "newVersion": 19,
+  "oldMaxAttempts": 2,
+  "newMaxAttempts": 3,
+  "changedBy": "ops-user-104",
+  "reason": "Temporary inventory rollout instability",
+  "expiresAt": "2026-07-17T08:00:00Z"
+}</code></pre>
+
+        <h3>Temporary override with expiry</h3>
+        <p>Operational changes should optionally expire automatically. A temporary increase during an incident should not remain forever after the incident ends.</p>
+      </section>
+
+      <section id="monitoring" data-search>
+        <h2>18. Monitoring Dynamic Retry</h2>
+
+        <h3>Required metrics</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Metric</th><th>Why it matters</th></tr></thead>
+          <tbody>
+            <tr><td><code>retry_policy_version</code></td><td>Shows which policy each pod currently uses.</td></tr>
+            <tr><td><code>retry_calls_total{result}</code></td><td>Counts successful-without-retry, successful-after-retry and failed calls.</td></tr>
+            <tr><td><code>retry_attempts_histogram</code></td><td>Shows actual attempts per operation.</td></tr>
+            <tr><td><code>retry_wait_seconds</code></td><td>Measures latency spent only in backoff.</td></tr>
+            <tr><td><code>retry_budget_exhausted_total</code></td><td>Shows operations stopped by the overall deadline.</td></tr>
+            <tr><td><code>retry_policy_reload_total{result}</code></td><td>Applied versus rejected reloads.</td></tr>
+            <tr><td><code>remote_call_latency</code></td><td>Shows whether retry improves success at an acceptable latency.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Useful log</h3>
+        <pre><code>event=retry_policy_applied
+service=order-service
+dependency=inventory-service
+policyVersion=19
+maxAttempts=3
+initialDelayMs=120
+totalTimeoutMs=1500
+previousVersion=18</code></pre>
+
+        <h3>Alert conditions</h3>
+        <ul>
+          <li>A policy reload is rejected.</li>
+          <li>Pods have different policy versions for too long.</li>
+          <li>Retry rate rises suddenly.</li>
+          <li>Success-after-retry rises, indicating downstream instability.</li>
+          <li>Latency SLO degrades after a policy change.</li>
+          <li>Retry amplification causes downstream rate limiting.</li>
+        </ul>
+      </section>
+
+      <section id="testing" data-search>
+        <h2>19. Testing Strategy</h2>
+
+        <h3>Unit test: attempt count changes</h3>
+        <pre><code class="java">@Test
+void shouldUseNewAttemptCountAfterReload() throws Exception {
+    properties.getPolicies()
+            .get("inventory-service")
+            .setMaxAttempts(2);
+
+    manager.reload();
+
+    AtomicInteger firstCalls = new AtomicInteger();
+
+    assertThrows(IOException.class, () -&gt;
+            executor.execute(
+                    "inventory-service",
+                    false,
+                    null,
+                    () -&gt; {
+                        firstCalls.incrementAndGet();
+                        throw new IOException("temporary");
+                    }));
+
+    assertEquals(2, firstCalls.get());
+
+    properties.getPolicies()
+            .get("inventory-service")
+            .setMaxAttempts(3);
+
+    manager.reload();
+
+    AtomicInteger secondCalls = new AtomicInteger();
+
+    assertThrows(IOException.class, () -&gt;
+            executor.execute(
+                    "inventory-service",
+                    false,
+                    null,
+                    () -&gt; {
+                        secondCalls.incrementAndGet();
+                        throw new IOException("temporary");
+                    }));
+
+    assertEquals(3, secondCalls.get());
+}</code></pre>
+
+        <h3>Concurrency test</h3>
+        <p>Start many calls while repeatedly publishing valid configuration versions. Verify that each call uses exactly one version and never observes a partially built policy.</p>
+
+        <h3>Invalid refresh test</h3>
+        <ul>
+          <li>Set max attempts above the allowed maximum.</li>
+          <li>Set total timeout lower than one attempt timeout.</li>
+          <li>Set a negative delay.</li>
+          <li>Verify the last known good version remains active.</li>
+        </ul>
+
+        <h3>Integration test with WireMock</h3>
+        <div class="diagram">Attempt 1 → HTTP 503
+Attempt 2 → HTTP 503
+Attempt 3 → HTTP 200
+
+Verify:
+- Exactly 3 requests
+- Correct backoff range
+- Same idempotency key on every attempt
+- One business result</div>
+
+        <h3>Chaos testing</h3>
+        <ul>
+          <li>Remote pod restart.</li>
+          <li>Network latency and connection reset.</li>
+          <li>Config Server unavailable during refresh.</li>
+          <li>One pod misses the refresh event.</li>
+          <li>Large traffic while max attempts changes.</li>
+        </ul>
+      </section>
+
+      <section id="async" data-search>
+        <h2>20. Dynamic Retry for Kafka, RabbitMQ and SQS</h2>
+        <p>Synchronous and asynchronous retry should not share the same policy model.</p>
+
+        <h3>Synchronous</h3>
+        <pre><code>Attempts: 2–3
+Delay: milliseconds
+Bounded by request deadline
+No long sleeping</code></pre>
+
+        <h3>Asynchronous</h3>
+        <pre><code>Attempts: potentially more
+Delay: seconds, minutes or hours
+Retry topic / delayed queue / visibility timeout
+Ends in DLT/DLQ
+No user HTTP request is held</code></pre>
+
+        <h3>Retry topic configuration</h3>
+        <pre><code class="yaml">message-retry:
+  payment-events:
+    enabled: true
+    delays:
+      - 30s
+      - 2m
+      - 10m
+      - 1h
+    max-deliveries: 5
+    dead-letter-topic: payment-events-dlt</code></pre>
+
+        <h3>Can async max deliveries be changed dynamically?</h3>
+        <p>Yes, but behavior for messages already in retry topics must be defined. Store attempt count in headers or metadata and evaluate against the policy snapshot when each delivery occurs.</p>
+
+        <div class="callout warning">
+          Lowering max deliveries from 5 to 2 may immediately dead-letter messages currently on attempt 3.
+          Decide whether policy changes apply to existing messages or only messages created after the new version.
+        </div>
+      </section>
+
+      <section id="failure" data-search>
+        <h2>21. Failure Scenarios</h2>
+
+        <h3>Scenario 1: Config changes from 2 to 4 attempts during an outage</h3>
+        <p>This can double pressure on an already failing dependency. Validate against global retry budgets, rate limits and circuit-breaker state.</p>
+
+        <h3>Scenario 2: One pod misses the refresh event</h3>
+        <p>Expose policy version through health/info or metrics. A controller or alert should detect version drift and trigger refresh or restart.</p>
+
+        <h3>Scenario 3: Invalid config is published</h3>
+        <p>Reject it locally, keep last known good policy, emit an alert and prevent the configuration pipeline from promoting it further.</p>
+
+        <h3>Scenario 4: Refresh happens while a call is retrying</h3>
+        <p>The in-flight call continues with the snapshot captured at its start. New calls use the new version.</p>
+
+        <h3>Scenario 5: Payment max attempts changes from 1 to 3</h3>
+        <p>Reject or ignore this change unless the operation requires and supplies an idempotency key and the provider supports idempotent repeat requests.</p>
+
+        <h3>Scenario 6: Config Server is unavailable</h3>
+        <p>Continue with last known good in-memory configuration. A resilience configuration system must not become a runtime single point of failure.</p>
+
+        <h3>Scenario 7: Retry policy and circuit breaker are updated separately</h3>
+        <p>Use a versioned resilience bundle or atomic snapshot so related settings change together. Otherwise retry may become aggressive before the new circuit-breaker threshold is applied.</p>
+      </section>
+
+      <section id="antipatterns" data-search>
+        <h2>22. Common Anti-patterns</h2>
+
+        <div class="grid-2">
+          <div class="card"><h3>Hard-coded attempt count</h3><p>Requires a code build and deployment for an operational policy change.</p></div>
+          <div class="card"><h3>One global policy</h3><p>Ignores different dependency latency, risk and idempotency.</p></div>
+          <div class="card"><h3>Unlimited operator range</h3><p>A typo can create a retry storm.</p></div>
+          <div class="card"><h3>Refresh properties only</h3><p>The actual Retry object may still use old settings.</p></div>
+          <div class="card"><h3>Mutating one field at a time</h3><p>Concurrent requests can observe an inconsistent policy.</p></div>
+          <div class="card"><h3>Changing in-flight calls</h3><p>Makes runtime behavior difficult to reason about and test.</p></div>
+          <div class="card"><h3>Retry at every layer</h3><p>Gateway, service, HTTP client and SDK retries multiply traffic.</p></div>
+          <div class="card"><h3>No policy version metric</h3><p>Operators cannot determine whether a change reached all pods.</p></div>
+          <div class="card"><h3>Dynamic retry without timeout</h3><p>Each attempt may hang, so increasing attempts makes latency unbounded.</p></div>
+          <div class="card"><h3>Retrying non-idempotent POST</h3><p>Creates duplicate charges, orders or reservations.</p></div>
+          <div class="card"><h3>Refresh endpoint exposed publicly</h3><p>Allows attackers or accidental clients to change runtime behavior.</p></div>
+          <div class="card"><h3>No last-known-good policy</h3><p>One invalid configuration can disable remote communication across the fleet.</p></div>
+        </div>
+      </section>
+
+      <section id="interview" data-search>
+        <h2>23. Senior Interview Questions and Answers</h2>
+
+        <details open>
+          <summary>1. Can the number of retries be configured dynamically?</summary>
+          <div><p class="senior">Senior answer:</p><p>Yes. I externalize the retry policy per downstream dependency, including total attempts, backoff, jitter, timeout and exception rules. For simple systems, I apply changes through a rolling restart. If true hot reload is required, I rebind configuration, validate a complete immutable policy, build a new Resilience4j Retry object and atomically replace the current policy reference. In-flight requests keep their captured version, while new requests use the new version.</p></div>
+        </details>
+
+        <details>
+          <summary>2. What is the difference between externalized and dynamic configuration?</summary>
+          <div><p>Externalized means the value is outside source code. It may still be read only at startup. Dynamic runtime configuration means a running instance receives and applies the new value. I always clarify whether a restart, rolling rollout or true hot reload is required.</p></div>
+        </details>
+
+        <details>
+          <summary>3. Would you recommend hot reload for every retry policy?</summary>
+          <div><p>No. Rolling restart is simpler, safer and easier to audit. I use hot reload only when the business needs a rapid operational response and the team has validation, versioning, fleet-consistency monitoring and rollback. High-risk payment changes often deserve an approved canary rollout.</p></div>
+        </details>
+
+        <details>
+          <summary>4. How do you prevent an invalid dynamic configuration?</summary>
+          <div><p>I validate numeric ranges, timeout budgets, delay relationships, idempotency requirements and retriable status rules before publishing the candidate. If validation fails, the service keeps the last known good snapshot and emits an audit event and alert.</p></div>
+        </details>
+
+        <details>
+          <summary>5. Why use AtomicReference?</summary>
+          <div><p>It lets me publish one complete immutable policy map atomically. Request threads see either the old map or the new map, never a half-updated combination. Each operation captures one snapshot so a refresh does not alter its behavior midway.</p></div>
+        </details>
+
+        <details>
+          <summary>6. How do you choose maxAttempts?</summary>
+          <div><p>I derive it from the overall deadline, per-attempt timeout, backoff, operation idempotency, transient recovery probability and traffic impact. For user-facing calls I often start with two or three total attempts, not because that is a universal rule but because higher counts commonly violate latency budgets and amplify load.</p></div>
+        </details>
+
+        <details>
+          <summary>7. Does maxAttempts include the initial call?</summary>
+          <div><p>In Resilience4j, max attempts is the total number of attempts including the initial call. I name the property <code>maxAttempts</code> and document it because “retry count” is ambiguous across teams and libraries.</p></div>
+        </details>
+
+        <details>
+          <summary>8. How do you apply Spring Cloud Config changes?</summary>
+          <div><p>The Config Client loads remote properties. A refresh endpoint or Spring Cloud Bus can clear refresh scope and rebind configuration properties. I then ensure the runtime retry object is actually rebuilt. Refreshing property values alone is insufficient if a pre-built Retry instance still holds the old configuration.</p></div>
+        </details>
+
+        <details>
+          <summary>9. Can Kubernetes ConfigMap update environment variables in a running pod?</summary>
+          <div><p>No. Environment variables are fixed for the container process. I restart or roll the pod. A mounted ConfigMap volume can update files after a delay, but the application must detect and reload the file, and subPath mounts do not receive those updates.</p></div>
+        </details>
+
+        <details>
+          <summary>10. How do you handle pods using different configuration versions?</summary>
+          <div><p>I attach a monotonically increasing or Git-derived version to every policy snapshot, expose it through metrics and logs, and alert if drift lasts too long. Temporary mixed versions are acceptable for many retry changes, but the rollout strategy must define the tolerance window.</p></div>
+        </details>
+
+        <details>
+          <summary>11. Why not mutate an existing RetryConfig?</summary>
+          <div><p>I prefer immutable replacement. It is safer for concurrency, easier to test and gives clear version semantics. Build the new policy completely, validate it and swap the reference. Existing operations continue on the old policy object.</p></div>
+        </details>
+
+        <details>
+          <summary>12. How does dynamic retry interact with idempotency?</summary>
+          <div><p>A larger attempt count increases duplicate-effect risk. For state-changing calls, I require an idempotency key or another deduplication mechanism before allowing more than one attempt. A timeout does not prove the remote transaction failed.</p></div>
+        </details>
+
+        <details>
+          <summary>13. How do you avoid retry amplification?</summary>
+          <div><p>I define one primary retry owner for each call path, disable hidden SDK retries where necessary, and calculate the maximum downstream amplification. Gateway, service, client library and message broker retries must not be configured independently without an end-to-end budget.</p></div>
+        </details>
+
+        <details>
+          <summary>14. Should a Circuit Breaker be dynamic too?</summary>
+          <div><p>It can be, but related resilience settings should be versioned and applied together. Increasing retries while leaving an unsuitable circuit-breaker threshold can overload an unhealthy dependency. I treat them as one resilience policy bundle.</p></div>
+        </details>
+
+        <details>
+          <summary>15. What happens if configuration changes during backoff?</summary>
+          <div><p>The current operation should continue with the snapshot captured at its start. Applying the new number halfway through makes behavior non-deterministic. New operations use the new version.</p></div>
+        </details>
+
+        <details>
+          <summary>16. How do you monitor whether dynamic retry is helping?</summary>
+          <div><p>I monitor success without retry, success after retry, failed after retry, attempts per operation, backoff latency, total remote latency, policy version, reload failures and downstream rate limiting. A higher success rate is not enough if latency or downstream load becomes unacceptable.</p></div>
+        </details>
+
+        <details>
+          <summary>17. How do you roll back a bad policy?</summary>
+          <div><p>I revert the versioned configuration, publish a new refresh or roll pods, and verify fleet version convergence. The application also keeps a last-known-good snapshot so an invalid candidate is never activated.</p></div>
+        </details>
+
+        <details>
+          <summary>18. Would you store retry configuration in a database?</summary>
+          <div><p>It is possible, but I prefer a configuration system with versioning, review, audit, availability and secure distribution. A raw database table often leads to unrestricted edits and polling complexity. If a database is used, I still require schema validation, caching, version IDs and last-known-good behavior.</p></div>
+        </details>
+
+        <details>
+          <summary>19. How is asynchronous retry configuration different?</summary>
+          <div><p>Asynchronous retries use delayed topics, queues or scheduled jobs and may wait seconds or hours. The policy must define whether a change applies to messages already in progress. It also needs maximum delivery count, DLT ownership and replay rules rather than only an HTTP deadline.</p></div>
+        </details>
+
+        <details>
+          <summary>20. What is your preferred implementation?</summary>
+          <div><p>For most services: typed external configuration, strict validation and a rolling restart. For systems that genuinely need hot reload: centralized versioned config, refresh events, an immutable per-dependency snapshot, atomic replacement, policy-version metrics, last-known-good fallback and automated tests under concurrent refresh.</p></div>
+        </details>
+      </section>
+
+      <section id="checklist" data-search>
+        <h2>24. Production Checklist</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Configuration</h3>
+            <ul>
+              <li>Per-dependency policy, not one global number.</li>
+              <li><code>maxAttempts</code> meaning documented.</li>
+              <li>Allowed minimum and maximum.</li>
+              <li>Backoff, jitter and maximum delay.</li>
+              <li>Per-attempt and total timeouts.</li>
+              <li>Retryable and ignored failures.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Runtime safety</h3>
+            <ul>
+              <li>Immutable snapshot.</li>
+              <li>Atomic replacement.</li>
+              <li>In-flight request version captured.</li>
+              <li>Last known good policy.</li>
+              <li>Invalid refresh rejected.</li>
+              <li>Refresh storm protection.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Business safety</h3>
+            <ul>
+              <li>Idempotency for state changes.</li>
+              <li>No retry for permanent business failures.</li>
+              <li>Unknown payment outcome handled explicitly.</li>
+              <li>One retry owner per call path.</li>
+              <li>Circuit breaker and bulkhead considered.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Operations</h3>
+            <ul>
+              <li>Config version visible per pod.</li>
+              <li>Audit old and new values.</li>
+              <li>Approval and rollback process.</li>
+              <li>Metrics for attempts and reload results.</li>
+              <li>Canary or rolling rollout available.</li>
+              <li>Runbook for policy incidents.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <strong>Senior summary:</strong> Yes, the number of attempts can be dynamic. The safe implementation is not
+          “read an integer on every request.” It is a versioned, validated, immutable resilience policy that is
+          atomically replaced, observable across the fleet and bounded by timeout, idempotency and load-safety rules.
+        </div>
+      </section>
+
+      <section id="references" data-search>
+        <h2>25. Official References</h2>
+        <p class="small">Library and platform behavior can change between versions. Verify the exact version used in your project.</p>
+        <ul>
+          <li><a href="https://resilience4j.readme.io/docs/retry" target="_blank" rel="noopener">Resilience4j Retry documentation</a></li>
+          <li><a href="https://resilience4j.readme.io/docs/getting-started" target="_blank" rel="noopener">Resilience4j getting started</a></li>
+          <li><a href="https://docs.spring.io/spring-boot/reference/features/external-config.html" target="_blank" rel="noopener">Spring Boot externalized configuration</a></li>
+          <li><a href="https://docs.spring.io/spring-cloud-config/reference/client.html" target="_blank" rel="noopener">Spring Cloud Config Client</a></li>
+          <li><a href="https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/application-context-services.html" target="_blank" rel="noopener">Spring Cloud Refresh Scope</a></li>
+          <li><a href="https://docs.spring.io/spring-cloud-bus/reference/spring-cloud-bus/bus-endpoints.html" target="_blank" rel="noopener">Spring Cloud Bus refresh endpoint</a></li>
+          <li><a href="https://kubernetes.io/docs/concepts/configuration/configmap/" target="_blank" rel="noopener">Kubernetes ConfigMaps</a></li>
+          <li><a href="https://kubernetes.io/docs/tutorials/configuration/updating-configuration-via-a-configmap/" target="_blank" rel="noopener">Updating configuration using a ConfigMap</a></li>
+          <li><a href="https://docs.spring.io/spring-cloud-kubernetes/reference/property-source-config/propertysource-reload.html" target="_blank" rel="noopener">Spring Cloud Kubernetes property-source reload</a></li>
+        </ul>
+      </section>
+    </div>
+
+    <footer>
+      <p><strong>Dynamic Retry Configuration in Microservices — Senior Java Guide</strong></p>
+      <p>Standalone learning document. Last reviewed: July 2026.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const savedTheme = localStorage.getItem('dynamic-retry-guide-theme');
+
+  if (savedTheme === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    themeBtn.textContent = 'Light mode';
+  }
+
+  themeBtn.addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') === 'dark';
+
+    if (dark) {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('dynamic-retry-guide-theme', 'light');
+      themeBtn.textContent = 'Dark mode';
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('dynamic-retry-guide-theme', 'dark');
+      themeBtn.textContent = 'Light mode';
+    }
+  });
+
+  const searchBox = document.getElementById('searchBox');
+  const searchableSections = [...document.querySelectorAll('[data-search]')];
+
+  searchBox.addEventListener('input', () => {
+    const query = searchBox.value.trim().toLowerCase();
+
+    searchableSections.forEach(section => {
+      const matches =
+        !query || section.innerText.toLowerCase().includes(query);
+
+      section.classList.toggle('hidden-by-search', !matches);
+
+      if (query && matches) {
+        section.querySelectorAll('details').forEach(detail => {
+          if (detail.innerText.toLowerCase().includes(query)) {
+            detail.open = true;
+          }
+        });
+      }
+    });
+  });
+
+  const navLinks = [...document.querySelectorAll('#toc a')];
+  const sections = [...document.querySelectorAll('section[id]')];
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle(
+            'active',
+            link.getAttribute('href') === '#' + entry.target.id
+          );
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>

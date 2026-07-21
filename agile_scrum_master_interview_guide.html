@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agile & Scrum Master Interview Guide</title>
+<style>
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef3f9;
+  --text: #172033;
+  --muted: #5d6b82;
+  --line: #dbe3ef;
+  --brand: #4355d9;
+  --brand-2: #7847d6;
+  --good: #16794e;
+  --warn: #a05b00;
+  --danger: #a23a3a;
+  --shadow: 0 12px 34px rgba(28, 43, 74, .10);
+}
+body.dark {
+  --bg: #0e1421;
+  --surface: #161e2e;
+  --surface-2: #202a3e;
+  --text: #edf2fb;
+  --muted: #aab6ca;
+  --line: #303b50;
+  --brand: #8794ff;
+  --brand-2: #b58cff;
+  --good: #72d7a8;
+  --warn: #ffc56f;
+  --danger: #ff9c9c;
+  --shadow: 0 15px 40px rgba(0, 0, 0, .32);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.65;
+}
+button, input, select { font: inherit; }
+.hero {
+  background:
+    radial-gradient(circle at 12% 25%, rgba(255,255,255,.18), transparent 28%),
+    linear-gradient(125deg, #2635a9, #5b42cc 58%, #7b3eb1);
+  color: white;
+  padding: 56px 22px 44px;
+}
+.hero-inner, .container { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+.eyebrow { text-transform: uppercase; letter-spacing: .13em; font-size: .78rem; opacity: .84; font-weight: 800; }
+h1 { font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1.1; margin: 12px 0 16px; max-width: 900px; }
+.hero p { max-width: 820px; font-size: 1.05rem; opacity: .92; }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.stat { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); padding: 10px 14px; border-radius: 14px; backdrop-filter: blur(8px); }
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+}
+.toolbar {
+  width: min(1160px, calc(100% - 32px)); margin: 0 auto;
+  display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto;
+  gap: 10px; padding: 12px 0;
+}
+.input, .select, .btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  border-radius: 11px; padding: 10px 12px;
+}
+.btn { cursor: pointer; font-weight: 700; }
+.btn:hover { border-color: var(--brand); }
+.container { padding: 30px 0 60px; }
+.notice {
+  background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--brand);
+  border-radius: 14px; padding: 17px 18px; box-shadow: var(--shadow); margin-bottom: 24px;
+}
+.notice strong { color: var(--brand); }
+.progress-wrap {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+  margin: 22px 0 10px;
+}
+.progress { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.progress > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .25s; }
+.section-title { display:flex; align-items:center; justify-content:space-between; gap:16px; margin: 34px 0 14px; }
+.section-title h2 { margin: 0; font-size: 1.5rem; }
+.cards { display: grid; gap: 15px; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.card-head {
+  width: 100%; border: 0; background: transparent; color: inherit; cursor: pointer;
+  padding: 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; text-align: left;
+}
+.qnum {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 12px; font-weight: 900; background: var(--surface-2); color: var(--brand);
+}
+.qtitle { font-size: 1.05rem; font-weight: 800; line-height: 1.35; }
+.meta { color: var(--muted); font-size: .82rem; margin-top: 5px; }
+.chev { font-size: 1.2rem; transition: transform .2s; }
+.card.open .chev { transform: rotate(180deg); }
+.card-body { display: none; border-top: 1px solid var(--line); padding: 20px; }
+.card.open .card-body { display: block; }
+.answer p { margin: 0 0 12px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.box { background: var(--surface-2); border-radius: 13px; padding: 15px; }
+.box h3 { margin: 0 0 8px; font-size: .94rem; }
+.box ul { margin: 0; padding-left: 19px; }
+.box.example h3 { color: var(--good); }
+.box.mistake h3 { color: var(--danger); }
+.vi { margin-top: 14px; padding: 14px 15px; border-radius: 13px; border: 1px dashed var(--brand); }
+.vi strong { color: var(--brand); }
+.review-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+.review { display:flex; align-items:center; gap:8px; font-weight:700; cursor:pointer; }
+.badge { display:inline-block; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--muted); font-size:.75rem; font-weight:800; }
+.tips, .sources {
+  margin-top: 34px; background: var(--surface); border:1px solid var(--line);
+  border-radius:16px; padding:22px; box-shadow:var(--shadow);
+}
+.tips h2, .sources h2 { margin-top:0; }
+.tips-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+.tip { background:var(--surface-2); border-radius:13px; padding:15px; }
+.tip strong { display:block; color:var(--brand); margin-bottom:5px; }
+.sources a { color:var(--brand); text-decoration:none; }
+.sources li { margin-bottom:8px; }
+.empty { padding: 40px; text-align:center; background:var(--surface); border-radius:16px; border:1px solid var(--line); }
+.footer { text-align:center; color:var(--muted); padding:28px 16px 50px; }
+@media (max-width: 800px) {
+  .toolbar { grid-template-columns: 1fr 1fr; }
+  .toolbar .input { grid-column:1/-1; }
+  .grid-2, .tips-grid { grid-template-columns:1fr; }
+}
+@media (max-width: 520px) {
+  .toolbar { grid-template-columns:1fr; }
+  .toolbar .input { grid-column:auto; }
+  .card-head { grid-template-columns:auto 1fr; }
+  .chev { display:none; }
+}
+@media print {
+  .topbar, .review-row, .hero-stats { display:none !important; }
+  body { background:white; color:black; }
+  .hero { padding:24px; background:white; color:black; border-bottom:2px solid #333; }
+  .container { width:100%; padding:14px; }
+  .card { break-inside:avoid; box-shadow:none; }
+  .card-body { display:block !important; }
+  .sources, .tips, .notice { box-shadow:none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Senior Interview Preparation</div>
+    <h1>Agile & Scrum Master Interview Guide</h1>
+    <p>30 interview questions from the two referenced articles, rewritten with clearer, current, Scrum Guide–aligned answers. English is intentionally simple, while the technical and leadership depth remains senior level.</p>
+    <div class="hero-stats">
+      <div class="stat"><strong>30</strong> questions</div>
+      <div class="stat"><strong>2</strong> source articles</div>
+      <div class="stat">English + Vietnamese key points</div>
+      <div class="stat">Examples + common mistakes</div>
+    </div>
+  </div>
+</header>
+
+<div class="topbar">
+  <div class="toolbar">
+    <input id="search" class="input" placeholder="Search questions, answers, or categories...">
+    <select id="partFilter" class="select">
+      <option value="all">All parts</option>
+      <option value="Part 1">Part 1</option>
+      <option value="Part 2">Part 2</option>
+    </select>
+    <select id="categoryFilter" class="select"><option value="all">All categories</option></select>
+    <button id="themeBtn" class="btn" type="button">Dark mode</button>
+    <button id="expandBtn" class="btn" type="button">Expand all</button>
+    <button class="btn" type="button" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<main class="container">
+  <div class="notice">
+    <strong>Important correction:</strong> The Medium articles provide useful interview topics, but some answers use older or non-official Scrum concepts. This guide keeps the questions and replaces the answers with original explanations based mainly on the 2020 Scrum Guide. Examples include: Daily Scrum is not a manager status meeting; Scrum Teams are typically ten or fewer; velocity is not an official Scrum metric; and “Sprint 0” is not defined by Scrum.
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress"><div id="progressBar"></div></div>
+    <strong id="progressText">0 / 30 reviewed</strong>
+  </div>
+
+  <div id="content"></div>
+
+  <section class="tips">
+    <h2>How to answer like a senior candidate</h2>
+    <div class="tips-grid">
+      <div class="tip"><strong>1. Start directly</strong>Give the definition in one or two sentences. Do not begin with a long story.</div>
+      <div class="tip"><strong>2. Explain the purpose</strong>Show why the practice exists and which problem it solves.</div>
+      <div class="tip"><strong>3. Add a real example</strong>Use a short example from delivery, quality, dependencies, risk, or team coaching.</div>
+      <div class="tip"><strong>4. Mention trade-offs</strong>A senior answer explains misuse, limitations, and context—not only the happy path.</div>
+      <div class="tip"><strong>5. Use Scrum language carefully</strong>Say accountabilities, Developers, Sprint Goal, Product Goal, and Definition of Done.</div>
+      <div class="tip"><strong>6. Focus on outcomes</strong>Connect Scrum practices to customer value, feedback speed, risk reduction, and team effectiveness.</div>
+    </div>
+  </section>
+
+  <section class="sources">
+    <h2>Sources and further reading</h2>
+    <p>The question list was derived from the two Medium articles. The answers are newly written and corrected using the official Scrum Guide and supporting Agile references.</p>
+    <ol id="sourcesList"></ol>
+  </section>
+</main>
+
+<footer class="footer">Created as an interview study page. Review checkboxes are stored only in your browser.</footer>
+
+<script>
+const questions = [{"id": 1, "part": "Part 1", "category": "Scrum Events", "question": "What do Daily Stand-up meetings entail?", "answer": ["In Scrum, the correct name is the Daily Scrum. It is a 15-minute event for the Developers. Its purpose is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog.", "The team may use the traditional three questions, but Scrum does not require them. A stronger discussion is: Are we still moving toward the Sprint Goal? What is the most important work today? What problem needs fast coordination?", "It should not become a status report to the Scrum Master or manager. Detailed problem-solving can happen immediately after the event with only the relevant people."], "key_points": ["15 minutes, every working day of the Sprint", "Focus on the Sprint Goal, not individual activity reports", "Developers own the meeting and choose its format", "Impediments are identified; they do not all need to be solved inside the meeting"], "example": "In my previous team, an API dependency blocked two stories. During the Daily Scrum, we changed the plan: one engineer created a temporary mock, another contacted the external team, and the remaining developers moved to independent work. We protected the Sprint Goal instead of waiting.", "mistake": "Saying that the Scrum Master calls each person and asks for a status update.", "vi": "Daily Scrum là cuộc họp 15 phút của Developers để kiểm tra tiến độ theo Sprint Goal và điều chỉnh kế hoạch. Không phải cuộc họp báo cáo cho Scrum Master."}, {"id": 2, "part": "Part 1", "category": "Artifacts", "question": "Explain the Product Backlog in Scrum.", "answer": ["The Product Backlog is an ordered and evolving list of what is needed to improve the product. It is the single source of work undertaken by the Scrum Team.", "The Product Owner is accountable for effective Product Backlog management: communicating the Product Goal, creating clear Product Backlog Items, ordering them, and making the backlog transparent and understood.", "It may contain features, defects, technical improvements, research, compliance work, and risk-reduction activities. Items become more detailed as the team learns more."], "key_points": ["Ordered, not simply prioritized once", "Emergent: it changes as knowledge and market conditions change", "Owned accountably by the Product Owner", "Connected to the Product Goal"], "example": "For an online payment product, the backlog may contain 3DS support, refund APIs, fraud monitoring, database upgrades, audit logging, and production defects. The Product Owner orders these items based on value, risk, dependencies, and learning.", "mistake": "Treating the Product Backlog as a fixed project requirements document.", "vi": "Product Backlog là danh sách công việc có thứ tự và liên tục thay đổi để cải thiện sản phẩm. Product Owner chịu trách nhiệm quản lý hiệu quả backlog."}, {"id": 3, "part": "Part 1", "category": "Delivery", "question": "What is a Release Candidate?", "answer": ["A Release Candidate, often called an RC, is a build that is considered stable enough to become the production release if no critical issue is found.", "It normally has passed the required automated tests, integration tests, security checks, and acceptance checks. However, the exact release process depends on the organization.", "A Release Candidate is not a formal Scrum artifact. Scrum focuses on producing a usable Increment that meets the Definition of Done. A team may release that Increment at any time; the Sprint Review is not a release gate."], "key_points": ["Potential production version", "No known release-blocking defects", "Not an official Scrum term or artifact", "Release policy and Definition of Done should be clear"], "example": "Version 2.3.0-rc1 passes regression and security testing. UAT finds a critical payment callback issue, so rc1 is rejected. The team fixes it and creates rc2.", "mistake": "Assuming every Increment must wait until the end of the Sprint or Sprint Review before release.", "vi": "Release Candidate là bản build gần sẵn sàng production. Đây không phải artifact chính thức của Scrum."}, {"id": 4, "part": "Part 1", "category": "Agile Foundations", "question": "What are the most important components of Agile?", "answer": ["Agile is mainly a mindset expressed through the four Agile Manifesto values and twelve principles. The core ideas are early value delivery, close customer collaboration, frequent feedback, technical excellence, empowered teams, and the ability to respond to change.", "Practices such as TDD, CI/CD, pair programming, visual boards, short iterations, and retrospectives can support agility, but using these practices alone does not make an organization Agile.", "A senior answer should connect Agile to business outcomes: reducing feedback time, controlling risk, learning early, and delivering the highest-value solution rather than blindly following a fixed plan."], "key_points": ["Customer value and feedback", "Small, frequent delivery", "Collaboration and empowered teams", "Responding to change", "Continuous technical and process improvement"], "example": "Instead of building a complete billing platform for nine months, we released the highest-risk payment flow first, measured failures and customer feedback, and then adjusted the next increments.", "mistake": "Listing ceremonies and tools only, without explaining the Agile mindset or business value.", "vi": "Agile là tư duy giao giá trị sớm, lấy phản hồi nhanh, hợp tác tốt và thích nghi với thay đổi. Ceremony và tool chỉ là phương tiện."}, {"id": 5, "part": "Part 1", "category": "Tools", "question": "What project management tools are used in Agile?", "answer": ["Common tools include Jira, Azure DevOps, GitHub Projects, GitLab, Trello, Linear, Rally, and physical boards. Teams may also use Miro or FigJam for workshops and Confluence or Notion for lightweight documentation.", "The tool is less important than the behavior it supports. A good tool should make the Product Goal, Sprint Goal, work state, dependencies, risks, and blocked items visible.", "I avoid designing the process around tool limitations. The team should first agree on a useful workflow, then configure the tool to support that workflow with minimum administration."], "key_points": ["Choose tools based on team context", "Optimize transparency, not reporting overhead", "Keep workflow simple", "Use automation for repetitive updates when practical"], "example": "We configured Jira with a small workflow: Ready, In Progress, Review, Test, Done. We added a blocked flag rather than ten extra statuses. This made bottlenecks visible without creating unnecessary administration.", "mistake": "Believing Jira is Scrum, or measuring team performance by the number of tickets moved.", "vi": "Tool phổ biến: Jira, Azure DevOps, Trello… Nhưng tool không phải Agile. Tool chỉ nên giúp minh bạch công việc và giảm overhead."}, {"id": 6, "part": "Part 1", "category": "Visualization", "question": "How can a storyboard be defined in Agile?", "answer": ["The term is often used to mean a task board or workflow board. It visually shows work moving through states such as To Do, In Progress, Review, Test, and Done.", "The board creates transparency and helps the team discuss flow, blocked work, work in progress, aging items, and progress toward the Sprint Goal.", "In product discovery, a storyboard can also mean a visual sequence showing how a user experiences a problem or feature. In an interview, I clarify which meaning the interviewer intends."], "key_points": ["Visualizes current work and workflow", "Shows blocked items and bottlenecks", "Should reflect reality", "May be physical or digital"], "example": "When the Test column kept growing, the board made the bottleneck clear. Developers started helping with automation and test-data setup instead of pulling more development work.", "mistake": "Using the board only for management reporting and allowing it to become different from the actual work.", "vi": "Storyboard/task board hiển thị luồng công việc. Nó giúp thấy bottleneck, blocked work và tiến độ thực tế."}, {"id": 7, "part": "Part 1", "category": "Scrum Master", "question": "How much time should a person expect to spend on Scrum Master activities?", "answer": ["There is no fixed percentage in Scrum. The required time depends on team maturity, organizational impediments, product complexity, and the number of teams being supported.", "A new or struggling team may require a full-time Scrum Master. A mature team may need less event facilitation, but the Scrum Master still works on coaching, stakeholder collaboration, organizational barriers, and continuous improvement.", "I do not judge the role only by visible meetings. Much of the value comes from observation, coaching, conflict resolution, improvement experiments, and helping the organization create a better environment."], "key_points": ["Context-dependent", "New teams usually need more support", "The role is broader than facilitating meetings", "Avoid overloading one Scrum Master with too many teams"], "example": "For a newly formed cross-country team, I spent significant time aligning working agreements, coaching the Product Owner, and removing access and environment blockers. After several Sprints, facilitation decreased, but organizational coaching continued.", "mistake": "Saying that Scrum Master work is only a few ceremonies per Sprint.", "vi": "Không có tỷ lệ thời gian cố định. Team mới hoặc nhiều impediment thường cần Scrum Master full-time; team trưởng thành có thể cần ít facilitation hơn."}, {"id": 8, "part": "Part 1", "category": "Testing", "question": "What qualities should a good Agile Tester have?", "answer": ["A strong Agile tester has a quality mindset and collaborates throughout product development rather than testing only at the end.", "They can clarify examples and acceptance criteria, identify risk, design exploratory and automated tests, understand technical constraints, and give fast feedback. They also help the entire team own quality.", "Communication and curiosity are critical. The tester should ask useful questions such as: What can fail? What is the customer impact? Which assumption are we making? How can we test this earlier?"], "key_points": ["Risk-based thinking", "Early collaboration", "Exploratory and automated testing", "Business and technical understanding", "Clear communication"], "example": "Before implementation of a refund feature, the tester raised cases for duplicate callbacks, partial refunds, timeout recovery, and audit history. This prevented expensive production defects.", "mistake": "Treating the tester as the only person responsible for quality.", "vi": "Agile Tester cần tham gia sớm, hiểu risk, giao tiếp tốt, biết exploratory test và automation. Quality là trách nhiệm của cả team."}, {"id": 9, "part": "Part 1", "category": "Backlog", "question": "What is the difference between an Epic, a User Story, and a Task?", "answer": ["An Epic is a large body of work or outcome that is too large to complete in one short iteration and is normally split into smaller items.", "A User Story is a common format for describing a user need or outcome, often written as: As a user, I want something, so that I receive value. User stories are a useful technique, but they are not required by Scrum.", "A Task is a piece of implementation work that helps deliver a Product Backlog Item. Developers may create tasks as part of their Sprint plan."], "key_points": ["Epic: large outcome or capability", "User Story: user-focused need or value", "Task: implementation step", "Do not confuse business value with technical activity"], "example": "Epic: Improve account security. User Story: As a customer, I want TOTP login so that my account is safer. Tasks: create enrollment API, build QR screen, store secret securely, add tests, update monitoring.", "mistake": "Making every technical task a separate user story even when it does not deliver a meaningful user outcome.", "vi": "Epic là phạm vi lớn; User Story mô tả nhu cầu/giá trị của user; Task là bước kỹ thuật để hoàn thành item."}, {"id": 10, "part": "Part 1", "category": "Metrics", "question": "How is Sprint velocity measured?", "answer": ["Velocity is usually calculated by adding the estimates of Product Backlog Items that are fully Done during the Sprint. Partially completed items are not counted.", "For example, if completed items are estimated at 3, 5, and 8 points, velocity is 16 points. An unfinished 13-point item contributes zero for that Sprint.", "Velocity is a planning aid, not an official Scrum metric and not a performance target. It should not be adjusted using individual capacity percentages, compared across teams, or used to reward people."], "key_points": ["Count only Done items", "Use the team’s consistent estimation approach", "Use trends for forecasting, not promises", "Never compare velocity across teams"], "example": "Our recent velocity range was 24–30 points. For planning, we considered that range together with holidays, production support, and item risk. We did not force the team to commit to exactly 30.", "mistake": "Multiplying story points by team utilization or pushing the team to increase velocity every Sprint.", "vi": "Velocity = tổng estimate của item hoàn thành Done. Không tính item dở dang, không so sánh velocity giữa các team và không dùng làm KPI."}, {"id": 11, "part": "Part 1", "category": "Testing", "question": "How does Agile testing differ from traditional testing?", "answer": ["Agile testing is continuous and collaborative. Test thinking starts during discovery and backlog refinement, not after development is complete.", "The team delivers small increments, receives frequent feedback, automates important checks, and adapts its test strategy based on risk and learning.", "Traditional phased models often separate analysis, development, and testing into sequential stages. This can create long feedback cycles and large defect batches. Agile attempts to shorten those cycles, but it still requires discipline, documentation where valuable, and strong quality controls."], "key_points": ["Shift-left and continuous feedback", "Small testable increments", "Whole-team quality ownership", "Automation plus exploratory testing", "Adapt based on risk"], "example": "For each payment story, we agree acceptance examples before coding, run unit and integration tests in CI, perform exploratory tests during implementation, and monitor key error rates after release.", "mistake": "Saying Agile means no test plan, no documentation, or no independent quality review.", "vi": "Agile testing diễn ra liên tục và tester tham gia từ sớm. Feedback nhanh, automation tốt, nhưng vẫn cần kiểm soát chất lượng nghiêm túc."}, {"id": 12, "part": "Part 1", "category": "Metrics", "question": "Explain velocity in Agile.", "answer": ["Velocity is the total estimate of work completed by a team during an iteration. Teams commonly use story points, but other consistent relative units can be used.", "Its main value is empirical forecasting. After several iterations, the team can use a range of past results to discuss how much work may be completed in future iterations.", "Velocity does not measure customer value, quality, or individual productivity. A team can increase points while delivering poor outcomes, so I combine delivery data with outcome, quality, flow, and reliability measures."], "key_points": ["Historical measurement", "Useful for team-level forecasting", "Not a target or productivity score", "Affected by estimation approach and team context"], "example": "A team delivered 22, 27, 24, and 26 points. I forecast with a range, not the average alone, and discuss risks such as dependencies and support load.", "mistake": "Treating more story points as proof that the team creates more customer value.", "vi": "Velocity là dữ liệu lịch sử giúp forecast. Nó không đo business value, quality hay năng suất cá nhân."}, {"id": 13, "part": "Part 1", "category": "Agile Foundations", "question": "What is Scrum?", "answer": ["Scrum is a lightweight framework that helps people, teams, and organizations generate value through adaptive solutions for complex problems.", "A Product Owner orders work in a Product Backlog. The Scrum Team selects work and creates a valuable Increment during a Sprint. The team and stakeholders inspect results and adapt what to do next.", "Scrum is based on empiricism and lean thinking. Its three pillars are transparency, inspection, and adaptation. Its five values are commitment, focus, openness, respect, and courage."], "key_points": ["Framework, not a detailed methodology", "Designed for complex work", "Iterative and incremental", "Empiricism: transparency, inspection, adaptation", "Focus on value and learning"], "example": "In a changing onboarding product, we release a small usable capability each Sprint, inspect user drop-off and operational issues, then reorder the backlog based on evidence.", "mistake": "Defining Scrum only as a two-week development cycle with several meetings.", "vi": "Scrum là framework nhẹ cho công việc phức tạp, dựa trên minh bạch, kiểm tra và thích nghi để tạo giá trị theo từng Sprint."}, {"id": 14, "part": "Part 1", "category": "Artifacts", "question": "What is the Sprint Backlog?", "answer": ["The Sprint Backlog is the plan by and for the Developers. It contains the Sprint Goal, the Product Backlog Items selected for the Sprint, and an actionable plan for delivering the Increment.", "It is not a frozen contract. Developers update it throughout the Sprint as they learn more. Scope can be renegotiated with the Product Owner as long as the Sprint Goal is protected.", "The Sprint Backlog should be visible and detailed enough to support daily inspection and adaptation."], "key_points": ["Why: Sprint Goal", "What: selected Product Backlog Items", "How: actionable delivery plan", "Owned and adapted by Developers"], "example": "The Sprint Goal is to allow customers to complete secure login. The selected items include TOTP enrollment and verification. The plan includes API, UI, security review, automated tests, and monitoring tasks.", "mistake": "Calling it a fixed list assigned by the Product Owner or Scrum Master.", "vi": "Sprint Backlog gồm Sprint Goal, item đã chọn và kế hoạch thực hiện. Developers sở hữu và cập nhật nó trong Sprint."}, {"id": 15, "part": "Part 1", "category": "Artifacts", "question": "What is included in the Sprint Backlog?", "answer": ["The official structure is simple: the Sprint Goal, selected Product Backlog Items, and the Developers’ actionable plan.", "The plan may include tasks, technical notes, test activities, dependencies, and work needed to meet the Definition of Done. Scrum does not require tasks to be assigned to individuals.", "Estimates and workflow states can be useful techniques, but the team should avoid creating administrative detail that does not improve coordination or transparency."], "key_points": ["Sprint Goal", "Selected Product Backlog Items", "Actionable delivery plan", "Enough detail to inspect progress"], "example": "A story may include subtasks for schema migration, service logic, contract tests, observability, and rollout. Team members pull and collaborate on work instead of receiving permanent assignments.", "mistake": "Saying that individual assignments and fixed task estimates are mandatory Scrum elements.", "vi": "Thành phần bắt buộc: Sprint Goal, Product Backlog Items được chọn, và actionable plan. Không bắt buộc assign task cố định cho từng người."}, {"id": 16, "part": "Part 1", "category": "Artifacts", "question": "What are the differences between the Sprint Backlog and Product Backlog?", "answer": ["The Product Backlog covers the evolving work needed to improve the product and is connected to the Product Goal. The Product Owner is accountable for its effective management.", "The Sprint Backlog is the Developers’ plan for the current Sprint and is connected to the Sprint Goal. It includes selected Product Backlog Items and the plan to deliver them.", "Both are dynamic. The Product Backlog evolves across the product lifecycle. The Sprint Backlog changes during the Sprint as Developers learn and adapt."], "key_points": ["Product Backlog: product-level, longer horizon", "Sprint Backlog: current Sprint plan", "Product Owner accountable for Product Backlog management", "Developers own the Sprint Backlog"], "example": "The Product Backlog may contain fifty ordered items for the payment product. The Sprint Backlog contains the small subset and plan needed to achieve this Sprint’s fraud-reduction goal.", "mistake": "Saying the Sprint Backlog is fixed after Sprint Planning.", "vi": "Product Backlog là toàn bộ hướng phát triển sản phẩm; Sprint Backlog là kế hoạch của Sprint hiện tại. Cả hai đều có thể thay đổi."}, {"id": 17, "part": "Part 2", "category": "Accountabilities", "question": "Define the accountabilities in Scrum.", "answer": ["The Scrum Team has three accountabilities: Product Owner, Scrum Master, and Developers.", "The Product Owner is accountable for maximizing product value and effective Product Backlog management. Developers are accountable for creating a usable Increment, planning the Sprint, adapting daily, and meeting the Definition of Done.", "The Scrum Master is accountable for establishing Scrum and improving the Scrum Team’s effectiveness. The Scrum Master serves the team, Product Owner, and organization through coaching, facilitation, and impediment removal."], "key_points": ["Product Owner: value and backlog", "Developers: usable Increment and delivery plan", "Scrum Master: Scrum effectiveness", "No hierarchy or sub-teams inside the Scrum Team"], "example": "The Product Owner explains the desired business outcome. Developers decide how to build and test it. The Scrum Master improves collaboration and removes systemic blockers rather than directing technical work.", "mistake": "Calling these traditional job roles with command-and-control authority. The Scrum Guide uses the word accountabilities.", "vi": "Ba accountability: Product Owner, Developers, Scrum Master. Không phải mô hình quản lý cấp trên–cấp dưới."}, {"id": 18, "part": "Part 2", "category": "Scrum Team", "question": "What are the responsibilities of the Scrum Team?", "answer": ["The entire Scrum Team is accountable for creating a valuable and useful Increment every Sprint.", "The team is cross-functional and self-managing. It handles product-related work such as stakeholder collaboration, verification, maintenance, operation, experimentation, research, and development.", "Members collaborate toward one Product Goal. They do not wait for a manager to assign every task. They decide internally who does what, when, and how."], "key_points": ["Create value every Sprint", "Cross-functional", "Self-managing", "One cohesive team", "Sustainable pace and shared ownership"], "example": "When testing became a bottleneck, developers, testers, and operations specialists changed how they worked, improved automation, and finished items together rather than optimizing separate departments.", "mistake": "Stating that a Scrum Team must have exactly five to seven members. The current Scrum Guide says typically ten or fewer people.", "vi": "Scrum Team chịu trách nhiệm tạo Increment có giá trị mỗi Sprint, tự quản lý và có đủ kỹ năng để hoàn thành công việc."}, {"id": 19, "part": "Part 2", "category": "Agile Foundations", "question": "What are the differences between Agile and Scrum?", "answer": ["Agile is a set of values and principles for developing products through collaboration, frequent delivery, feedback, and adaptation.", "Scrum is one lightweight framework that can help teams work in an Agile way. Scrum defines accountabilities, events, artifacts, commitments, values, and rules.", "A team can follow Scrum mechanically without being truly Agile—for example, running every ceremony but ignoring customer feedback. A team may also be Agile using another approach such as Kanban."], "key_points": ["Agile: mindset and principles", "Scrum: specific framework", "Scrum supports agility but does not guarantee it", "Agile can be practiced without Scrum"], "example": "A team that completes two-week Sprints but releases once a year and rejects all requirement changes is doing Scrum events, but its behavior is not strongly Agile.", "mistake": "Using Agile and Scrum as identical terms.", "vi": "Agile là mindset/nguyên tắc; Scrum là một framework để áp dụng tư duy Agile."}, {"id": 20, "part": "Part 2", "category": "Artifacts", "question": "What are the main artifacts of Scrum?", "answer": ["Scrum has three artifacts: the Product Backlog, Sprint Backlog, and Increment.", "Each artifact has a commitment that improves focus and transparency. The Product Backlog has the Product Goal. The Sprint Backlog has the Sprint Goal. The Increment has the Definition of Done.", "These artifacts are not documents created for compliance. They make important work and goals transparent so that people can inspect reality and adapt."], "key_points": ["Product Backlog → Product Goal", "Sprint Backlog → Sprint Goal", "Increment → Definition of Done", "Artifacts support transparency and empiricism"], "example": "The Product Goal gives long-term direction, the Sprint Goal gives short-term focus, and the Definition of Done creates a shared quality standard for the Increment.", "mistake": "Listing only the three artifacts and forgetting their commitments.", "vi": "Ba artifact: Product Backlog, Sprint Backlog, Increment. Cam kết tương ứng: Product Goal, Sprint Goal, Definition of Done."}, {"id": 21, "part": "Part 2", "category": "Artifacts", "question": "How do the Product Backlog and Sprint Backlog differ?", "answer": ["The Product Backlog describes the ordered, emerging work for the product. It supports the Product Goal and can contain work for many future Sprints.", "The Sprint Backlog is the current Sprint plan. It supports the Sprint Goal and contains selected Product Backlog Items plus the Developers’ plan.", "The Product Owner is accountable for Product Backlog management. Developers create and adapt the Sprint Backlog."], "key_points": ["Different planning horizons", "Different commitments", "Different accountabilities", "Both are transparent and adaptable"], "example": "A compliance requirement may be high in the Product Backlog. Once selected for the current Sprint, the relevant item and delivery plan become part of the Sprint Backlog.", "mistake": "Assuming the Product Owner directly controls the Developers’ detailed Sprint plan.", "vi": "Product Backlog là product-level; Sprint Backlog là Sprint-level. Product Owner quản lý Product Backlog, Developers quản lý Sprint Backlog."}, {"id": 22, "part": "Part 2", "category": "Scrum Events", "question": "What happens in Daily Scrum sessions?", "answer": ["Developers inspect progress toward the Sprint Goal and adapt the plan for the next working day.", "They discuss information needed for coordination: completed outcomes, upcoming work, dependencies, risks, and impediments. The format is flexible.", "The result should be an actionable plan. The event is not intended to provide a full project status to external managers."], "key_points": ["Inspect progress", "Adapt the plan", "Keep it to 15 minutes", "Take deep discussions outside"], "example": "The team notices that a shared test environment will be unavailable tomorrow. They reorder work, prepare local test containers, and ask the Scrum Master to address the environment issue.", "mistake": "Using the meeting to solve every technical problem while the whole team waits.", "vi": "Daily Scrum tạo ra kế hoạch hành động cho ngày tiếp theo và tập trung vào Sprint Goal."}, {"id": 23, "part": "Part 2", "category": "Flow", "question": "What is Scrumban?", "answer": ["Scrumban is a hybrid approach that combines useful Scrum structures with Kanban flow practices.", "A team may keep Sprints, goals, reviews, and retrospectives while using work-in-progress limits, pull-based work, explicit policies, and flow metrics.", "It is useful when work contains both planned product development and unpredictable support or operational requests. The team should be clear about which Scrum elements it keeps and why."], "key_points": ["Scrum cadence plus Kanban flow", "Pull system", "Work-in-progress limits", "Useful for mixed or interrupt-driven work"], "example": "A platform team uses a two-week review and retrospective but pulls work continuously with WIP limits because production incidents arrive unpredictably.", "mistake": "Calling any Scrum board with columns 'Scrumban' without using flow policies or WIP limits.", "vi": "Scrumban kết hợp cadence của Scrum với flow, pull system và WIP limit của Kanban."}, {"id": 24, "part": "Part 2", "category": "Planning", "question": "What are Sprint 0 and a Spike?", "answer": ["A Spike is a time-boxed investigation used to reduce uncertainty. It may include research, prototyping, architecture exploration, or technical experiments. The result should be learning that supports a decision.", "Sprint 0 is a commonly used industry term for initial setup or discovery, but it is not defined in the Scrum Guide. In Scrum, every Sprint should create a valuable, usable Increment. Calling preparation work Sprint 0 can hide a mini-waterfall phase.", "Some setup is unavoidable, but I keep it minimal and make the first real Sprint produce value or validated learning connected to the product."], "key_points": ["Spike reduces uncertainty", "Time-box the investigation", "Define the question and expected output", "Sprint 0 is not an official Scrum concept"], "example": "Before selecting a new message broker, the team runs a three-day Spike to test throughput, retry behavior, operational complexity, and failure recovery. It finishes with evidence and a recommendation.", "mistake": "Allowing a Spike to become open-ended research or using Sprint 0 for months of design before delivering anything usable.", "vi": "Spike là nghiên cứu có timebox để giảm uncertainty. Sprint 0 không phải khái niệm chính thức trong Scrum Guide."}, {"id": 25, "part": "Part 2", "category": "Scaling", "question": "What is a Scrum of Scrums?", "answer": ["Scrum of Scrums is a coordination pattern used when multiple teams need to manage cross-team dependencies, integration risks, and shared delivery goals.", "Representatives meet to discuss issues that cannot be solved inside one team. The focus should be dependency removal and integrated outcomes, not collecting status reports.", "It is not part of the Scrum Guide, and it does not solve poor product structure. Where possible, teams should share one Product Goal, Product Backlog, Product Owner, and a common Definition of Done for one product."], "key_points": ["Cross-team coordination pattern", "Focus on dependencies and integration", "Not an official Scrum event", "Avoid creating another management layer"], "example": "Three teams working on one telecom product coordinate API contracts, release sequencing, test environments, and system-level risks twice a week.", "mistake": "Turning Scrum of Scrums into a meeting where team leads report progress to a program manager.", "vi": "Scrum of Scrums giúp nhiều team xử lý dependency và integration risk. Không phải event chính thức của Scrum."}, {"id": 26, "part": "Part 2", "category": "Product Discovery", "question": "What is User Story Mapping?", "answer": ["User Story Mapping is a visual technique for understanding a user journey and organizing product work around user activities and outcomes.", "The horizontal direction usually shows the workflow or sequence of user activities. The vertical direction shows detail, alternatives, or priority. Teams can draw horizontal release slices that deliver end-to-end value.", "It helps avoid a flat backlog containing hundreds of disconnected items. It improves shared understanding, release planning, and conversations about the minimum useful product."], "key_points": ["Organize work around the user journey", "Create end-to-end release slices", "Improve shared understanding", "Support product discovery and prioritization"], "example": "For onboarding, the map may show: register, verify identity, choose plan, pay, activate service. The first release slice supports the simplest successful path across all activities.", "mistake": "Ordering stories only from high to low priority without representing the user journey.", "vi": "User Story Mapping sắp xếp backlog theo hành trình user và giúp chia release theo end-to-end value."}, {"id": 27, "part": "Part 2", "category": "Scrum Events", "question": "What happens in a Sprint Retrospective?", "answer": ["The Scrum Team inspects how the last Sprint went and plans ways to increase quality and effectiveness.", "The team may examine people and interactions, processes, tools, technical practices, the Definition of Done, assumptions, and recurring problems. The goal is learning and improvement, not blaming individuals.", "A useful retrospective ends with a small number of concrete improvement actions. Important improvements can be added to the next Sprint Backlog."], "key_points": ["Inspect the way of working", "Create psychological safety", "Find root causes", "Choose practical improvement actions", "Follow up in the next Sprint"], "example": "Repeated late testing was caused by oversized stories and environment delays. The team agreed to split stories earlier, automate test-data creation, and review progress after one Sprint.", "mistake": "Running the same Start–Stop–Continue exercise every Sprint without acting on the results.", "vi": "Retrospective giúp team cải thiện quality và effectiveness. Kết thúc nên có action cụ thể và được follow-up."}, {"id": 28, "part": "Part 2", "category": "Agile Foundations", "question": "What is Empirical Process Control in Scrum?", "answer": ["Empiricism means that knowledge comes from experience and decisions are based on what is observed.", "Scrum implements empiricism through three pillars: transparency, inspection, and adaptation. Work and goals must be visible, teams inspect them frequently, and they adapt quickly when reality differs from expectations.", "This approach is valuable for complex work because the correct solution cannot be fully predicted at the beginning."], "key_points": ["Transparency", "Inspection", "Adaptation", "Evidence over assumptions", "Short feedback loops"], "example": "We expected users to complete onboarding in five minutes, but analytics showed a high drop-off at identity verification. We inspected the data, tested a simpler flow, and reordered the backlog.", "mistake": "Collecting metrics and holding reviews without changing plans or behavior.", "vi": "Empiricism = quyết định dựa trên trải nghiệm và bằng chứng. Ba trụ cột: transparency, inspection, adaptation."}, {"id": 29, "part": "Part 2", "category": "Trade-offs", "question": "What are some drawbacks or challenges of using Scrum?", "answer": ["Scrum is simple but difficult to use well. It exposes organizational problems such as weak product ownership, functional silos, dependency delays, low engineering quality, and command-and-control management.", "Teams may misuse Scrum by turning events into status meetings, treating the Sprint as a fixed scope contract, using velocity as a KPI, or assigning all work through managers.", "Scrum may also be a poor fit if work cannot be organized around a product, the team lacks authority to adapt, or the organization refuses to support cross-functional delivery. In those cases, another approach or organizational change may be needed."], "key_points": ["Easy to understand, hard to master", "Can become mechanical ceremony", "Requires empowered, cross-functional teams", "Scaling dependencies can be difficult", "Does not replace strong engineering practices"], "example": "A company adopted two-week Sprints but kept separate analysis, development, test, and release departments. Work still took months because Scrum events did not remove the functional handoffs.", "mistake": "Saying Scrum only works for small or simple projects. It is intended for complex work, but scaling and organizational design require care.", "vi": "Khó khăn chính thường không nằm ở ceremony mà ở culture, silo, dependency, thiếu quyền tự quản và technical quality thấp."}, {"id": 30, "part": "Part 2", "category": "Scrum Master", "question": "What skills should a Scrum Master have?", "answer": ["A Scrum Master needs a strong understanding of Scrum, facilitation, coaching, teaching, conflict navigation, systems thinking, and organizational change.", "They should listen well, ask powerful questions, create psychological safety, identify systemic impediments, and help people make their own decisions. Enough product and technical understanding is helpful, but the Scrum Master does not need to be the team’s technical manager.", "A senior Scrum Master also works beyond the team: coaching Product Owners, improving stakeholder collaboration, helping leadership understand empiricism, and addressing organizational barriers."], "key_points": ["Scrum knowledge", "Facilitation and coaching", "Conflict resolution", "Servant leadership", "Systems thinking", "Organizational influence"], "example": "Instead of telling the team how to solve repeated carry-over, I facilitated analysis of story size, dependencies, review delays, and unclear acceptance examples. The team selected experiments and measured the result.", "mistake": "Describing the Scrum Master as a project manager who assigns tasks, approves leave, or evaluates individual performance.", "vi": "Scrum Master cần coaching, facilitation, conflict resolution, servant leadership và khả năng cải thiện cả team lẫn organization."}];
+const sources = [{"title": "Medium — Agile Scrum Master Interview Questions with Answers, Part 1", "url": "https://medium.com/@nadiaa.masoumi24/agile-scrum-master-interview-questions-with-answers-part-1-1f68d96a60e5"}, {"title": "Medium — Agile Scrum Master Interview Questions with Answers, Part 2", "url": "https://medium.com/@nadiaa.masoumi24/agile-scrum-master-interview-questions-with-answers-part-2-99213f5cca2e"}, {"title": "The 2020 Scrum Guide — Ken Schwaber and Jeff Sutherland", "url": "https://scrumguides.org/scrum-guide.html"}, {"title": "Manifesto for Agile Software Development", "url": "https://agilemanifesto.org/"}, {"title": "Agile Alliance — Velocity", "url": "https://agilealliance.org/glossary/velocity/"}, {"title": "Scrum.org — Scrubbing Sprint Zero", "url": "https://www.scrum.org/resources/blog/scrubbing-sprint-zero"}];
+const content = document.getElementById('content');
+const search = document.getElementById('search');
+const partFilter = document.getElementById('partFilter');
+const categoryFilter = document.getElementById('categoryFilter');
+const expandBtn = document.getElementById('expandBtn');
+const themeBtn = document.getElementById('themeBtn');
+const reviewed = JSON.parse(localStorage.getItem('scrum-reviewed') || '{}');
+let expandAll = false;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function render() {
+  const q = search.value.trim().toLowerCase();
+  const part = partFilter.value;
+  const cat = categoryFilter.value;
+  const filtered = questions.filter(item => {
+    const text = JSON.stringify(item).toLowerCase();
+    return (!q || text.includes(q)) && (part === 'all' || item.part === part) && (cat === 'all' || item.category === cat);
+  });
+
+  if (!filtered.length) {
+    content.innerHTML = '<div class="empty"><h2>No matching questions</h2><p>Try a broader keyword or reset the filters.</p></div>';
+    return;
+  }
+
+  const groups = ['Part 1', 'Part 2'].map(partName => ({
+    partName,
+    items: filtered.filter(x => x.part === partName)
+  })).filter(g => g.items.length);
+
+  content.innerHTML = groups.map(group => `
+    <section>
+      <div class="section-title">
+        <h2>${group.partName}</h2>
+        <span class="badge">${group.items.length} questions</span>
+      </div>
+      <div class="cards">
+        ${group.items.map(cardHtml).join('')}
+      </div>
+    </section>
+  `).join('');
+
+  document.querySelectorAll('.card-head').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.card').classList.toggle('open'));
+  });
+  document.querySelectorAll('.review-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      reviewed[cb.dataset.id] = cb.checked;
+      localStorage.setItem('scrum-reviewed', JSON.stringify(reviewed));
+      updateProgress();
+    });
+  });
+}
+
+function cardHtml(item) {
+  return `
+  <article class="card ${expandAll ? 'open' : ''}" id="q${item.id}">
+    <button class="card-head" type="button">
+      <span class="qnum">${item.id}</span>
+      <span>
+        <span class="qtitle">${esc(item.question)}</span>
+        <span class="meta">${esc(item.category)} · ${esc(item.part)}</span>
+      </span>
+      <span class="chev">⌄</span>
+    </button>
+    <div class="card-body">
+      <div class="answer">${item.answer.map(p => `<p>${esc(p)}</p>`).join('')}</div>
+      <div class="grid-2">
+        <div class="box">
+          <h3>Key interview points</h3>
+          <ul>${item.key_points.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+        </div>
+        <div class="box example">
+          <h3>Senior-level example</h3>
+          <p>${esc(item.example)}</p>
+        </div>
+      </div>
+      <div class="box mistake" style="margin-top:14px">
+        <h3>Common interview mistake</h3>
+        <p>${esc(item.mistake)}</p>
+      </div>
+      <div class="vi"><strong>Vietnamese key point:</strong> ${esc(item.vi)}</div>
+      <div class="review-row">
+        <label class="review"><input class="review-check" data-id="${item.id}" type="checkbox" ${reviewed[item.id] ? 'checked' : ''}> Mark as reviewed</label>
+        <a href="#q${item.id}" style="color:var(--brand)">Link to question</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function updateProgress() {
+  const count = questions.filter(x => reviewed[x.id]).length;
+  document.getElementById('progressText').textContent = `${count} / ${questions.length} reviewed`;
+  document.getElementById('progressBar').style.width = `${(count / questions.length) * 100}%`;
+}
+
+[search, partFilter, categoryFilter].forEach(el => el.addEventListener('input', render));
+
+expandBtn.addEventListener('click', () => {
+  expandAll = !expandAll;
+  expandBtn.textContent = expandAll ? 'Collapse all' : 'Expand all';
+  render();
+});
+
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  localStorage.setItem('scrum-theme', dark ? 'dark' : 'light');
+  themeBtn.textContent = dark ? 'Light mode' : 'Dark mode';
+});
+
+if (localStorage.getItem('scrum-theme') === 'dark') {
+  document.body.classList.add('dark');
+  themeBtn.textContent = 'Light mode';
+}
+
+[...new Set(questions.map(q => q.category))].sort().forEach(cat => {
+  const opt = document.createElement('option');
+  opt.value = cat; opt.textContent = cat;
+  categoryFilter.appendChild(opt);
+});
+
+document.getElementById('sourcesList').innerHTML = sources.map(s =>
+  `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`
+).join('');
+
+render();
+updateProgress();
+</script>
+</body>
+</html>

@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OAuth 2.0 & OpenID Connect — Deep Dive and Interview Guide</title>
+<meta name="description" content="Deep OAuth 2.0 and OpenID Connect guide covering PKCE, grants, tokens, attacks, Spring Security, architecture and senior interview questions.">
+<style>
+:root{--bg:#f4f7fb;--surface:#fff;--surface2:#edf2f8;--text:#172033;--muted:#5d6979;--border:#d9e2ed;--accent:#2457d6;--soft:#e9efff;--green:#147d64;--gsoft:#e7f8f2;--amber:#985800;--asoft:#fff3dc;--red:#b42318;--rsoft:#fff0ee;--code:#101827;--codet:#e7eef9;--shadow:0 18px 44px rgba(24,38,65,.08)}
+body.dark{--bg:#0c1220;--surface:#151d2c;--surface2:#1d283a;--text:#edf3ff;--muted:#aab5c7;--border:#2c3a52;--accent:#86a9ff;--soft:#1c2d57;--green:#66dcb9;--gsoft:#123a31;--amber:#ffc56c;--asoft:#4a3213;--red:#ff938b;--rsoft:#4c211e;--code:#080e19;--codet:#e8efff;--shadow:0 20px 50px rgba(0,0,0,.26)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.72}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:310px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;overflow:auto;padding:22px 18px;background:var(--surface);border-right:1px solid var(--border)}.brand{font-weight:850;font-size:1.07rem;line-height:1.35;margin-bottom:16px}.brand small{display:block;color:var(--muted);font-size:.74rem;margin-top:6px}.search{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);outline:0}.search:focus{border-color:var(--accent)}.nav-title{margin:20px 10px 7px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-size:.68rem;font-weight:850}.nav-link{display:block;padding:8px 10px;margin:2px 0;border-radius:9px;color:var(--text);font-size:.87rem;font-weight:680}.nav-link:hover,.nav-link.active{background:var(--soft);color:var(--accent);text-decoration:none}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 11px;border-radius:9px;cursor:pointer;font-weight:760}.btn:hover{color:var(--accent);border-color:var(--accent)}main{min-width:0;padding:34px clamp(18px,4vw,64px) 80px}.content{max-width:1180px;margin:auto}.hero,section{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow)}.hero{padding:clamp(30px,6vw,66px);border-radius:26px;margin-bottom:25px;background:radial-gradient(circle at 90% 10%,rgba(104,66,194,.18),transparent 30%),radial-gradient(circle at 15% 95%,rgba(36,87,214,.14),transparent 34%),var(--surface)}.eyebrow,.badge{display:inline-flex;border-radius:999px;font-weight:850}.eyebrow{background:var(--soft);color:var(--accent);padding:6px 10px;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase}.badge{background:var(--surface2);color:var(--muted);padding:4px 8px;margin:0 5px 5px 0;font-size:.72rem}h1{font-size:clamp(2.25rem,5.2vw,4.7rem);line-height:1.02;letter-spacing:-.05em;margin:16px 0 13px}.hero>p{max-width:890px;color:var(--muted);font-size:1.08rem}.hero-grid,.grid2,.grid3,.grid4{display:grid;gap:15px}.hero-grid{grid-template-columns:repeat(6,minmax(0,1fr));margin-top:27px}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}.mini,.card{border:1px solid var(--border);background:var(--surface);border-radius:15px}.mini{padding:14px}.mini strong{display:block;font-size:.85rem}.mini span{color:var(--muted);font-size:.76rem}.card{padding:19px;margin:10px 0}.card h3,.card h4{margin-top:0}section{scroll-margin-top:22px;border-radius:20px;padding:clamp(24px,4vw,46px);margin:24px 0}section.hidden{display:none}h2{font-size:clamp(1.75rem,3vw,2.45rem);line-height:1.18;letter-spacing:-.028em;margin:8px 0 14px}h3{font-size:1.32rem;line-height:1.3;margin-top:34px}h4{margin:24px 0 9px;font-size:1.05rem}.muted{color:var(--muted)}.callout{margin:18px 0;padding:16px 18px;border-left:4px solid var(--accent);border-radius:10px;background:var(--soft)}.callout.good{border-color:var(--green);background:var(--gsoft)}.callout.warn{border-color:var(--amber);background:var(--asoft)}.callout.bad{border-color:var(--red);background:var(--rsoft)}.diagram{overflow:auto;white-space:pre;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;font: .86rem/1.55 "SFMono-Regular",Consolas,monospace}.flow{display:grid;gap:10px;margin:18px 0}.step{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:13px 15px;border-radius:12px;background:var(--surface2)}.step b{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff}pre{position:relative;overflow:auto;background:var(--code);color:var(--codet);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,.08);font:.87rem/1.62 "SFMono-Regular",Consolas,monospace;margin:14px 0 20px}:not(pre)>code{padding:2px 6px;border-radius:6px;background:var(--surface2);font-size:.9em}.copy{position:absolute;right:10px;top:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:8px;padding:5px 9px;cursor:pointer;font-weight:760}.table{width:100%;overflow:auto;border-radius:12px}table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.92rem}th,td{padding:11px 12px;border:1px solid var(--border);text-align:left;vertical-align:top}th{background:var(--surface2)}details{border:1px solid var(--border);border-radius:12px;margin:10px 0;padding:13px 15px;background:var(--surface)}details[open]{background:var(--surface2)}summary{cursor:pointer;font-weight:820}.interview{padding:20px;margin-top:24px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,var(--soft),var(--surface))}.interview h3{margin-top:0}.goodtag,.badtag,.contexttag{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:.73rem;font-weight:850}.goodtag{color:var(--green);background:var(--gsoft)}.badtag{color:var(--red);background:var(--rsoft)}.contexttag{color:var(--amber);background:var(--asoft)}.footer{text-align:center;color:var(--muted);padding:22px 0 0;font-size:.85rem}@media(max-width:1120px){.layout{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}aside nav{display:flex;gap:5px;overflow:auto}.nav-title{display:none}.nav-link{white-space:nowrap}.hero-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){main{padding:18px 11px 50px}.hero,section{border-radius:16px}.grid2,.grid3,.grid4,.hero-grid{grid-template-columns:1fr}h1{font-size:2.3rem}}@media print{aside,.copy,.actions,.search{display:none!important}.layout{display:block}main{padding:0}body{background:#fff;color:#000}.hero,section{box-shadow:none}details>*{display:block!important}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<div class="brand">OAuth 2.0 & OIDC Deep Dive<small>Security, architecture, Spring implementation and senior interview preparation</small></div>
+<input id="search" class="search" placeholder="Filter sections...">
+<nav>
+<div class="nav-title">Foundation</div>
+<a class="nav-link" href="#overview">Overview</a><a class="nav-link" href="#mental">Mental model</a><a class="nav-link" href="#roles">Roles & endpoints</a><a class="nav-link" href="#tokens">Tokens</a><a class="nav-link" href="#jwt">JWT deep dive</a>
+<div class="nav-title">Flows</div>
+<a class="nav-link" href="#code-flow">Code + PKCE</a><a class="nav-link" href="#grants">Grant types</a><a class="nav-link" href="#oidc">OpenID Connect</a><a class="nav-link" href="#validation">Validation</a>
+<div class="nav-title">Security</div>
+<a class="nav-link" href="#threats">Threats</a><a class="nav-link" href="#refresh">Refresh tokens</a><a class="nav-link" href="#advanced">Advanced standards</a><a class="nav-link" href="#storage">Storage</a>
+<div class="nav-title">Engineering</div>
+<a class="nav-link" href="#architecture">Architecture</a><a class="nav-link" href="#spring">Spring Security</a><a class="nav-link" href="#cases">Real cases</a><a class="nav-link" href="#mistakes">Mistakes</a>
+<div class="nav-title">Interview</div>
+<a class="nav-link" href="#basic-q">Basic Q&A</a><a class="nav-link" href="#senior-q">Senior Q&A</a><a class="nav-link" href="#scenarios">Scenarios</a><a class="nav-link" href="#checklist">Checklist</a><a class="nav-link" href="#sources">Sources</a>
+</nav>
+<div class="actions"><button class="btn" id="theme">Theme</button><button class="btn" id="expand">Expand Q&A</button><button class="btn" onclick="print()">Print</button></div>
+</aside>
+<main><div class="content">
+<header class="hero" id="overview">
+<span class="eyebrow">Deep technical guide</span>
+<h1>OAuth 2.0 is an authorization framework — not an authentication protocol.</h1>
+<p>This document builds a complete mental model of OAuth 2.0 and OpenID Connect.
+The most important distinction is highlighted throughout the guide:
+<strong>OAuth 2.0 delegates authorization to access protected resources; it does not define
+how a client proves that a user has logged in.</strong> OpenID Connect adds the standardized
+authentication layer. The guide also explains why access tokens and refresh tokens must remain
+separate credentials with different consumers, exposure levels, lifetimes and security controls.</p>
+<div class="callout good"><strong>Core interview statement:</strong>
+OAuth 2.0 answers <em>“What may this client access?”</em>
+OpenID Connect answers <em>“Who authenticated, and how can the client verify that authentication?”</em>
+An access token calls an API. A refresh token is a more sensitive credential used only at the
+authorization server to obtain a new access token.</div>
+<div class="hero-grid"><div class="mini"><strong>Authorization</strong><span>Delegated API access</span></div><div class="mini"><strong>OIDC</strong><span>User authentication</span></div><div class="mini"><strong>PKCE</strong><span>Code protection</span></div><div class="mini"><strong>Tokens</strong><span>Access, refresh, ID</span></div><div class="mini"><strong>Security</strong><span>Threats and controls</span></div><div class="mini"><strong>Spring</strong><span>Java implementation</span></div></div>
+<div class="callout warn"><strong>Standards status — July 16, 2026:</strong> OAuth 2.0 remains defined by RFC 6749 and related RFCs, with RFC 9700 as the current Security Best Current Practice. OAuth 2.1 is still an IETF Internet-Draft, not a published RFC.</div>
+</header>
+
+<section id="mental" data-key="mental model authentication authorization delegation framework oidc">
+<span class="badge">Foundation</span><h2>1. The non-negotiable distinction: OAuth 2.0 is authorization, not authentication</h2>
+
+<div class="callout bad"><strong>Common interview mistake:</strong>
+“OAuth authenticates the user” is incomplete and often incorrect. An authorization server may
+authenticate a user as one internal step before issuing authorization, but the OAuth 2.0 framework
+does not define a standardized authentication result that the client can safely use as proof of login.
+That standardized identity layer is OpenID Connect.</div>
+
+<h3>1.1 Authentication and authorization solve different problems</h3>
+<div class="grid2">
+  <div class="card">
+    <h4>Authentication — Who are you?</h4>
+    <p>Authentication establishes an identity. It may use a password, passkey, OTP, TOTP,
+    biometric, certificate, social identity provider or enterprise identity provider.</p>
+    <p>The result should let the relying application verify facts such as the authenticated
+    subject, issuer, authentication time and assurance level.</p>
+    <p><strong>OAuth-based standard:</strong> OpenID Connect, normally through an ID token
+    and optionally the UserInfo endpoint.</p>
+  </div>
+  <div class="card">
+    <h4>Authorization — What may you do?</h4>
+    <p>Authorization decides whether a client may access a protected resource. Examples:
+    read a calendar, create an order, view a profile or initiate a payment.</p>
+    <p>The result is normally represented by an access token with restrictions such as
+    scope, audience, subject, client, expiry and policy.</p>
+    <p><strong>Framework:</strong> OAuth 2.0.</p>
+  </div>
+</div>
+
+<h3>1.2 Why OAuth can show a login screen but still is not an authentication protocol</h3>
+<p>During Authorization Code Flow, the authorization server usually needs to know which user is
+granting access. It may therefore show a login screen and perform MFA. However, that login is
+between the user and the authorization server. OAuth 2.0 primarily standardizes the authorization
+request, authorization response and token issuance. It does not define an ID token, a standard
+subject claim for client login, nonce validation, authentication time or authentication assurance.</p>
+
+<div class="diagram">OAuth 2.0 view:
+User authenticates at Authorization Server
+                ↓
+Authorization Server evaluates consent and policy
+                ↓
+Client receives authorization code / access token
+                ↓
+Resource Server receives access token and checks permission
+
+OpenID Connect addition:
+Authorization Server also issues an ID token
+                ↓
+Client validates issuer, audience, signature, time and nonce
+                ↓
+Client obtains a standardized authentication result</div>
+
+<div class="callout warn"><strong>Important nuance:</strong>
+OAuth does not forbid the authorization server from authenticating a user.
+It simply does not define OAuth access tokens as a reliable login result for the client.
+Do not build “Login with X” by reading arbitrary access-token fields or by calling a random profile API.
+Use OpenID Connect.</div>
+
+<h3>1.3 The problem OAuth solves</h3>
+<div class="diagram">Without delegated authorization:
+User gives a third-party application the account password
+        ↓
+The application may receive broad, long-lived authority
+        ↓
+Password leakage compromises the account
+        ↓
+Revocation may require changing the password
+
+With OAuth 2.0:
+User authenticates directly with the Authorization Server
+        ↓
+The client receives limited, scoped, audience-bound, time-limited authorization
+        ↓
+The client calls only the intended protected API
+        ↓
+Authorization can be revoked without changing the user's password</div>
+
+<h3>1.4 Delegation is the key concept</h3>
+<p>The client normally does not receive the resource owner's password. Instead, it receives a
+credential that represents delegated authorization. The authorization server may limit that
+credential by:</p>
+<ul>
+  <li><strong>Scope:</strong> which categories of operations are granted.</li>
+  <li><strong>Audience/resource:</strong> which API may accept the token.</li>
+  <li><strong>Subject:</strong> which user or workload the authorization relates to.</li>
+  <li><strong>Client:</strong> which application received the grant.</li>
+  <li><strong>Lifetime:</strong> how long the authorization credential is usable.</li>
+  <li><strong>Consent and policy:</strong> what the user and organization approved.</li>
+  <li><strong>Sender constraint:</strong> whether token use is bound to a key or certificate.</li>
+</ul>
+
+<h3>1.5 OAuth is not the complete business permission model</h3>
+<pre><code>OAuth-level validation:
+- token signature/introspection is valid
+- issuer is trusted
+- audience = orders-api
+- scope contains orders.cancel
+
+Business authorization:
+- order belongs to the current tenant
+- user owns the order or has support permission
+- order status allows cancellation
+- cancellation window is still open
+- request does not violate fraud or compliance policy</code></pre>
+<p>A scope such as <code>orders.cancel</code> gives coarse permission. It does not prove that the
+caller may cancel every order. The resource server must still enforce object ownership,
+tenant boundaries and business rules.</p>
+
+<div class="interview">
+<h3>How a senior engineer should answer</h3>
+<p><strong>“OAuth 2.0 is an authorization framework, not an authentication protocol.</strong>
+Its main purpose is delegated access: a client obtains an access token and presents it to a
+resource server to access protected resources with limited permission. The authorization server
+may authenticate the user during the flow, because it needs to know who is granting access, but
+OAuth 2.0 does not standardize the authentication result that the client should consume as proof
+of login.</p>
+<p>For user authentication, I use OpenID Connect on top of OAuth 2.0. OIDC adds an ID token,
+standard identity claims, nonce handling, discovery and validation rules. In implementation,
+I keep the responsibilities clear: the client validates the ID token for login, while the resource
+server validates the access token for API authorization. I never use an ID token as an API access
+token, and I never assume that a valid access token alone is a complete business authorization
+decision.”</p>
+</div>
+</section>
+
+<section id="roles" data-key="roles resource owner client authorization server resource server endpoints public confidential">
+<span class="badge">Core protocol</span><h2>2. Roles, clients and endpoints</h2>
+<h3>2.1 Four roles</h3><div class="grid4"><div class="card"><h4>Resource Owner</h4><p>Entity able to grant access. When a person, this is the end user.</p></div><div class="card"><h4>Client</h4><p>Application requesting protected resources. It may be browser, mobile, backend or device.</p></div><div class="card"><h4>Authorization Server</h4><p>Evaluates authorization and issues tokens.</p></div><div class="card"><h4>Resource Server</h4><p>Protected API that validates tokens and enforces policy.</p></div></div>
+<h3>2.2 Public vs confidential clients</h3><div class="table"><table><tr><th>Type</th><th>Can keep a long-term secret?</th><th>Examples</th><th>Typical protection</th></tr><tr><td>Confidential</td><td>Yes, on a controlled server</td><td>Backend web app, server process</td><td>Secret, private-key JWT, mTLS</td></tr><tr><td>Public</td><td>No</td><td>SPA, mobile, desktop, CLI</td><td>Authorization Code + PKCE</td></tr></table></div>
+<div class="callout bad">A secret embedded in JavaScript, an APK or desktop binary is not a real secret. Attackers can extract it.</div>
+<h3>2.3 Important endpoints</h3><div class="table"><table><tr><th>Endpoint</th><th>Purpose</th></tr><tr><td>Authorization</td><td>User-agent interaction, authentication, consent and authorization response</td></tr><tr><td>Token</td><td>Exchange grant for tokens</td></tr><tr><td>JWKS</td><td>Publish public verification keys</td></tr><tr><td>Introspection</td><td>Check token activity and metadata</td></tr><tr><td>Revocation</td><td>Request token revocation</td></tr><tr><td>UserInfo</td><td>Return OIDC claims</td></tr><tr><td>PAR</td><td>Push authorization request directly to AS</td></tr><tr><td>Metadata/discovery</td><td>Publish endpoints and capabilities</td></tr></table></div>
+<h3>2.4 Discovery</h3><pre><code>https://issuer.example.com/.well-known/openid-configuration
+https://issuer.example.com/.well-known/oauth-authorization-server</code></pre><p>Discovery must start from a trusted issuer. Never perform key lookup from an arbitrary URL supplied by untrusted token data.</p>
+</section>
+
+<section id="tokens" data-key="tokens access refresh id authorization code jwt opaque bearer separate purpose lifetime trust boundary">
+<span class="badge">Credentials</span><h2>3. Every token has one purpose — access and refresh tokens must remain separate</h2>
+
+<div class="callout good"><strong>Design principle:</strong>
+Use separate credentials for separate trust boundaries.
+The access token is exposed to resource servers and sent on many API requests.
+The refresh token is restricted to the authorization server and is used much less often.
+Combining them would give one stolen credential both immediate API access and the ability to
+renew that access.</div>
+
+<div class="table"><table>
+<tr><th>Item</th><th>Intended consumer</th><th>Purpose</th><th>Typical lifetime</th><th>Exposure</th></tr>
+<tr><td>Authorization code</td><td>Token endpoint</td><td>Temporary, one-time grant exchanged for tokens</td><td>Very short</td><td>Browser redirect, protected by PKCE</td></tr>
+<tr><td>Access token</td><td>Resource server</td><td>Call a protected API</td><td>Short</td><td>Sent frequently to one or more API components</td></tr>
+<tr><td>Refresh token</td><td>Authorization server only</td><td>Obtain a new access token</td><td>Longer</td><td>Stored and transmitted under stronger controls</td></tr>
+<tr><td>ID token</td><td>OIDC client</td><td>Represent an authentication result</td><td>Short</td><td>Consumed by the client, not by business APIs</td></tr>
+<tr><td>Client credential</td><td>Authorization server</td><td>Authenticate a confidential client</td><td>Long-lived but rotated</td><td>Server-side secret/key/certificate</td></tr>
+</table></div>
+
+<h3>3.1 Access token</h3>
+<pre><code>GET /api/orders/123 HTTP/1.1
+Host: orders.example.com
+Authorization: Bearer eyJ...</code></pre>
+<p>An access token represents authorization granted to a client. It is presented to the resource
+server, which validates the token and applies authorization policy. The client should normally
+treat the token as an opaque credential, even when its physical format is JWT.</p>
+
+<h3>3.2 Bearer token risk</h3>
+<p>Most access tokens are bearer credentials: whoever possesses one can usually use it.
+Because the access token travels with API requests, it may pass through clients, gateways,
+reverse proxies, application servers, observability systems and network boundaries.
+A short lifetime and narrow audience reduce the damage when it leaks.</p>
+
+<h3>3.3 JWT versus opaque access token</h3>
+<div class="grid2">
+  <div class="card">
+    <h4>JWT access token</h4>
+    <ul>
+      <li>Resource server can validate signature and claims locally.</li>
+      <li>Good scalability and low request latency.</li>
+      <li>Already-issued tokens are harder to revoke immediately.</li>
+      <li>Claims are visible to anyone holding the token unless encrypted.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Opaque access token</h4>
+    <ul>
+      <li>Random-looking reference with server-side state.</li>
+      <li>Often checked through introspection or a local cache.</li>
+      <li>Central state can reflect revocation more quickly.</li>
+      <li>Creates availability, latency and caching trade-offs.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>3.4 Refresh token</h3>
+<p>A refresh token is a credential presented only to the authorization server. Its purpose is
+not to call business APIs. It proves that the client still holds a previously issued grant and
+may request a new short-lived access token, subject to current policy.</p>
+<p>Because a refresh token can extend a session, it normally requires stronger controls:
+secure storage, rotation, reuse detection, sender constraint where appropriate, idle and
+absolute expiry, revocation and device/session tracking.</p>
+
+<h3>3.5 ID token</h3>
+<pre><code>{
+  "iss": "https://id.example.com",
+  "sub": "user-123",
+  "aud": "web-client",
+  "exp": 1784200000,
+  "iat": 1784199700,
+  "nonce": "n-0S6_WzA2Mj"
+}</code></pre>
+<div class="callout warn"><strong>Do not use an ID token to call a business API.</strong>
+The ID token is issued to the OIDC client and its audience is normally the client ID.
+The API should receive an access token whose audience identifies that API.</div>
+
+<h3>3.6 Why not use one token for both access and refresh?</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h4>Access-token requirements</h4>
+    <ul>
+      <li>Sent frequently to resource servers.</li>
+      <li>Short-lived to limit breach impact.</li>
+      <li>Narrow audience and scopes.</li>
+      <li>Optimized for fast API validation.</li>
+      <li>May be visible to several infrastructure components.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Refresh-token requirements</h4>
+    <ul>
+      <li>Sent only to the authorization server.</li>
+      <li>Longer-lived to preserve the session.</li>
+      <li>Stored under stronger protection.</li>
+      <li>Supports rotation, reuse detection and revocation.</li>
+      <li>Never accepted by resource servers.</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Reason 1 — The two credentials have conflicting lifetime requirements</h4>
+<p>An access token should expire quickly, for example after several minutes, because it is
+frequently transmitted and may be exposed. A refresh token needs a longer lifetime so the
+client can obtain a replacement without asking the user to authenticate repeatedly.</p>
+<p>If one token is short-lived, it cannot provide a useful long-lived refresh session after it
+expires. If the same token is long-lived, every API that accepts it receives a long-lived bearer
+credential, greatly increasing the impact of leakage.</p>
+
+<h4>Reason 2 — A stolen access token would become self-renewing</h4>
+<div class="diagram">Attacker steals the combined token
+        ↓
+Attacker calls the protected API immediately
+        ↓
+Before expiration, attacker sends the same token to /token
+        ↓
+Authorization Server issues a new token
+        ↓
+Attacker repeats the process and can maintain access indefinitely</div>
+<p>This would make short access-token expiration much less effective. The attacker would not
+need to steal the protected refresh credential separately.</p>
+
+<h4>Reason 3 — Different consumers should not receive the same power</h4>
+<p>Resource servers need only enough information to decide whether an API call is authorized.
+They do not need the power to renew the user's session. If one token served both purposes,
+every resource server receiving it would be inside the refresh-token trust boundary.
+A compromise of any API, gateway or log pipeline could expose a session-renewal credential.</p>
+
+<h4>Reason 4 — Separation limits blast radius</h4>
+<p>When only an access token is stolen, the attacker is limited by its expiry, audience and scopes.
+When a refresh token is stolen, the incident is more serious, but the system can apply specialized
+controls such as rotation and reuse detection. Separation lets security teams identify which
+credential was compromised and apply the correct response.</p>
+
+<h4>Reason 5 — Rotation and reuse detection require stateful semantics</h4>
+<p>A refresh-token family can be rotated:</p>
+<div class="diagram">RT-1 is used → RT-1 becomes invalid → server returns RT-2
+RT-1 is used again → possible theft detected → revoke the token family</div>
+<p>Normal access-token validation does not have these semantics. An API may validate a JWT locally
+without contacting the authorization server. Combining the credentials would either force every
+API token to use refresh-token state or remove important replay detection.</p>
+
+<h4>Reason 6 — Separate scopes and audiences prevent misuse</h4>
+<p>An access token is usually audience-bound to an API, such as <code>orders-api</code>.
+A refresh token is audience-bound in practice to the authorization server's token endpoint.
+One token accepted by both creates token-substitution risk and weakens the rule that each
+credential has one intended consumer.</p>
+
+<h4>Reason 7 — Revocation and policy checks are different</h4>
+<p>When refreshing, the authorization server can re-evaluate the client, user session, consent,
+account status and organizational policy before issuing a new token. A resource server normally
+does not perform this full session-renewal evaluation on each API call.</p>
+
+<h3>3.7 Correct flow</h3>
+<div class="diagram">Access token:
+Client ── access token ──> Resource Server
+                         validates audience, scopes and expiry
+
+Refresh token:
+Client ── refresh token ──> Authorization Server
+                            validates grant/session/rotation
+                            returns a new access token
+                            optionally returns a rotated refresh token</div>
+
+<h3>3.8 What happens after each token is stolen?</h3>
+<div class="table"><table>
+<tr><th>Credential stolen</th><th>Immediate capability</th><th>Primary containment</th></tr>
+<tr><td>Access token</td><td>Call APIs allowed by its audience and scope</td><td>Short expiry, narrow scope/audience, sender constraint, revoke/deny-list when required</td></tr>
+<tr><td>Refresh token</td><td>Request new access tokens</td><td>Rotation, reuse detection, sender constraint, family/session revocation</td></tr>
+<tr><td>Both</td><td>Immediate API access plus continued renewal</td><td>Revoke session/token family, investigate client/device compromise, require reauthentication</td></tr>
+</table></div>
+
+<div class="interview">
+<h3>How a senior engineer should answer</h3>
+<p>“I would not use one token as both an access token and a refresh token because they operate
+across different trust boundaries and have conflicting security requirements. An access token is
+presented frequently to resource servers, so it should be short-lived, narrowly scoped and limited
+to a specific audience. A refresh token is presented only to the authorization server, is normally
+longer-lived and requires stronger storage, rotation, replay detection and revocation controls.</p>
+<p>If the access token could also refresh itself, stealing one API token would give the attacker both
+immediate access and the ability to renew that access repeatedly. That would weaken the security
+value of short access-token expiration and expand the refresh-token trust boundary to every API,
+gateway or infrastructure component that sees the token.</p>
+<p>By separating them, a stolen access token has a limited blast radius, while refresh-token theft can
+be detected through rotation and reuse detection. It also enforces token purpose: resource servers
+accept access tokens; only the authorization server accepts refresh tokens. This is an example of
+least privilege and separation of responsibilities, not merely a naming convention.”</p>
+</div>
+</section>
+
+<section id="jwt" data-key="JWT JSON Web Token header payload signature claims JWS JWE private sensitive information base64url encryption signing validation JWKS">
+<span class="badge">JWT / JOSE</span>
+<h2>4. JWT deep dive — structure, claims, signing, encryption and private data</h2>
+
+<div class="callout good">
+<strong>Core idea:</strong> JWT is a compact token format for carrying claims.
+JWT is not the same thing as OAuth 2.0, and JWT is not automatically an access token.
+OAuth defines authorization behavior; JWT defines a possible representation of claims.
+An OAuth access token may be a JWT or an opaque value. An ID token is normally a JWT,
+and JWT is also used in several other protocols.
+</div>
+
+<h3>4.1 What exactly is a JWT?</h3>
+<p>
+JWT means <strong>JSON Web Token</strong>. It is a compact, URL-safe representation of claims
+transferred between parties. A JWT can be protected by a digital signature or MAC through
+JWS, or encrypted through JWE.
+</p>
+
+<div class="callout warn">
+<strong>Very important:</strong> The common three-part JWT that developers see is usually a
+<strong>signed JWS compact serialization</strong>. Its Header and Payload are Base64URL-encoded,
+not encrypted. Anybody who obtains the token can normally decode and read them without knowing
+the signing key.
+</div>
+
+<h3>4.2 The common three-part structure</h3>
+
+<div class="diagram">eyJhbGciOiJSUzI1NiIsInR5cCI6ImF0K2p3dCIsImtpZCI6ImtleS0yMDI2In0
+.
+eyJpc3MiOiJodHRwczovL2lkLmV4YW1wbGUuY29tIiwic3ViIjoidXNlci0xMjMiLCJhdWQiOiJvcmRlcnMtYXBpIiwiZXhwIjoxNzg0MjAwMDAwLCJzY29wZSI6Im9yZGVycy5yZWFkIn0
+.
+Vf9...digital-signature...</div>
+
+<pre><code>JWT = BASE64URL(UTF8(Header))
+    + "."
+    + BASE64URL(UTF8(Payload))
+    + "."
+    + BASE64URL(Signature)</code></pre>
+
+<div class="grid3">
+  <div class="card">
+    <h4>Header</h4>
+    <p>Describes how the token is protected and may identify the signing key.</p>
+  </div>
+  <div class="card">
+    <h4>Payload</h4>
+    <p>Contains claims: statements about a subject, client, issuer, authorization or token.</p>
+  </div>
+  <div class="card">
+    <h4>Signature</h4>
+    <p>Protects integrity and allows the recipient to verify the expected signer or shared-key holder.</p>
+  </div>
+</div>
+
+<h3>4.3 Base64URL is encoding, not encryption</h3>
+
+<p>
+Base64URL changes binary data into URL-safe text. It does not provide secrecy.
+A developer can decode the Header and Payload without a secret key:
+</p>
+
+<pre><code>String[] parts = jwt.split("\\.");
+
+String headerJson = new String(
+        Base64.getUrlDecoder().decode(parts[0]),
+        StandardCharsets.UTF_8
+);
+
+String payloadJson = new String(
+        Base64.getUrlDecoder().decode(parts[1]),
+        StandardCharsets.UTF_8
+);</code></pre>
+
+<div class="callout bad">
+<strong>Do not confuse “cannot easily read at first glance” with encryption.</strong>
+Browser tools, command-line tools, libraries and even a few lines of Java can decode a normal
+signed JWT. Decoding does not prove that the token is valid. Claims must not be trusted until
+all cryptographic and semantic validation has succeeded.
+</div>
+
+<h3>4.4 Header in detail</h3>
+
+<pre><code>{
+  "alg": "RS256",
+  "typ": "at+jwt",
+  "kid": "signing-key-2026-07"
+}</code></pre>
+
+<div class="table"><table>
+<tr><th>Header parameter</th><th>Meaning</th><th>Security note</th></tr>
+<tr>
+  <td><code>alg</code></td>
+  <td>Algorithm used to sign, MAC or encrypt the token.</td>
+  <td>The verifier must use a server-side allow-list. Never trust the token to choose any algorithm it wants.</td>
+</tr>
+<tr>
+  <td><code>typ</code></td>
+  <td>Explicit token type, for example <code>JWT</code> or <code>at+jwt</code>.</td>
+  <td>Helps prevent one JWT type from being accepted in another context.</td>
+</tr>
+<tr>
+  <td><code>kid</code></td>
+  <td>Key identifier used to select one key from a trusted key set.</td>
+  <td>It is a selector, not a trust source. Do not build an arbitrary file path, SQL query or remote URL from it.</td>
+</tr>
+<tr>
+  <td><code>cty</code></td>
+  <td>Content type, commonly used with nested JWT structures.</td>
+  <td>Needed only in defined token profiles.</td>
+</tr>
+<tr>
+  <td><code>jku</code>/<code>x5u</code></td>
+  <td>Locations related to keys or certificates.</td>
+  <td>Dangerous if fetched from untrusted token input; may create SSRF or attacker-controlled key lookup.</td>
+</tr>
+</table></div>
+
+<h4>Why <code>alg</code> must be allow-listed</h4>
+<p>
+The application configuration must decide which algorithms are accepted. It must not simply read
+<code>alg</code> from the untrusted header and dynamically accept it. This protects against
+algorithm-substitution and key-confusion problems.
+</p>
+
+<pre><code>// Conceptual configuration:
+accepted algorithms = { RS256 }
+
+// Reject:
+alg = none
+alg = HS256 when this token profile requires RS256
+alg = any algorithm not explicitly configured</code></pre>
+
+<h3>4.5 Payload in detail</h3>
+
+<pre><code>{
+  "iss": "https://id.example.com",
+  "sub": "user-123",
+  "aud": "orders-api",
+  "exp": 1784200000,
+  "nbf": 1784199600,
+  "iat": 1784199700,
+  "jti": "token-f70b9c",
+  "client_id": "customer-web",
+  "scope": "orders.read orders.cancel",
+  "tenant_id": "tenant-42"
+}</code></pre>
+
+<p>
+Each property is a <strong>claim</strong>: a statement made by the issuer. A claim is not trusted
+merely because it exists. The receiver trusts it only after validating the token and confirming
+that the issuer is authorized to make that claim for this token type and audience.
+</p>
+
+<h3>4.6 Registered claims</h3>
+
+<div class="table"><table>
+<tr><th>Claim</th><th>Meaning</th><th>How a resource server uses it</th></tr>
+<tr>
+  <td><code>iss</code></td>
+  <td>Issuer</td>
+  <td>Must exactly match a trusted authorization server or identity provider.</td>
+</tr>
+<tr>
+  <td><code>sub</code></td>
+  <td>Subject</td>
+  <td>May identify a user or a client workload. Do not assume it always means a human user.</td>
+</tr>
+<tr>
+  <td><code>aud</code></td>
+  <td>Audience</td>
+  <td>Must contain the current API or intended recipient.</td>
+</tr>
+<tr>
+  <td><code>exp</code></td>
+  <td>Expiration time</td>
+  <td>Reject after expiration, with only a small configured clock skew.</td>
+</tr>
+<tr>
+  <td><code>nbf</code></td>
+  <td>Not-before time</td>
+  <td>Reject before this time.</td>
+</tr>
+<tr>
+  <td><code>iat</code></td>
+  <td>Issued-at time</td>
+  <td>Useful for age, anomaly and freshness checks, depending on the profile.</td>
+</tr>
+<tr>
+  <td><code>jti</code></td>
+  <td>Unique token identifier</td>
+  <td>Can support replay detection, auditing or deny-listing when the architecture requires state.</td>
+</tr>
+</table></div>
+
+<div class="callout">
+The registered claims are not all mandatory for every JWT. A specific profile defines which claims
+are required. For OAuth JWT access tokens, follow the access-token profile and authorization-server
+contract rather than inventing assumptions from the base JWT specification alone.
+</div>
+
+<h3>4.7 Public and private claims</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h4>Public claims</h4>
+    <p>
+    Claims registered in a public registry or defined with collision-resistant names.
+    They improve interoperability across organizations.
+    </p>
+  </div>
+  <div class="card">
+    <h4>Private claims</h4>
+    <p>
+    Application-specific claims agreed between issuer and consumer, such as
+    <code>tenant_id</code>, <code>department</code> or <code>permissions</code>.
+    “Private claim” means privately defined; it does <strong>not</strong> mean confidential.
+    </p>
+  </div>
+</div>
+
+<div class="callout bad">
+<strong>Important vocabulary:</strong> A “private claim” is not encrypted private information.
+It is only a non-standard claim name used by cooperating applications.
+</div>
+
+<h3>4.8 Can the payload store private or sensitive information?</h3>
+
+<p>
+<strong>Technically, JSON can contain almost any data. Security-wise, a normal signed JWT payload
+should not contain secrets or unnecessary sensitive personal data.</strong> A signed JWT provides
+integrity, not confidentiality. Token holders, browser code, mobile applications, gateways,
+resource servers and any leaked logs may be able to read the payload.
+</p>
+
+<div class="table"><table>
+<tr><th>Data</th><th>Store in a normal signed JWT?</th><th>Reason</th></tr>
+<tr>
+  <td>User ID, tenant ID, client ID</td>
+  <td><span class="ok">Usually acceptable</span></td>
+  <td>Identifiers may be necessary for authorization, but still minimize and avoid externally meaningful identifiers when possible.</td>
+</tr>
+<tr>
+  <td>Scopes or compact permission indicators</td>
+  <td><span class="ok">Often appropriate</span></td>
+  <td>The resource server needs them, but avoid thousands of detailed permissions that create large, stale tokens.</td>
+</tr>
+<tr>
+  <td>Email or display name</td>
+  <td><span class="warn">Only when required</span></td>
+  <td>It is personal information and may leak through clients or logs. Prefer fetching profile data when it is not required on every request.</td>
+</tr>
+<tr>
+  <td>Address, phone number, date of birth</td>
+  <td><span class="bad">Normally avoid</span></td>
+  <td>Sensitive PII increases privacy and breach impact and is rarely needed for API authorization.</td>
+</tr>
+<tr>
+  <td>Password, PIN, OTP, TOTP secret</td>
+  <td><span class="bad">Never</span></td>
+  <td>These are authentication secrets. Signing does not hide them.</td>
+</tr>
+<tr>
+  <td>Client secret, private key, API key, refresh token</td>
+  <td><span class="bad">Never</span></td>
+  <td>A token must never carry another reusable secret that token holders can extract.</td>
+</tr>
+<tr>
+  <td>Full card number, CVV, bank credentials</td>
+  <td><span class="bad">Never</span></td>
+  <td>High-impact regulated data; CVV storage is especially prohibited in payment contexts.</td>
+</tr>
+<tr>
+  <td>Full medical, payroll or legal record</td>
+  <td><span class="bad">Avoid</span></td>
+  <td>JWTs are copied and transmitted broadly and are poor containers for large confidential records.</td>
+</tr>
+</table></div>
+
+<h4>Practical rule</h4>
+
+<div class="diagram">Before adding a claim, ask:
+
+1. Does the intended recipient need this value on every request?
+2. Can the API retrieve it from trusted server-side data instead?
+3. Will it become stale before the token expires?
+4. Is it safe if the user, client, proxy or log reader can see it?
+5. Does adding it violate data-minimization, privacy or regulatory requirements?
+6. Does this claim increase token size enough to affect headers, proxies or cookies?</div>
+
+<p>
+If a claim is needed only by one API, issue an audience-specific token containing only the minimum
+necessary data. Do not create one large “identity bag” token and send it to every microservice.
+</p>
+
+<h3>4.9 Signing is not encryption</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h4>JWS — signed or MAC-protected content</h4>
+    <p><strong>Provides:</strong> integrity and signer/MAC verification.</p>
+    <p><strong>Does not provide:</strong> confidentiality.</p>
+    <p>Common compact form: three segments.</p>
+  </div>
+  <div class="card">
+    <h4>JWE — encrypted content</h4>
+    <p><strong>Provides:</strong> confidentiality and authenticated encryption when correctly used.</p>
+    <p>Compact JWE normally has five segments.</p>
+    <p>It creates key-management and operational complexity.</p>
+  </div>
+</div>
+
+<pre><code>Signed JWS compact form:
+protectedHeader.payload.signature
+
+Encrypted JWE compact form:
+protectedHeader.encryptedKey.iv.ciphertext.authenticationTag</code></pre>
+
+<h4>If confidentiality is required</h4>
+<p>Consider one of these options:</p>
+<ul>
+  <li><strong>Do not put the information in the token.</strong> Store it server-side and use a minimal identifier.</li>
+  <li><strong>Use an opaque reference token.</strong> The resource server obtains authorization data from trusted state or introspection.</li>
+  <li><strong>Use JWE</strong> only when the protocol and operational model genuinely require encrypted JWT content.</li>
+</ul>
+
+<div class="callout warn">
+JWE is not a reason to place unlimited sensitive data in tokens. The data can still appear after
+decryption in application memory, tracing, error logs or downstream systems. Encryption also needs
+correct recipient keys, rotation, algorithm configuration and failure handling.
+</div>
+
+<h3>4.10 Signature creation</h3>
+
+<p>For a signed JWS, the signing input is:</p>
+
+<pre><code>signingInput =
+    BASE64URL(UTF8(protectedHeader))
+    + "."
+    + BASE64URL(payloadBytes)
+
+signature = SIGN(signingInput, signingKey)</code></pre>
+
+<p>
+The verifier reconstructs the same signing input and verifies the signature with the correct key.
+Any change to the encoded Header or Payload should cause signature verification to fail.
+</p>
+
+<h3>4.11 HMAC versus asymmetric signatures</h3>
+
+<div class="table"><table>
+<tr><th>Algorithm family</th><th>Signing</th><th>Verification</th><th>Trade-off</th></tr>
+<tr>
+  <td>HMAC, such as HS256</td>
+  <td>Shared secret</td>
+  <td>Same shared secret</td>
+  <td>Every verifier that knows the secret can also create tokens. Harder trust separation.</td>
+</tr>
+<tr>
+  <td>RSA, such as RS256/PS256</td>
+  <td>Private key</td>
+  <td>Public key</td>
+  <td>Resource servers can verify without being able to issue tokens. Larger keys/signatures.</td>
+</tr>
+<tr>
+  <td>Elliptic curve, such as ES256</td>
+  <td>Private key</td>
+  <td>Public key</td>
+  <td>Smaller keys/signatures, but implementation and ecosystem compatibility must be verified.</td>
+</tr>
+<tr>
+  <td>EdDSA, where supported by the profile</td>
+  <td>Private key</td>
+  <td>Public key</td>
+  <td>Modern design, but support depends on the complete platform and token profile.</td>
+</tr>
+</table></div>
+
+<p>
+For a central authorization server and many resource servers, asymmetric signatures are often
+easier to separate safely: only the authorization server keeps the private signing key, while APIs
+receive public verification keys.
+</p>
+
+<h3>4.12 JWK, JWKS and <code>kid</code></h3>
+
+<pre><code>{
+  "keys": [
+    {
+      "kty": "RSA",
+      "kid": "signing-key-2026-07",
+      "use": "sig",
+      "alg": "RS256",
+      "n": "...",
+      "e": "AQAB"
+    }
+  ]
+}</code></pre>
+
+<ul>
+  <li><strong>JWK:</strong> JSON representation of a cryptographic key.</li>
+  <li><strong>JWKS:</strong> JSON Web Key Set containing multiple JWKs.</li>
+  <li><strong><code>kid</code>:</strong> selects a candidate key from the issuer's already trusted JWKS.</li>
+</ul>
+
+<h4>Safe key rotation sequence</h4>
+<ol>
+  <li>Publish the new public key in JWKS.</li>
+  <li>Begin signing newly issued tokens with the new private key.</li>
+  <li>Keep the old public key available while old tokens may still be valid.</li>
+  <li>Remove the old public key after the maximum token lifetime and safe overlap period.</li>
+</ol>
+
+<h3>4.13 Correct validation order</h3>
+
+<div class="flow">
+  <div class="flow-step"><b>1</b><div><strong>Parse defensively</strong><br><span class="muted">Reject malformed or unexpectedly large tokens.</span></div></div>
+  <div class="flow-step"><b>2</b><div><strong>Identify the expected token profile</strong><br><span class="muted">Access token, ID token, logout token and DPoP proof are not interchangeable.</span></div></div>
+  <div class="flow-step"><b>3</b><div><strong>Enforce allowed algorithms and token type</strong><br><span class="muted">Configuration decides what is valid.</span></div></div>
+  <div class="flow-step"><b>4</b><div><strong>Select a key only from trusted issuer configuration</strong><br><span class="muted"><code>kid</code> narrows a trusted key set.</span></div></div>
+  <div class="flow-step"><b>5</b><div><strong>Verify signature or authenticated encryption</strong><br><span class="muted">Do not use claims before this succeeds.</span></div></div>
+  <div class="flow-step"><b>6</b><div><strong>Validate issuer, audience and time</strong><br><span class="muted">A valid signature alone is insufficient.</span></div></div>
+  <div class="flow-step"><b>7</b><div><strong>Validate profile-specific claims</strong><br><span class="muted">Scopes, client ID, nonce, token type and other required claims.</span></div></div>
+  <div class="flow-step"><b>8</b><div><strong>Enforce business authorization</strong><br><span class="muted">Tenant, ownership, status and transaction rules.</span></div></div>
+</div>
+
+<div class="callout bad">
+<strong>Never decode first and make a security decision before validation.</strong>
+An attacker can construct any Header and Payload text. Until validation succeeds, every claim is
+untrusted input.
+</div>
+
+<h3>4.14 JWT access token profile</h3>
+
+<p>
+When OAuth access tokens use JWT format, the issuer and resource server should follow an explicit
+profile. The profile defines claims, token type and validation expectations so that a resource
+server does not accept an arbitrary JWT from another purpose.
+</p>
+
+<pre><code>{
+  "typ": "at+jwt",
+  "alg": "RS256"
+}</code></pre>
+
+<p>
+Explicit typing and mutually exclusive validation rules reduce cross-JWT confusion—for example,
+accepting an ID token, logout token or client assertion where an API access token is required.
+</p>
+
+<h3>4.15 JWT size and stale-claim problems</h3>
+
+<ul>
+  <li>Large tokens increase every HTTP request size.</li>
+  <li>They can exceed gateway, proxy, server or cookie header limits.</li>
+  <li>Large role/permission lists make authorization data difficult to manage.</li>
+  <li>Claims stay unchanged until a new token is issued, even if the database changes.</li>
+  <li>Long-lived tokens create a larger stale-authorization window.</li>
+</ul>
+
+<p>
+For frequently changing authorization, use short-lived tokens, version/session checks, introspection
+or server-side policy lookup instead of placing the entire dynamic permission model inside the JWT.
+</p>
+
+<h3>4.16 Spring Security JWT validation example</h3>
+
+<pre><code>@Bean
+JwtDecoder jwtDecoder(
+        @Value("${security.issuer}") String issuer,
+        @Value("${security.audience}") String audience
+) {
+    NimbusJwtDecoder decoder =
+            JwtDecoders.fromIssuerLocation(issuer);
+
+    OAuth2TokenValidator&lt;Jwt&gt; issuerValidator =
+            JwtValidators.createDefaultWithIssuer(issuer);
+
+    OAuth2TokenValidator&lt;Jwt&gt; audienceValidator =
+            jwt -&gt; jwt.getAudience().contains(audience)
+                    ? OAuth2TokenValidatorResult.success()
+                    : OAuth2TokenValidatorResult.failure(
+                            new OAuth2Error(
+                                    "invalid_token",
+                                    "Required audience is missing",
+                                    null
+                            )
+                    );
+
+    decoder.setJwtValidator(
+            new DelegatingOAuth2TokenValidator&lt;&gt;(
+                    issuerValidator,
+                    audienceValidator
+            )
+    );
+
+    return decoder;
+}</code></pre>
+
+<p>
+The framework should perform cryptographic validation. Application code then maps only approved
+claims into authorities and applies object-level authorization.
+</p>
+
+<h3>4.17 What must never be logged</h3>
+
+<ul>
+  <li>The complete JWT.</li>
+  <li>The Authorization header.</li>
+  <li>Refresh tokens, authorization codes or client secrets.</li>
+  <li>Decrypted JWE content.</li>
+  <li>Raw payload claims containing personal or security-sensitive information.</li>
+</ul>
+
+<p>
+For diagnostics, log safe metadata such as trusted issuer, client ID, token type, a hashed subject,
+a hashed <code>jti</code>, validation failure category and correlation ID. Apply privacy controls
+even to metadata.
+</p>
+
+<div class="interview">
+<h3>How a senior engineer should answer: Can JWT payload store private information?</h3>
+
+<p>
+“Technically, a JWT payload can contain arbitrary JSON claims, but I would not put secrets or
+unnecessary sensitive information in a normal signed JWT. The common three-segment token is a JWS:
+the Header and Payload are Base64URL-encoded and can be decoded by anyone who obtains the token.
+The signature protects integrity and proves the expected signer; it does not provide confidentiality.
+Also, a private claim is only an application-specific claim—it is not a confidential claim.</p>
+
+<p>
+I keep token claims minimal and purpose-specific. Identifiers, audience, scope and compact tenant
+context may be appropriate when the resource server needs them. I avoid passwords, OTPs, private
+keys, API keys, refresh tokens, card data and detailed personal records. Even values such as email,
+phone number or date of birth should be included only when the intended recipient truly requires
+them and the privacy risk is accepted.</p>
+
+<p>
+If confidentiality is required, my first choice is usually not to put the data in the token:
+I use a minimal identifier and retrieve protected data server-side. Depending on the architecture,
+an opaque reference token may be better. JWE can encrypt JWT content, but it adds key-management,
+rotation and operational complexity and does not remove data-minimization requirements.</p>
+
+<p>
+Finally, I never trust decoded claims before validating the signature or encryption, issuer,
+audience, time, token type and profile-specific requirements. JWT is a data format, not a security
+decision by itself.”</p>
+</div>
+</section>
+
+
+<section id="code-flow" data-key="authorization code pkce state nonce redirect verifier challenge">
+<span class="badge">Recommended user flow</span><h2>5. Authorization Code + PKCE</h2>
+<p>This is the normal choice for user-facing web, SPA, mobile and desktop applications. Public clients must use PKCE under the current Security BCP; confidential clients also benefit from it.</p>
+<h3>4.1 Sequence</h3><div class="diagram">User          Client          Authorization Server       Resource Server
+ |              |                       |                         |
+ | Start login  |                       |                         |
+ |------------->| Generate verifier     |                         |
+ |              | Calculate challenge  |                         |
+ |              | Redirect /authorize  |                         |
+ |<-------------|---------------------->|                         |
+ | Authenticate and approve            |                         |
+ |------------------------------------->|                         |
+ |              | <-- code + state ----|                         |
+ |              | POST /token          |                         |
+ |              | code + verifier ---->|                         |
+ |              | <-- tokens ----------|                         |
+ |              | API + access token --------------------------->|
+ |              | <---------------- response --------------------|</div>
+<h3>4.2 PKCE values</h3><pre><code>code_verifier  = high-entropy random string
+code_challenge = BASE64URL(SHA256(code_verifier))
+code_challenge_method = S256</code></pre>
+<h3>4.3 Authorization request</h3><pre><code>GET /authorize?
+ response_type=code
+ &client_id=web-client
+ &redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+ &scope=openid%20profile%20orders.read
+ &state=K8x...
+ &nonce=N4p...
+ &code_challenge=47DEQpj8HBSa...
+ &code_challenge_method=S256</code></pre>
+<h3>4.4 Token request</h3><pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&client_id=web-client
+&code=SplxlOBeZQQYbYS6WxSbIA
+&redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+&code_verifier=original-high-entropy-value</code></pre>
+<h3>4.5 What PKCE protects</h3><p>An attacker who steals only the authorization code cannot exchange it without the verifier. The server compares the hash of the received verifier with the challenge stored for the authorization request.</p>
+<h3>4.6 What PKCE does not do</h3><ul><li>It does not authenticate the user.</li><li>It does not make a public client confidential.</li><li>It does not protect a stolen access token.</li><li>It does not replace exact redirect URI validation or TLS.</li></ul>
+<h3>4.7 state vs nonce vs PKCE</h3><div class="table"><table><tr><th>Value</th><th>Purpose</th><th>Validated by</th></tr><tr><td>state</td><td>Correlate request/response and help prevent login CSRF</td><td>Client</td></tr><tr><td>nonce</td><td>Bind OIDC request to ID token; reduce replay/injection</td><td>OIDC client</td></tr><tr><td>PKCE</td><td>Bind authorization code to the client instance</td><td>Authorization server</td></tr></table></div>
+<h3>4.8 Redirect URI</h3><p>Pre-register and compare redirect URIs exactly, with limited native-app exceptions. Wildcards and open redirectors can leak authorization codes.</p>
+</section>
+
+
+<section id="grants" data-key="grant types authorization grant grant_type response_type authorization code PKCE client credentials refresh token device authorization token exchange JWT bearer assertion implicit password ROPC">
+<span class="badge">Grant selection</span>
+<h2>6. OAuth 2.0 grant types — complete deep dive</h2>
+
+<div class="callout good">
+<strong>Core definition:</strong> An authorization grant is a credential representing authorization
+that the client can use to obtain an access token. The <code>grant_type</code> parameter tells the
+authorization server which grant mechanism the client is presenting at the token endpoint.
+Choosing a grant type means choosing <strong>who is granting authority, whether a user is involved,
+how the client proves possession of the grant, and which attacks the flow must resist.</strong>
+</div>
+
+<h3>6.1 Grant, grant type, response type and client authentication are different</h3>
+
+<div class="table"><table>
+<tr>
+  <th>Concept</th>
+  <th>Meaning</th>
+  <th>Example</th>
+</tr>
+<tr>
+  <td><strong>Authorization grant</strong></td>
+  <td>The credential or mechanism representing authority to request an access token.</td>
+  <td>Authorization code, client credentials, device code or JWT assertion.</td>
+</tr>
+<tr>
+  <td><strong><code>grant_type</code></strong></td>
+  <td>A token-endpoint parameter identifying how the client is requesting a token.</td>
+  <td><code>authorization_code</code>, <code>client_credentials</code>, <code>refresh_token</code>.</td>
+</tr>
+<tr>
+  <td><strong><code>response_type</code></strong></td>
+  <td>An authorization-endpoint parameter describing what response the client requests.</td>
+  <td><code>response_type=code</code>.</td>
+</tr>
+<tr>
+  <td><strong>Client authentication method</strong></td>
+  <td>How a confidential client proves its own identity to the authorization server.</td>
+  <td><code>client_secret_basic</code>, <code>private_key_jwt</code>, mutual TLS.</td>
+</tr>
+</table></div>
+
+<div class="callout warn">
+<strong>Common interview confusion:</strong>
+<code>private_key_jwt</code> is normally a client-authentication method.
+<code>urn:ietf:params:oauth:grant-type:jwt-bearer</code> is a JWT assertion authorization grant.
+They can both use JWT, but they solve different problems.
+</div>
+
+<h3>6.2 Original grants and extension grants</h3>
+
+<p>
+The original OAuth 2.0 framework defined four authorization grant types:
+Authorization Code, Implicit, Resource Owner Password Credentials and Client Credentials.
+It also defined an extension mechanism. Later specifications added mechanisms such as Device
+Authorization, Token Exchange and assertion-based grants.
+</p>
+
+<p>
+Modern security guidance changes which original grants should be selected:
+</p>
+
+<div class="table"><table>
+<tr><th>Mechanism</th><th>Modern status</th><th>Main reason</th></tr>
+<tr>
+  <td>Authorization Code + PKCE</td>
+  <td><span class="goodtag">Preferred user flow</span></td>
+  <td>Tokens are issued from the token endpoint, and PKCE binds the code exchange to the initiating client instance.</td>
+</tr>
+<tr>
+  <td>Client Credentials</td>
+  <td><span class="goodtag">Use for workload identity</span></td>
+  <td>Correct when a confidential client acts as itself and no end-user delegation is required.</td>
+</tr>
+<tr>
+  <td>Refresh Token</td>
+  <td><span class="goodtag">Use with strong protection</span></td>
+  <td>Allows session continuation without exposing a long-lived credential to resource servers.</td>
+</tr>
+<tr>
+  <td>Device Authorization</td>
+  <td><span class="goodtag">Use for constrained devices</span></td>
+  <td>Moves user interaction to a second device with a usable browser and keyboard.</td>
+</tr>
+<tr>
+  <td>Token Exchange / Assertion grants</td>
+  <td><span class="contexttag">Use for explicit advanced cases</span></td>
+  <td>Supports federation, delegation, impersonation or exchange of an external assertion.</td>
+</tr>
+<tr>
+  <td>Implicit</td>
+  <td><span class="badtag">Do not select for new systems</span></td>
+  <td>Access tokens are exposed in the authorization response and have higher leakage and replay risk.</td>
+</tr>
+<tr>
+  <td>Password / ROPC</td>
+  <td><span class="badtag">Must not be used</span></td>
+  <td>The client directly handles the user's password and bypasses modern authentication flows.</td>
+</tr>
+</table></div>
+
+<h3>6.3 How to select a grant type</h3>
+
+<div class="diagram">Start
+ |
+ |-- Is a human user authorizing access?
+ |       |
+ |       |-- Yes
+ |       |    |
+ |       |    |-- Can the device use a browser or system user-agent?
+ |       |    |       |
+ |       |    |       |-- Yes → Authorization Code + PKCE
+ |       |    |       |
+ |       |    |       |-- No / difficult input → Device Authorization Grant
+ |       |    |
+ |       |    |-- Never collect the user's password with Password Grant
+ |       |
+ |       |-- No
+ |            |
+ |            |-- Is the workload acting as itself?
+ |            |       |
+ |            |       |-- Yes → Client Credentials
+ |            |
+ |            |-- Is it exchanging an existing user/service assertion
+ |            |   for a new audience or security domain?
+ |            |       |
+ |            |       |-- Yes → Token Exchange or assertion grant
+ |
+ |-- Does the client already hold a valid refresh token?
+         |
+         |-- Yes → Refresh Token request</div>
+
+<div class="callout">
+<strong>Do not choose a grant only from application shape.</strong>
+A backend is not automatically Client Credentials. If that backend is calling another service
+on behalf of a logged-in user, Client Credentials would replace the user's delegated identity
+with the backend's own identity. The business requirement determines the grant.
+</div>
+
+<h3>6.4 Authorization Code Grant with PKCE</h3>
+
+<p>
+This is the normal flow when a user participates. The client sends the user-agent to the
+authorization endpoint, receives a short-lived authorization code and exchanges the code at the
+token endpoint. PKCE proves that the client instance exchanging the code is the instance that
+started the authorization request.
+</p>
+
+<div class="diagram">User             Client                 Authorization Server             API
+ |                  |                              |                         |
+ | Start login      |                              |                         |
+ |----------------->|                              |                         |
+ |                  | Create verifier/challenge    |                         |
+ |                  | Redirect to /authorize       |                         |
+ |<-----------------|----------------------------->|                         |
+ | Authenticate and approve                        |                         |
+ |------------------------------------------------>|                         |
+ |                  |<-- code + state --------------|                         |
+ |                  | POST /token: code + verifier |                         |
+ |                  |----------------------------->|                         |
+ |                  |<-- access / refresh / ID ----|                         |
+ |                  |                                                        |
+ |                  | API request + access token --------------------------->|
+ |                  |<------------------------ protected response ------------|</div>
+
+<h4>Authorization request</h4>
+
+<pre><code>GET /authorize?
+    response_type=code
+    &client_id=customer-web
+    &redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+    &scope=openid%20profile%20orders.read
+    &state=state-bound-to-browser-session
+    &nonce=oidc-request-nonce
+    &code_challenge=base64url-sha256-of-verifier
+    &code_challenge_method=S256</code></pre>
+
+<h4>Token request — public client</h4>
+
+<pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&client_id=mobile-client
+&code=short-lived-one-time-code
+&redirect_uri=com.example.app%3A%2Foauth%2Fcallback
+&code_verifier=original-high-entropy-verifier</code></pre>
+
+<h4>Token request — confidential client</h4>
+
+<pre><code>POST /token
+Authorization: Basic base64url-encoded-client-credentials
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&code=short-lived-one-time-code
+&redirect_uri=https%3A%2F%2Fbff.example.com%2Flogin%2Foauth2%2Fcode
+&code_verifier=original-high-entropy-verifier</code></pre>
+
+<p>
+A confidential client authenticates itself at the token endpoint. A public client cannot safely
+hold a static client secret and therefore uses its client identifier plus PKCE. PKCE and client
+authentication are complementary: one binds the code to the client instance; the other authenticates
+a confidential client.
+</p>
+
+<h4>Authorization code security properties</h4>
+
+<ul>
+  <li>The code should be short-lived and one-time use.</li>
+  <li>The code must be bound to the client identifier.</li>
+  <li>The code must be bound to the registered redirect URI used in the request.</li>
+  <li>The code must be bound to the PKCE challenge.</li>
+  <li>The client validates <code>state</code>; an OIDC client also validates <code>nonce</code>.</li>
+  <li>Access and refresh tokens are returned from the token endpoint, not placed in the browser URL.</li>
+</ul>
+
+<h4>When to use</h4>
+
+<div class="grid2">
+  <div class="card">
+    <h4>Suitable</h4>
+    <ul>
+      <li>Server-rendered web applications.</li>
+      <li>Backend-for-Frontend applications.</li>
+      <li>Single-page applications.</li>
+      <li>Mobile and desktop native applications using the system browser.</li>
+      <li>Login through OIDC.</li>
+      <li>User consent to access another system's API.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Important trade-offs</h4>
+    <ul>
+      <li>Requires browser redirects and callback handling.</li>
+      <li>Requires secure storage of verifier/state and possibly tokens.</li>
+      <li>Redirect URI and issuer configuration must be strict.</li>
+      <li>Native apps must prevent callback interception.</li>
+      <li>A BFF reduces browser token exposure but adds server/session complexity.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>6.5 Client Credentials Grant</h3>
+
+<p>
+Client Credentials is used when a confidential client requests an access token under its own
+identity or under authority previously arranged with the authorization server. There is no
+end-user authorization interaction in this request.
+</p>
+
+<div class="diagram">Batch Job / Service
+        |
+        | Authenticate client + request scope
+        v
+Authorization Server
+        |
+        | Access token: sub/client = workload identity
+        v
+Protected API</div>
+
+<pre><code>POST /token
+Authorization: Basic base64(client-id:client-secret)
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&scope=payment-reconciliation.read</code></pre>
+
+<pre><code>{
+  "access_token": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 600,
+  "scope": "payment-reconciliation.read"
+}</code></pre>
+
+<h4>What identity does the token represent?</h4>
+
+<pre><code>Correct interpretation:
+"The reconciliation-job client may read reconciliation data."
+
+Incorrect interpretation:
+"User Huy authorized this specific request."</code></pre>
+
+<p>
+The subject may identify the client, workload or service account depending on the issuer's profile.
+The resource server must not assume that every <code>sub</code> is a human user.
+</p>
+
+<h4>Typical use cases</h4>
+
+<ul>
+  <li>Batch job calling an internal reporting API.</li>
+  <li>Scheduler triggering a maintenance service.</li>
+  <li>Backend service acting under its own business identity.</li>
+  <li>Daemon or machine process accessing pre-authorized resources.</li>
+</ul>
+
+<h4>When not to use it</h4>
+
+<ul>
+  <li>When the downstream API must know the logged-in user.</li>
+  <li>When user consent or user-specific scopes are required.</li>
+  <li>When the application is a public client unable to protect a credential.</li>
+  <li>As a shortcut to bypass a proper delegated-user flow.</li>
+</ul>
+
+<div class="callout warn">
+The OAuth 2.0 core specification limits Client Credentials to confidential clients.
+A refresh token is normally unnecessary and should generally not be returned because the client
+can authenticate and request another access token directly.
+</div>
+
+<h4>Credential choices</h4>
+
+<div class="table"><table>
+<tr><th>Method</th><th>Use</th><th>Trade-off</th></tr>
+<tr>
+  <td>Client secret</td>
+  <td>Simple confidential clients</td>
+  <td>Shared secret must be stored and rotated securely.</td>
+</tr>
+<tr>
+  <td><code>private_key_jwt</code></td>
+  <td>Client signs an assertion with its private key</td>
+  <td>Better issuer/client separation, but requires key lifecycle management.</td>
+</tr>
+<tr>
+  <td>Mutual TLS</td>
+  <td>Certificate-based client authentication and optional token binding</td>
+  <td>High assurance, but certificate deployment and rotation are operationally heavier.</td>
+</tr>
+<tr>
+  <td>Workload identity</td>
+  <td>Cloud/platform identity without manually distributed static secrets</td>
+  <td>Depends on platform trust and federation configuration.</td>
+</tr>
+</table></div>
+
+<h3>6.6 Refresh Token request</h3>
+
+<p>
+A refresh token lets a client obtain a new access token without repeating the full user
+authorization interaction. Strictly speaking, it is not one of the four original authorization
+grants, but the token endpoint uses <code>grant_type=refresh_token</code>.
+</p>
+
+<pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token
+&refresh_token=rt-current-family-member
+&client_id=public-mobile-client
+&scope=orders.read profile</code></pre>
+
+<p>
+A confidential client also authenticates itself. The requested scope must not contain permissions
+that were not originally granted. If <code>scope</code> is omitted, the request normally continues
+with the previously authorized scope according to server policy.
+</p>
+
+<h4>Refresh processing</h4>
+
+<div class="flow">
+  <div class="step"><b>1</b><div><strong>Validate client binding</strong><br><span class="muted">The token must belong to the requesting client.</span></div></div>
+  <div class="step"><b>2</b><div><strong>Validate token status</strong><br><span class="muted">Not expired, revoked, reused or otherwise invalid.</span></div></div>
+  <div class="step"><b>3</b><div><strong>Re-evaluate policy</strong><br><span class="muted">User, client, consent, session and organization may have changed.</span></div></div>
+  <div class="step"><b>4</b><div><strong>Limit scope</strong><br><span class="muted">Never increase beyond the original grant.</span></div></div>
+  <div class="step"><b>5</b><div><strong>Issue a new access token</strong><br><span class="muted">Optionally rotate the refresh token.</span></div></div>
+</div>
+
+<h4>Refresh-token rotation</h4>
+
+<div class="diagram">Client uses RT-1
+        ↓
+Authorization Server invalidates RT-1
+        ↓
+Returns AT-2 + RT-2
+        ↓
+RT-1 is later used again
+        ↓
+Possible token theft detected
+        ↓
+Revoke token family and require reauthentication</div>
+
+<h4>Real-world cases</h4>
+
+<ul>
+  <li>Mobile application keeps a user session without login every ten minutes.</li>
+  <li>BFF renews an API token while the browser keeps only a session cookie.</li>
+  <li>Desktop application renews access using protected OS credential storage.</li>
+</ul>
+
+<div class="callout bad">
+A refresh token must never be sent to a business resource server.
+Only the authorization server's token endpoint should accept it.
+</div>
+
+<h3>6.7 Device Authorization Grant</h3>
+
+<p>
+Device Authorization is designed for devices that cannot conveniently perform a normal browser
+authorization flow, such as a smart TV, game console, printer or CLI in a restricted environment.
+The user completes authentication and approval on a separate browser-capable device.
+</p>
+
+<h4>Step 1 — Device authorization request</h4>
+
+<pre><code>POST /device_authorization
+Content-Type: application/x-www-form-urlencoded
+
+client_id=smart-tv
+&scope=openid profile streaming.play</code></pre>
+
+<h4>Step 2 — Device authorization response</h4>
+
+<pre><code>{
+  "device_code": "internal-long-secret-device-code",
+  "user_code": "WDJB-MJHT",
+  "verification_uri": "https://id.example.com/activate",
+  "verification_uri_complete":
+      "https://id.example.com/activate?user_code=WDJB-MJHT",
+  "expires_in": 600,
+  "interval": 5
+}</code></pre>
+
+<div class="callout">
+The <code>device_code</code> is a sensitive credential used by the device.
+The short <code>user_code</code> is designed for human entry and should not itself be treated
+as sufficient authentication.
+</div>
+
+<h4>Step 3 — User authorization on another device</h4>
+
+<div class="diagram">TV displays:
+Open https://id.example.com/activate
+Enter code: WDJB-MJHT
+        ↓
+User opens phone/laptop browser
+        ↓
+User authenticates and confirms the displayed client/device
+        ↓
+Authorization Server marks the device request approved or denied</div>
+
+<h4>Step 4 — Device polls token endpoint</h4>
+
+<pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:device_code
+&device_code=internal-long-secret-device-code
+&client_id=smart-tv</code></pre>
+
+<h4>Polling responses</h4>
+
+<div class="table"><table>
+<tr><th>Error/result</th><th>Meaning</th><th>Client behavior</th></tr>
+<tr>
+  <td><code>authorization_pending</code></td>
+  <td>User has not completed authorization.</td>
+  <td>Continue polling at the permitted interval.</td>
+</tr>
+<tr>
+  <td><code>slow_down</code></td>
+  <td>Client is polling too quickly or should reduce load.</td>
+  <td>Increase the polling interval.</td>
+</tr>
+<tr>
+  <td><code>access_denied</code></td>
+  <td>User denied the request.</td>
+  <td>Stop and show a clear result.</td>
+</tr>
+<tr>
+  <td><code>expired_token</code></td>
+  <td>Device code expired before completion.</td>
+  <td>Stop and begin a new device authorization request.</td>
+</tr>
+<tr>
+  <td>Token response</td>
+  <td>Authorization completed.</td>
+  <td>Store and use tokens according to the device security model.</td>
+</tr>
+</table></div>
+
+<h4>Security considerations</h4>
+
+<ul>
+  <li>The user-facing page should show enough device/client information to detect phishing.</li>
+  <li>The device must respect <code>interval</code> and <code>slow_down</code>.</li>
+  <li>The user code should expire quickly and resist brute-force attempts.</li>
+  <li>Do not automatically approve merely because a user visits a complete verification URI.</li>
+  <li>Shared devices need explicit logout and local token removal.</li>
+</ul>
+
+<h3>6.8 Token Exchange Grant</h3>
+
+<p>
+Token Exchange allows a client to present one security token and request another token from an
+authorization server acting as a Security Token Service. It supports controlled delegation,
+impersonation and conversion between security domains or audiences.
+</p>
+
+<pre><code>POST /token
+Authorization: &lt;client authentication&gt;
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+&subject_token=incoming-user-access-token
+&subject_token_type=urn:ietf:params:oauth:token-type:access_token
+&requested_token_type=urn:ietf:params:oauth:token-type:access_token
+&audience=payment-service
+&scope=payments.initiate</code></pre>
+
+<h4>Important parameters</h4>
+
+<div class="table"><table>
+<tr><th>Parameter</th><th>Purpose</th></tr>
+<tr>
+  <td><code>subject_token</code></td>
+  <td>The token representing the subject whose identity or authorization is being exchanged.</td>
+</tr>
+<tr>
+  <td><code>subject_token_type</code></td>
+  <td>Identifies the type of the subject token.</td>
+</tr>
+<tr>
+  <td><code>actor_token</code></td>
+  <td>Optional token representing an acting party operating for the subject.</td>
+</tr>
+<tr>
+  <td><code>requested_token_type</code></td>
+  <td>Indicates the kind of token requested.</td>
+</tr>
+<tr>
+  <td><code>audience</code> / <code>resource</code></td>
+  <td>Limits the intended recipient of the issued token.</td>
+</tr>
+<tr>
+  <td><code>scope</code></td>
+  <td>Requests a reduced set of permissions under server policy.</td>
+</tr>
+</table></div>
+
+<h4>Delegation versus impersonation</h4>
+
+<div class="grid2">
+  <div class="card">
+    <h4>Impersonation</h4>
+    <p>
+    The issued token represents the subject, and the recipient may treat actions as performed by
+    that subject. The acting service may not be visible unless claims/profile preserve it.
+    </p>
+  </div>
+  <div class="card">
+    <h4>Delegation</h4>
+    <p>
+    The issued token represents a subject plus an actor operating on the subject's behalf.
+    This supports audit chains such as user → order service → payment service.
+    </p>
+  </div>
+</div>
+
+<h4>Microservice example</h4>
+
+<div class="diagram">User token audience = order-service
+        ↓
+Order Service must call Payment Service for the user
+        ↓
+Order Service authenticates to Authorization Server
+and exchanges the incoming token
+        ↓
+New token:
+audience = payment-service
+scope = payments.initiate
+subject = user
+actor = order-service
+        ↓
+Payment Service receives a reduced, correctly targeted token</div>
+
+<div class="callout warn">
+Token Exchange is not simply “copy claims into a new JWT.”
+The authorization server must validate the incoming token, trust relationship, requested audience,
+actor, delegation policy and scope reduction before issuing a new token.
+</div>
+
+<h3>6.9 JWT Bearer assertion grant</h3>
+
+<p>
+An assertion-based grant allows a client to present a signed assertion as the authorization grant.
+A common example is the JWT Bearer Grant.
+</p>
+
+<pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&assertion=eyJhbGciOiJSUzI1NiIs...</code></pre>
+
+<p>
+The JWT assertion commonly includes issuer, subject, audience, expiry and unique identifier claims.
+The authorization server validates the assertion's signature, trust relationship, audience,
+time window and replay controls before issuing an access token.
+</p>
+
+<h4>Typical uses</h4>
+
+<ul>
+  <li>Enterprise federation where an external trusted authority issues an assertion.</li>
+  <li>Workload identity federation between cloud or security domains.</li>
+  <li>Exchanging an existing signed identity assertion for an OAuth access token.</li>
+</ul>
+
+<h4>JWT Bearer Grant versus <code>private_key_jwt</code></h4>
+
+<div class="table"><table>
+<tr><th></th><th>JWT Bearer Grant</th><th><code>private_key_jwt</code></th></tr>
+<tr>
+  <td>Purpose</td>
+  <td>The JWT is the authorization grant used to request an access token.</td>
+  <td>The JWT authenticates the client to the token endpoint.</td>
+</tr>
+<tr>
+  <td>Parameter</td>
+  <td><code>assertion</code></td>
+  <td><code>client_assertion</code></td>
+</tr>
+<tr>
+  <td><code>grant_type</code></td>
+  <td><code>urn:ietf:params:oauth:grant-type:jwt-bearer</code></td>
+  <td>Can accompany authorization code, client credentials or another token request.</td>
+</tr>
+<tr>
+  <td>What it proves</td>
+  <td>Authority represented by the trusted assertion.</td>
+  <td>Identity and key possession of the OAuth client.</td>
+</tr>
+</table></div>
+
+<h3>6.10 Implicit Grant — legacy and unsafe for new designs</h3>
+
+<p>
+Implicit Grant returns an access token directly from the authorization endpoint through the
+user-agent, traditionally in the URL fragment.
+</p>
+
+<pre><code>GET /authorize?
+    response_type=token
+    &client_id=legacy-spa
+    &redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+    &scope=orders.read
+    &state=xyz</code></pre>
+
+<div class="diagram">Browser authorization request
+        ↓
+Authorization Server returns access token in redirect response
+        ↓
+Browser/client JavaScript extracts token
+        ↓
+No separate code exchange at token endpoint</div>
+
+<h4>Why it was originally used</h4>
+
+<p>
+Older browser applications could not always call token endpoints conveniently and wanted fewer
+round trips. Modern browser capabilities and Authorization Code + PKCE remove that reason.
+</p>
+
+<h4>Why current guidance rejects it</h4>
+
+<ul>
+  <li>Access token is exposed in the front-channel authorization response.</li>
+  <li>It is more vulnerable to leakage through browser and redirect handling.</li>
+  <li>It provides weaker protection against token injection and replay.</li>
+  <li>No authorization-code exchange exists for PKCE to protect.</li>
+  <li>Authorization Code + PKCE has a smaller and better-understood attack surface.</li>
+</ul>
+
+<div class="callout bad">
+Do not “improve” Implicit Grant by adding a few custom checks.
+Use Authorization Code with PKCE instead.
+</div>
+
+<h3>6.11 Resource Owner Password Credentials Grant — must not be used</h3>
+
+<pre><code>POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password
+&username=huy@example.com
+&password=user-password
+&client_id=legacy-client</code></pre>
+
+<p>
+In this flow, the client directly receives and transmits the user's username and password.
+This contradicts the delegated model where the user authenticates directly with the authorization
+server.
+</p>
+
+<h4>Why it is unsafe</h4>
+
+<ul>
+  <li>The client becomes part of the password trust boundary.</li>
+  <li>A compromised client can steal credentials, not only a limited token.</li>
+  <li>It trains users to enter identity-provider passwords into applications.</li>
+  <li>It cannot cleanly support federated login, passkeys, consent or complex authentication journeys.</li>
+  <li>It is not designed for modern MFA and step-up authentication.</li>
+  <li>The client can observe credentials with power beyond the requested OAuth scopes.</li>
+</ul>
+
+<h4>Migration approach</h4>
+
+<div class="flow">
+  <div class="step"><b>1</b><div><strong>Stop adding new Password Grant clients</strong></div></div>
+  <div class="step"><b>2</b><div><strong>Introduce Authorization Code + PKCE</strong><br><span class="muted">Use external browser/system user-agent as appropriate.</span></div></div>
+  <div class="step"><b>3</b><div><strong>Move authentication features to the identity provider</strong><br><span class="muted">MFA, passkeys, federation and risk checks.</span></div></div>
+  <div class="step"><b>4</b><div><strong>Expire legacy credentials and clients gradually</strong><br><span class="muted">Measure usage and communicate cutover.</span></div></div>
+</div>
+
+<h3>6.12 Common token-endpoint parameters</h3>
+
+<div class="table"><table>
+<tr><th>Parameter</th><th>Meaning</th><th>Important validation</th></tr>
+<tr>
+  <td><code>grant_type</code></td>
+  <td>Identifies the token request mechanism.</td>
+  <td>Must be supported and allowed for the registered client.</td>
+</tr>
+<tr>
+  <td><code>client_id</code></td>
+  <td>Identifies the client.</td>
+  <td>Does not authenticate a public client; confidential clients also authenticate.</td>
+</tr>
+<tr>
+  <td><code>scope</code></td>
+  <td>Requested permission set.</td>
+  <td>Server grants only allowed scope; refresh cannot increase the original grant.</td>
+</tr>
+<tr>
+  <td><code>code</code></td>
+  <td>Authorization code.</td>
+  <td>One-time, short-lived, bound to client, redirect URI and PKCE.</td>
+</tr>
+<tr>
+  <td><code>redirect_uri</code></td>
+  <td>Callback used in authorization request.</td>
+  <td>Must match the value associated with the code when required.</td>
+</tr>
+<tr>
+  <td><code>code_verifier</code></td>
+  <td>PKCE proof.</td>
+  <td>Must match the stored S256 challenge.</td>
+</tr>
+<tr>
+  <td><code>refresh_token</code></td>
+  <td>Long-lived renewal credential.</td>
+  <td>Validate client binding, status, expiry, rotation and reuse.</td>
+</tr>
+<tr>
+  <td><code>assertion</code></td>
+  <td>Assertion used as an extension authorization grant.</td>
+  <td>Validate issuer, signature, audience, time, replay and trust policy.</td>
+</tr>
+</table></div>
+
+<h3>6.13 Common token-endpoint errors</h3>
+
+<div class="table"><table>
+<tr><th>Error</th><th>Meaning</th><th>Typical example</th></tr>
+<tr>
+  <td><code>invalid_request</code></td>
+  <td>Required parameter missing, repeated, malformed or otherwise invalid.</td>
+  <td>No <code>grant_type</code> or multiple conflicting parameters.</td>
+</tr>
+<tr>
+  <td><code>invalid_client</code></td>
+  <td>Client authentication failed.</td>
+  <td>Wrong secret, invalid private-key assertion or unknown certificate.</td>
+</tr>
+<tr>
+  <td><code>invalid_grant</code></td>
+  <td>The presented grant is invalid, expired, revoked, reused or bound incorrectly.</td>
+  <td>Expired code, wrong verifier, reused refresh token, assertion replay.</td>
+</tr>
+<tr>
+  <td><code>unauthorized_client</code></td>
+  <td>The client is not allowed to use this grant type.</td>
+  <td>Public client attempts Client Credentials or a client is not registered for Device Flow.</td>
+</tr>
+<tr>
+  <td><code>unsupported_grant_type</code></td>
+  <td>The authorization server does not support the requested grant mechanism.</td>
+  <td>Unknown extension URI.</td>
+</tr>
+<tr>
+  <td><code>invalid_scope</code></td>
+  <td>The requested scope is invalid, unknown, malformed or exceeds policy.</td>
+  <td>Refresh request tries to add <code>admin.write</code>.</td>
+</tr>
+</table></div>
+
+<div class="callout warn">
+Do not expose detailed internal security information in client-visible error descriptions.
+Log a safe correlation identifier and diagnostic category, but never log authorization codes,
+refresh tokens, assertions, passwords, client secrets or complete access tokens.
+</div>
+
+<h3>6.14 Real-world grant mapping</h3>
+
+<div class="table"><table>
+<tr><th>Scenario</th><th>Recommended mechanism</th><th>Reason</th></tr>
+<tr>
+  <td>React SPA with login</td>
+  <td>Authorization Code + PKCE, preferably with BFF where suitable</td>
+  <td>User participates; PKCE protects code exchange; BFF reduces browser token exposure.</td>
+</tr>
+<tr>
+  <td>Spring MVC server web application</td>
+  <td>Authorization Code + PKCE + confidential-client authentication</td>
+  <td>Server can protect client credentials and keep tokens server-side.</td>
+</tr>
+<tr>
+  <td>iOS/Android application</td>
+  <td>Authorization Code + PKCE through system browser</td>
+  <td>Public client cannot keep secret; external user-agent supports SSO and secure authentication.</td>
+</tr>
+<tr>
+  <td>Smart TV</td>
+  <td>Device Authorization</td>
+  <td>Typing and browser interaction on the TV are constrained.</td>
+</tr>
+<tr>
+  <td>Nightly reconciliation job</td>
+  <td>Client Credentials</td>
+  <td>Job acts as its own workload identity, not as a user.</td>
+</tr>
+<tr>
+  <td>Order Service calls Payment Service for user</td>
+  <td>Token Exchange or carefully designed token relay</td>
+  <td>Payment Service needs delegated user context and its own audience.</td>
+</tr>
+<tr>
+  <td>Application already holds refresh token</td>
+  <td>Refresh Token request</td>
+  <td>Renew short-lived access without repeating the complete user interaction.</td>
+</tr>
+<tr>
+  <td>Trusted enterprise assertion converted to OAuth token</td>
+  <td>JWT/SAML assertion grant or Token Exchange</td>
+  <td>Explicit federation between security domains.</td>
+</tr>
+</table></div>
+
+<h3>6.15 Grant-type interview questions</h3>
+
+<details>
+<summary>1. What is the difference between an authorization grant and an access token?</summary>
+<p>
+An authorization grant is the credential or mechanism the client presents to the authorization
+server to obtain an access token. The access token is the credential the client later presents to
+the resource server. For example, an authorization code is a grant; the token obtained by exchanging
+that code is an access token.
+</p>
+</details>
+
+<details>
+<summary>2. Why is Authorization Code + PKCE preferred for public clients?</summary>
+<p>
+A public client cannot safely keep a static secret. Authorization Code avoids placing the access
+token in the browser authorization response, while PKCE binds the code exchange to the client
+instance that created the verifier. A stolen code alone is therefore insufficient.
+</p>
+</details>
+
+<details>
+<summary>3. Does a confidential client still need PKCE?</summary>
+<p>
+Client authentication and PKCE protect different properties. Client authentication proves the
+registered confidential client. PKCE binds the individual authorization code to the request instance.
+Using both provides defense in depth and is appropriate in modern deployments.
+</p>
+</details>
+
+<details>
+<summary>4. Why is Client Credentials wrong for many user-driven microservice calls?</summary>
+<p>
+Client Credentials represents the service itself. If the downstream service needs to know which
+user authorized the action, replacing the user token with a client token loses delegation context.
+Use token relay only when audience and privilege are correct, or use Token Exchange for a reduced
+downstream token.
+</p>
+</details>
+
+<details>
+<summary>5. Is Refresh Token an authorization grant?</summary>
+<p>
+RFC 6749 defined four original authorization grant types, and refresh token was described separately.
+However, a refresh request uses the token endpoint parameter
+<code>grant_type=refresh_token</code>. In daily engineering discussion it is commonly grouped with
+grant types, but a precise interview answer should mention this distinction.
+</p>
+</details>
+
+<details>
+<summary>6. Why does Client Credentials usually not need a refresh token?</summary>
+<p>
+The confidential client can authenticate to the token endpoint and request another access token
+when needed. A refresh token adds another long-lived credential without providing much benefit.
+The core specification says a refresh token should not normally be included in this response.
+</p>
+</details>
+
+<details>
+<summary>7. What is the main difference between Device Flow and Authorization Code Flow?</summary>
+<p>
+Authorization Code Flow uses the same user-agent context to initiate authorization and receive the
+callback. Device Flow separates the input-constrained device from the browser where the user
+authenticates and approves. The device polls the token endpoint using a device code.
+</p>
+</details>
+
+<details>
+<summary>8. Token Exchange versus Client Credentials?</summary>
+<p>
+Client Credentials produces a token for the client itself. Token Exchange starts from an existing
+subject or actor token and can produce an audience-specific token representing delegation or
+impersonation. Use Token Exchange when downstream authorization must preserve or transform an
+existing security context.
+</p>
+</details>
+
+<details>
+<summary>9. JWT Bearer Grant versus JWT access token?</summary>
+<p>
+JWT Bearer Grant describes how a JWT assertion is presented to obtain an access token.
+A JWT access token describes the format of the token issued for API access. One is a grant mechanism;
+the other is a token representation.
+</p>
+</details>
+
+<details>
+<summary>10. What is the correct replacement for Password Grant?</summary>
+<p>
+Use Authorization Code + PKCE and let the user authenticate directly at the authorization server.
+This supports federation, passkeys, MFA, consent, risk-based authentication and future identity
+changes without giving the user's password to the client.
+</p>
+</details>
+
+<div class="interview">
+<h3>How a senior engineer should answer</h3>
+<p>
+“An OAuth grant type defines how a client presents authorization to the token endpoint. I choose it
+from the actor and trust model, not only from whether the application is frontend or backend.
+For a user-facing application, I normally use Authorization Code with PKCE. Public clients cannot
+protect a static secret, while confidential clients authenticate themselves and should still use
+PKCE to bind the authorization code to the request instance.</p>
+
+<p>
+For service-to-service access where the service acts as itself, I use Client Credentials with a
+narrow audience, minimal scopes and a properly managed workload credential. I do not use it when a
+downstream API needs the end-user's delegated identity. In that situation I consider token relay or,
+preferably when available, Token Exchange to create an audience-specific reduced token with explicit
+delegation.</p>
+
+<p>
+Refresh Token requests extend an existing grant and require stronger controls such as client binding,
+rotation, reuse detection, revocation and scope non-escalation. Device Authorization is suitable for
+input-constrained devices, while assertion grants and Token Exchange are for explicit federation and
+security-domain transitions.</p>
+
+<p>
+I would not use Implicit Grant or Password Grant in a new design. Implicit exposes access tokens in
+the authorization response, and Password Grant puts the user's credentials inside the client trust
+boundary. A senior design answer should also cover exact redirect URIs, PKCE, token audience,
+client authentication, refresh-token protection and the fact that a grant type does not replace
+business authorization at the resource server.”</p>
+</div>
+</section>
+
+
+<section id="oidc" data-key="openid connect login authentication id token userinfo claims nonce">
+<span class="badge">Authentication</span><h2>7. OpenID Connect</h2>
+<p>OIDC is an identity layer built on OAuth 2.0. It defines how a client receives and validates an authentication result.</p>
+<h3>6.1 Request OIDC</h3><pre><code>scope=openid profile email</code></pre><p>The <code>openid</code> scope makes the request an OpenID Connect request.</p>
+<h3>6.2 Main concepts</h3><div class="grid3"><div class="card"><h4>ID Token</h4><p>Signed authentication result intended for the client.</p></div><div class="card"><h4>UserInfo</h4><p>Protected endpoint returning authorized user claims.</p></div><div class="card"><h4>Claims</h4><p>Statements such as subject, email, auth time and assurance context.</p></div></div>
+<h3>6.3 ID-token validation</h3><ul><li>Verify signature with trusted issuer keys.</li><li>Validate <code>iss</code>.</li><li>Validate <code>aud</code> contains your client ID.</li><li>Validate time claims.</li><li>Validate <code>nonce</code> when used.</li><li>Apply OIDC rules for <code>azp</code> and multiple audiences.</li><li>Allow only expected algorithms.</li></ul>
+<h3>6.4 External identity key</h3><p>Use <code>issuer + subject</code> as the stable external identity. Email can change, be reassigned or use different verification semantics.</p>
+<h3>6.5 Access token vs ID token</h3><div class="table"><table><tr><th></th><th>Access token</th><th>ID token</th></tr><tr><td>Consumer</td><td>Resource server</td><td>OIDC client</td></tr><tr><td>Purpose</td><td>API authorization</td><td>Authentication result</td></tr><tr><td>Audience</td><td>API/resource</td><td>Client ID</td></tr><tr><td>Send to API?</td><td>Yes</td><td>No</td></tr></table></div>
+</section>
+
+<section id="validation" data-key="jwt opaque validation issuer audience signature jwks introspection">
+<span class="badge">Resource server</span><h2>8. Token validation</h2>
+<h3>7.1 JWT validation pipeline</h3><div class="flow"><div class="step"><b>1</b><div><strong>Parse safely</strong><br><span class="muted">Reject malformed structure.</span></div></div><div class="step"><b>2</b><div><strong>Allow-list algorithms</strong><br><span class="muted">Do not accept arbitrary algorithm selection.</span></div></div><div class="step"><b>3</b><div><strong>Select trusted key</strong><br><span class="muted"><code>kid</code> selects among trusted issuer keys; it does not create trust.</span></div></div><div class="step"><b>4</b><div><strong>Verify signature</strong></div></div><div class="step"><b>5</b><div><strong>Validate issuer</strong></div></div><div class="step"><b>6</b><div><strong>Validate audience/resource</strong></div></div><div class="step"><b>7</b><div><strong>Validate exp, nbf and clock skew</strong></div></div><div class="step"><b>8</b><div><strong>Enforce scope and business policy</strong></div></div></div>
+<div class="callout bad">A valid signature is not enough. A token may be from the wrong issuer, intended for another API, expired, not active yet or missing required permission.</div>
+<h3>7.2 Claims</h3><div class="table"><table><tr><th>Claim</th><th>Meaning</th><th>Check</th></tr><tr><td>iss</td><td>Issuer</td><td>Exact trusted issuer</td></tr><tr><td>sub</td><td>Subject</td><td>User or client depending on grant</td></tr><tr><td>aud</td><td>Audience</td><td>Must include this API</td></tr><tr><td>exp</td><td>Expiration</td><td>Reject after expiry</td></tr><tr><td>nbf</td><td>Not before</td><td>Reject before activation</td></tr><tr><td>jti</td><td>Token ID</td><td>Useful for replay/deny-list controls</td></tr><tr><td>scope/scp</td><td>Granted scopes</td><td>Provider format must be mapped correctly</td></tr><tr><td>client_id/azp</td><td>Authorized client</td><td>Useful for client-aware policy</td></tr></table></div>
+<h3>7.3 Key rotation</h3><ol><li>Publish new public key before using it.</li><li>Begin signing new tokens with the new private key.</li><li>Keep old public key until old tokens cannot remain valid.</li><li>Remove old key after the overlap period.</li></ol>
+<h3>7.4 Opaque-token introspection</h3><pre><code>POST /introspect
+Authorization: Basic &lt;resource-server-credentials&gt;
+Content-Type: application/x-www-form-urlencoded
+
+token=opaque-token-value</code></pre><pre><code>{
+  "active": true,
+  "scope": "orders.read",
+  "client_id": "web-client",
+  "sub": "user-123",
+  "aud": "orders-api",
+  "exp": 1784200000
+}</code></pre><p>Introspection must be protected. Caching improves performance but delays revocation visibility.</p>
+</section>
+
+<section id="threats" data-key="security attacks csrf replay mix-up redirect token theft injection">
+<span class="badge">Security BCP</span><h2>9. Threats and mitigations</h2>
+<div class="table"><table><tr><th>Threat</th><th>Example</th><th>Mitigation</th></tr><tr><td>Code interception</td><td>Malicious native app receives callback</td><td>PKCE S256, claimed HTTPS links</td></tr><tr><td>Code injection</td><td>Attacker injects their code into victim session</td><td>PKCE, state/nonce, issuer validation</td></tr><tr><td>Login CSRF</td><td>Victim logged into attacker account</td><td>State bound to browser session, PKCE, nonce</td></tr><tr><td>Mix-up</td><td>Client confuses multiple authorization servers</td><td>Issuer identification and strict issuer binding</td></tr><tr><td>Redirect manipulation</td><td>Code sent to attacker URI</td><td>Exact redirect URI, no open redirectors</td></tr><tr><td>Access-token replay</td><td>Stolen bearer token reused</td><td>Short TTL, audience, DPoP/mTLS, secure storage</td></tr><tr><td>Refresh replay</td><td>Old rotated token reused</td><td>Rotation and reuse detection or sender constraint</td></tr><tr><td>Token substitution</td><td>API accepts ID token or wrong-audience token</td><td>Validate purpose, type, issuer and audience</td></tr><tr><td>JWT algorithm confusion</td><td>Unexpected algorithm/key accepted</td><td>Algorithm allow-list, mature library</td></tr><tr><td>URL leakage</td><td>Token appears in history/log/referrer</td><td>Never place access token in URL</td></tr><tr><td>Confused deputy</td><td>Token for API A accepted by B</td><td>Audience/resource restriction</td></tr></table></div>
+<h3>8.1 TLS is mandatory but not sufficient</h3><p>TLS protects in transit. It does not help after a token is copied by malicious script, logged, stored insecurely or sent to the wrong audience.</p>
+<h3>8.2 Never put tokens in URLs</h3><p>URLs can enter history, server/proxy logs, monitoring tools, referrer headers, bookmarks and screenshots.</p>
+<h3>8.3 Sender-constrained tokens</h3><p>DPoP and mTLS bind token use to a key or certificate. Stealing only the token is no longer sufficient.</p>
+</section>
+
+<section id="refresh" data-key="refresh token rotation reuse revocation logout session">
+<span class="badge">Long-lived credential</span><h2>10. Refresh-token security</h2>
+<h3>9.1 Why stronger protection?</h3><ul><li>Longer lifetime.</li><li>Can create new access tokens.</li><li>Theft may remain hidden without replay detection.</li></ul>
+<h3>9.2 Rotation</h3><div class="diagram">Client sends RT-1
+       ↓
+AS invalidates RT-1 and returns AT-2 + RT-2
+       ↓
+Client stores RT-2
+       ↓
+If RT-1 appears again, theft may have occurred
+       ↓
+AS revokes token family and requires login</div>
+<h3>9.3 Public clients</h3><p>Use refresh-token rotation or sender constraint to detect or prevent replay. Combine idle and absolute expiration where appropriate.</p>
+<h3>9.4 Revocation and JWT access tokens</h3><p>Revoking a refresh token stops future issuance. Already-issued self-contained access tokens may remain usable until expiry unless you add deny-listing, introspection, event propagation or another immediate control.</p>
+<h3>9.5 Logout levels</h3><ul><li>Clear local application session.</li><li>Revoke refresh token.</li><li>End identity-provider session.</li><li>Perform front-channel/back-channel logout if required.</li><li>Define what happens to active access tokens.</li></ul>
+</section>
+
+<section id="advanced" data-key="PAR JAR RAR DPoP mTLS resource indicators token exchange step up">
+<span class="badge">Advanced OAuth</span><h2>11. Advanced standards</h2>
+<div class="grid2"><div class="card"><h4>PAR</h4><p>Push authorization parameters directly to AS, then use a request URI in the browser redirect.</p></div><div class="card"><h4>JAR</h4><p>Sign and optionally encrypt authorization parameters in a JWT Request Object.</p></div><div class="card"><h4>RAR</h4><p>Use <code>authorization_details</code> for structured, fine-grained permissions.</p></div><div class="card"><h4>Resource Indicators</h4><p>Tell AS which protected resource should receive the token.</p></div><div class="card"><h4>DPoP</h4><p>Application-level proof of possession using a key pair.</p></div><div class="card"><h4>Mutual TLS</h4><p>Authenticate clients and bind tokens to a certificate.</p></div><div class="card"><h4>Token Exchange</h4><p>Create controlled delegated or impersonated downstream tokens.</p></div><div class="card"><h4>Step-up</h4><p>Require stronger or more recent user authentication for sensitive operations.</p></div></div>
+<h3>10.1 PAR example</h3><pre><code>POST /par
+Authorization: &lt;client authentication&gt;
+Content-Type: application/x-www-form-urlencoded
+
+client_id=banking-app
+&response_type=code
+&redirect_uri=https://app.example.com/callback
+&scope=openid
+&authorization_details=[...]</code></pre><pre><code>{
+  "request_uri": "urn:ietf:params:oauth:request_uri:abc123",
+  "expires_in": 90
+}</code></pre>
+<h3>10.2 RAR payment example</h3><pre><code>{
+  "type": "payment_initiation",
+  "actions": ["initiate"],
+  "locations": ["https://payments.example.com"],
+  "instructedAmount": {"currency": "EUR", "amount": "100.00"},
+  "creditorName": "Merchant A"
+}</code></pre><p>RAR is valuable when a broad scope such as <code>payments.write</code> cannot express amount, payee or transaction restrictions.</p>
+<h3>10.3 DPoP</h3><pre><code>DPoP: &lt;signed-JWT-proof&gt;
+Authorization: DPoP &lt;access-token&gt;</code></pre><p>The resource server verifies the request proof and checks that its public key matches the key bound to the token.</p>
+</section>
+
+<section id="storage" data-key="storage browser spa bff mobile cookie localstorage xss csrf">
+<span class="badge">Client security</span><h2>12. Token storage by application type</h2>
+<div class="table"><table><tr><th>Application</th><th>Preferred approach</th><th>Main risks</th></tr><tr><td>Backend web app/BFF</td><td>Tokens server-side; browser gets Secure HttpOnly session cookie</td><td>CSRF, session theft, backend compromise</td></tr><tr><td>SPA without BFF</td><td>Code + PKCE; minimize persistence and privileges</td><td>XSS can steal/use tokens</td></tr><tr><td>Mobile</td><td>System browser + PKCE; OS secure storage</td><td>Device compromise, malicious app, backup leakage</td></tr><tr><td>Backend service</td><td>Secret manager, workload identity, private key or mTLS</td><td>Secret leakage, broad scope/audience</td></tr><tr><td>CLI/TV</td><td>Device flow or system browser; secure local store</td><td>Phishing codes, shared device</td></tr></table></div>
+<h3>11.1 localStorage vs cookie</h3><p>JavaScript can read localStorage, so XSS can steal tokens. HttpOnly cookies are not readable by JavaScript, but browsers send cookies automatically, so cookie-based designs need CSRF protection and correct SameSite behavior.</p>
+<h3>11.2 BFF pattern</h3><div class="diagram">Browser -- Secure HttpOnly session cookie --> BFF -- access token --> APIs
+   |                                         |
+   | No OAuth token exposed to JS            | Server-side token storage
+   |                                         | Refresh/rotation handling</div><p>BFF reduces direct token exposure in browser JavaScript, but it becomes a sensitive security component and must protect sessions, CSRF, cookies, origins and authorization.</p>
+</section>
+
+<section id="architecture" data-key="architecture microservices gateway token relay exchange client credentials">
+<span class="badge">System design</span><h2>13. Architecture patterns</h2>
+<h3>12.1 Gateway and resource servers</h3><div class="diagram">Client
+  | Access token
+  v
+API Gateway -- basic validation/routing
+  |
+  +--> Order Service   -- validates token + order policy
+  +--> Payment Service -- validates token + payment policy</div><div class="callout warn">Gateway validation does not automatically replace service-level authorization. Internal services must not blindly trust user-controlled identity headers.</div>
+<h3>12.2 Token relay</h3><p>Service A forwards the original user token to B. It preserves user context but can expose one broad credential to many services and may fail audience restrictions.</p>
+<h3>12.3 Token exchange</h3><p>A exchanges the incoming token for a B-specific, reduced token with explicit delegation.</p>
+<h3>12.4 Client Credentials</h3><p>Correct when A acts as itself. It does not preserve end-user authorization context.</p>
+<h3>12.5 Multi-tenant systems</h3><ul><li>Maintain trusted issuers per tenant.</li><li>Bind issuer to keys and metadata.</li><li>Validate audience per API.</li><li>Bind tenant claim to application data.</li><li>Prevent cross-tenant object access even with valid scope.</li></ul>
+</section>
+
+<section id="spring" data-key="spring security java resource server jwt oauth client login webclient">
+<span class="badge">Java / Spring</span><h2>14. Spring Security implementation</h2>
+<p>Spring supports OAuth2 Login, OAuth2 Client, Resource Server and Authorization Server roles.</p>
+<h3>13.1 Dependencies</h3><pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-oauth2-resource-server&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+<h3>13.2 Trusted issuer</h3><pre><code>spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://id.example.com/realms/company</code></pre>
+<h3>13.3 SecurityFilterChain</h3><pre><code>@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+  @Bean
+  SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+    http
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/actuator/health").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/orders/**")
+          .hasAuthority("SCOPE_orders.read")
+        .requestMatchers(HttpMethod.POST, "/api/orders/**")
+          .hasAuthority("SCOPE_orders.write")
+        .anyRequest().authenticated()
+      )
+      .oauth2ResourceServer(oauth2 ->
+        oauth2.jwt(Customizer.withDefaults())
+      );
+    return http.build();
+  }
+}</code></pre>
+<h3>13.4 Audience validator</h3><pre><code>public final class AudienceValidator implements OAuth2TokenValidator&lt;Jwt&gt; {
+  private final String requiredAudience;
+
+  public AudienceValidator(String requiredAudience) {
+    this.requiredAudience = requiredAudience;
+  }
+
+  @Override
+  public OAuth2TokenValidatorResult validate(Jwt jwt) {
+    if (jwt.getAudience().contains(requiredAudience)) {
+      return OAuth2TokenValidatorResult.success();
+    }
+    OAuth2Error error = new OAuth2Error(
+      "invalid_token", "Required audience is missing", null
+    );
+    return OAuth2TokenValidatorResult.failure(error);
+  }
+}</code></pre><pre><code>@Bean
+JwtDecoder jwtDecoder(String issuer, String audience) {
+  NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation(issuer);
+  OAuth2TokenValidator&lt;Jwt&gt; issuerValidator =
+      JwtValidators.createDefaultWithIssuer(issuer);
+  OAuth2TokenValidator&lt;Jwt&gt; audienceValidator =
+      new AudienceValidator(audience);
+  decoder.setJwtValidator(new DelegatingOAuth2TokenValidator&lt;&gt;(
+      issuerValidator, audienceValidator
+  ));
+  return decoder;
+}</code></pre>
+<h3>13.5 Object authorization</h3><pre><code>@PreAuthorize("""
+  hasAuthority('SCOPE_orders.read')
+  and @orderAuthorization.canRead(#orderId, authentication)
+""")
+public OrderResponse getOrder(Long orderId) {
+  return orderService.getOrder(orderId);
+}</code></pre>
+<h3>13.6 Read validated claims</h3><pre><code>@GetMapping("/me")
+public Map&lt;String, Object&gt; me(@AuthenticationPrincipal Jwt jwt) {
+  return Map.of(
+    "subject", jwt.getSubject(),
+    "issuer", jwt.getIssuer().toString(),
+    "scope", jwt.getClaimAsString("scope")
+  );
+}</code></pre>
+<h3>13.7 OAuth2 Login</h3><pre><code>@Bean
+SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
+  http
+    .authorizeHttpRequests(auth -> auth
+      .requestMatchers("/", "/public/**").permitAll()
+      .anyRequest().authenticated()
+    )
+    .oauth2Login(Customizer.withDefaults());
+  return http.build();
+}</code></pre>
+<h3>13.8 Client Credentials with WebClient</h3><pre><code>OAuth2AuthorizedClientProvider provider =
+  OAuth2AuthorizedClientProviderBuilder.builder()
+    .clientCredentials()
+    .build();
+
+AuthorizedClientServiceOAuth2AuthorizedClientManager manager =
+  new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+    registrations, clients
+  );
+manager.setAuthorizedClientProvider(provider);</code></pre>
+<h3>13.9 Test JWT authorization</h3><pre><code>@Test
+void shouldAllowOrderReadScope() throws Exception {
+  mockMvc.perform(get("/api/orders/123")
+      .with(jwt().authorities(
+        new SimpleGrantedAuthority("SCOPE_orders.read")
+      )))
+    .andExpect(status().isOk());
+}</code></pre>
+<h3>13.10 Spring pitfalls</h3><ul><li>Validating signature but not audience.</li><li>Mapping untrusted claims directly to authorities.</li><li>Treating <code>sub</code> as always a user.</li><li>Using ID token at the API.</li><li>Accepting multiple issuers without strict key mapping.</li><li>Logging bearer tokens.</li><li>Disabling CSRF while still using browser cookies.</li></ul>
+</section>
+
+<section id="cases" data-key="real cases mobile web batch payment admin microservice">
+<span class="badge">Practical design</span><h2>15. Real-world cases</h2>
+<h3>14.1 Customer web application</h3><pre><code>Flow: Authorization Code + PKCE + OIDC
+Audience: customer-api
+Scopes: profile.read orders.read orders.write
+Refresh token: server-side BFF storage
+Sensitive action: step-up MFA for ownership transfer</code></pre>
+<h3>14.2 Mobile application</h3><pre><code>Flow: Authorization Code + PKCE
+Browser: system browser, not embedded WebView
+Redirect: claimed HTTPS universal/app link
+Refresh token: OS secure storage
+Access token: short-lived and audience restricted</code></pre>
+<h3>14.3 Batch job</h3><pre><code>Flow: Client Credentials
+Subject: batch client, not user
+Scopes: billing.read reconciliation.write
+Credential: workload identity/private key/secret manager
+Controls: audience restriction and credential rotation</code></pre>
+<h3>14.4 Payment initiation</h3><pre><code>- audience = payment-api
+- least privilege
+- structured authorization_details
+- recent strong authentication
+- sender-constrained token where justified
+- idempotency key
+- amount/payee business checks
+- audit without logging tokens</code></pre>
+<h3>14.5 Admin portal</h3><ul><li>Dedicated admin client and audience.</li><li>Required MFA assurance.</li><li>Short idle timeout.</li><li>Step-up for critical operations.</li><li>Do not mix normal-user and admin tokens.</li></ul>
+</section>
+
+<section id="mistakes" data-key="mistakes anti patterns">
+<span class="badge">Avoid</span><h2>16. Common mistakes</h2>
+<ol><li>Using OAuth as login without OIDC.</li><li>Using ID token to call an API.</li><li>Accepting any JWT with a valid signature.</li><li>Skipping audience validation.</li><li>Putting tokens in URLs.</li><li>Embedding client secret in SPA/mobile.</li><li>Using Implicit or Password Grant for new systems.</li><li>Using email as permanent external user ID.</li><li>Giving one broad token to every microservice.</li><li>Confusing scope with complete object authorization.</li><li>Logging tokens or Authorization headers.</li><li>Using refresh tokens without rotation/sender constraint/revocation strategy.</li><li>Wildcard redirect URIs.</li><li>Trusting claims before issuer and signature validation.</li><li>Allowing token header to select arbitrary algorithm/key.</li><li>Not distinguishing service subject from user subject.</li><li>Assuming logout instantly invalidates all JWT access tokens.</li><li>Building a custom token protocol instead of mature standards.</li></ol>
+</section>
+
+<section id="basic-q" data-key="basic interview questions senior quality detailed answers">
+<span class="badge">Interview</span><h2>17. Basic and mid-level questions — answered with senior-level depth</h2>
+<p class="muted">A strong answer should give the definition, explain the security purpose,
+mention a practical example and state at least one limitation or common mistake.</p>
+
+<details><summary>1. What is OAuth 2.0?</summary>
+<p><strong>Senior answer:</strong> OAuth 2.0 is an authorization framework for delegated access.
+It allows a client application to obtain limited permission to call a protected resource, either
+on behalf of a resource owner or on behalf of the client itself. Instead of sharing the user's
+password with the client, the authorization server issues an access token restricted by properties
+such as scope, audience, client, subject and lifetime.</p>
+<p>For example, a calendar application may receive permission to read a user's calendar without
+receiving the user's Google password. OAuth does not define the application's complete business
+permission model, and it is not by itself a user authentication protocol.</p></details>
+
+<details><summary>2. Is OAuth 2.0 authentication or authorization?</summary>
+<p><strong>Senior answer:</strong> OAuth 2.0 is authorization. It answers whether a client may
+access a protected resource. During the flow, the authorization server may authenticate the user,
+but OAuth does not define a standardized authentication result for the client.</p>
+<p>For login, use OpenID Connect. OIDC adds the ID token and validation rules such as issuer,
+audience, signature, expiry and nonce. In a well-designed system, the client consumes the ID token
+for authentication, while the resource server consumes the access token for API authorization.</p></details>
+
+<details><summary>3. What are the four OAuth roles?</summary>
+<p><strong>Senior answer:</strong> The resource owner controls the protected resource; the client
+requests access; the authorization server evaluates the grant and issues tokens; and the resource
+server hosts the protected API and validates access tokens. A common mistake is to assume the
+client is only a frontend. A backend application, mobile app, CLI or batch process can also be an
+OAuth client.</p></details>
+
+<details><summary>4. Why are access tokens and refresh tokens separate?</summary>
+<p><strong>Senior answer:</strong> They have different consumers, lifetimes, exposure levels and
+security controls. The access token is sent frequently to resource servers and should be short-lived,
+scope-limited and audience-restricted. The refresh token is sent only to the authorization server,
+normally lives longer and must support stronger controls such as secure storage, rotation, reuse
+detection and revocation.</p>
+<p>If one token performed both roles, stealing an API token would also let an attacker renew the
+session repeatedly. It would make short access-token expiry less useful and expose session-renewal
+power to every API component that receives the token. Separation reduces blast radius and enforces
+least privilege.</p></details>
+
+<details><summary>5. What is PKCE and what problem does it solve?</summary>
+<p><strong>Senior answer:</strong> PKCE binds an authorization code to a high-entropy verifier
+created by the client instance. The client sends a SHA-256-based challenge in the authorization
+request and later sends the original verifier to the token endpoint. If an attacker intercepts only
+the authorization code, the attacker cannot exchange it without the verifier.</p>
+<p>PKCE protects the code exchange. It does not authenticate the user, make a public client
+confidential, protect an already-stolen access token or replace TLS and exact redirect URI validation.</p></details>
+
+<details><summary>6. What is the difference between state, nonce and PKCE?</summary>
+<p><strong>Senior answer:</strong> State correlates the authorization request with the callback and
+helps protect the client session against login CSRF. Nonce is an OIDC value included in the ID token,
+binding the authentication response to the request and reducing replay or token-injection risk.
+PKCE binds the authorization code to the client instance through the verifier/challenge pair.</p>
+<p>They protect different parts of the flow. Using PKCE does not automatically remove the need for
+proper state and nonce handling.</p></details>
+
+<details><summary>7. What is a bearer token?</summary>
+<p><strong>Senior answer:</strong> A bearer token can normally be used by whoever possesses it;
+the caller does not prove possession of a separate key. This makes token confidentiality critical.
+I protect bearer tokens with TLS, short lifetimes, secure storage, audience restriction and careful
+logging controls. For high-assurance scenarios, sender-constrained mechanisms such as DPoP or mTLS
+can reduce replay risk.</p></details>
+
+<details><summary>8. Is an access token always a JWT?</summary>
+<p><strong>Senior answer:</strong> No. OAuth does not require one access-token format. It may be a
+JWT, an opaque reference token or another format agreed between the authorization server and
+resource server. JWT enables local validation and scale, but immediate revocation is harder.
+Opaque tokens support centralized activity checks through introspection, but add network and
+availability trade-offs.</p></details>
+
+<details><summary>9. What is the Client Credentials Grant?</summary>
+<p><strong>Senior answer:</strong> Client Credentials is a machine-to-machine grant where the
+client authenticates to the authorization server and receives a token representing the client
+itself. It is appropriate for a batch job or backend service acting under its own identity.</p>
+<p>It should not be described as a user token. If Service A uses Client Credentials to call Service B,
+B knows A is calling but does not automatically know which end user initiated the original request.
+For user delegation, consider token relay or token exchange.</p></details>
+
+<details><summary>10. Why should new systems not use Implicit Grant?</summary>
+<p><strong>Senior answer:</strong> Implicit Grant returns an access token through the browser
+authorization response, which increases exposure to browser history, scripts, redirect handling and
+token-injection risks. It also lacks the protected code-exchange step provided by PKCE.</p>
+<p>Authorization Code with PKCE is the modern replacement for browser and public clients because the
+front channel carries only a short-lived code and the token is obtained through the token endpoint.</p></details>
+
+<details><summary>11. Why must Password Grant not be used?</summary>
+<p><strong>Senior answer:</strong> Password Grant requires the client to collect the resource owner's
+username and password. This breaks the delegated-security model, expands the credential attack
+surface and trains users to share passwords with applications. It also fits poorly with federation,
+MFA, passkeys, risk-based authentication and consent.</p>
+<p>Use Authorization Code with PKCE for user-facing applications. Legacy migration pressure does not
+change the security model; it only means a controlled migration plan is needed.</p></details>
+
+<details><summary>12. What is OpenID Connect?</summary>
+<p><strong>Senior answer:</strong> OpenID Connect is an identity layer built on OAuth 2.0. It defines
+how a client requests authentication using the <code>openid</code> scope and receives an ID token.
+It also defines standard claims, UserInfo, discovery and validation behavior.</p>
+<p>The client validates the ID token's signature, issuer, audience, time and nonce. The stable external
+identity key should normally be the combination of issuer and subject, not email alone.</p></details>
+
+<details><summary>13. What is the difference between scope, role and claim?</summary>
+<p><strong>Senior answer:</strong> A scope represents requested or granted authorization, usually
+from the client's perspective, such as <code>orders.read</code>. A role is an application or
+organizational grouping such as ADMIN or SUPPORT_AGENT. A claim is a statement contained in a token
+or response, such as subject, tenant, scope or authentication time.</p>
+<p>These concepts may be mapped, but they are not identical. The resource server should translate
+trusted claims into local authorities through an explicit allow-list and still enforce business
+authorization.</p></details>
+
+<details><summary>14. What must a resource server validate?</summary>
+<p><strong>Senior answer:</strong> For JWT, it should safely parse the token, enforce an algorithm
+allow-list, select a trusted key, verify the signature, validate issuer, audience, expiry and
+not-before time, and check token purpose and required authorization. For opaque tokens, it normally
+uses an authenticated introspection call or trusted local state.</p>
+<p>Signature validation alone is insufficient. A correctly signed token issued for another API must
+still be rejected because its audience is wrong.</p></details>
+
+<details><summary>15. What is token introspection?</summary>
+<p><strong>Senior answer:</strong> Introspection allows an authorized resource server to ask the
+authorization server whether a token is active and retrieve metadata such as subject, client,
+scope, audience and expiry. It is commonly used with opaque tokens and can provide faster visibility
+of revocation.</p>
+<p>The trade-off is an additional network dependency. Caching improves latency and resilience but
+delays revocation visibility, so the cache duration must match the system's risk requirements.</p></details>
+
+
+<details><summary>16. What are the three parts of a signed JWT?</summary>
+<p><strong>Senior answer:</strong> A common compact signed JWT has a protected Header, Payload and
+Signature. The Header declares protection metadata such as algorithm, token type and key identifier.
+The Payload contains claims. The Signature protects the encoded Header and Payload from modification
+and allows the receiver to verify the expected signer or MAC holder.</p>
+<p>The Header and Payload are Base64URL-encoded, not encrypted. I therefore do not put secrets in them,
+and I do not trust decoded claims until signature and semantic validation have completed.</p></details>
+
+<details><summary>17. Can JWT payload contain private information?</summary>
+<p><strong>Senior answer:</strong> It can technically contain arbitrary JSON, but a normal signed JWT
+does not provide confidentiality. Anyone holding it can usually decode the payload. I include only
+the minimum claims required by the intended recipient and avoid secrets, credentials, payment data
+and unnecessary PII.</p>
+<p>If confidentiality is required, I first consider server-side data with a reference identifier or an
+opaque token. JWE is another option, but it adds key-management complexity and does not remove the need
+for data minimization.</p></details>
+
+<details><summary>18. What is the difference between signing and encryption?</summary>
+<p><strong>Senior answer:</strong> Signing provides integrity and authentication of the signer:
+the receiver can detect modification and verify who signed the content. Encryption provides
+confidentiality: unauthorized parties should not read the content. A JWS is commonly signed but
+readable; JWE encrypts content. A system may use nested sign-and-encrypt structures when a defined
+profile requires both.</p></details>
+
+<details><summary>19. Is JWT the same as an access token?</summary>
+<p><strong>Senior answer:</strong> No. JWT is a token format; an access token is an OAuth credential
+representing authorization. An access token may be JWT or opaque. JWT is also used for ID tokens,
+client assertions, logout tokens, DPoP proofs and other purposes. The receiver must validate the
+expected token type and profile so these JWTs cannot be substituted for one another.</p></details>
+
+<details><summary>20. What are JWK, JWKS and kid?</summary>
+<p><strong>Senior answer:</strong> A JWK is a JSON representation of a cryptographic key. A JWKS is
+a set of JWKs published by a trusted issuer. The <code>kid</code> header helps select a candidate key
+from that trusted set. It does not establish trust by itself and must never trigger arbitrary
+untrusted key or URL lookup.</p></details>
+
+</section>
+
+<section id="senior-q" data-key="senior interview architecture security tradeoffs detailed">
+<span class="badge">Senior interview</span><h2>18. Senior questions — explain trade-offs, failure modes and production behavior</h2>
+
+<details><summary>1. A JWT signature is valid. Why might you still reject the token?</summary>
+<p><strong>Senior answer:</strong> A valid signature proves only that the JWT was signed by the
+corresponding key and was not modified. It does not prove that the token is appropriate for this API.
+I still validate the trusted issuer, audience, expiration, not-before time, allowed algorithm,
+expected token type and required scopes or claims.</p>
+<p>I also consider key trust. A <code>kid</code> value must select among keys from a trusted issuer;
+it must not cause an arbitrary key lookup. Finally, valid token-level authorization does not replace
+tenant, ownership and business-rule checks.</p></details>
+
+<details><summary>2. How do you support immediate logout with JWT access tokens?</summary>
+<p><strong>Senior answer:</strong> Self-contained JWT validation is intentionally decentralized,
+so an already-issued access token can normally remain valid until expiry even after the local session
+or refresh token is revoked. I first define the product requirement: does logout prevent renewal,
+or must it invalidate every API token immediately?</p>
+<p>For common systems, I use short access-token TTL plus refresh-token revocation. For high-risk
+requirements, options include opaque reference tokens with introspection, a deny-list by token or
+session identifier, security-event propagation, or a gateway/session check. Each option adds state,
+latency and operational complexity.</p></details>
+
+<details><summary>3. How would you secure refresh tokens in a browser application?</summary>
+<p><strong>Senior answer:</strong> I prefer a Backend-for-Frontend where OAuth tokens remain
+server-side and the browser receives only a Secure, HttpOnly, SameSite session cookie. The BFF must
+then implement CSRF, origin, cookie and session protections correctly.</p>
+<p>If the SPA is a direct public client, I use Authorization Code + PKCE, refresh-token rotation with
+reuse detection or sender constraint, minimal scopes, idle and absolute expiration, and careful
+storage. I treat XSS as the primary threat because malicious JavaScript can either steal readable
+tokens or make authorized requests through the application.</p></details>
+
+<details><summary>4. How do you prevent access-token replay?</summary>
+<p><strong>Senior answer:</strong> Basic controls are TLS, secure storage, short TTL, narrow scopes,
+audience restriction and preventing token leakage through URLs and logs. For high-assurance systems,
+I consider sender-constrained tokens such as DPoP or mTLS so possession of the token alone is not
+enough.</p>
+<p>OAuth replay protection is not the same as business replay protection. A payment API also needs
+idempotency keys, duplicate-request detection and transaction-level controls even when the token is
+valid.</p></details>
+
+<details><summary>5. Why is audience validation critical in microservices?</summary>
+<p><strong>Senior answer:</strong> Without audience validation, a valid token minted for Service A
+may be replayed at Service B. The signature and issuer can still be valid, so a generic “valid JWT”
+check will not stop the confused-deputy problem.</p>
+<p>I prefer service- or resource-specific audiences and least-privilege scopes. When a downstream
+service needs a different token, token exchange or resource indicators can create a reduced,
+audience-specific credential instead of forwarding one broad token everywhere.</p></details>
+
+<details><summary>6. JWT or opaque token — which would you choose?</summary>
+<p><strong>Senior answer:</strong> I choose based on risk, scale, latency, privacy and revocation
+requirements. JWT supports local validation, reduces authorization-server traffic and works well
+across distributed systems. Its trade-offs are claim exposure and delayed revocation for
+already-issued tokens.</p>
+<p>Opaque tokens keep authorization state centralized and can reflect revocation quickly through
+introspection, but they create latency and availability dependencies. A hybrid design may use
+short-lived JWT access tokens with centrally managed refresh sessions.</p></details>
+
+<details><summary>7. How should signing-key rotation work?</summary>
+<p><strong>Senior answer:</strong> Publish the new public key before issuing tokens signed by the
+new private key. Then begin signing new tokens with the new key while keeping the old public key
+available for at least the maximum remaining lifetime of old tokens plus safe clock skew.</p>
+<p>Resource servers should cache JWKS, refresh on unknown key identifiers with rate limits and keep a
+last-known-good key set for resilience. Rotation should be tested operationally; it is not only a
+configuration task.</p></details>
+
+<details><summary>8. How should user identity be propagated to downstream services?</summary>
+<p><strong>Senior answer:</strong> The main options are token relay, token exchange and a carefully
+designed trusted identity envelope. Relay is simple but exposes the same token downstream and may
+have the wrong audience or excessive privilege. Client Credentials represents the calling service,
+not the user.</p>
+<p>Token exchange is often stronger because it can mint a downstream-specific token with reduced
+scope and explicit delegation. Regardless of the mechanism, downstream services still validate the
+token and enforce local object and tenant authorization.</p></details>
+
+<details><summary>9. What is an OAuth mix-up attack?</summary>
+<p><strong>Senior answer:</strong> A mix-up attack affects a client configured with multiple
+authorization servers. The client may confuse which issuer produced an authorization response and
+send a code or credentials to the wrong endpoint.</p>
+<p>I bind each flow to the expected issuer, validate issuer information in the response, use strict
+client and redirect configuration, and avoid ambiguous callback handling. Discovery and keys must
+also be bound to the trusted issuer.</p></details>
+
+<details><summary>10. Why are scopes insufficient for complete authorization?</summary>
+<p><strong>Senior answer:</strong> Scopes are usually coarse capabilities such as
+<code>orders.read</code>. They do not answer whether this subject owns order 123, belongs to the same
+tenant, may access the customer's region, or may act while the order is in its current state.</p>
+<p>I use scopes as one input to authorization, then enforce object ownership, tenant boundaries,
+roles, attributes and business invariants in the resource server. Database constraints and
+transaction controls may also be required.</p></details>
+
+<details><summary>11. What are PAR and RAR, and when would you use them?</summary>
+<p><strong>Senior answer:</strong> Pushed Authorization Requests allow the client to send
+authorization parameters directly to the authorization server and use a short request URI in the
+browser redirect. This improves request integrity, privacy and support for large request data.</p>
+<p>Rich Authorization Requests represent structured authorization details, such as payment amount,
+currency, payee and allowed action. I use them when simple scope strings are too broad for the
+business authorization being granted.</p></details>
+
+<details><summary>12. How do you design for multiple tenants or issuers?</summary>
+<p><strong>Senior answer:</strong> I maintain an explicit allow-list of trusted issuers and bind each
+issuer to its metadata, keys, client configuration and expected audiences. I never use an arbitrary
+issuer or key URL from an unvalidated token to fetch trust material.</p>
+<p>After cryptographic and issuer validation, I map the external subject to the correct tenant and
+still enforce cross-tenant object isolation. Multi-issuer support is a trust-configuration problem,
+not only a dynamic key lookup problem.</p></details>
+
+<details><summary>13. What is the difference between PKCE and DPoP?</summary>
+<p><strong>Senior answer:</strong> PKCE protects the authorization-code exchange. It proves that the
+client instance exchanging the code holds the verifier corresponding to the original challenge.
+After the token is issued, PKCE does not protect that token from replay.</p>
+<p>DPoP binds token use to a public/private key and requires a signed proof for token and API requests.
+It addresses sender constraint for access and potentially refresh tokens. The mechanisms protect
+different stages and can be used together.</p></details>
+
+<details><summary>14. How would you secure a payment-authorization flow?</summary>
+<p><strong>Senior answer:</strong> I would use an audience-specific, least-privilege access token and
+consider structured authorization details to bind the authorization to amount, currency, payee and
+action. Sensitive payments may require recent strong authentication or step-up MFA and a
+sender-constrained token.</p>
+<p>At the business layer, the API still validates amount and payee against the approved instruction,
+uses idempotency keys, prevents duplicate execution, records tamper-resistant audit data and applies
+fraud and transaction-limit policies.</p></details>
+
+<details><summary>15. What should an OAuth platform monitor?</summary>
+<p><strong>Senior answer:</strong> I monitor failed authorization and token exchanges, invalid state
+or nonce, authorization-code reuse, refresh-token reuse, unexpected issuer/audience failures,
+excessive scope requests, client-authentication anomalies, revocation events, JWKS rotation failures
+and introspection latency.</p>
+<p>I correlate events by safe identifiers such as client ID, issuer, subject hash, session ID or token
+family ID. I do not log raw access tokens, refresh tokens, authorization codes or client secrets.
+Monitoring must support incident response without creating a new credential-leak channel.</p></details>
+
+
+<details><summary>16. How do you prevent JWT algorithm-confusion attacks?</summary>
+<p><strong>Senior answer:</strong> I configure an explicit algorithm allow-list for each token
+profile and key type. The verifier does not let the untrusted <code>alg</code> header choose an
+arbitrary verification strategy. I reject <code>none</code> and unexpected symmetric/asymmetric
+algorithms, use a mature library and keep access-token, ID-token and other JWT validation rules
+mutually exclusive.</p></details>
+
+<details><summary>17. Why should claims not be read before signature validation?</summary>
+<p><strong>Senior answer:</strong> Anyone can construct a Base64URL Header and Payload containing
+arbitrary claims such as ADMIN, a victim subject or a trusted issuer. Before cryptographic and
+semantic validation, the content is only attacker-controlled input. It may be inspected only for
+safe parsing or routing under strict controls, never for an authorization decision.</p></details>
+
+<details><summary>18. How do you decide which claims belong in an access token?</summary>
+<p><strong>Senior answer:</strong> I start from the intended resource server and include only claims
+needed on most requests that cannot be safely or efficiently obtained from trusted server-side data.
+I consider privacy, staleness, token size, audience isolation and whether the issuer is authoritative
+for the claim. I avoid turning the token into a replicated user database or complete permission graph.</p></details>
+
+<details><summary>19. When would you choose JWE instead of a signed JWT or opaque token?</summary>
+<p><strong>Senior answer:</strong> I use JWE only when the protocol requires a self-contained token
+whose claims must remain confidential from intermediaries and the receiving parties can operate the
+encryption-key lifecycle safely. For many systems, a minimal opaque reference token is simpler and
+provides centralized control. JWE adds recipient-key distribution, rotation, algorithm and debugging
+complexity, so it needs a clear threat-model justification.</p></details>
+
+<details><summary>20. How do you handle authorization changes while a JWT is still valid?</summary>
+<p><strong>Senior answer:</strong> A self-contained JWT is a snapshot. If a user's role changes,
+the token normally remains unchanged until replacement or expiry. I limit the stale window with
+short-lived access tokens. For urgent revocation or highly dynamic permissions, I add introspection,
+session/version checks, a deny-list, event propagation or server-side policy lookup. The choice is a
+trade-off between decentralization, latency, availability and revocation speed.</p></details>
+
+</section>
+
+<section id="scenarios" data-key="scenario design model answer">
+<span class="badge">Scenario interview</span><h2>19. Design scenarios</h2>
+<h3>Scenario 1 — React SPA and Spring APIs</h3><div class="callout good"><strong>Model answer:</strong> Use Authorization Code + PKCE and OIDC. Prefer a BFF for higher browser security, storing tokens server-side and using a Secure HttpOnly SameSite cookie. Protect cookie endpoints against CSRF. APIs validate issuer, audience, time and scopes, then enforce object authorization.</div>
+<h3>Scenario 2 — Service A calls Payment Service</h3><div class="callout good"><strong>Model answer:</strong> Client Credentials means A acts as itself. If Payment needs user delegation, consider token relay or preferably token exchange for a payment-specific reduced token.</div>
+<h3>Scenario 3 — User logs out but JWT still works</h3><div class="callout good"><strong>Model answer:</strong> This can be expected with self-contained access tokens. Logout may revoke session/refresh capability while the current access token remains valid until expiry. Use short TTL or an immediate-revocation mechanism when required.</div>
+<h3>Scenario 4 — Same token accepted by every service</h3><div class="callout good"><strong>Model answer:</strong> The token has excessive audience and blast radius. Use resource indicators, service-specific audiences, least privilege and token exchange when useful.</div>
+<h3>Scenario 5 — Refresh token stolen</h3><div class="callout good"><strong>Model answer:</strong> Rotate on every use and track a token family. Reuse of an invalidated predecessor triggers family revocation and reauthentication. Sender constraint further reduces replay.</div>
+</section>
+
+<section id="checklist" data-key="production checklist review">
+<span class="badge">Production review</span><h2>20. Production checklist</h2>
+<div class="grid2"><div class="card"><h3>Authorization request</h3><ul><li>Code + PKCE S256.</li><li>Strict redirect URI.</li><li>State bound to session.</li><li>OIDC nonce.</li><li>Least-privilege scope.</li></ul></div><div class="card"><h3>Token issuance</h3><ul><li>Short access-token TTL.</li><li>Audience restriction.</li><li>Refresh rotation or sender constraint.</li><li>Secure client authentication.</li><li>No Implicit/Password Grant.</li></ul></div><div class="card"><h3>Resource server</h3><ul><li>Trusted issuer.</li><li>Algorithm allow-list.</li><li>Signature, issuer, audience and time.</li><li>Scope plus object policy.</li><li>No ID token as access token.</li></ul></div><div class="card"><h3>Operations</h3><ul><li>Test key rotation.</li><li>Document revocation/logout.</li><li>No token logging.</li><li>Monitor refresh reuse.</li><li>Incident revocation plan.</li></ul></div><div class="card"><h3>Browser/mobile</h3><ul><li>No embedded secret.</li><li>System browser for native apps.</li><li>Consider BFF.</li><li>Secure mobile storage.</li><li>Review XSS and CSRF separately.</li></ul></div><div class="card"><h3>Microservices</h3><ul><li>Distinguish user and service subject.</li><li>Specific audience.</li><li>Intentional token relay.</li><li>Consider token exchange.</li><li>Service-level authorization.</li></ul></div></div>
+</section>
+
+<section id="sources" data-key="RFC sources standards">
+<span class="badge">Primary references</span><h2>21. Primary standards</h2><p>This guide is a practical explanation, not a replacement for the specifications.</p>
+<ul><li><a href="https://www.rfc-editor.org/info/rfc6749" target="_blank">RFC 6749 — OAuth 2.0 Authorization Framework</a></li><li><a href="https://www.rfc-editor.org/info/rfc6750" target="_blank">RFC 6750 — Bearer Token Usage</a></li><li><a href="https://www.rfc-editor.org/info/rfc9700" target="_blank">RFC 9700 — OAuth Security BCP</a></li><li><a href="https://www.rfc-editor.org/info/rfc7636" target="_blank">RFC 7636 — PKCE</a></li><li><a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect Core 1.0</a></li><li><a href="https://www.rfc-editor.org/info/rfc7009" target="_blank">RFC 7009 — Revocation</a></li><li><a href="https://www.rfc-editor.org/info/rfc7662" target="_blank">RFC 7662 — Introspection</a></li><li><a href="https://www.rfc-editor.org/info/rfc8252" target="_blank">RFC 8252 — Native Apps</a></li><li><a href="https://www.rfc-editor.org/info/rfc8414" target="_blank">RFC 8414 — AS Metadata</a></li><li><a href="https://www.rfc-editor.org/info/rfc7521" target="_blank">RFC 7521 — Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants</a></li><li><a href="https://www.rfc-editor.org/info/rfc7523" target="_blank">RFC 7523 — JWT Profile for Client Authentication and Authorization Grants</a></li><li><a href="https://www.rfc-editor.org/info/rfc8628" target="_blank">RFC 8628 — Device Flow</a></li><li><a href="https://www.rfc-editor.org/info/rfc8693" target="_blank">RFC 8693 — Token Exchange</a></li><li><a href="https://www.rfc-editor.org/info/rfc8705" target="_blank">RFC 8705 — OAuth mTLS</a></li><li><a href="https://www.rfc-editor.org/info/rfc8707" target="_blank">RFC 8707 — Resource Indicators</a></li><li><a href="https://www.rfc-editor.org/info/rfc7519" target="_blank">RFC 7519 — JSON Web Token</a></li><li><a href="https://www.rfc-editor.org/info/rfc7515" target="_blank">RFC 7515 — JSON Web Signature</a></li><li><a href="https://www.rfc-editor.org/info/rfc7516" target="_blank">RFC 7516 — JSON Web Encryption</a></li><li><a href="https://www.rfc-editor.org/info/rfc7517" target="_blank">RFC 7517 — JSON Web Key</a></li><li><a href="https://www.rfc-editor.org/info/rfc7518" target="_blank">RFC 7518 — JSON Web Algorithms</a></li><li><a href="https://www.rfc-editor.org/info/rfc8725" target="_blank">RFC 8725 — JWT BCP</a></li><li><a href="https://www.rfc-editor.org/info/rfc9068" target="_blank">RFC 9068 — JWT Profile for OAuth 2.0 Access Tokens</a></li><li><a href="https://www.rfc-editor.org/info/rfc9126" target="_blank">RFC 9126 — PAR</a></li><li><a href="https://www.rfc-editor.org/info/rfc9396" target="_blank">RFC 9396 — RAR</a></li><li><a href="https://www.rfc-editor.org/info/rfc9449" target="_blank">RFC 9449 — DPoP</a></li><li><a href="https://www.rfc-editor.org/info/rfc9470" target="_blank">RFC 9470 — Step-Up</a></li><li><a href="https://www.rfc-editor.org/info/rfc9728" target="_blank">RFC 9728 — Protected Resource Metadata</a></li><li><a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/" target="_blank">OAuth 2.1 Internet-Draft</a></li><li><a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html" target="_blank">Spring Security OAuth 2.0 Reference</a></li><li><a href="https://docs.spring.io/spring-authorization-server/reference/" target="_blank">Spring Authorization Server Reference</a></li></ul>
+<div class="callout">Security recommendations evolve. Recheck the current Security BCP, provider documentation and framework reference before production implementation.</div>
+</section>
+<div class="footer">OAuth 2.0 & OpenID Connect — standalone deep-dive HTML guide</div>
+</div></main>
+</div>
+<script>
+const body=document.body,theme=document.getElementById('theme'),expand=document.getElementById('expand'),search=document.getElementById('search');if(localStorage.getItem('oauth-theme')==='dark')body.classList.add('dark');theme.onclick=()=>{body.classList.toggle('dark');localStorage.setItem('oauth-theme',body.classList.contains('dark')?'dark':'light')};document.querySelectorAll('pre').forEach(pre=>{const b=document.createElement('button');b.className='copy';b.textContent='Copy';b.onclick=async()=>{try{await navigator.clipboard.writeText(pre.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}catch(e){b.textContent='Failed'}};pre.appendChild(b)});let all=false;expand.onclick=()=>{all=!all;document.querySelectorAll('details').forEach(d=>d.open=all);expand.textContent=all?'Collapse Q&A':'Expand Q&A'};const links=[...document.querySelectorAll('.nav-link')],sections=[...document.querySelectorAll('section')];new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));const a=document.querySelector('.nav-link[href="#'+e.target.id+'"]');if(a)a.classList.add('active')}}),{rootMargin:'-18% 0px -68% 0px'}).observe;const ob=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));const a=document.querySelector('.nav-link[href="#'+e.target.id+'"]');if(a)a.classList.add('active')}}),{rootMargin:'-18% 0px -68% 0px'});sections.forEach(s=>ob.observe(s));search.oninput=()=>{const q=search.value.trim().toLowerCase();sections.forEach(s=>s.classList.toggle('hidden',q&&!((s.dataset.key||'')+' '+s.innerText).toLowerCase().includes(q)))};
+</script>
+</body>
+</html>

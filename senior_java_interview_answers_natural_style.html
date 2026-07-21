@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senior Java Interview Answers</title>
+<style>
+:root {
+  --bg:#f4f7fb; --surface:#ffffff; --surface2:#eef3f9; --text:#172033;
+  --muted:#68758c; --primary:#2563eb; --secondary:#0f766e; --border:#d8e1ec;
+  --code:#0f172a; --codeText:#e5edf8; --shadow:0 12px 30px rgba(20,36,62,.08);
+}
+body.dark {
+  --bg:#0a1120; --surface:#111a2b; --surface2:#172238; --text:#eef4ff;
+  --muted:#aab7ca; --primary:#60a5fa; --secondary:#5eead4; --border:#2b3951;
+  --code:#050914; --codeText:#dbeafe; --shadow:0 12px 30px rgba(0,0,0,.28);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.75;
+}
+.layout { display:grid; grid-template-columns:340px 1fr; min-height:100vh; }
+aside {
+  position:sticky; top:0; height:100vh; overflow:auto; background:var(--surface);
+  border-right:1px solid var(--border); padding:20px 14px;
+}
+.brand { font-size:1.18rem; font-weight:900; margin-bottom:12px; line-height:1.35; }
+.brand span { color:var(--primary); }
+.small { color:var(--muted); font-size:.86rem; font-weight:500; }
+.controls { display:flex; gap:8px; margin:12px 0; }
+button,input {
+  border:1px solid var(--border); background:var(--surface2); color:var(--text);
+  border-radius:10px; padding:9px 10px;
+}
+button { cursor:pointer; font-weight:800; }
+input { width:100%; margin-bottom:12px; }
+nav a {
+  display:block; text-decoration:none; color:var(--muted); padding:7px 9px;
+  border-radius:8px; font-size:.88rem; margin:2px 0;
+}
+nav a:hover, nav a.active { background:var(--surface2); color:var(--primary); }
+main { max-width:1120px; width:100%; margin:auto; padding:36px 42px 80px; }
+.hero {
+  background:linear-gradient(135deg,var(--surface),var(--surface2));
+  border:1px solid var(--border); border-radius:24px; box-shadow:var(--shadow);
+  padding:34px; margin-bottom:28px;
+}
+h1 { font-size:clamp(2rem,4vw,3.3rem); line-height:1.12; margin:8px 0 14px; }
+h2 { font-size:1.85rem; line-height:1.25; margin:8px 0 22px; }
+.lead { color:var(--muted); font-size:1.08rem; max-width:900px; }
+.question {
+  background:var(--surface); border:1px solid var(--border); border-radius:20px;
+  box-shadow:var(--shadow); padding:30px; margin:24px 0;
+}
+.meta {
+  display:inline-block; color:var(--primary); background:color-mix(in srgb,var(--primary) 14%,transparent);
+  border-radius:999px; padding:4px 9px; font-size:.76rem; font-weight:900;
+}
+.answer { font-size:1.02rem; }
+pre {
+  background:var(--code); color:var(--codeText); padding:18px; border-radius:14px;
+  overflow:auto; line-height:1.55; margin:18px 0;
+}
+code { font-family:Consolas,"SFMono-Regular",monospace; }
+.interview-note {
+  border-left:4px solid var(--secondary); background:var(--surface2);
+  padding:15px 17px; border-radius:10px; margin-top:18px;
+}
+.hidden { display:none !important; }
+@media(max-width:900px) {
+  .layout { grid-template-columns:1fr; }
+  aside { position:relative; height:auto; border-right:0; border-bottom:1px solid var(--border); }
+  nav { max-height:340px; overflow:auto; }
+  main { padding:22px 15px 60px; }
+  .question { padding:21px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">
+    Senior Java <span>Interview Answers</span>
+    <div class="small">Natural interview style · 50 questions</div>
+  </div>
+  <div class="controls">
+    <button id="themeBtn">🌙 Theme</button>
+    <button id="topBtn">↑ Top</button>
+  </div>
+  <input id="search" placeholder="Search question or keyword...">
+  <nav><a href="#q1">1. Given a sentence, fetch the longest word using Java Stream API.</a><a href="#q2">2. Given an Employee class with name, age, salary, and department, fetch all employees whose salary is greater than 50,000 using Stream API.</a><a href="#q3">3. Write a JUnit test case for calculating prime numbers using JUnit 5 and Mockito.</a><a href="#q4">4. Write a basic CRUD REST API.</a><a href="#q5">5. What is garbage collection and what are its types?</a><a href="#q6">6. Difference between ArrayList and LinkedList with real-time use cases.</a><a href="#q7">7. What is polymorphism?</a><a href="#q8">8. What are bean scopes in Spring Boot?</a><a href="#q9">9. How would you implement global exception handling in Spring Boot?</a><a href="#q10">10. Explain HashMap internal working.</a><a href="#q11">11. Why did Java 8 switch from linked list to red-black tree in case of hash collision?</a><a href="#q12">12. What is circular dependency and how would you fix it?</a><a href="#q13">13. What is @Transactional?</a><a href="#q14">14. How would you secure your REST API?</a><a href="#q15">15. What is @Value annotation?</a><a href="#q16">16. What does @EmbeddedId do?</a><a href="#q17">17. Explain Facade design pattern.</a><a href="#q18">18. What is circuit breaker pattern?</a><a href="#q19">19. How would you achieve centralized logging in microservices?</a><a href="#q20">20. How do you handle distributed transactions in microservices?</a><a href="#q21">21. What is Saga pattern?</a><a href="#q22">22. Difference between Kafka and queue.</a><a href="#q23">23. What is query planning?</a><a href="#q24">24. Explain SOLID principles.</a><a href="#q25">25. Explain ACID properties.</a><a href="#q26">26. Implement lazy initialization for Singleton.</a><a href="#q27">27. Fail-fast vs fail-safe iterators.</a><a href="#q28">28. Why do you want to join us?</a><a href="#q29">29. What is the most challenging task you faced in your last project?</a><a href="#q30">30. Did you face any conflicts with teammates? How did you handle them?</a><a href="#q31">31. Which Java version do you use? Do you have Java 8 experience?</a><a href="#q32">32. Explain SOLID principles.</a><a href="#q33">33. Intermediate vs terminal operations and lazy evaluation in Stream API.</a><a href="#q34">34. How does HashMap work internally?</a><a href="#q35">35. Find the smallest positive missing integer.</a><a href="#q36">36. Do you have AWS experience? Which service triggered Lambda?</a><a href="#q37">37. Explain CompletableFuture.</a><a href="#q38">38. How does garbage collection work in heap memory?</a><a href="#q39">39. Runnable vs Callable.</a><a href="#q40">40. synchronized vs ReentrantLock.</a><a href="#q41">41. Explain Spring AOP.</a><a href="#q42">42. Explain IoC / Dependency Injection.</a><a href="#q43">43. How do you handle distributed transactions?</a><a href="#q44">44. How can Kafka guarantee message delivery?</a><a href="#q45">45. How do you optimize SQL query performance?</a><a href="#q46">46. Explain your current project architecture.</a><a href="#q47">47. Why use DDD for microservices?</a><a href="#q48">48. What is idempotency in REST APIs?</a><a href="#q49">49. Composite primary key and multiple database connection in Spring Boot.</a><a href="#q50">50. How do you test a catch block?</a></nav>
+</aside>
+
+<main>
+  <div class="hero" id="top">
+    <div class="meta">Real Senior Interview Style</div>
+    <h1>Java Interview Answers That Sound Like a Senior Engineer</h1>
+    <p class="lead">
+      These answers are written as natural spoken answers in an interview.
+      They focus on practical experience, internal working, production risk, trade-offs,
+      and clear examples instead of dry definitions.
+    </p>
+    <div class="interview-note">
+      <strong>Answering style:</strong>
+      Start with the main idea, explain how it works, connect it to a real project,
+      then mention one important trade-off or production risk.
+    </div>
+  </div>
+
+  
+<section id="q1" class="question">
+  <div class="meta">Round 1 — Coding</div>
+  <h2>1. Given a sentence, fetch the longest word using Java Stream API.</h2>
+  
+<p class="answer">
+“I would first split the sentence into words, convert the array into a stream, and then use <code>max</code> with a comparator based on word length.
+For a normal interview solution, I would write it like this.”
+</p>
+<pre><code>String sentence = "Java Stream API is very powerful";
+
+String longestWord = Arrays.stream(sentence.split("\s+"))
+        .max(Comparator.comparingInt(String::length))
+        .orElse("");
+
+System.out.println(longestWord); // powerful</code></pre>
+<p class="answer">
+“The important point is that <code>max</code> returns an <code>Optional</code>, because the stream may be empty.
+In production code, I would also clarify how to handle punctuation, multiple words with the same length, and null input.
+For example, if the sentence contains commas or full stops, I may normalize the text first.”
+</p>
+
+</section>
+
+<section id="q2" class="question">
+  <div class="meta">Round 1 — Coding</div>
+  <h2>2. Given an Employee class with name, age, salary, and department, fetch all employees whose salary is greater than 50,000 using Stream API.</h2>
+  
+<p class="answer">
+“I would use <code>filter</code> because this is a simple condition-based selection.
+For salary, I prefer <code>BigDecimal</code> instead of <code>double</code> because money calculations need exact decimal values.”
+</p>
+<pre><code>List&lt;Employee&gt; result = employees.stream()
+        .filter(employee -&gt;
+                employee.getSalary().compareTo(BigDecimal.valueOf(50_000)) &gt; 0)
+        .toList();</code></pre>
+<p class="answer">
+“If the data already comes from a database, I would not load all employees into memory and then filter them with Stream API.
+I would push the condition to the database, for example with a repository query.
+Stream API is suitable when the data is already in memory and the collection size is reasonable.”
+</p>
+
+</section>
+
+<section id="q3" class="question">
+  <div class="meta">Round 1 — Coding</div>
+  <h2>3. Write a JUnit test case for calculating prime numbers using JUnit 5 and Mockito.</h2>
+  
+<p class="answer">
+“For a pure prime number calculator, Mockito is not necessary because there is no external dependency.
+I would test the logic directly with JUnit 5, and I would use a parameterized test because the same rule must be checked with many inputs.”
+</p>
+<pre><code>class PrimeCalculator {
+
+    boolean isPrime(int number) {
+        if (number &lt; 2) {
+            return false;
+        }
+
+        for (int i = 2; i * i &lt;= number; i++) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+class PrimeCalculatorTest {
+
+    private final PrimeCalculator calculator = new PrimeCalculator();
+
+    @ParameterizedTest
+    @ValueSource(ints = {2, 3, 5, 7, 11, 97})
+    void shouldReturnTrueForPrimeNumbers(int number) {
+        assertTrue(calculator.isPrime(number));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1, 4, 9, 100})
+    void shouldReturnFalseForNonPrimeNumbers(int number) {
+        assertFalse(calculator.isPrime(number));
+    }
+}</code></pre>
+<p class="answer">
+“If the calculator service depended on a repository or another service, then I would use Mockito to isolate that dependency.
+I would not use Mockito just because the interviewer mentions it. I would explain that mocking is useful only when there is something meaningful to mock.”
+</p>
+
+</section>
+
+<section id="q4" class="question">
+  <div class="meta">Round 1 — Coding</div>
+  <h2>4. Write a basic CRUD REST API.</h2>
+  
+<p class="answer">
+“For a basic CRUD API in Spring Boot, I would separate the controller, service, repository, entity, and DTO responsibilities.
+The controller handles HTTP concerns, the service handles business logic, and the repository handles database access.
+In a real project, I would avoid exposing the JPA entity directly.”
+</p>
+<pre><code>@RestController
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductResponse create(@Valid @RequestBody CreateProductRequest request) {
+        return productService.create(request);
+    }
+
+    @GetMapping("/{id}")
+    public ProductResponse getById(@PathVariable Long id) {
+        return productService.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ProductResponse update(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProductRequest request) {
+        return productService.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        productService.delete(id);
+    }
+}</code></pre>
+<pre><code>@Service
+@RequiredArgsConstructor
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    @Transactional
+    public ProductResponse create(CreateProductRequest request) {
+        Product product = new Product();
+        product.setName(request.name());
+        product.setPrice(request.price());
+
+        Product saved = productRepository.save(product);
+        return ProductResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponse getById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt;
+                        new ResourceNotFoundException("Product not found"));
+
+        return ProductResponse.from(product);
+    }
+
+    @Transactional
+    public ProductResponse update(Long id, UpdateProductRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt;
+                        new ResourceNotFoundException("Product not found"));
+
+        product.setName(request.name());
+        product.setPrice(request.price());
+
+        return ProductResponse.from(product);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+
+        productRepository.deleteById(id);
+    }
+}</code></pre>
+<p class="answer">
+“For production, I would also add validation, pagination, global exception handling, security, audit logging, API documentation, and integration tests.
+A basic CRUD API is simple, but the interview is usually checking whether I understand separation of concerns and production readiness.”
+</p>
+
+</section>
+
+<section id="q5" class="question">
+  <div class="meta">Round 1 — Technical</div>
+  <h2>5. What is garbage collection and what are its types?</h2>
+  
+<p class="answer">
+“Garbage Collection, or GC (thu gom rác), is the JVM mechanism that automatically reclaims heap memory from objects that are no longer reachable.
+The JVM starts from GC Roots such as active thread stacks, static references, and JNI references.
+If an object cannot be reached from any GC Root, it becomes eligible for collection.”
+</p>
+<p class="answer">
+“In practice, I usually explain collectors by their goal.
+Serial GC is simple and suitable for small applications.
+Parallel GC focuses on throughput (thông lượng), so it is useful when total processing speed is more important than pause time.
+G1 GC is a balanced collector and is commonly used for server applications.
+ZGC and Shenandoah focus on very low pause time for large heaps.”
+</p>
+<p class="answer">
+“I would not choose a collector only from a textbook.
+I would first look at the application requirement: acceptable pause time, heap size, allocation rate, CPU usage, and throughput target.
+In production, I monitor pause duration, old-generation usage, promotion rate, Full GC frequency, and allocation rate before deciding whether tuning is needed.”
+</p>
+
+</section>
+
+<section id="q6" class="question">
+  <div class="meta">Round 1 — Technical</div>
+  <h2>6. Difference between ArrayList and LinkedList with real-time use cases.</h2>
+  
+<p class="answer">
+“ArrayList uses a resizable array internally, while LinkedList uses a doubly linked list.
+ArrayList gives O(1) random access because it can directly calculate the index.
+LinkedList needs O(n) traversal to reach an element.”
+</p>
+<p class="answer">
+“In real projects, I use ArrayList most of the time because it has better memory locality and lower object overhead.
+Even though LinkedList has O(1) insertion after reaching a node, finding that node is still O(n), so the practical benefit is often small.
+For queue behavior, I normally prefer ArrayDeque instead of LinkedList.”
+</p>
+<p class="answer">
+“For example, API result lists, employee collections, and database query results are usually ArrayList use cases.
+LinkedList may be useful when I frequently add or remove elements at both ends and I already have the correct position, but this is less common in normal backend business code.”
+</p>
+
+</section>
+
+<section id="q7" class="question">
+  <div class="meta">Round 1 — Technical</div>
+  <h2>7. What is polymorphism?</h2>
+  
+<p class="answer">
+“Polymorphism (đa hình) means different implementations can be used through the same parent type or interface.
+The caller works with the abstraction and does not need to know the concrete implementation.”
+</p>
+<pre><code>public interface PaymentProcessor {
+    PaymentResult process(PaymentRequest request);
+}
+
+public class CardPaymentProcessor implements PaymentProcessor {
+    public PaymentResult process(PaymentRequest request) {
+        // Card payment logic
+    }
+}
+
+public class WalletPaymentProcessor implements PaymentProcessor {
+    public PaymentResult process(PaymentRequest request) {
+        // Wallet payment logic
+    }
+}</code></pre>
+<p class="answer">
+“In a real payment system, this allows me to add a new provider without changing the main checkout flow.
+However, I do not create interfaces for every class.
+I use polymorphism when there is real behavior variation, not only to make the code look abstract.”
+</p>
+
+</section>
+
+<section id="q8" class="question">
+  <div class="meta">Round 1 — Technical</div>
+  <h2>8. What are bean scopes in Spring Boot?</h2>
+  
+<p class="answer">
+“The default Spring bean scope is singleton, which means one bean instance per ApplicationContext.
+Prototype creates a new instance each time the bean is requested.
+For web applications, request scope creates one bean per HTTP request, session scope creates one per HTTP session, and application scope creates one per ServletContext.”
+</p>
+<p class="answer">
+“The most important production point is that singleton does not mean thread-safe.
+Most service beans are singleton, so I avoid mutable request-specific fields inside them.
+If a singleton service stores request data in an instance variable, concurrent requests can overwrite each other.”
+</p>
+<p class="answer">
+“In normal Spring Boot backend services, I mainly use singleton.
+I use request or session scope only when there is a clear web-specific reason.
+Prototype is less common because lifecycle management becomes more complex.”
+</p>
+
+</section>
+
+<section id="q9" class="question">
+  <div class="meta">Round 1 — Technical</div>
+  <h2>9. How would you implement global exception handling in Spring Boot?</h2>
+  
+<p class="answer">
+“I would use <code>@RestControllerAdvice</code> with specific <code>@ExceptionHandler</code> methods.
+The goal is to keep controllers clean and return a consistent error response format.”
+</p>
+<pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;ApiError&gt; handleNotFound(
+            ResourceNotFoundException exception) {
+
+        ApiError error = new ApiError(
+                "RESOURCE_NOT_FOUND",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ApiError&gt; handleValidation(
+            MethodArgumentNotValidException exception) {
+
+        ApiError error = new ApiError(
+                "VALIDATION_ERROR",
+                "The request data is invalid"
+        );
+
+        return ResponseEntity
+                .badRequest()
+                .body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ApiError&gt; handleUnexpected(
+            Exception exception) {
+
+        // Log full internal error here
+
+        ApiError error = new ApiError(
+                "INTERNAL_ERROR",
+                "An unexpected error occurred"
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error);
+    }
+}</code></pre>
+<p class="answer">
+“I would log the internal exception with a trace ID, but I would not expose stack traces, SQL details, or sensitive data to the client.
+I also prefer stable business error codes because frontend and external clients should not depend only on text messages.”
+</p>
+
+</section>
+
+<section id="q10" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>10. Explain HashMap internal working.</h2>
+  
+<p class="answer">
+“HashMap stores key-value pairs in an internal array of buckets.
+When I call <code>put</code>, HashMap first calculates the key hash, spreads the hash bits, and then calculates the bucket index.
+If the bucket is empty, it stores a new node.
+If the bucket already contains entries, HashMap compares the hash and then uses <code>equals</code> to find the same key.”
+</p>
+<pre><code>int index = (table.length - 1) &amp; hash;</code></pre>
+<p class="answer">
+“If the same key already exists, HashMap replaces the value.
+If different keys map to the same bucket, that is a hash collision (xung đột băm).
+Before Java 8, collisions were stored mainly as a linked list.
+From Java 8, a heavily collided bucket can become a red-black tree.”
+</p>
+<p class="answer">
+“The default load factor is 0.75.
+When the number of entries passes the resize threshold, HashMap creates a larger table and redistributes entries.
+Average <code>get</code> and <code>put</code> complexity is close to O(1), but bad hash distribution can reduce performance.
+That is why a correct <code>equals</code> and <code>hashCode</code> contract is critical.”
+</p>
+
+</section>
+
+<section id="q11" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>11. Why did Java 8 switch from linked list to red-black tree in case of hash collision?</h2>
+  
+<p class="answer">
+“Java 8 did not completely replace linked lists.
+It keeps linked lists for small collision groups because they use less memory and are simple.
+When a bucket becomes too large, HashMap can convert it into a red-black tree.”
+</p>
+<p class="answer">
+“The reason is performance.
+Searching a linked list is O(n), while searching a balanced red-black tree is O(log n).
+This protects the map from very poor performance when many keys have the same hash value.
+It also helps reduce the impact of hash collision attacks.”
+</p>
+<p class="answer">
+“Tree nodes use more memory, so Java does not treeify immediately.
+The bucket normally needs to reach the treeify threshold, and the table also needs enough capacity.
+This is a trade-off between memory cost and worst-case lookup performance.”
+</p>
+
+</section>
+
+<section id="q12" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>12. What is circular dependency and how would you fix it?</h2>
+  
+<p class="answer">
+“A circular dependency happens when Bean A depends on Bean B and Bean B also depends on Bean A.
+For example, OrderService calls PaymentService, and PaymentService also directly calls OrderService.”
+</p>
+<p class="answer">
+“I treat this mainly as a design problem, not only a Spring configuration problem.
+It usually means the responsibilities are not separated clearly.”
+</p>
+<p class="answer">
+“My first solution is to redesign the dependency direction.
+I may extract shared logic into a third service, move orchestration into an application service or facade, or use domain events if the communication does not need to be synchronous.
+I can use <code>@Lazy</code> as a temporary workaround, but I would not consider it the final design because it hides the real coupling problem.”
+</p>
+
+</section>
+
+<section id="q13" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>13. What is @Transactional?</h2>
+  
+<p class="answer">
+“<code>@Transactional</code> tells Spring to execute a method inside a database transaction.
+Spring usually applies it through a proxy.
+The proxy starts the transaction before the method, commits when the method completes successfully, and rolls back when a matching exception occurs.”
+</p>
+<p class="answer">
+“By default, Spring rolls back for unchecked exceptions, but not automatically for every checked exception.
+Another important point is self-invocation.
+If one method inside the same class calls another <code>@Transactional</code> method, the call may bypass the proxy, so the transaction rule may not be applied.”
+</p>
+<p class="answer">
+“In production, I keep transactions short and place them around one business unit of work.
+I avoid calling slow external APIs while a database transaction is open because that can hold locks and database connections for too long.
+I also use <code>readOnly = true</code> for read operations where appropriate, but I understand that it is mainly a hint and its effect depends on the database and JPA provider.”
+</p>
+
+</section>
+
+<section id="q14" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>14. How would you secure your REST API?</h2>
+  
+<p class="answer">
+“I would secure a REST API in layers.
+First, all communication must use HTTPS.
+For authentication, I normally use OAuth 2.0 or OpenID Connect with JWT access tokens.
+After authentication, I apply authorization based on roles, scopes, and resource ownership.”
+</p>
+<p class="answer">
+“For example, an ADMIN role may access management APIs, while a normal user can only access resources that belong to that user.
+I also validate all input, use short token lifetimes, rotate secrets, protect sensitive configuration, add rate limiting, and record security audit events.”
+</p>
+<pre><code>@Bean
+SecurityFilterChain security(HttpSecurity http) throws Exception {
+    return http
+            .csrf(csrf -&gt; csrf.disable())
+            .authorizeHttpRequests(auth -&gt; auth
+                    .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth -&gt; oauth.jwt())
+            .build();
+}</code></pre>
+<p class="answer">
+“I also separate authentication from authorization.
+A valid token proves identity, but it does not automatically mean the user can access every resource.”
+</p>
+
+</section>
+
+<section id="q15" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>15. What is @Value annotation?</h2>
+  
+<p class="answer">
+“<code>@Value</code> injects configuration values into a Spring bean.
+It is useful for a small number of simple properties.”
+</p>
+<pre><code>@Value("${payment.timeout:3000}")
+private int timeout;</code></pre>
+<p class="answer">
+“For a group of related properties, I prefer <code>@ConfigurationProperties</code> because it is type-safe, easier to validate, and easier to test.
+For example, payment base URL, timeout, retry count, and API key settings should normally belong to one configuration class instead of many scattered <code>@Value</code> fields.”
+</p>
+
+</section>
+
+<section id="q16" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>16. What does @EmbeddedId do?</h2>
+  
+<p class="answer">
+“<code>@EmbeddedId</code> maps a composite primary key, meaning one primary key is made from multiple columns.
+The key is represented as one embeddable Java object.”
+</p>
+<pre><code>@Embeddable
+public class OrderItemId implements Serializable {
+
+    private Long orderId;
+    private Long productId;
+
+    // equals and hashCode
+}
+
+@Entity
+public class OrderItem {
+
+    @EmbeddedId
+    private OrderItemId id;
+}</code></pre>
+<p class="answer">
+“The key class should implement <code>Serializable</code> and correctly implement <code>equals</code> and <code>hashCode</code>.
+In new systems, I often prefer a surrogate key when the natural composite key is large or may change, but composite keys are still useful when the business identity is naturally made from multiple fields.”
+</p>
+
+</section>
+
+<section id="q17" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>17. Explain Facade design pattern.</h2>
+  
+<p class="answer">
+“Facade provides one simple interface over several complex subsystems.
+For example, a checkout process may need inventory, payment, order creation, and notification.
+Instead of letting the controller call all of them directly, I can expose one CheckoutFacade.”
+</p>
+<pre><code>@Service
+@RequiredArgsConstructor
+public class CheckoutFacade {
+
+    private final InventoryService inventoryService;
+    private final PaymentService paymentService;
+    private final OrderService orderService;
+    private final NotificationService notificationService;
+
+    public CheckoutResult checkout(CheckoutRequest request) {
+        inventoryService.reserve(request);
+        paymentService.charge(request);
+        Order order = orderService.create(request);
+        notificationService.sendConfirmation(order);
+
+        return CheckoutResult.from(order);
+    }
+}</code></pre>
+<p class="answer">
+“The benefit is a simpler client and one clear orchestration point.
+The risk is that the facade can become a god class if it contains too much business logic.
+I keep orchestration in the facade, while detailed rules remain in domain services or specialized components.”
+</p>
+
+</section>
+
+<section id="q18" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>18. What is circuit breaker pattern?</h2>
+  
+<p class="answer">
+“A circuit breaker protects the system from repeatedly calling a failing remote service.
+It usually has three states: closed, open, and half-open.”
+</p>
+<p class="answer">
+“In the closed state, calls are allowed.
+When failures pass a configured threshold, the circuit opens and new calls fail fast.
+After a wait period, it moves to half-open and allows a small number of test requests.
+If they succeed, it closes again. If they fail, it opens again.”
+</p>
+<p class="answer">
+“I normally combine circuit breaker with timeout, retry, and bulkhead, but I configure them carefully.
+For example, aggressive retry can make an outage worse by multiplying traffic.
+The fallback must also make business sense. Returning fake success for a failed payment call would be dangerous.”
+</p>
+
+</section>
+
+<section id="q19" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>19. How would you achieve centralized logging in microservices?</h2>
+  
+<p class="answer">
+“In microservices, I would make every service write structured JSON logs and send them to a central logging platform.
+A common flow is service logs to Fluent Bit or Filebeat, then to Elasticsearch, OpenSearch, or Loki, and finally Kibana or Grafana for search and dashboards.”
+</p>
+<p class="answer">
+“The most important part is correlation.
+Every request should include a trace ID, span ID, request ID, service name, environment, and sometimes a business correlation ID such as order ID or payment ID.
+This allows me to follow one request across many services.”
+</p>
+<p class="answer">
+“I also define logging standards: common field names, error codes, log levels, retention rules, and masking rules.
+I never log passwords, tokens, card details, or sensitive personal data.
+For debugging distributed flows, logs should be connected with tracing and metrics, not used alone.”
+</p>
+
+</section>
+
+<section id="q20" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>20. How do you handle distributed transactions in microservices?</h2>
+  
+<p class="answer">
+“In microservices, I avoid trying to use one database transaction across many services.
+Each service owns its own local transaction, and the overall business flow is coordinated with reliable events.”
+</p>
+<p class="answer">
+“My common design is Saga plus Transactional Outbox.
+The service updates its database and writes an outbox event in the same local transaction.
+A separate publisher sends that event to Kafka or another broker.
+Consumers process the event idempotently, meaning repeated delivery does not create repeated business effects.”
+</p>
+<p class="answer">
+“I also add retry with backoff, dead-letter handling, reconciliation jobs, and monitoring.
+I avoid two-phase commit in most microservice systems because it reduces availability and adds strong coordination.
+The correct solution depends on business consistency requirements.
+For payments, I may also need manual reconciliation because not every external action can be automatically rolled back.”
+</p>
+
+</section>
+
+<section id="q21" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>21. What is Saga pattern?</h2>
+  
+<p class="answer">
+“A Saga is a sequence of local transactions across services.
+Each service completes its own transaction and publishes an event or returns a result.
+If a later step fails, compensating actions are executed for the earlier completed steps.”
+</p>
+<p class="answer">
+“For example, an order flow may create the order, reserve inventory, charge payment, and then confirm the order.
+If payment fails, the system may release the inventory and cancel the order.”
+</p>
+<p class="answer">
+“There are two common styles.
+In choreography, services react to events without one central controller.
+In orchestration, one coordinator tells each service what step to execute.
+Choreography is simple for small flows, but it can become hard to understand.
+Orchestration gives clearer control for complex workflows, but the orchestrator must not become too large.”
+</p>
+<p class="answer">
+“A compensation is not a technical database rollback.
+It is a new business action.
+For example, refunding a payment is a separate operation and may itself fail.”
+</p>
+
+</section>
+
+<section id="q22" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>22. Difference between Kafka and queue.</h2>
+  
+<p class="answer">
+“Kafka is mainly a distributed append-only log, while a traditional queue is mainly designed for work distribution.
+In a normal queue, a message is often removed after it is acknowledged.
+In Kafka, messages remain for a retention period, and consumers track their position using offsets.”
+</p>
+<p class="answer">
+“This means Kafka supports replay very well.
+Different consumer groups can read the same event independently.
+Kafka is a strong choice for event streaming, audit events, data pipelines, and high-throughput integration.”
+</p>
+<p class="answer">
+“A traditional queue is often simpler for command-style work, such as sending an email or processing one background job.
+I choose based on the communication model, ordering requirement, replay need, throughput, and operational complexity.
+Kafka can behave like a queue inside one consumer group, but its core model is still a log.”
+</p>
+
+</section>
+
+<section id="q23" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>23. What is query planning?</h2>
+  
+<p class="answer">
+“Query planning is the process where the database decides how to execute SQL.
+The database parses the query, checks possible access paths, estimates the cost, and chooses a plan.”
+</p>
+<p class="answer">
+“The planner decides whether to use an index scan or sequential scan, which table to join first, which join algorithm to use, and whether sorting or aggregation is needed.”
+</p>
+<pre><code>EXPLAIN ANALYZE
+SELECT *
+FROM orders
+WHERE customer_id = 100
+ORDER BY created_at DESC;</code></pre>
+<p class="answer">
+“When I analyze a slow query, I compare estimated rows with actual rows.
+A large difference may mean stale statistics, data skew, or a poor predicate.
+I also check scanned rows, join type, sort operations, filter conditions, and execution time.
+I do not add an index before understanding the plan.”
+</p>
+
+</section>
+
+<section id="q24" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>24. Explain SOLID principles.</h2>
+  
+<p class="answer">
+“SOLID is a group of object-oriented design principles that helps code become easier to change, test, and maintain.
+Single Responsibility means a class should have one main reason to change.
+Open/Closed means stable code should be extendable without repeated modification.
+Liskov Substitution means a subtype must safely replace its parent type.
+Interface Segregation means clients should not depend on methods they do not use.
+Dependency Inversion means high-level business logic should depend on abstractions, not concrete infrastructure.”
+</p>
+<p class="answer">
+“In a payment system, I may use PaymentGateway as an abstraction.
+The business service depends on that interface, while StripeGateway and BankGateway are implementations.
+This supports OCP and DIP.”
+</p>
+<p class="answer">
+“I do not apply SOLID mechanically.
+If I create an interface for every class and split every method into a separate service, the code becomes harder to understand.
+I use these principles around real change points and complex business rules.”
+</p>
+
+</section>
+
+<section id="q25" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>25. Explain ACID properties.</h2>
+  
+<p class="answer">
+“ACID describes important transaction guarantees.
+Atomicity means all operations in the transaction succeed together or all are rolled back.
+Consistency means the transaction moves data from one valid state to another valid state.
+Isolation means concurrent transactions should not incorrectly interfere with each other.
+Durability means committed data survives a crash.”
+</p>
+<p class="answer">
+“For example, in a bank transfer, subtracting money from one account and adding it to another should be atomic.
+If one step fails, both changes should roll back.”
+</p>
+<p class="answer">
+“Isolation is the most complex part in practice.
+Different isolation levels balance consistency and concurrency.
+Databases implement isolation through locking, MVCC, or both.
+I choose the level based on business risk, not always the highest possible level.”
+</p>
+
+</section>
+
+<section id="q26" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>26. Implement lazy initialization for Singleton.</h2>
+  
+<p class="answer">
+“For lazy and thread-safe Singleton initialization, I prefer the initialization-on-demand holder pattern.
+The JVM guarantees that the inner class is initialized safely when it is first used.”
+</p>
+<pre><code>public final class AppConfig {
+
+    private AppConfig() {
+    }
+
+    private static class Holder {
+        private static final AppConfig INSTANCE = new AppConfig();
+    }
+
+    public static AppConfig getInstance() {
+        return Holder.INSTANCE;
+    }
+}</code></pre>
+<p class="answer">
+“An enum singleton is also safe and simple.
+However, in Spring applications I normally let the container manage singleton beans instead of implementing the pattern manually.
+I also remember that singleton scope does not automatically make mutable state thread-safe.”
+</p>
+
+</section>
+
+<section id="q27" class="question">
+  <div class="meta">Round 2 — Technical</div>
+  <h2>27. Fail-fast vs fail-safe iterators.</h2>
+  
+<p class="answer">
+“A fail-fast iterator detects structural modification during iteration and usually throws <code>ConcurrentModificationException</code>.
+ArrayList and HashMap iterators are common examples.”
+</p>
+<p class="answer">
+“The term fail-safe is commonly used in interviews, but Java documentation often uses terms such as weakly consistent or snapshot-based.
+For example, ConcurrentHashMap iterators are weakly consistent, while CopyOnWriteArrayList iterates over a snapshot.”
+</p>
+<p class="answer">
+“The important point is that these iterators do not provide the same behavior.
+A snapshot iterator may not see new changes, while a weakly consistent iterator may see some changes.
+I choose the collection based on read/write frequency and consistency needs.”
+</p>
+
+</section>
+
+<section id="q28" class="question">
+  <div class="meta">Round 3 — Techno-Managerial</div>
+  <h2>28. Why do you want to join us?</h2>
+  
+<p class="answer">
+“I am interested in this role because it matches both my technical background and the direction I want to grow.
+I have around nine years of Java backend experience, including Spring Boot, REST APIs, database design, cloud integration, production support, and team leadership.”
+</p>
+<p class="answer">
+“What attracts me is the opportunity to work on systems with meaningful scale and stronger architecture challenges.
+I believe I can contribute through backend design, code quality, mentoring, production troubleshooting, and communication with different teams.
+At the same time, I want to continue growing in system design, cloud architecture, and technical leadership.”
+</p>
+<p class="answer">
+“Before the interview, I would customize this answer with the company product, engineering culture, and the specific responsibility of the role.
+A generic answer is not enough for a senior position.”
+</p>
+
+</section>
+
+<section id="q29" class="question">
+  <div class="meta">Round 3 — Techno-Managerial</div>
+  <h2>29. What is the most challenging task you faced in your last project?</h2>
+  
+<p class="answer">
+“One of the most challenging tasks in my recent project was designing the security architecture for a commercial SIM card management system.
+The system had different user groups with different authentication requirements.
+Customer users used Cognito custom authentication with email OTP, while admin users used TOTP through an authenticator application.”
+</p>
+<p class="answer">
+“We also needed fine-grained authorization for APIs, screens, and resource ownership.
+For example, normal users could only access their own data, while operators had role-based permissions.
+I designed the backend authentication flow, integrated Cognito and AWS services, and used Spring AOP for some resource-level authorization checks.”
+</p>
+<p class="answer">
+“The difficult part was balancing security, maintainability, and user experience.
+We also had to pass several customer security scans.
+I worked closely with the team, reviewed the implementation, fixed security findings, and supported production release.
+The final solution passed the security review and was successfully released.”
+</p>
+
+</section>
+
+<section id="q30" class="question">
+  <div class="meta">Round 3 — Techno-Managerial</div>
+  <h2>30. Did you face any conflicts with teammates? How did you handle them?</h2>
+  
+<p class="answer">
+“Yes. I have faced technical disagreements, but I try to handle them as engineering discussions, not personal conflicts.”
+</p>
+<p class="answer">
+“For example, two team members had different views about where validation should be placed.
+One preferred putting most validation in the controller, while the other wanted all validation in the service.
+I asked both sides to explain the reason, risks, and effect on testing and reuse.”
+</p>
+<p class="answer">
+“We agreed that request format validation belongs at the API boundary, while business validation belongs in the service or domain layer.
+I documented the decision and added it to the team guideline.
+The important part was to make the decision based on maintainability and consistency, not based on seniority or personal preference.”
+</p>
+
+</section>
+
+<section id="q31" class="question">
+  <div class="meta">Interview Questions 2 — Round 1</div>
+  <h2>31. Which Java version do you use? Do you have Java 8 experience?</h2>
+  
+<p class="answer">
+“I currently work mainly with Java 17 and Java 21, and I also have strong Java 8 experience.
+Java 8 was very important because it introduced lambdas, Stream API, Optional, default interface methods, and the modern Date-Time API.”
+</p>
+<p class="answer">
+“In newer Java versions, I use records, sealed classes, switch expressions, pattern matching, better garbage collectors, and virtual threads where they fit the workload.
+I do not upgrade only for new syntax.
+I also check framework compatibility, library support, deployment environment, and LTS support.”
+</p>
+
+</section>
+
+<section id="q32" class="question">
+  <div class="meta">Interview Questions 2 — Round 1</div>
+  <h2>32. Explain SOLID principles.</h2>
+  
+<p class="answer">
+“SOLID is a practical design guide for writing code that is easier to change and test.
+I normally explain it with a real example instead of only definitions.”
+</p>
+<p class="answer">
+“In a payment module, PaymentService should focus on payment workflow, while persistence and notification are separated.
+That is SRP.
+A new payment provider should be added through a new implementation instead of changing a large if-else block.
+That is OCP.
+Every provider must follow the PaymentGateway contract.
+That is LSP.
+The interface should contain only methods the client really needs.
+That is ISP.
+Finally, PaymentService should depend on PaymentGateway, not directly on a vendor SDK.
+That is DIP.”
+</p>
+<p class="answer">
+“I also mention that SOLID can be overused.
+The goal is not to maximize the number of interfaces.
+The goal is to make change safer.”
+</p>
+
+</section>
+
+<section id="q33" class="question">
+  <div class="meta">Interview Questions 2 — Round 1</div>
+  <h2>33. Intermediate vs terminal operations and lazy evaluation in Stream API.</h2>
+  
+<p class="answer">
+“Intermediate operations return another stream.
+Examples are <code>filter</code>, <code>map</code>, <code>sorted</code>, and <code>distinct</code>.
+Terminal operations produce a final result or side effect.
+Examples are <code>toList</code>, <code>collect</code>, <code>reduce</code>, <code>count</code>, and <code>forEach</code>.”
+</p>
+<p class="answer">
+“Intermediate operations are lazy.
+They do not run until a terminal operation is called.”
+</p>
+<pre><code>Stream&lt;String&gt; stream = names.stream()
+        .filter(name -&gt; {
+            System.out.println("Filtering " + name);
+            return name.length() &gt; 3;
+        });
+
+// Nothing has executed yet
+
+List&lt;String&gt; result = stream.toList();</code></pre>
+<p class="answer">
+“This lazy behavior allows the Stream API to avoid unnecessary work.
+For example, with <code>findFirst</code>, processing can stop as soon as the first matching element is found.”
+</p>
+
+</section>
+
+<section id="q34" class="question">
+  <div class="meta">Interview Questions 2 — Round 1</div>
+  <h2>34. How does HashMap work internally?</h2>
+  
+<p class="answer">
+“HashMap uses an internal bucket array.
+For <code>put</code>, it calculates a hash, finds the bucket index, and then either adds a new node, replaces an existing value, or handles a collision.
+For <code>get</code>, it calculates the same bucket index and then compares the stored hash and key equality.”
+</p>
+<p class="answer">
+“Average performance is O(1), but it depends on good hash distribution.
+Java 8 can change a long collision list into a red-black tree, improving worst-case lookup from O(n) to O(log n).”
+</p>
+<p class="answer">
+“A correct <code>equals</code> and <code>hashCode</code> implementation is essential.
+If two objects are equal, they must return the same hash code.
+Mutable keys are also dangerous because changing a field used in hashCode can make the entry difficult to find.”
+</p>
+
+</section>
+
+<section id="q35" class="question">
+  <div class="meta">Interview Questions 2 — Round 1</div>
+  <h2>35. Find the smallest positive missing integer.</h2>
+  
+<p class="answer">
+“I would first clarify the expected complexity.
+The common optimal solution is O(n) time and O(1) extra space.
+The idea is to place each value x at index x - 1 when x is inside the range from 1 to n.”
+</p>
+<pre><code>public int firstMissingPositive(int[] nums) {
+    int n = nums.length;
+
+    for (int i = 0; i &lt; n; i++) {
+        while (nums[i] &gt; 0
+                &amp;&amp; nums[i] &lt;= n
+                &amp;&amp; nums[nums[i] - 1] != nums[i]) {
+
+            int correctIndex = nums[i] - 1;
+
+            int temp = nums[i];
+            nums[i] = nums[correctIndex];
+            nums[correctIndex] = temp;
+        }
+    }
+
+    for (int i = 0; i &lt; n; i++) {
+        if (nums[i] != i + 1) {
+            return i + 1;
+        }
+    }
+
+    return n + 1;
+}</code></pre>
+<p class="answer">
+“After rearranging, the first index where the value is not index plus one gives the smallest missing positive number.”
+</p>
+
+</section>
+
+<section id="q36" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>36. Do you have AWS experience? Which service triggered Lambda?</h2>
+  
+<p class="answer">
+“Yes. I have worked with AWS services such as Cognito, Lambda, SQS, API Gateway, CloudWatch, and S3.
+Lambda can be triggered by many services, depending on the use case.”
+</p>
+<p class="answer">
+“For synchronous API processing, API Gateway can trigger Lambda.
+For asynchronous work, SQS or SNS can trigger it.
+S3 can trigger Lambda when a file is uploaded.
+EventBridge can trigger Lambda from scheduled or event-based rules.
+Cognito can also invoke Lambda during authentication flows.”
+</p>
+<p class="answer">
+“In my project, Cognito triggers were relevant for custom authentication and OTP-related flows.
+The important design decision is to understand whether the trigger is synchronous or asynchronous, how retry works, and whether the Lambda function must be idempotent.”
+</p>
+
+</section>
+
+<section id="q37" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>37. Explain CompletableFuture.</h2>
+  
+<p class="answer">
+“CompletableFuture is a Java API for asynchronous computation and composition.
+It allows me to start tasks, transform results, combine independent tasks, and handle errors without manually managing threads at every step.”
+</p>
+<pre><code>CompletableFuture&lt;User&gt; userFuture =
+        CompletableFuture.supplyAsync(
+                () -&gt; userClient.getUser(userId),
+                executor
+        );
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; orderFuture =
+        CompletableFuture.supplyAsync(
+                () -&gt; orderClient.getOrders(userId),
+                executor
+        );
+
+UserSummary result = userFuture
+        .thenCombine(orderFuture, UserSummary::new)
+        .exceptionally(error -&gt; UserSummary.empty())
+        .join();</code></pre>
+<p class="answer">
+“I use <code>thenApply</code> for a synchronous transformation, <code>thenCompose</code> when the next step also returns a CompletableFuture, and <code>thenCombine</code> for independent tasks.”
+</p>
+<p class="answer">
+“In production, I avoid using the common ForkJoinPool for blocking I/O.
+I use a dedicated executor with a controlled size.
+I also add timeouts and handle partial failure carefully.
+CompletableFuture is useful, but it does not automatically make blocking work non-blocking.”
+</p>
+
+</section>
+
+<section id="q38" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>38. How does garbage collection work in heap memory?</h2>
+  
+<p class="answer">
+“Most JVM collectors use the generational idea because most objects die young.
+New objects are usually allocated in Eden.
+When Eden fills, a young-generation collection checks which objects are still alive.
+Surviving objects may move between survivor spaces and later be promoted to the old generation.”
+</p>
+<p class="answer">
+“The collector finds live objects from GC Roots.
+Depending on the collector, it may use marking, copying, sweeping, and compaction.
+Compaction is useful because it reduces memory fragmentation.”
+</p>
+<p class="answer">
+“In production, a GC issue is not only about total heap size.
+I also check allocation rate, object lifetime, promotion rate, pause time, and whether the old generation keeps growing.
+A memory leak in Java usually means objects are still reachable even though the application no longer needs them.”
+</p>
+
+</section>
+
+<section id="q39" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>39. Runnable vs Callable.</h2>
+  
+<p class="answer">
+“Runnable represents a task that does not return a result and cannot declare a checked exception in its method signature.
+Callable returns a value and can throw a checked exception.”
+</p>
+<pre><code>Callable&lt;Integer&gt; task = () -&gt; {
+    return 42;
+};
+
+Future&lt;Integer&gt; future = executor.submit(task);
+Integer result = future.get();</code></pre>
+<p class="answer">
+“I use Runnable for fire-and-forget style work where no result is needed.
+I use Callable when the caller needs a result or exception information.
+In modern asynchronous flows, I may also use CompletableFuture because it supports better composition than plain Future.”
+</p>
+
+</section>
+
+<section id="q40" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>40. synchronized vs ReentrantLock.</h2>
+  
+<p class="answer">
+“Both provide mutual exclusion, meaning only one thread can enter the protected critical section at a time.
+<code>synchronized</code> is built into the language and releases the lock automatically when the block ends.”
+</p>
+<p class="answer">
+“ReentrantLock is a more flexible API.
+It supports <code>tryLock</code>, interruptible locking, optional fairness, and multiple conditions.
+However, I must always unlock it in a finally block.”
+</p>
+<pre><code>lock.lock();
+try {
+    // critical section
+} finally {
+    lock.unlock();
+}</code></pre>
+<p class="answer">
+“For simple locking, I prefer synchronized because it is safer and easier to read.
+I choose ReentrantLock when I need timed lock attempts, interruptible waiting, or more advanced condition control.”
+</p>
+
+</section>
+
+<section id="q41" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>41. Explain Spring AOP.</h2>
+  
+<p class="answer">
+“Spring AOP handles cross-cutting concerns, meaning logic that appears across many business components.
+Common examples are transactions, logging, security checks, metrics, and caching.”
+</p>
+<p class="answer">
+“Spring usually creates a proxy around the target bean.
+The proxy intercepts the method call, runs advice before or after the method, and then delegates to the real target.”
+</p>
+<p class="answer">
+“The main terms are Aspect, Advice, Pointcut, Join Point, and Proxy.
+A common real example is <code>@Transactional</code>.
+The transaction logic is applied around the business method without placing transaction code inside the method itself.”
+</p>
+<p class="answer">
+“One important limitation is self-invocation.
+A method inside the same class may call another method directly and bypass the proxy.
+Spring AOP is also mainly method-execution based, not full bytecode weaving like AspectJ.”
+</p>
+
+</section>
+
+<section id="q42" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>42. Explain IoC / Dependency Injection.</h2>
+  
+<p class="answer">
+“Inversion of Control means the framework controls object creation and lifecycle instead of application code creating everything manually.
+Dependency Injection is the mechanism used to provide dependencies to an object.”
+</p>
+<pre><code>@Service
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+}</code></pre>
+<p class="answer">
+“I prefer constructor injection because dependencies are explicit, required fields can be final, and the class is easy to test.
+Field injection hides dependencies and makes unit testing harder.”
+</p>
+<p class="answer">
+“DI reduces direct coupling, but it does not automatically create good architecture.
+If a service depends on twenty other services, the problem is still poor responsibility design.”
+</p>
+
+</section>
+
+<section id="q43" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>43. How do you handle distributed transactions?</h2>
+  
+<p class="answer">
+“I handle distributed transactions with local transactions and reliable messaging instead of one global transaction.
+My preferred pattern is Saga with Transactional Outbox.”
+</p>
+<p class="answer">
+“For example, the order service writes the order and an outbox event in one local database transaction.
+A publisher sends the event to Kafka.
+The payment and inventory services process their own local transactions.
+Each consumer must be idempotent because messages may be delivered more than once.”
+</p>
+<p class="answer">
+“If a later step fails, the system performs a compensation, such as releasing inventory or refunding payment.
+I also include retry, backoff, dead-letter handling, and reconciliation jobs.
+The exact design depends on whether the business requires immediate consistency or can accept eventual consistency.”
+</p>
+
+</section>
+
+<section id="q44" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>44. How can Kafka guarantee message delivery?</h2>
+  
+<p class="answer">
+“Kafka provides configurable delivery guarantees, but the full guarantee depends on producer, broker, consumer, and application design.”
+</p>
+<p class="answer">
+“On the producer side, I use <code>acks=all</code>, retries, and idempotence.
+On the broker side, I use a suitable replication factor and <code>min.insync.replicas</code>.
+On the consumer side, I commit the offset only after successful processing.”
+</p>
+<p class="answer">
+“In most real systems, I design for at-least-once delivery and make the consumer idempotent.
+For example, I store a processed event ID or use a unique business key.
+Kafka transactions can support exactly-once processing inside Kafka workflows, but exactly-once across an external database and many services still requires careful application design.”
+</p>
+
+</section>
+
+<section id="q45" class="question">
+  <div class="meta">Interview Questions 2 — Round 2</div>
+  <h2>45. How do you optimize SQL query performance?</h2>
+  
+<p class="answer">
+“I start with measurement, not assumptions.
+I use <code>EXPLAIN ANALYZE</code> to understand the real execution plan and compare estimated rows with actual rows.”
+</p>
+<p class="answer">
+“Then I check whether the query scans too many rows, whether indexes match the filter and sort conditions, whether joins are efficient, and whether the application has N+1 queries.
+I also avoid selecting unnecessary columns and add pagination for large result sets.”
+</p>
+<p class="answer">
+“I do not add indexes blindly.
+Indexes improve reads but increase write cost, storage, and maintenance.
+For composite indexes, column order matters.
+I choose the order based on equality conditions, range conditions, sorting, and selectivity.”
+</p>
+<p class="answer">
+“I also check database statistics, lock waits, I/O, connection pool usage, and query frequency.
+A query that is slow once may not be the most important query to optimize.”
+</p>
+
+</section>
+
+<section id="q46" class="question">
+  <div class="meta">Interview Questions 2 — Round 3</div>
+  <h2>46. Explain your current project architecture.</h2>
+  
+<p class="answer">
+“My recent project is a commercial SIM card management system that was built from scratch.
+The backend uses Java and Spring Boot, the frontend uses Next.js, and PostgreSQL is the main database.
+We also use AWS Cognito, SQS, Lambda, and other AWS services.”
+</p>
+<p class="answer">
+“The backend is organized into clear layers and modules.
+Controllers handle API concerns, application services coordinate business flows, repositories handle database access, and integration adapters communicate with Cognito, SQS, Lambda, and external systems.”
+</p>
+<p class="answer">
+“For authentication, customer users use Cognito custom authentication with email OTP, while admin users use TOTP.
+For authorization, we use role-based permissions and resource ownership checks.
+Some access rules are implemented through Spring AOP so users can only access their own resources.”
+</p>
+<p class="answer">
+“I was responsible for requirement analysis, backend architecture, codebase preparation, core feature implementation, code review, production release, log tracing, and fixing critical production issues.
+The main design focus was maintainability, transaction management, security, API consistency, and production support.”
+</p>
+
+</section>
+
+<section id="q47" class="question">
+  <div class="meta">Interview Questions 2 — Round 3</div>
+  <h2>47. Why use DDD for microservices?</h2>
+  
+<p class="answer">
+“DDD is useful because it helps us understand business boundaries before deciding service boundaries.
+A bounded context defines where one business model and language are valid.”
+</p>
+<p class="answer">
+“For example, Order, Payment, and Customer may have different meanings and rules.
+DDD helps each team own its model and avoid one shared domain model across the whole company.”
+</p>
+<p class="answer">
+“However, I do not say that every bounded context must become a microservice.
+DDD defines business boundaries.
+Microservices define deployment boundaries.
+I may first implement bounded contexts inside a modular monolith and split them later when independent deployment, scaling, or ownership is needed.”
+</p>
+
+</section>
+
+<section id="q48" class="question">
+  <div class="meta">Interview Questions 2 — Round 3</div>
+  <h2>48. What is idempotency in REST APIs?</h2>
+  
+<p class="answer">
+“Idempotency means repeating the same request produces the same business effect.
+This is very important when clients retry because of network timeout.”
+</p>
+<p class="answer">
+“For example, a payment request should not charge the customer twice.
+The client sends an idempotency key.
+The server stores the key and result.
+If the same key is received again, the server returns the previous result instead of processing a new payment.”
+</p>
+<p class="answer">
+“I also use a database unique constraint because two duplicate requests may arrive at the same time.
+The check and save must be atomic.
+GET, PUT, and DELETE are expected to be idempotent by HTTP semantics, but POST needs explicit design when the business operation must be idempotent.”
+</p>
+
+</section>
+
+<section id="q49" class="question">
+  <div class="meta">Interview Questions 2 — Round 3</div>
+  <h2>49. Composite primary key and multiple database connection in Spring Boot.</h2>
+  
+<p class="answer">
+“For a composite primary key, I can use <code>@EmbeddedId</code> or <code>@IdClass</code>.
+I prefer <code>@EmbeddedId</code> when I want the key represented as one value object.
+The key class must correctly implement <code>equals</code>, <code>hashCode</code>, and Serializable.”
+</p>
+<p class="answer">
+“For multiple database connections, I define separate DataSource, EntityManagerFactory, TransactionManager, and repository packages for each database.
+I also make the transaction manager explicit when needed.”
+</p>
+<pre><code>@EnableJpaRepositories(
+        basePackages = "com.example.order.repository",
+        entityManagerFactoryRef = "orderEntityManagerFactory",
+        transactionManagerRef = "orderTransactionManager"
+)</code></pre>
+<p class="answer">
+“The main risk is transaction confusion.
+A transaction manager for one database does not automatically make operations in another database part of the same ACID transaction.
+If one business flow updates two databases, I need to design the consistency model carefully.”
+</p>
+
+</section>
+
+<section id="q50" class="question">
+  <div class="meta">Interview Questions 2 — Round 3</div>
+  <h2>50. How do you test a catch block?</h2>
+  
+<p class="answer">
+“I do not test a catch block only to increase code coverage.
+I test the observable behavior that should happen when the dependency throws an exception.”
+</p>
+<pre><code>@Test
+void shouldWrapProviderExceptionAndRecordFailure() {
+    when(paymentProvider.pay(any()))
+            .thenThrow(new ProviderException("timeout"));
+
+    PaymentException exception = assertThrows(
+            PaymentException.class,
+            () -&gt; paymentService.pay(request)
+    );
+
+    assertEquals("PAYMENT_FAILED", exception.getCode());
+    verify(auditService).recordFailure(any());
+}</code></pre>
+<p class="answer">
+“In this test, I force the dependency to throw the expected exception.
+Then I verify that the service converts it into the correct domain exception and performs the required side effect.
+I avoid testing private implementation details.”
+</p>
+
+</section>
+
+</main>
+</div>
+
+<script>
+const themeBtn = document.getElementById('themeBtn');
+if (localStorage.getItem('senior-interview-theme') === 'dark') {
+  document.body.classList.add('dark');
+}
+themeBtn.onclick = () => {
+  document.body.classList.toggle('dark');
+  localStorage.setItem(
+    'senior-interview-theme',
+    document.body.classList.contains('dark') ? 'dark' : 'light'
+  );
+};
+
+document.getElementById('topBtn').onclick = () =>
+  window.scrollTo({ top:0, behavior:'smooth' });
+
+const search = document.getElementById('search');
+search.addEventListener('input', () => {
+  const keyword = search.value.toLowerCase().trim();
+
+  document.querySelectorAll('.question').forEach(section => {
+    section.classList.toggle(
+      'hidden',
+      keyword && !section.innerText.toLowerCase().includes(keyword)
+    );
+  });
+
+  document.querySelectorAll('nav a').forEach(link => {
+    link.classList.toggle(
+      'hidden',
+      keyword && !link.innerText.toLowerCase().includes(keyword)
+    );
+  });
+});
+
+const links = [...document.querySelectorAll('nav a')];
+const sectionsList = [...document.querySelectorAll('.question')];
+
+window.addEventListener('scroll', () => {
+  let current = '';
+
+  for (const section of sectionsList) {
+    if (window.scrollY >= section.offsetTop - 150) {
+      current = section.id;
+    }
+  }
+
+  links.forEach(link => {
+    link.classList.toggle(
+      'active',
+      link.getAttribute('href') === '#' + current
+    );
+  });
+});
+</script>
+</body>
+</html>

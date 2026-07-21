@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Senior Java Backend Interview Questions and Answers for engineers with 9+ years of experience." />
+  <title>Senior Java Interview — 9 Years Experience</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #eef3ff;
+      --text: #172033;
+      --muted: #5f6b7d;
+      --border: #dfe5ef;
+      --primary: #315efb;
+      --primary-soft: #e8edff;
+      --success: #16794b;
+      --warning: #9a5b00;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --shadow: 0 10px 35px rgba(31, 45, 79, 0.09);
+      --radius: 18px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --panel: #151b23;
+      --panel-2: #1b2430;
+      --text: #e6edf3;
+      --muted: #9aa7b8;
+      --border: #2b3543;
+      --primary: #82a5ff;
+      --primary-soft: #202d4d;
+      --success: #5bd49b;
+      --warning: #ffc56d;
+      --code-bg: #090d12;
+      --code-text: #e6edf3;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    button, input { font: inherit; }
+
+    a { color: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand {
+      min-width: max-content;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand span { color: var(--primary); }
+
+    .search-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px 10px 40px;
+      outline: none;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 12px;
+      cursor: pointer;
+      min-width: max-content;
+    }
+
+    .icon-btn:hover { border-color: var(--primary); }
+
+    .hero {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 56px 24px 30px;
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: 48px;
+      background:
+        radial-gradient(circle at 90% 15%, rgba(255,255,255,.2), transparent 28%),
+        linear-gradient(135deg, #1f3fbf 0%, #315efb 48%, #6e50e9 100%);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card::after {
+      content: "JAVA";
+      position: absolute;
+      right: 34px;
+      bottom: -34px;
+      font-size: clamp(80px, 14vw, 190px);
+      font-weight: 900;
+      opacity: .08;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 18px 0 12px;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+    }
+
+    .hero p {
+      max-width: 860px;
+      margin: 0;
+      font-size: 18px;
+      color: rgba(255,255,255,.88);
+    }
+
+    .stats {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 14px;
+      padding: 12px 16px;
+      min-width: 135px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .layout {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px 24px 70px;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 78px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .nav-link {
+      display: block;
+      text-decoration: none;
+      padding: 9px 11px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      margin: 3px 0;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .progress-wrap {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-value {
+      height: 100%;
+      width: 0;
+      background: var(--primary);
+      transition: width .25s ease;
+    }
+
+    .content { min-width: 0; }
+
+    .intro-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .intro-panel h2 { margin-top: 0; }
+
+    .answer-framework {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .framework-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 15px;
+      background: var(--panel-2);
+    }
+
+    .framework-item strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .section {
+      scroll-margin-top: 90px;
+      margin: 28px 0 38px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: clamp(25px, 3vw, 38px);
+      letter-spacing: -0.035em;
+    }
+
+    .section-header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .section-count {
+      min-width: max-content;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .qa-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 13px 0;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform .18s ease, border-color .18s ease;
+    }
+
+    .qa-card:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+    }
+
+    .qa-card.hidden { display: none; }
+
+    .question {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 20px 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .q-number {
+      display: grid;
+      place-items: center;
+      min-width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .q-title {
+      flex: 1;
+      font-weight: 800;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .chevron {
+      color: var(--muted);
+      transition: transform .2s ease;
+      font-size: 20px;
+    }
+
+    .qa-card.open .chevron { transform: rotate(180deg); }
+
+    .answer {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 22px;
+    }
+
+    .qa-card.open .answer { display: block; }
+
+    .label {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--primary);
+      margin-bottom: 7px;
+    }
+
+    .senior-answer {
+      border-left: 4px solid var(--primary);
+      background: var(--panel-2);
+      border-radius: 0 13px 13px 0;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .senior-answer p:first-child { margin-top: 0; }
+    .senior-answer p:last-child { margin-bottom: 0; }
+
+    .notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 17px;
+    }
+
+    .note-box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 15px 17px;
+    }
+
+    .note-box h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .note-box ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .note-box li { margin: 5px 0; }
+
+    .vi {
+      margin-top: 17px;
+      padding-top: 17px;
+      border-top: 1px dashed var(--border);
+      color: var(--muted);
+    }
+
+    .vi strong { color: var(--text); }
+
+    pre {
+      margin: 15px 0 0;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 14px;
+      padding: 18px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    :not(pre) > code {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-size: .92em;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      display: none;
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .footer {
+      max-width: 1440px;
+      margin: 0 auto 40px;
+      padding: 0 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .back-to-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      border: 0;
+      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: none;
+      font-weight: 900;
+    }
+
+    .back-to-top.visible { display: block; }
+
+    mark {
+      background: #ffe88f;
+      color: #241c00;
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .sidebar nav {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+      }
+      .nav-link { min-width: max-content; }
+      .answer-framework { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .topbar-inner { padding: 10px 14px; }
+      .brand { display: none; }
+      .hero { padding: 25px 14px 18px; }
+      .hero-card { padding: 28px 22px; border-radius: 20px; }
+      .hero p { font-size: 16px; }
+      .layout { padding: 14px 14px 55px; }
+      .answer-framework,
+      .notes { grid-template-columns: 1fr; }
+      .question { padding: 17px; }
+      .answer { padding: 17px; }
+      .section-header { align-items: flex-start; }
+      .section-count { display: none; }
+      .icon-btn .label-text { display: none; }
+    }
+
+    @media print {
+      .topbar, .sidebar, .back-to-top { display: none !important; }
+      .layout { display: block; padding: 0; }
+      .hero { padding: 0 0 20px; }
+      .hero-card { box-shadow: none; }
+      .qa-card { box-shadow: none; break-inside: avoid; }
+      .answer { display: block !important; }
+      .content { width: 100%; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">Senior Java <span>Interview</span></div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input id="searchInput" type="search" placeholder="Search questions, concepts, or keywords..." aria-label="Search interview questions" />
+      </div>
+      <button class="icon-btn" id="expandAllBtn" type="button">＋ <span class="label-text">Expand all</span></button>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle dark mode">☾</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-card">
+      <span class="eyebrow">Senior Backend Engineer · 9 Years Experience</span>
+      <h1>Java Interview Questions & Senior-Level Answers</h1>
+      <p>
+        A practical interview guide focused on internal mechanisms, trade-offs, production experience,
+        performance, reliability, and architecture decisions—not only definitions.
+      </p>
+      <div class="stats">
+        <div class="stat"><strong>36</strong><span>Interview questions</span></div>
+        <div class="stat"><strong>7</strong><span>Core topic groups</span></div>
+        <div class="stat"><strong>EN + VI</strong><span>Bilingual notes</span></div>
+        <div class="stat"><strong>Senior</strong><span>Production mindset</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <h3>Topics</h3>
+      <nav>
+        <a class="nav-link" href="#java-core">1. Java Core & Collections</a>
+        <a class="nav-link" href="#concurrency">2. Multithreading</a>
+        <a class="nav-link" href="#spring">3. Spring & Transactions</a>
+        <a class="nav-link" href="#database">4. Database & Indexing</a>
+        <a class="nav-link" href="#async-reactive">5. Async & Reactive</a>
+        <a class="nav-link" href="#microservices">6. Microservices</a>
+        <a class="nav-link" href="#system-design">7. System Design Scenarios</a>
+      </nav>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span>Reading progress</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-value" id="progressValue"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="intro-panel">
+        <h2>How a senior engineer should answer</h2>
+        <p>
+          Avoid giving only a definition. A strong answer normally explains the mechanism, the reason,
+          the trade-off, and a real production example.
+        </p>
+        <div class="answer-framework">
+          <div class="framework-item"><strong>1. Definition</strong>Explain the concept clearly in one or two sentences.</div>
+          <div class="framework-item"><strong>2. Internal mechanism</strong>Describe what happens inside Java, Spring, the database, or the infrastructure.</div>
+          <div class="framework-item"><strong>3. Trade-offs</strong>Explain when to use it, when not to use it, and its risks.</div>
+          <div class="framework-item"><strong>4. Production example</strong>Connect the answer to performance, reliability, security, or maintainability.</div>
+        </div>
+      </section>
+
+      <div id="emptyState" class="empty-state">
+        <h3>No matching questions</h3>
+        <p>Try another keyword such as <code>HashMap</code>, <code>transaction</code>, <code>index</code>, or <code>race condition</code>.</p>
+      </div>
+
+      <!-- JAVA CORE -->
+      <section class="section" id="java-core">
+        <div class="section-header">
+          <div>
+            <h2>1. Java Core & Collections</h2>
+            <p>Internal implementation, contracts, complexity, and design decisions.</p>
+          </div>
+          <span class="section-count">6 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="hashmap hash collision tree red black tree resize bucket">
+          <button class="question" type="button">
+            <span class="q-number">01</span>
+            <span class="q-title">How does HashMap work internally?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>HashMap</code> stores entries in an array of buckets. When we call <code>put(key, value)</code>,
+                Java first calculates a spread hash from <code>key.hashCode()</code>, then finds the bucket index
+                using <code>(table.length - 1) & hash</code>.
+              </p>
+              <p>
+                If the bucket is empty, the entry is inserted directly. If another entry already exists, HashMap
+                compares the hash and then uses <code>equals()</code> to find the same logical key. A collision is
+                stored in a linked list, and in Java 8+, a heavily-collided bucket may be converted into a red-black
+                tree when the bucket reaches the treeification threshold and the table is large enough.
+              </p>
+              <p>
+                The average lookup complexity is O(1), but poor hash distribution can degrade performance. Resizing
+                happens when the number of entries exceeds <code>capacity × loadFactor</code>. HashMap is not
+                thread-safe; concurrent structural changes can cause lost updates and inconsistent results.
+              </p>
+            </div>
+            <div class="notes">
+              <div class="note-box">
+                <h4>Important details</h4>
+                <ul>
+                  <li>Default load factor: 0.75.</li>
+                  <li>Treeification threshold: 8 entries.</li>
+                  <li>Tree bins help reduce worst-case lookup toward O(log n).</li>
+                  <li>Correct <code>equals()</code> and <code>hashCode()</code> are required.</li>
+                </ul>
+              </div>
+              <div class="note-box">
+                <h4>Production perspective</h4>
+                <ul>
+                  <li>Use immutable keys where possible.</li>
+                  <li>Pre-size large maps to reduce resize overhead.</li>
+                  <li>Use <code>ConcurrentHashMap</code> for shared mutable maps.</li>
+                  <li>A bad custom hash function can create a performance hotspot.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> HashMap dùng mảng bucket. Hash quyết định bucket, còn <code>equals()</code> xác định đúng key. Collision được lưu bằng linked list hoặc red-black tree. Cần nhấn mạnh cơ chế resize, độ phức tạp và HashMap không thread-safe.</div>
+            <div class="tag-row"><span class="tag">Collections</span><span class="tag">Hashing</span><span class="tag">Red-black tree</span></div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="equals hashcode contract set map duplicate key">
+          <button class="question" type="button">
+            <span class="q-number">02</span>
+            <span class="q-title">What is the contract between equals() and hashCode()?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                If two objects are equal according to <code>equals()</code>, they must return the same hash code.
+                The reverse is not required because different objects may have the same hash code.
+              </p>
+              <p>
+                Collections such as <code>HashMap</code> and <code>HashSet</code> first use the hash code to locate
+                a bucket, then use <code>equals()</code> to find the matching object. Overriding only one method
+                breaks this lookup process and can produce duplicate logical keys or failed lookups.
+              </p>
+            </div>
+            <pre><code>public final class CustomerKey {
+    private final String tenantId;
+    private final String customerId;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof CustomerKey)) return false;
+        CustomerKey other = (CustomerKey) obj;
+        return Objects.equals(tenantId, other.tenantId)
+            && Objects.equals(customerId, other.customerId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tenantId, customerId);
+    }
+}</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Hai object bằng nhau thì bắt buộc cùng hash code. Nếu override <code>equals()</code> mà không override <code>hashCode()</code>, HashMap có thể tìm sai bucket và không lấy được value.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="arraylist linkedlist complexity cache locality insert random access">
+          <button class="question" type="button">
+            <span class="q-number">03</span>
+            <span class="q-title">ArrayList vs LinkedList: which one would you choose?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I choose based on the dominant access pattern, not only Big-O notation. <code>ArrayList</code>
+                provides O(1) random access, good CPU cache locality, and usually lower memory overhead. Appending is
+                amortized O(1), although resizing occasionally copies the backing array.
+              </p>
+              <p>
+                <code>LinkedList</code> has O(n) random access and each element requires node pointers. Insertion is
+                O(1) only after we already have the target node; finding that node is still O(n). In most business
+                applications, ArrayList performs better. For queue or deque behavior, I usually choose
+                <code>ArrayDeque</code> instead of LinkedList.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Không nên chỉ nói LinkedList insert O(1). Muốn insert đúng vị trí vẫn phải duyệt O(n). ArrayList thường nhanh hơn do cache locality và ít object hơn.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="sorting timsort dual pivot quicksort arrays collections stable">
+          <button class="question" type="button">
+            <span class="q-number">04</span>
+            <span class="q-title">How is sorting implemented in Java?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                The implementation depends on the data type and API. Object arrays are commonly sorted with a stable
+                TimSort-style algorithm because preserving the order of equal elements is useful. Primitive arrays
+                commonly use Dual-Pivot Quicksort because it performs well in memory and avoids object comparison
+                overhead.
+              </p>
+              <p>
+                The important design point is that no single sorting algorithm is best for every input. Stability,
+                memory usage, primitive versus object data, nearly-sorted input, and parallelism all influence the
+                implementation choice.
+              </p>
+            </div>
+            <div class="notes">
+              <div class="note-box"><h4>Interview depth</h4><ul><li>Know stable vs unstable sorting.</li><li>Know average O(n log n).</li><li>Do not claim one algorithm is used everywhere.</li></ul></div>
+              <div class="note-box"><h4>Usage</h4><ul><li>Use a clear comparator.</li><li>A comparator must be consistent and transitive.</li><li>For huge data, database or external sorting may be better.</li></ul></div>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Java chọn thuật toán khác nhau tùy object array hay primitive array. Senior answer nên nói về stability, memory và trade-off, không chỉ nhớ tên thuật toán.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="optional null return type parameter field misuse">
+          <button class="question" type="button">
+            <span class="q-number">05</span>
+            <span class="q-title">Why do we need Optional, and when should we avoid it?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>Optional</code> makes the absence of a return value explicit and encourages callers to handle
+                it intentionally. It is useful as a method return type, especially for repository or lookup
+                operations.
+              </p>
+              <p>
+                I avoid using Optional as an entity field, DTO field, or method parameter because it complicates
+                serialization, frameworks, and method signatures. I also avoid calling <code>get()</code> without
+                checking. Optional improves API clarity, but it is not a universal replacement for null.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Optional phù hợp nhất cho return type để biểu diễn “có thể không có dữ liệu”. Không nên lạm dụng trong field, DTO hoặc parameter.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="immutable class thread safe defensive copy final">
+          <button class="question" type="button">
+            <span class="q-number">06</span>
+            <span class="q-title">How do you design an immutable class, and why is it useful?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                An immutable object cannot change after construction. I make the class final, fields private and
+                final, initialize all state in the constructor, provide no mutating methods, and use defensive copies
+                for mutable input or output objects.
+              </p>
+              <p>
+                Immutability simplifies reasoning, makes sharing across threads safer, prevents accidental state
+                corruption, and works well for value objects and map keys. The trade-off is additional object
+                allocation when values change.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Immutable object không đổi state sau khi tạo. Nó giúp thread-safety và giảm side effect, nhưng mỗi lần thay đổi phải tạo object mới.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- CONCURRENCY -->
+      <section class="section" id="concurrency">
+        <div class="section-header">
+          <div>
+            <h2>2. Multithreading & Concurrency</h2>
+            <p>Visibility, atomicity, ordering, thread pools, and production race conditions.</p>
+          </div>
+          <span class="section-count">7 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="thread safe unsafe race condition shared mutable state">
+          <button class="question" type="button">
+            <span class="q-number">07</span>
+            <span class="q-title">What makes code thread-safe or thread-unsafe?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Code is thread-safe when multiple threads can execute it concurrently without violating its
+                invariants or producing incorrect results. The main risk is shared mutable state. An operation such
+                as <code>count++</code> is not atomic; it contains read, calculate, and write steps that can interleave.
+              </p>
+              <p>
+                I first try to remove shared mutable state through immutability, local variables, partitioning, or
+                message passing. If sharing is necessary, I use the smallest suitable coordination mechanism:
+                atomics, concurrent collections, locks, synchronization, or database constraints.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Thread-safe không có nghĩa là “có synchronized”. Cách tốt nhất thường là giảm shared mutable state trước, rồi mới chọn cơ chế đồng bộ phù hợp.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="volatile synchronized visibility atomicity ordering java memory model">
+          <button class="question" type="button">
+            <span class="q-number">08</span>
+            <span class="q-title">What does volatile guarantee, and why does it not make code thread-safe?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>volatile</code> provides visibility and ordering guarantees. A thread reading a volatile
+                variable sees the most recently published write, and volatile access creates a happens-before
+                relationship around that variable.
+              </p>
+              <p>
+                It does not make compound actions atomic. For example, <code>counter++</code> remains unsafe because
+                two threads can read the same value and overwrite each other. Volatile is suitable for status flags,
+                configuration references, or single-writer publication. For compound state changes, I use an atomic
+                type or locking.
+              </p>
+            </div>
+            <pre><code>private volatile boolean shutdownRequested;
+
+public void shutdown() {
+    shutdownRequested = true;
+}
+
+public void runLoop() {
+    while (!shutdownRequested) {
+        doWork();
+    }
+}</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> volatile bảo đảm thread khác nhìn thấy giá trị mới và hạn chế reordering, nhưng không bảo đảm atomicity cho thao tác nhiều bước như <code>i++</code>.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="synchronized lock reentrantlock trylock fairness interruptible">
+          <button class="question" type="button">
+            <span class="q-number">09</span>
+            <span class="q-title">synchronized vs Lock: how do you choose?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I use <code>synchronized</code> for simple critical sections because it is concise, automatically
+                releases the monitor, and is easier to review. I use <code>ReentrantLock</code> when I need
+                <code>tryLock()</code>, interruptible acquisition, multiple conditions, timed waits, or explicit
+                fairness configuration.
+              </p>
+              <p>
+                The choice is not mainly about raw speed. Modern JVMs optimize synchronized well. The more important
+                concerns are correctness, lock scope, contention, failure handling, and observability.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> synchronized phù hợp khi logic đơn giản. Lock dùng khi cần timeout, tryLock, interrupt hoặc nhiều Condition. Senior nên nhấn mạnh lock scope và contention.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="thread pool core pool max queue rejection executor cpu io formula">
+          <button class="question" type="button">
+            <span class="q-number">10</span>
+            <span class="q-title">How do you size and configure a thread pool?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Thread-pool sizing depends on workload, latency targets, downstream capacity, and blocking ratio.
+                For CPU-bound work, a starting point is close to the number of CPU cores. For blocking I/O, a common
+                estimate is:
+                <code>threads ≈ cores × (1 + wait time / compute time)</code>.
+              </p>
+              <p>
+                I do not apply the formula blindly. I also define a bounded queue, a rejection policy, meaningful
+                thread names, metrics, and shutdown behavior. An unbounded queue can hide overload until latency and
+                memory usage become dangerous. The pool must also respect limits of databases and remote services.
+              </p>
+            </div>
+            <div class="notes">
+              <div class="note-box"><h4>Configuration</h4><ul><li>corePoolSize</li><li>maximumPoolSize</li><li>bounded work queue</li><li>keepAliveTime</li><li>RejectedExecutionHandler</li></ul></div>
+              <div class="note-box"><h4>Monitor</h4><ul><li>active threads</li><li>queue size</li><li>task latency</li><li>rejection count</li><li>downstream saturation</li></ul></div>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Không chỉ chọn core/max pool size. Cần bounded queue, rejection policy, metric và phải phù hợp với DB connection pool hoặc giới hạn downstream.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="deadlock livelock starvation lock order timeout">
+          <button class="question" type="button">
+            <span class="q-number">11</span>
+            <span class="q-title">How do you prevent and diagnose deadlocks?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                A deadlock happens when threads wait forever for locks held by each other. I prevent it by enforcing a
+                consistent lock order, minimizing nested locks, keeping critical sections small, and using timed
+                lock acquisition where appropriate.
+              </p>
+              <p>
+                In production, I inspect thread dumps and look for blocked threads and ownership cycles. I correlate
+                the dump with request traces and lock-related metrics. The fix should remove the circular dependency,
+                not only increase timeouts.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Cách phòng ngừa phổ biến nhất là lock ordering thống nhất. Khi debug dùng thread dump để tìm thread BLOCKED và vòng chờ lock.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="completablefuture async compose combine exception executor">
+          <button class="question" type="button">
+            <span class="q-number">12</span>
+            <span class="q-title">Explain CompletableFuture and common production pitfalls.</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>CompletableFuture</code> represents a value that will be available later and allows us to build
+                asynchronous pipelines. I use <code>thenApply</code> for transformation, <code>thenCompose</code> for
+                dependent asynchronous calls, and <code>thenCombine</code> for independent calls.
+              </p>
+              <p>
+                The common problems are accidentally using the shared common pool, blocking with <code>get()</code>
+                or <code>join()</code>, missing timeout handling, losing tracing context, and creating more parallel
+                work than downstream systems can handle. In server applications, I normally use an explicitly
+                configured executor and define exception and timeout behavior.
+              </p>
+            </div>
+            <pre><code>CompletableFuture&lt;Profile&gt; profile =
+    CompletableFuture.supplyAsync(() -&gt; profileClient.load(userId), ioExecutor);
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; orders =
+    CompletableFuture.supplyAsync(() -&gt; orderClient.load(userId), ioExecutor);
+
+return profile
+    .thenCombine(orders, UserDashboard::new)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(this::fallbackDashboard);</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> CompletableFuture giúp chạy và kết hợp task bất đồng bộ. Cần tránh dùng common pool tùy tiện, tránh block, và phải có timeout/fallback.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="concurrenthashmap atomic computeifabsent lock striping">
+          <button class="question" type="button">
+            <span class="q-number">13</span>
+            <span class="q-title">How does ConcurrentHashMap provide thread safety?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>ConcurrentHashMap</code> allows concurrent reads and updates without locking the entire map.
+                Modern implementations use volatile reads, CAS operations, and synchronized access at bucket level
+                during structural changes.
+              </p>
+              <p>
+                Individual methods are thread-safe, but a sequence of methods may still have a race condition. I use
+                atomic compound APIs such as <code>putIfAbsent</code>, <code>compute</code>, or
+                <code>computeIfAbsent</code> instead of a separate check-then-act sequence.
+              </p>
+            </div>
+            <pre><code>// Unsafe compound logic
+if (!cache.containsKey(key)) {
+    cache.put(key, loadValue(key));
+}
+
+// Atomic map operation
+return cache.computeIfAbsent(key, this::loadValue);</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Mỗi method riêng lẻ thread-safe, nhưng chuỗi containsKey rồi put vẫn có race condition. Nên dùng atomic API như computeIfAbsent.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- SPRING -->
+      <section class="section" id="spring">
+        <div class="section-header">
+          <div>
+            <h2>3. Spring Boot & Transaction Management</h2>
+            <p>Proxy behavior, bean lifecycle, dependency design, and data consistency.</p>
+          </div>
+          <span class="section-count">6 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="dependency injection constructor field spring bean testability">
+          <button class="question" type="button">
+            <span class="q-number">14</span>
+            <span class="q-title">Why do you prefer constructor injection?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Constructor injection makes mandatory dependencies explicit, allows fields to be final, supports
+                immutability, and makes unit tests easy without starting Spring. It also prevents partially
+                initialized objects.
+              </p>
+              <p>
+                A constructor with too many dependencies is useful design feedback. It often means the class has too
+                many responsibilities and should be decomposed.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Constructor injection giúp dependency bắt buộc rõ ràng, dễ test, dùng final field. Quá nhiều dependency cũng là dấu hiệu class vi phạm SRP.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="transactional self invocation proxy same class spring aop">
+          <button class="question" type="button">
+            <span class="q-number">15</span>
+            <span class="q-title">What happens when one method calls another @Transactional method in the same class?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                In the common proxy-based Spring transaction model, self-invocation bypasses the proxy. Therefore,
+                calling a transactional method through <code>this.method()</code> does not trigger new transactional
+                advice such as starting a transaction or applying a different propagation level.
+              </p>
+              <p>
+                I usually move the transactional boundary to another Spring bean, redesign the service boundary, or
+                place the annotation on the externally-invoked public method. Injecting the bean into itself is
+                possible but normally makes the design harder to understand.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Spring transaction thường chạy qua proxy. Gọi method trong cùng object không đi qua proxy nên annotation có thể không có hiệu lực.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="transaction propagation required requires_new nested rollback">
+          <button class="question" type="button">
+            <span class="q-number">16</span>
+            <span class="q-title">Explain transaction propagation with a practical example.</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                <code>REQUIRED</code> joins the current transaction or creates one if none exists. It is the default
+                and fits most business operations. <code>REQUIRES_NEW</code> suspends the outer transaction and starts
+                an independent transaction.
+              </p>
+              <p>
+                For example, I may save a payment audit record in a new transaction so the failure evidence remains
+                even if the main payment transaction rolls back. However, overusing REQUIRES_NEW consumes additional
+                database connections and can create confusing partial commits.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> REQUIRED dùng chung transaction hiện tại. REQUIRES_NEW tạo transaction độc lập, phù hợp một số audit log nhưng có nguy cơ partial commit và tốn connection.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="circular dependency spring fix design lazy setter">
+          <button class="question" type="button">
+            <span class="q-number">17</span>
+            <span class="q-title">What is a circular dependency, and how would you fix it?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                A circular dependency exists when bean A depends on bean B and bean B depends directly or indirectly
+                on bean A. Constructor injection exposes the problem early because Spring cannot construct either
+                object first.
+              </p>
+              <p>
+                I treat it as a design smell. Typical fixes are extracting a third service, introducing an event,
+                moving orchestration to a higher-level component, or separating read and write responsibilities.
+                <code>@Lazy</code> can break the cycle technically, but it should not be the default architectural fix.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Circular dependency thường cho thấy responsibility bị trộn. Nên refactor boundary thay vì chỉ dùng @Lazy để che vấn đề.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="jpa dirty checking flush persistence context transaction">
+          <button class="question" type="button">
+            <span class="q-number">18</span>
+            <span class="q-title">Explain JPA dirty checking and flush.</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                When an entity is managed inside the persistence context, Hibernate keeps track of its original
+                state. If the entity changes, Hibernate detects the difference and generates an update during flush.
+                We do not always need to call <code>save()</code> again for a managed entity.
+              </p>
+              <p>
+                Flush synchronizes pending changes to the database, but it does not commit the transaction. It can
+                happen before commit, before some queries, or when called explicitly. I use explicit flush only when
+                I need database constraints or generated SQL to be executed at a specific point.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Dirty checking tự phát hiện entity bị đổi trong persistence context. Flush đẩy SQL xuống DB nhưng chưa commit transaction.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="n plus one fetch join entity graph batch size jpa">
+          <button class="question" type="button">
+            <span class="q-number">19</span>
+            <span class="q-title">What is the N+1 query problem, and how do you solve it?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                N+1 happens when one query loads a list of parent entities and then N additional queries load related
+                data for each parent. It often appears because lazy relationships are accessed inside a loop.
+              </p>
+              <p>
+                I first confirm it using SQL logs, tracing, or database metrics. Depending on the use case, I use a
+                fetch join, entity graph, DTO projection, batch fetching, or a dedicated query. I avoid changing every
+                relationship to EAGER because that creates different performance and memory problems.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> N+1 là 1 query lấy danh sách và N query lấy relation. Fix theo use case bằng fetch join, projection, entity graph hoặc batch fetching, không nên đổi tất cả thành EAGER.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- DATABASE -->
+      <section class="section" id="database">
+        <div class="section-header">
+          <div>
+            <h2>4. Database, Indexing & Locking</h2>
+            <p>B+Tree internals, isolation, execution plans, and data correctness.</p>
+          </div>
+          <span class="section-count">6 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="btree b+tree index database page leaf node range query">
+          <button class="question" type="button">
+            <span class="q-number">20</span>
+            <span class="q-title">How does a B+Tree database index work?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                A B+Tree index is a balanced, multi-level structure optimized for storage pages. Internal nodes guide
+                the search, while leaf nodes contain indexed keys and row references, usually ordered and linked for
+                efficient range scans.
+              </p>
+              <p>
+                Because each node contains many keys, the tree has a small height, so the database needs only a few
+                page reads for a lookup. B+Trees support equality, prefix, range, and ordered access well. The trade-off
+                is additional storage and write overhead because inserts, updates, and deletes must maintain the index.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> B+Tree có fan-out lớn nên chiều cao thấp. Leaf node có thứ tự và liên kết, vì vậy vừa tìm equality tốt vừa scan range tốt.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="composite index leftmost prefix selectivity covering index">
+          <button class="question" type="button">
+            <span class="q-number">21</span>
+            <span class="q-title">How do you design a composite index?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I design a composite index from real query patterns. Column order matters because the index is
+                organized from left to right. I usually place equality-filter columns first, then range or sorting
+                columns, while also considering selectivity and index reuse.
+              </p>
+              <p>
+                For example, an index on <code>(tenant_id, status, created_at)</code> can support queries filtered by
+                tenant, tenant plus status, and tenant plus status plus a created-at range. It normally cannot
+                efficiently support a query filtering only by <code>created_at</code>.
+              </p>
+            </div>
+            <pre><code>CREATE INDEX idx_order_tenant_status_created
+ON orders (tenant_id, status, created_at DESC);</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Composite index phải dựa vào query. Quy tắc leftmost prefix rất quan trọng; thứ tự cột quyết định index dùng được cho điều kiện nào.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="isolation read committed repeatable read serializable phantom dirty read">
+          <button class="question" type="button">
+            <span class="q-number">22</span>
+            <span class="q-title">Explain transaction isolation levels and their trade-offs.</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Isolation controls how concurrent transactions observe each other. Higher isolation reduces anomalies
+                but may increase locking, retries, and latency.
+              </p>
+              <p>
+                Read Committed prevents dirty reads and is a common default. Repeatable Read gives a more stable view
+                during a transaction, although exact behavior depends on the database implementation. Serializable
+                provides the strongest isolation by making concurrent execution behave like a serial order, but it may
+                abort transactions or reduce concurrency.
+              </p>
+              <p>
+                I choose isolation based on business invariants. For critical state transitions, I may combine normal
+                isolation with optimistic locking, explicit row locks, or unique constraints instead of making every
+                transaction serializable.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Isolation càng cao thì consistency mạnh hơn nhưng concurrency thấp hơn hoặc retry nhiều hơn. Phải chọn theo business invariant, không chọn mức cao nhất cho mọi API.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="optimistic pessimistic locking version select for update">
+          <button class="question" type="button">
+            <span class="q-number">23</span>
+            <span class="q-title">Optimistic locking vs pessimistic locking?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Optimistic locking assumes conflicts are uncommon. A version column is checked during update, and if
+                another transaction already changed the row, the update fails and the application can retry or return
+                a conflict.
+              </p>
+              <p>
+                Pessimistic locking acquires a database lock, such as <code>SELECT ... FOR UPDATE</code>, before the
+                change. It is useful when conflicts are frequent and the protected section is short, but it reduces
+                concurrency and can contribute to deadlocks.
+              </p>
+              <p>
+                I normally prefer optimistic locking for user-driven updates and pessimistic locking for short,
+                high-contention critical sections where retrying after expensive work would be risky.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Optimistic dùng version và phù hợp khi conflict ít. Pessimistic khóa row trước, phù hợp critical section ngắn nhưng có thể gây wait và deadlock.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="execution plan explain analyze full table scan nested loop hash join">
+          <button class="question" type="button">
+            <span class="q-number">24</span>
+            <span class="q-title">How do you analyze and optimize a slow SQL query?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I start with evidence: query latency, frequency, rows returned, parameter values, lock wait, and
+                execution plan. I compare estimated rows with actual rows using tools such as
+                <code>EXPLAIN ANALYZE</code>.
+              </p>
+              <p>
+                I look for full scans on large tables, poor join order, incorrect cardinality estimates, repeated
+                nested loops, sorting or spilling, missing indexes, non-sargable predicates, and over-fetching. Then I
+                change one thing at a time and measure again. Sometimes the correct fix is query redesign, partitioning,
+                caching, or reducing result size—not simply adding an index.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Tối ưu query phải dựa vào execution plan và số liệu thật. Không nên thấy chậm là thêm index ngay.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="unique constraint idempotency payment duplicate request">
+          <button class="question" type="button">
+            <span class="q-number">25</span>
+            <span class="q-title">Why should business uniqueness be enforced in the database?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                An application-level “check then insert” is not enough because concurrent requests can both pass the
+                check before either insert commits. A database unique constraint provides the final atomic guarantee.
+              </p>
+              <p>
+                I still validate in the application for a friendly error, but I treat the database constraint as the
+                source of truth and handle the duplicate-key exception. This is especially important for idempotency
+                keys, external transaction IDs, usernames, and payment references.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Hai request đồng thời có thể cùng vượt qua bước check. Unique constraint mới là lớp bảo vệ atomic cuối cùng.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ASYNC / REACTIVE -->
+      <section class="section" id="async-reactive">
+        <div class="section-header">
+          <div>
+            <h2>5. Synchronous, Asynchronous & Reactive</h2>
+            <p>Execution models, backpressure, blocking boundaries, and use cases.</p>
+          </div>
+          <span class="section-count">4 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="synchronous asynchronous blocking non blocking use case">
+          <button class="question" type="button">
+            <span class="q-number">26</span>
+            <span class="q-title">Synchronous vs asynchronous programming: when would you use each?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Synchronous code waits for a result before continuing. It is simple to understand and is appropriate
+                when the operation is fast, the dependency is local, or the caller truly needs an immediate result.
+              </p>
+              <p>
+                Asynchronous processing decouples the caller from completion. It is useful for long-running work,
+                notifications, file processing, retries, and workflows that do not require an immediate response.
+                However, asynchronous design introduces delivery guarantees, retry behavior, ordering, idempotency,
+                monitoring, and eventual consistency concerns.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Async không tự động tốt hơn sync. Async phù hợp khi caller không cần kết quả ngay, nhưng phải giải quyết retry, duplicate, ordering và monitoring.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="reactive programming webflux reactor mono flux backpressure">
+          <button class="question" type="button">
+            <span class="q-number">27</span>
+            <span class="q-title">What problem does reactive programming solve?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Reactive programming helps systems handle many concurrent I/O operations with a small number of
+                threads by using non-blocking APIs and event-driven execution. Reactor represents zero-or-one result
+                with <code>Mono</code> and multiple results with <code>Flux</code>.
+              </p>
+              <p>
+                It is valuable for high-concurrency I/O gateways, streaming, and fan-out calls when the full stack is
+                non-blocking. It is less useful for simple CRUD systems or when most dependencies are blocking. Mixing
+                blocking calls into the event loop can remove the scalability benefit and cause severe latency.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Reactive giúp xử lý nhiều I/O concurrent với ít thread. Chỉ có lợi khi toàn bộ chain gần như non-blocking; gọi JDBC hoặc block trên event loop sẽ gây nghẽn.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="backpressure producer consumer reactive stream overload">
+          <button class="question" type="button">
+            <span class="q-number">28</span>
+            <span class="q-title">What is backpressure?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Backpressure is a mechanism that prevents a fast producer from overwhelming a slower consumer. In
+                Reactive Streams, the consumer signals how many items it is ready to receive.
+              </p>
+              <p>
+                Without backpressure, queues grow, memory increases, and latency becomes unbounded. Depending on the
+                business case, the system may buffer with a limit, drop items, keep only the latest item, slow the
+                producer, or reject work.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Backpressure kiểm soát tốc độ producer theo khả năng consumer. Mục tiêu là tránh queue tăng vô hạn và OOM.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="reactor blocking call boundedelastic event loop">
+          <button class="question" type="button">
+            <span class="q-number">29</span>
+            <span class="q-title">How do you handle unavoidable blocking work in WebFlux?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I isolate unavoidable blocking work from the event-loop threads and schedule it on a bounded worker
+                pool such as <code>boundedElastic</code>. I also limit concurrency and monitor queueing because moving
+                blocking work to another scheduler does not remove the underlying capacity limit.
+              </p>
+              <p>
+                If the system is mostly blocking, I reconsider whether WebFlux is the correct architecture. A regular
+                thread-per-request model may be simpler and more predictable.
+              </p>
+            </div>
+            <pre><code>Mono.fromCallable(() -&gt; legacyBlockingClient.load(id))
+    .subscribeOn(Schedulers.boundedElastic())
+    .timeout(Duration.ofSeconds(2));</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Chuyển blocking call sang boundedElastic chỉ cô lập nó khỏi event loop, không làm nó thành non-blocking. Cần limit concurrency và xem lại kiến trúc nếu blocking chiếm đa số.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- MICROSERVICES -->
+      <section class="section" id="microservices">
+        <div class="section-header">
+          <div>
+            <h2>6. Microservices & Loose Coupling</h2>
+            <p>Boundaries, resilience, consistency, and operational trade-offs.</p>
+          </div>
+          <span class="section-count">4 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="loose coupling microservice contract event database ownership">
+          <button class="question" type="button">
+            <span class="q-number">30</span>
+            <span class="q-title">How do you design loose coupling between microservices?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                Loose coupling means a service can evolve without requiring coordinated internal changes in many
+                other services. I define boundaries around business capabilities, keep data ownership inside the
+                service, and expose stable contracts rather than internal tables or domain objects.
+              </p>
+              <p>
+                I use versioned APIs or events, consumer-driven contract tests, backward-compatible schema evolution,
+                idempotent consumers, and clear ownership. Sharing one database across services usually creates strong
+                runtime and deployment coupling.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Loose coupling đến từ boundary, data ownership và contract ổn định. Không nên để service khác truy cập trực tiếp table nội bộ.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="circuit breaker retry timeout bulkhead resilience">
+          <button class="question" type="button">
+            <span class="q-number">31</span>
+            <span class="q-title">Explain the circuit breaker pattern.</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                A circuit breaker stops sending requests to a failing dependency after failures cross a configured
+                threshold. In the open state, calls fail fast. After a wait period, the half-open state allows a small
+                number of test requests. If they succeed, the circuit closes; otherwise, it opens again.
+              </p>
+              <p>
+                A circuit breaker must be combined with sensible timeouts, limited retries, bulkheads, and monitoring.
+                Retrying every failure can amplify an outage. I retry only transient and idempotent operations, with
+                exponential backoff and jitter.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Circuit breaker fail-fast để không tiếp tục dồn request vào dependency đang lỗi. Phải đi cùng timeout, retry có giới hạn và bulkhead.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="distributed transaction saga outbox eventual consistency">
+          <button class="question" type="button">
+            <span class="q-number">32</span>
+            <span class="q-title">How do you maintain consistency across microservices?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I avoid distributed ACID transactions when possible. Instead, I model the workflow as a saga with
+                local transactions and compensating actions, or use orchestration when the workflow needs centralized
+                visibility.
+              </p>
+              <p>
+                To publish events reliably after a database change, I use the transactional outbox pattern. The local
+                transaction stores both business data and an outbox record, and a separate publisher sends the event.
+                Consumers must be idempotent because at-least-once delivery can create duplicates.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Microservice thường dùng eventual consistency. Outbox giúp tránh trường hợp DB commit nhưng event publish fail. Consumer phải idempotent.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="monolith microservice modular monolith tradeoff">
+          <button class="question" type="button">
+            <span class="q-number">33</span>
+            <span class="q-title">When would you choose a modular monolith instead of microservices?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I choose a modular monolith when the domain or team boundaries are still evolving, the scale does not
+                require independent deployment, and operational simplicity is valuable. Strong internal modules can
+                preserve boundaries without paying the network, deployment, observability, and consistency cost of
+                microservices.
+              </p>
+              <p>
+                Microservices are justified when independent scaling, release cadence, ownership, fault isolation, or
+                regulatory separation provides enough business value. They are not automatically more modern or more
+                maintainable.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Modular monolith thường phù hợp khi team nhỏ hoặc domain chưa ổn định. Microservice chỉ nên dùng khi lợi ích độc lập deploy/scale/ownership lớn hơn operational cost.</div>
+          </div>
+        </article>
+      </section>
+
+      <!-- SYSTEM DESIGN -->
+      <section class="section" id="system-design">
+        <div class="section-header">
+          <div>
+            <h2>7. Senior System Design Scenarios</h2>
+            <p>Real incidents and decisions expected from a 9-year backend engineer.</p>
+          </div>
+          <span class="section-count">3 questions</span>
+        </div>
+
+        <article class="qa-card" data-keywords="payment race condition duplicate completed idempotency lock">
+          <button class="question" type="button">
+            <span class="q-number">34</span>
+            <span class="q-title">Two request threads both call a payment provider for the same payment. How would you fix it?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I treat this as an idempotency and state-transition problem. The first protection is a unique
+                idempotency key or provider transaction reference. Inside the database, I update the payment from
+                <code>PENDING</code> to <code>PROCESSING</code> atomically using a version check or conditional update.
+                Only the request that successfully changes the state may call the provider.
+              </p>
+              <p>
+                I also send an idempotency key to the provider if supported, persist request and response references,
+                and make retries safe. A local Java lock is insufficient in a multi-instance deployment. Depending on
+                the flow, I may use pessimistic row locking or a queue partitioned by payment ID.
+              </p>
+            </div>
+            <pre><code>UPDATE payment
+SET status = 'PROCESSING', version = version + 1
+WHERE id = :id
+  AND status = 'PENDING'
+  AND version = :currentVersion;</code></pre>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Không chỉ synchronized trong một JVM vì hệ thống có nhiều instance. Cần idempotency key, atomic state transition trong DB và hỗ trợ duplicate-safe ở provider.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="cache consistency redis database invalidate write through cache aside">
+          <button class="question" type="button">
+            <span class="q-number">35</span>
+            <span class="q-title">How do you keep Redis cache consistent with the database?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                For many read-heavy systems, I use cache-aside: read from cache, load from the database on a miss,
+                then populate the cache. On a database update, I usually delete the cache entry after the transaction
+                commits rather than updating both independently.
+              </p>
+              <p>
+                I accept a clearly-defined consistency window and use TTL as a safety net. For stronger guarantees, I
+                may publish an invalidation event through an outbox. I also protect against cache penetration with
+                validation or short-lived negative caching, and against cache stampede with request coalescing,
+                locking, or randomized expiration.
+              </p>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Cache-aside phổ biến: DB là source of truth, update DB xong thì invalidate cache. Cần xử lý penetration, stampede và thời gian dữ liệu có thể stale.</div>
+          </div>
+        </article>
+
+        <article class="qa-card" data-keywords="production incident latency cpu memory database connection pool troubleshooting">
+          <button class="question" type="button">
+            <span class="q-number">36</span>
+            <span class="q-title">A production API suddenly becomes slow. How do you investigate?</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="answer">
+            <span class="label">Senior answer</span>
+            <div class="senior-answer">
+              <p>
+                I first define the blast radius: which endpoints, tenants, regions, and time window are affected. I
+                check recent deployments and configuration changes, then use metrics and traces to locate where time
+                is spent: application CPU, GC pauses, thread pools, database connection pool, SQL latency, remote
+                calls, locks, network, or queue backlog.
+              </p>
+              <p>
+                I compare current behavior with a known healthy baseline. If customer impact is high, I prioritize
+                mitigation—rollback, disable a feature, scale a bottleneck, or reduce traffic—while preserving logs
+                and evidence. After recovery, I perform root-cause analysis and add a preventive control such as an
+                alert, load test, capacity limit, timeout, or safer deployment check.
+              </p>
+            </div>
+            <div class="notes">
+              <div class="note-box"><h4>First checks</h4><ul><li>Error rate and p95/p99 latency</li><li>Recent release or config change</li><li>CPU, heap, GC, thread count</li><li>DB pool and slow queries</li></ul></div>
+              <div class="note-box"><h4>Senior behavior</h4><ul><li>Mitigate before perfect diagnosis</li><li>Communicate impact clearly</li><li>Preserve evidence</li><li>Prevent recurrence</li></ul></div>
+            </div>
+            <div class="vi"><strong>Giải thích tiếng Việt:</strong> Senior không đoán ngay nguyên nhân. Cần khoanh vùng, xem metric/trace, ưu tiên giảm impact, sau đó mới RCA và thêm biện pháp phòng ngừa.</div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top">↑</button>
+
+  <footer class="footer">
+    Senior Java Backend Interview Guide · Focus on mechanisms, trade-offs, and production experience.
+  </footer>
+
+  <script>
+    const cards = [...document.querySelectorAll('.qa-card')];
+    const searchInput = document.getElementById('searchInput');
+    const emptyState = document.getElementById('emptyState');
+    const expandAllBtn = document.getElementById('expandAllBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const backToTop = document.getElementById('backToTop');
+    const progressValue = document.getElementById('progressValue');
+    const progressText = document.getElementById('progressText');
+
+    cards.forEach(card => {
+      card.querySelector('.question').addEventListener('click', () => {
+        card.classList.toggle('open');
+      });
+    });
+
+    let allExpanded = false;
+    expandAllBtn.addEventListener('click', () => {
+      allExpanded = !allExpanded;
+      cards.filter(card => !card.classList.contains('hidden'))
+        .forEach(card => card.classList.toggle('open', allExpanded));
+      expandAllBtn.innerHTML = allExpanded
+        ? '− <span class="label-text">Collapse all</span>'
+        : '＋ <span class="label-text">Expand all</span>';
+    });
+
+    const normalize = text => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    searchInput.addEventListener('input', event => {
+      const query = normalize(event.target.value.trim());
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const haystack = normalize(card.textContent + ' ' + (card.dataset.keywords || ''));
+        const visible = !query || haystack.includes(query);
+        card.classList.toggle('hidden', !visible);
+        if (visible) {
+          visibleCount++;
+          if (query) card.classList.add('open');
+        }
+      });
+
+      document.querySelectorAll('.section').forEach(section => {
+        const visibleCards = section.querySelectorAll('.qa-card:not(.hidden)').length;
+        section.style.display = visibleCards ? '' : 'none';
+      });
+
+      emptyState.style.display = visibleCount ? 'none' : 'block';
+    });
+
+    const savedTheme = localStorage.getItem('java-interview-theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeBtn.textContent = '☀';
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? '☾' : '☀';
+      localStorage.setItem('java-interview-theme', isDark ? 'light' : 'dark');
+    });
+
+    function updateScrollState() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0;
+      progressValue.style.width = progress + '%';
+      progressText.textContent = progress + '%';
+      backToTop.classList.toggle('visible', scrollTop > 500);
+    }
+
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+    updateScrollState();
+
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    const sections = [...document.querySelectorAll('.section')];
+    const navLinks = [...document.querySelectorAll('.nav-link')];
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => link.classList.remove('active'));
+          const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Composite Index & SQL Query Optimization — Senior Backend Guide</title>
+<meta name="description" content="Deep practical guide to composite indexes, leftmost prefix, equality and range predicates, ORDER BY, covering indexes, selectivity, execution plans, pagination, joins, and senior interview questions.">
+<style>
+:root {
+  --bg:#f4f7fb; --surface:#fff; --surface2:#eef3f9; --surface3:#e3ebf5;
+  --text:#172033; --muted:#5f6b7a; --border:#d9e2ee; --accent:#2457d6;
+  --accent2:#6941c6; --soft:#eaf0ff; --green:#147d64; --greenSoft:#e7f8f2;
+  --amber:#9a5a00; --amberSoft:#fff4dd; --red:#b42318; --redSoft:#fff0ee;
+  --code:#101827; --codeText:#e8efff; --shadow:0 18px 44px rgba(24,38,65,.08);
+}
+body.dark {
+  --bg:#0c1220; --surface:#151d2c; --surface2:#1d283a; --surface3:#26344a;
+  --text:#eef3ff; --muted:#aab5c7; --border:#2c3a52; --accent:#86a9ff;
+  --accent2:#c09aff; --soft:#1c2d57; --green:#66dcb9; --greenSoft:#123a31;
+  --amber:#ffc56c; --amberSoft:#4a3213; --red:#ff938b; --redSoft:#4c211e;
+  --code:#080e19; --codeText:#e8efff; --shadow:0 20px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.72}
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:22px 18px}
+.brand{font-size:1.05rem;font-weight:850;line-height:1.35}
+.brand small{display:block;color:var(--muted);font-size:.74rem;margin-top:6px}
+.search{width:100%;margin:16px 0 12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font:inherit}
+.nav-title{margin:18px 9px 6px;text-transform:uppercase;letter-spacing:.11em;font-size:.68rem;font-weight:850;color:var(--muted)}
+.nav-link{display:block;padding:7px 10px;margin:2px 0;border-radius:9px;color:var(--text);text-decoration:none;font-size:.86rem;font-weight:680}
+.nav-link:hover,.nav-link.active{background:var(--soft);color:var(--accent)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}
+.btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:.78rem;font-weight:760}
+main{min-width:0;padding:34px clamp(18px,4vw,64px) 80px}
+.content{max-width:1180px;margin:auto}
+.hero,section{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:22px}
+.hero{padding:clamp(30px,6vw,66px);background:radial-gradient(circle at 92% 10%,rgba(105,65,198,.17),transparent 30%),radial-gradient(circle at 10% 92%,rgba(36,87,214,.14),transparent 33%),var(--surface)}
+.eyebrow,.badge{display:inline-flex;border-radius:999px;font-weight:850}
+.eyebrow{background:var(--soft);color:var(--accent);padding:6px 10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.badge{background:var(--surface2);color:var(--muted);padding:4px 8px;font-size:.72rem}
+h1{font-size:clamp(2.3rem,5vw,4.7rem);line-height:1.02;letter-spacing:-.05em;margin:16px 0 12px}
+h2{font-size:clamp(1.8rem,3vw,2.5rem);letter-spacing:-.03em;line-height:1.18}
+h3{font-size:1.36rem;margin-top:34px}
+h4{margin-bottom:8px}
+.hero p{max-width:920px;color:var(--muted);font-size:1.06rem}
+.stats,.grid-2,.grid-3,.grid-4{display:grid;gap:15px}
+.stats{grid-template-columns:repeat(5,1fr);margin-top:24px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat,.card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:17px}
+.stat strong{display:block;font-size:1.3rem} .stat span{color:var(--muted);font-size:.8rem}
+section{padding:clamp(24px,4vw,44px);margin:24px 0;scroll-margin-top:20px}
+.callout{border-left:4px solid var(--accent);background:var(--soft);border-radius:10px;padding:15px 17px;margin:16px 0}
+.callout.good{border-color:var(--green);background:var(--greenSoft)}
+.callout.warn{border-color:var(--amber);background:var(--amberSoft)}
+.callout.bad{border-color:var(--red);background:var(--redSoft)}
+.card.good{background:var(--greenSoft)} .card.warning{background:var(--amberSoft)} .card.danger{background:var(--redSoft)}
+pre{position:relative;overflow-x:auto;background:var(--code);color:var(--codeText);padding:20px;border-radius:14px;line-height:1.6;font-size:.86rem}
+code{font-family:"SFMono-Regular",Consolas,monospace}
+:not(pre)>code{background:var(--surface2);padding:2px 6px;border-radius:6px}
+.copy{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:white;border-radius:8px;padding:5px 9px;cursor:pointer}
+.diagram{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:17px;white-space:pre-wrap;font-family:Consolas,monospace}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid var(--border);padding:11px;vertical-align:top;text-align:left}
+th{background:var(--surface2)}
+.table-wrap{overflow-x:auto}
+.flow{display:grid;gap:10px}
+.step{display:grid;grid-template-columns:42px 1fr;gap:12px;background:var(--surface2);padding:13px 15px;border-radius:12px}
+.step b{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff}
+.interview{background:linear-gradient(135deg,var(--soft),var(--surface));border:1px solid var(--border);border-radius:15px;padding:18px;margin-top:20px}
+details{border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin:9px 0}
+summary{cursor:pointer;font-weight:800}
+.hidden{display:none!important}
+.footer{text-align:center;color:var(--muted);padding:20px}
+@media(max-width:1080px){.layout{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}aside nav{display:flex;overflow-x:auto;gap:5px}.nav-title{display:none}.nav-link{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){main{padding:16px 10px 50px}.hero,section{border-radius:16px}.grid-2,.grid-3,.grid-4,.stats{grid-template-columns:1fr}}
+@media print{aside,.copy,.actions,.search{display:none!important}.layout{display:block}main{padding:0}.hero,section{box-shadow:none}details>*{display:block!important}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Composite Index & Query Optimization<small>Leftmost prefix, range, ORDER BY, covering index, execution plans, and senior interview answers</small></div>
+  <input id="search" class="search" placeholder="Search topics...">
+  <nav>
+    <div class="nav-title">Foundation</div>
+    <a class="nav-link" href="#overview">Overview</a>
+    <a class="nav-link" href="#index-basics">Index basics</a>
+    <a class="nav-link" href="#composite">Composite index</a>
+    <a class="nav-link" href="#leftmost">Leftmost prefix</a>
+    <div class="nav-title">Query patterns</div>
+    <a class="nav-link" href="#equality-range">Equality & range</a>
+    <a class="nav-link" href="#skip-column">Skipping columns</a>
+    <a class="nav-link" href="#order-by">ORDER BY</a>
+    <a class="nav-link" href="#covering">Covering index</a>
+    <a class="nav-link" href="#selectivity">Selectivity</a>
+    <a class="nav-link" href="#partial">Partial/filtered indexes</a>
+    <div class="nav-title">Optimization</div>
+    <a class="nav-link" href="#execution-plan">Execution plans</a>
+    <a class="nav-link" href="#query-cases">Optimization cases</a>
+    <a class="nav-link" href="#joins">Joins</a>
+    <a class="nav-link" href="#pagination">Pagination</a>
+    <a class="nav-link" href="#write-cost">Write cost</a>
+    <a class="nav-link" href="#checklist">Checklist</a>
+    <div class="nav-title">Interview</div>
+    <a class="nav-link" href="#questions">Senior Q&A</a>
+  </nav>
+  <div class="actions">
+    <button class="btn" id="theme">Toggle theme</button>
+    <button class="btn" id="expand">Expand Q&A</button>
+    <button class="btn" onclick="window.print()">Print</button>
+  </div>
+</aside>
+
+<main><div class="content">
+<header class="hero" id="overview">
+  <span class="eyebrow">Deep SQL performance guide</span>
+  <h1>A composite index is useful only when its column order matches the query shape.</h1>
+  <p>This document explains how composite indexes really work, why a query does not need to use every indexed column, when skipping a column reduces efficiency, how equality and range predicates affect index usage, how ORDER BY and covering indexes interact with filters, and how to optimize real SQL using actual execution plans.</p>
+  <div class="callout good"><strong>Core rule:</strong> An index on <code>(A, B, C)</code> remains a composite index even when a query uses only <code>A</code> or <code>A, B</code>. The important question is not whether all columns are used, but whether the query can use the index's leftmost ordered prefix efficiently.</div>
+  <div class="stats">
+    <div class="stat"><strong>(A,B,C)</strong><span>Composite index model</span></div>
+    <div class="stat"><strong>Leftmost</strong><span>Prefix rule</span></div>
+    <div class="stat"><strong>Equality</strong><span>Before range</span></div>
+    <div class="stat"><strong>Plan</strong><span>Evidence over guessing</span></div>
+    <div class="stat"><strong>Senior</strong><span>Interview explanations</span></div>
+  </div>
+</header>
+
+<section id="index-basics" data-search="index basics btree leaf page root lookup">
+<span class="badge">Foundation</span><h2>1. How a B-tree index works</h2>
+
+<p>A B-tree index stores keys in sorted order and uses a balanced tree to navigate quickly from root pages to leaf pages.</p>
+
+<div class="diagram">Index on (customer_id, status, created_at)
+
+Root
+ ├── customer_id 1–1000
+ ├── customer_id 1001–5000
+ └── customer_id 5001+
+
+Leaf entries are ordered like:
+
+(customer_id=100, status=COMPLETED, created_at=2026-01-02)
+(customer_id=100, status=PENDING,   created_at=2026-01-01)
+(customer_id=100, status=PENDING,   created_at=2026-01-03)
+(customer_id=101, status=COMPLETED, created_at=2026-01-04)</div>
+
+<p>The index is sorted first by <code>customer_id</code>. Inside the same customer, it is sorted by <code>status</code>. Inside the same customer and status, it is sorted by <code>created_at</code>.</p>
+
+<h3>1.1 Why lookup is fast</h3>
+<p>Instead of scanning every row, the database navigates to the relevant key range, then reads only the matching portion of the index.</p>
+
+<h3>1.2 An index does not guarantee usage</h3>
+<p>The optimizer estimates cost. It may choose:</p>
+<ul>
+  <li>Index seek / index range scan.</li>
+  <li>Index scan.</li>
+  <li>Full table scan.</li>
+  <li>Bitmap/index merge techniques, depending on the database.</li>
+</ul>
+
+<div class="callout warn"><strong>Important:</strong> “An index exists” and “the optimizer uses it efficiently” are different statements.</div>
+</section>
+
+<section id="composite" data-search="composite index multiple columns definition">
+<span class="badge">Composite index</span><h2>2. What is a composite index?</h2>
+
+<pre><code>CREATE INDEX idx_orders_customer_status_created
+ON orders(customer_id, status, created_at);</code></pre>
+
+<p>This is one index containing three ordered columns. It is not three independent indexes.</p>
+
+<div class="grid-2">
+  <div class="card good">
+    <h3>What it can provide</h3>
+    <ul>
+      <li>Filtering by the leading columns.</li>
+      <li>Range scanning after equality columns.</li>
+      <li>Potential ORDER BY support.</li>
+      <li>Potential covering/index-only access.</li>
+    </ul>
+  </div>
+  <div class="card warning">
+    <h3>What it does not provide automatically</h3>
+    <ul>
+      <li>Efficient lookup by every individual column.</li>
+      <li>Efficient filtering when the leading column is missing.</li>
+      <li>Automatic speed improvement for every query.</li>
+      <li>Free performance without write cost.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>2.1 Query does not need to use every column</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Query</th><th>Expected usage</th></tr>
+<tr><td><code>WHERE customer_id = ?</code></td><td>Uses the leading part of the index well.</td></tr>
+<tr><td><code>WHERE customer_id = ? AND status = ?</code></td><td>Uses a longer prefix.</td></tr>
+<tr><td><code>WHERE customer_id = ? AND status = ? AND created_at &gt; ?</code></td><td>Uses equality prefix plus range.</td></tr>
+<tr><td><code>WHERE status = ?</code></td><td>Usually not efficient because the leading column is missing.</td></tr>
+</table></div>
+
+<div class="interview"><h3>Senior interview answer</h3><p>A composite index remains a composite index even when a query does not use all columns. The query can still use the leftmost prefix. For an index on customer_id, status, created_at, filtering by customer_id or by customer_id plus status is normally efficient. Filtering only by status usually is not, because the index is grouped by customer_id first.</p></div>
+</section>
+
+<section id="leftmost" data-search="leftmost prefix rule a b c">
+<span class="badge">Core rule</span><h2>3. Leftmost-prefix rule</h2>
+
+<p>For an index on:</p>
+
+<pre><code>INDEX (A, B, C)</code></pre>
+
+<p>The most natural searchable prefixes are:</p>
+
+<div class="diagram">(A)
+(A, B)
+(A, B, C)</div>
+
+<h3>3.1 Good cases</h3>
+
+<pre><code>WHERE A = ?
+
+WHERE A = ?
+  AND B = ?
+
+WHERE A = ?
+  AND B = ?
+  AND C &gt;= ?</code></pre>
+
+<h3>3.2 Weak cases</h3>
+
+<pre><code>WHERE B = ?
+
+WHERE C = ?
+
+WHERE B = ?
+  AND C = ?</code></pre>
+
+<p>These conditions omit the leading column A. The matching values are scattered across many A groups.</p>
+
+<h3>3.3 Visual intuition</h3>
+
+<div class="diagram">Index sorted by (A, B, C):
+
+A=1
+  B=X
+    C=10
+    C=20
+  B=Y
+    C=30
+
+A=2
+  B=X
+    C=15
+  B=Y
+    C=40
+
+Searching B=X without A:
+must inspect B=X under A=1, A=2, A=3, ...
+
+Searching A=1 and B=X:
+one compact continuous range</div>
+
+<h3>3.4 Does column order in WHERE matter?</h3>
+
+<p>Usually no. These are logically equivalent to the optimizer:</p>
+
+<pre><code>WHERE customer_id = ?
+  AND status = ?
+
+WHERE status = ?
+  AND customer_id = ?</code></pre>
+
+<p>What matters is index column order, not the text order of predicates in the WHERE clause.</p>
+</section>
+
+<section id="equality-range" data-search="equality range index order">
+<span class="badge">Index ordering</span><h2>4. Equality columns before range columns</h2>
+
+<p>Suppose the common query is:</p>
+
+<pre><code>SELECT id, status, created_at
+FROM orders
+WHERE customer_id = :customerId
+  AND status = :status
+  AND created_at &gt;= :start
+ORDER BY created_at DESC;</code></pre>
+
+<p>A strong candidate index is:</p>
+
+<pre><code>CREATE INDEX idx_orders_customer_status_created
+ON orders(customer_id, status, created_at DESC);</code></pre>
+
+<div class="diagram">customer_id = equality
+status      = equality
+created_at  = range + sort</div>
+
+<h3>4.1 Why range changes later-column usage</h3>
+
+<p>After an index range begins, later columns often cannot further narrow the searchable key range in the same way.</p>
+
+<pre><code>INDEX (customer_id, created_at, status)
+
+WHERE customer_id = 100
+  AND created_at &gt;= &#x27;2026-01-01&#x27;
+  AND status = &#x27;PENDING&#x27;</code></pre>
+
+<div class="diagram">Use customer_id = 100
+Then begin range on created_at
+status may be checked as residual/index filter
+but may not narrow the initial range efficiently</div>
+
+<h3>4.2 Equality, range, sort, include</h3>
+
+<p>A useful design heuristic:</p>
+
+<div class="diagram">1. Equality filter columns
+2. Range filter columns
+3. ORDER BY columns
+4. Covering/output columns
+
+But:
+- selectivity matters
+- query frequency matters
+- database engine matters
+- actual plan decides</div>
+
+<div class="callout warn"><strong>Do not apply this mechanically.</strong> There is no universal formula that replaces execution-plan analysis.</div>
+</section>
+
+<section id="skip-column" data-search="skip middle column composite index a c">
+<span class="badge">Special case</span><h2>5. What happens when a middle index column is skipped?</h2>
+
+<p>Index:</p>
+
+<pre><code>INDEX (customer_id, status, created_at)</code></pre>
+
+<p>Query:</p>
+
+<pre><code>WHERE customer_id = 100
+  AND created_at &gt;= &#x27;2026-01-01&#x27;</code></pre>
+
+<p>The database can normally use <code>customer_id</code> to find the customer range. However, because <code>status</code> is not constrained, the <code>created_at</code> values are grouped separately under each status.</p>
+
+<div class="diagram">customer_id=100
+  status=COMPLETED
+    created_at...
+  status=FAILED
+    created_at...
+  status=PENDING
+    created_at...
+
+To find created_at >= date for all statuses:
+the engine may inspect multiple status groups</div>
+
+<h3>5.1 Practical conclusion</h3>
+
+<ul>
+  <li>The index may still be used.</li>
+  <li>The leading customer condition remains useful.</li>
+  <li>The skipped middle column can reduce how efficiently later columns define the range.</li>
+  <li>The later column may become an additional filter rather than a full search key.</li>
+</ul>
+
+<h3>5.2 Better index for this query pattern</h3>
+
+<pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at);</code></pre>
+
+<p>But do not immediately create both indexes. Check whether one index can support several important queries and whether the write cost is acceptable.</p>
+</section>
+
+<section id="order-by" data-search="order by sort index composite">
+<span class="badge">Sorting</span><h2>6. Composite index and <code>ORDER BY</code></h2>
+
+<h3>6.1 Index can avoid sorting</h3>
+
+<pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at DESC);</code></pre>
+
+<pre><code>SELECT id, status, created_at
+FROM orders
+WHERE customer_id = 100
+ORDER BY created_at DESC
+LIMIT 20;</code></pre>
+
+<p>The database can find the customer range and read rows already ordered by <code>created_at DESC</code>.</p>
+
+<h3>6.2 Why this query is different</h3>
+
+<pre><code>SELECT id, status, created_at
+FROM orders
+ORDER BY created_at DESC
+LIMIT 20;</code></pre>
+
+<p>The index on <code>(customer_id, created_at)</code> is ordered by customer first, so it does not provide one global created_at order across all customers.</p>
+
+<h3>6.3 Equality unlocks later sort columns</h3>
+
+<div class="diagram">INDEX (customer_id, status, created_at)
+
+WHERE customer_id = 100
+  AND status = 'PENDING'
+ORDER BY created_at
+
+Both leading columns are fixed by equality
+→ created_at order becomes directly usable</div>
+
+<h3>6.4 Skipped column can prevent sort optimization</h3>
+
+<pre><code>INDEX (customer_id, status, created_at)
+
+WHERE customer_id = 100
+ORDER BY created_at</code></pre>
+
+<p>Because rows are grouped by status before created_at, the database may need a separate sort.</p>
+
+<h3>6.5 Mixed sort directions</h3>
+
+<p>Some databases can scan indexes forward or backward, but mixed direction requirements can still affect usability. Always check the actual plan.</p>
+</section>
+
+<section id="covering" data-search="covering index index only scan include columns">
+<span class="badge">Covering index</span><h2>7. Covering index and index-only scans</h2>
+
+<p>A covering index contains all columns needed by the query.</p>
+
+<pre><code>CREATE INDEX idx_orders_customer_status_created
+ON orders(customer_id, status, created_at);</code></pre>
+
+<pre><code>SELECT status, created_at
+FROM orders
+WHERE customer_id = 100;</code></pre>
+
+<p>The database may answer from the index alone without reading full table rows.</p>
+
+<h3>7.1 Benefits</h3>
+<ul>
+  <li>Less table I/O.</li>
+  <li>Fewer random lookups.</li>
+  <li>Smaller data pages than the table in some cases.</li>
+</ul>
+
+<h3>7.2 Trade-offs</h3>
+<ul>
+  <li>Larger index.</li>
+  <li>More write cost.</li>
+  <li>More memory and storage.</li>
+  <li>Database-specific conditions for true index-only access.</li>
+</ul>
+
+<h3>7.3 Included columns</h3>
+
+<p>Some databases support non-key included columns:</p>
+
+<pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at)
+INCLUDE (status, total_amount);</code></pre>
+
+<p>Included columns can help cover the query without affecting search ordering. Syntax and support differ by database.</p>
+</section>
+
+<section id="selectivity" data-search="selectivity cardinality low cardinality status">
+<span class="badge">Optimizer</span><h2>8. Selectivity and cardinality</h2>
+
+<p>Selectivity describes how much a predicate reduces rows.</p>
+
+<div class="grid-2">
+  <div class="card good">
+    <h3>High selectivity</h3>
+    <p>Returns a small percentage of the table.</p>
+    <p>Examples: unique customer ID, order ID, email.</p>
+  </div>
+  <div class="card warning">
+    <h3>Low selectivity</h3>
+    <p>Returns a large percentage of the table.</p>
+    <p>Examples: boolean flag, common status, gender field.</p>
+  </div>
+</div>
+
+<h3>8.1 Why status-only index may not help</h3>
+
+<pre><code>CREATE INDEX idx_orders_status
+ON orders(status);</code></pre>
+
+<p>If 70% of rows are <code>COMPLETED</code>, the optimizer may prefer a table scan because reading most index entries plus table rows is more expensive.</p>
+
+<h3>8.2 Status combined with a selective column</h3>
+
+<pre><code>CREATE INDEX idx_orders_customer_status
+ON orders(customer_id, status);</code></pre>
+
+<p>Even if status has low cardinality, the combination may be highly selective within one customer.</p>
+
+<h3>8.3 Data distribution matters</h3>
+
+<div class="diagram">Tenant A: 100 rows
+Tenant B: 100 million rows
+
+Same SQL + same index
+may produce different costs due to skew</div>
+
+<p>Use realistic parameters when analyzing plans.</p>
+</section>
+
+<section id="partial" data-search="partial filtered index pending status">
+<span class="badge">Specialized index</span><h2>9. Partial or filtered indexes</h2>
+
+<p>If a query frequently accesses a small subset, a partial index can be smaller and more selective.</p>
+
+<pre><code>CREATE INDEX idx_pending_orders_created
+ON orders(created_at)
+WHERE status = &#x27;PENDING&#x27;;</code></pre>
+
+<h3>9.1 Good use case</h3>
+
+<pre><code>SELECT *
+FROM orders
+WHERE status = &#x27;PENDING&#x27;
+ORDER BY created_at
+LIMIT 100;</code></pre>
+
+<p>If only 1% of orders are pending, the index is compact and efficient.</p>
+
+<h3>9.2 Limitations</h3>
+<ul>
+  <li>Database support and syntax differ.</li>
+  <li>The query predicate must match the index condition.</li>
+  <li>Too many specialized indexes increase maintenance complexity.</li>
+</ul>
+</section>
+
+<section id="execution-plan" data-search="execution plan explain analyze index scan seek">
+<span class="badge">Evidence</span><h2>10. Read the actual execution plan</h2>
+
+<h3>10.1 Do not decide from SQL text alone</h3>
+
+<pre><code>EXPLAIN ANALYZE
+SELECT id, status, created_at
+FROM orders
+WHERE customer_id = 100
+  AND status = &#x27;PENDING&#x27;
+ORDER BY created_at DESC
+LIMIT 20;</code></pre>
+
+<h3>10.2 What to check</h3>
+
+<div class="table-wrap"><table>
+<tr><th>Plan detail</th><th>Question</th></tr>
+<tr><td>Access method</td><td>Index seek/range scan, index scan, or table scan?</td></tr>
+<tr><td>Index condition</td><td>Which predicates define the searchable range?</td></tr>
+<tr><td>Filter/residual condition</td><td>Which predicates are checked after rows are found?</td></tr>
+<tr><td>Estimated rows</td><td>What did the optimizer expect?</td></tr>
+<tr><td>Actual rows</td><td>What really happened?</td></tr>
+<tr><td>Rows removed by filter</td><td>Did the index return too many candidates?</td></tr>
+<tr><td>Sort operation</td><td>Could the index have avoided it?</td></tr>
+<tr><td>Heap/table fetches</td><td>Was the query truly index-only?</td></tr>
+<tr><td>Execution vs lock wait</td><td>Was SQL slow or blocked?</td></tr>
+</table></div>
+
+<h3>10.3 Example interpretation</h3>
+
+<div class="diagram">Index range:
+customer_id = 100
+
+Residual filter:
+created_at >= 2026-01-01
+
+Meaning:
+Index helps find customer rows,
+but created_at did not fully narrow the index range,
+possibly because status was skipped.</div>
+
+<h3>10.4 Estimated vs actual row mismatch</h3>
+
+<p>A major mismatch can indicate:</p>
+<ul>
+  <li>Stale statistics.</li>
+  <li>Highly skewed data.</li>
+  <li>Correlated columns not understood by basic statistics.</li>
+  <li>Parameter-sensitive plan behavior.</li>
+</ul>
+</section>
+
+<section id="query-cases" data-search="query optimization cases sargable function wildcard or in">
+<span class="badge">Optimization cases</span><h2>11. Practical query optimization cases</h2>
+
+<h3>11.1 Function on indexed column</h3>
+
+<div class="grid-2">
+  <div class="card danger">
+    <h4>Less index-friendly</h4>
+    <pre><code>WHERE DATE(created_at) = :date</code></pre>
+  </div>
+  <div class="card good">
+    <h4>Range predicate</h4>
+    <pre><code>WHERE created_at &gt;= :start
+  AND created_at &lt; :nextDay</code></pre>
+  </div>
+</div>
+
+<h3>11.2 Implicit type conversion</h3>
+
+<pre><code>-- customer_id is numeric, but parameter is string
+WHERE customer_id = &#x27;100&#x27;</code></pre>
+
+<p>Type mismatch may prevent efficient index usage depending on conversion direction and database.</p>
+
+<h3>11.3 Leading wildcard</h3>
+
+<pre><code>WHERE name LIKE &#x27;%huy%&#x27;</code></pre>
+
+<p>A normal B-tree generally cannot seek efficiently from an unknown prefix. Consider full-text search, trigram indexes, or a search engine when substring search is required.</p>
+
+<h3>11.4 Prefix search</h3>
+
+<pre><code>WHERE name LIKE &#x27;Huy%&#x27;</code></pre>
+
+<p>A prefix search may use a suitable index because the beginning of the key is known.</p>
+
+<h3>11.5 OR conditions</h3>
+
+<pre><code>WHERE customer_id = ?
+   OR status = &#x27;PENDING&#x27;</code></pre>
+
+<p>The optimizer may use index union/bitmap operations or may scan. Sometimes splitting with <code>UNION ALL</code> is better, but only if semantics and duplicate handling are correct.</p>
+
+<h3>11.6 SELECT *</h3>
+
+<p>Returning every column increases table reads, network transfer, serialization, and prevents covering access.</p>
+
+<pre><code>SELECT id, status, created_at
+FROM orders
+WHERE customer_id = ?;</code></pre>
+
+<h3>11.7 Too many rows</h3>
+
+<p>An efficient index cannot make returning 10 million rows cheap. Add pagination, aggregation, export streaming, or a reporting design.</p>
+
+<h3>11.8 Computed expressions</h3>
+
+<p>If a function is required frequently, consider a function-based/expression index where supported, or store a normalized/search column.</p>
+
+<h3>11.9 Negative predicates</h3>
+
+<pre><code>WHERE status &lt;&gt; &#x27;COMPLETED&#x27;</code></pre>
+
+<p>Negative conditions often match large, scattered portions of the index. A partial index for active statuses or a more selective query can work better.</p>
+
+<h3>11.10 Null predicates</h3>
+
+<pre><code>WHERE processed_at IS NULL</code></pre>
+
+<p>If null rows are a small active subset, a partial index can be highly effective.</p>
+</section>
+
+<section id="joins" data-search="join indexes foreign key nested loop hash join">
+<span class="badge">Joins</span><h2>12. Composite indexes for joins</h2>
+
+<h3>12.1 Join plus filter</h3>
+
+<pre><code>SELECT o.id, p.status
+FROM orders o
+JOIN payments p ON p.order_id = o.id
+WHERE o.customer_id = ?
+  AND p.status = &#x27;COMPLETED&#x27;;</code></pre>
+
+<p>Possible useful indexes:</p>
+
+<pre><code>orders(customer_id, id)
+payments(order_id, status)</code></pre>
+
+<h3>12.2 Which side should lead?</h3>
+
+<p>It depends on the optimizer's join order and cardinality. If customer filtering returns very few orders, the database may use nested-loop lookups into payments by order_id.</p>
+
+<h3>12.3 Foreign-key indexes</h3>
+
+<p>Foreign-key columns often need indexes for joins and parent-row updates/deletes, but exact requirements differ by database and workload.</p>
+
+<h3>12.4 Many-to-many explosion</h3>
+
+<p>No index can fully solve an accidental row multiplication caused by joining multiple one-to-many relationships. Fix the query shape, aggregate separately, or split the query.</p>
+</section>
+
+<section id="pagination" data-search="pagination offset keyset seek method">
+<span class="badge">Pagination</span><h2>13. Offset versus keyset pagination</h2>
+
+<h3>13.1 Offset pagination</h3>
+
+<pre><code>SELECT id, created_at
+FROM orders
+WHERE customer_id = ?
+ORDER BY created_at DESC, id DESC
+OFFSET 100000 ROWS FETCH NEXT 20 ROWS ONLY;</code></pre>
+
+<p>The database must still locate and skip many rows.</p>
+
+<h3>13.2 Keyset pagination</h3>
+
+<pre><code>SELECT id, created_at
+FROM orders
+WHERE customer_id = ?
+  AND (created_at, id) &lt; (:lastCreatedAt, :lastId)
+ORDER BY created_at DESC, id DESC
+FETCH FIRST 20 ROWS ONLY;</code></pre>
+
+<p>Supporting index:</p>
+
+<pre><code>CREATE INDEX idx_orders_customer_created_id
+ON orders(customer_id, created_at DESC, id DESC);</code></pre>
+
+<h3>13.3 Why include a tie-breaker</h3>
+
+<p><code>created_at</code> may not be unique. Adding <code>id</code> gives deterministic ordering and prevents missing/duplicate rows between pages.</p>
+</section>
+
+<section id="write-cost" data-search="write cost too many indexes insert update delete">
+<span class="badge">Trade-offs</span><h2>14. Every index has a write cost</h2>
+
+<div class="grid-3">
+  <div class="card"><h3>INSERT</h3><p>Each index receives a new entry and may cause page split or maintenance.</p></div>
+  <div class="card"><h3>UPDATE</h3><p>Changing an indexed column updates the index entry.</p></div>
+  <div class="card"><h3>DELETE</h3><p>Index entries must be removed or marked for cleanup.</p></div>
+</div>
+
+<h3>14.1 Costs to consider</h3>
+<ul>
+  <li>Storage.</li>
+  <li>Memory/cache usage.</li>
+  <li>Write latency.</li>
+  <li>Vacuum/maintenance/rebuild time.</li>
+  <li>Backup and replication volume.</li>
+</ul>
+
+<h3>14.2 Overlapping indexes</h3>
+
+<pre><code>INDEX (customer_id)
+INDEX (customer_id, status)
+INDEX (customer_id, status, created_at)</code></pre>
+
+<p>Some indexes may be redundant, but not always. A smaller index can still be cheaper for certain queries. Use usage statistics and plans before removing one.</p>
+</section>
+
+<section id="checklist" data-search="index design checklist optimize query">
+<span class="badge">Decision guide</span><h2>15. Composite-index design checklist</h2>
+
+<div class="flow">
+  <div class="step"><b>1</b><div><strong>Capture the important query</strong><br>Exact SQL, parameters, frequency, latency, and rows returned.</div></div>
+  <div class="step"><b>2</b><div><strong>Identify equality predicates</strong><br>Columns fixed to one value.</div></div>
+  <div class="step"><b>3</b><div><strong>Identify range predicates</strong><br>Date, greater-than, between, prefix ranges.</div></div>
+  <div class="step"><b>4</b><div><strong>Identify ORDER BY and LIMIT</strong><br>Can the index return rows in required order?</div></div>
+  <div class="step"><b>5</b><div><strong>Check selectivity and data skew</strong><br>How many rows remain after each predicate?</div></div>
+  <div class="step"><b>6</b><div><strong>Consider covering columns</strong><br>Only if read benefit justifies index size.</div></div>
+  <div class="step"><b>7</b><div><strong>Inspect actual execution plan</strong><br>Seek range, residual filters, sort, rows, heap fetches.</div></div>
+  <div class="step"><b>8</b><div><strong>Measure write impact</strong><br>INSERT/UPDATE/DELETE performance and storage.</div></div>
+  <div class="step"><b>9</b><div><strong>Test with production-like data</strong><br>Especially tenant skew and common parameter values.</div></div>
+  <div class="step"><b>10</b><div><strong>Monitor after release</strong><br>Query latency, plan changes, index usage, and write cost.</div></div>
+</div>
+
+<div class="callout good"><strong>Best summary:</strong> Design indexes for workloads, not tables. One table may need different indexes for different important query patterns.</div>
+</section>
+
+<section id="questions" data-search="interview questions composite index senior">
+<span class="badge">Senior interview</span><h2>16. Interview questions and senior answers</h2>
+
+<details><summary>1. If a query does not use every column in a composite index, can the index still be used?</summary>
+<p>Yes. A query can use the leftmost prefix. For an index on A, B, C, predicates on A or A and B can normally use it efficiently. Using all columns is not required.</p></details>
+
+<details><summary>2. Why is an index on A, B, C usually weak for WHERE B = ?</summary>
+<p>Because entries are grouped first by A. Values of B are distributed under every A group, so the optimizer cannot usually navigate to one compact B range without scanning many index sections.</p></details>
+
+<details><summary>3. What happens when the query uses A and C but skips B?</summary>
+<p>The database can normally use A to locate a range. C may still be evaluated from the index, but because values are grouped by B before C, C may not fully narrow the initial range. I confirm through the execution plan.</p></details>
+
+<details><summary>4. Does WHERE predicate order need to match index order?</summary>
+<p>No. SQL predicate text order is not the same as index key order. The optimizer can reorder predicates. The defined index column order and query semantics are what matter.</p></details>
+
+<details><summary>5. Why place equality columns before range columns?</summary>
+<p>Equality predicates reduce the index to one ordered subgroup. A range can then scan a continuous section. Once a range begins, later columns often cannot narrow the searchable range as efficiently.</p></details>
+
+<details><summary>6. How can a composite index support ORDER BY?</summary>
+<p>If leading index columns are fixed by equality and the remaining key order matches ORDER BY, the database may return rows already sorted. If an unfixed column appears before the sort column, a separate sort may still be required.</p></details>
+
+<details><summary>7. What is a covering index?</summary>
+<p>It contains all columns needed by a query, allowing the database to avoid table-row lookups in suitable cases. The trade-off is a larger index and higher write cost.</p></details>
+
+<details><summary>8. Why may a status-only index not be used?</summary>
+<p>Status often has low cardinality. If one value matches a large percentage of the table, scanning the table can be cheaper than reading many index entries plus table rows.</p></details>
+
+<details><summary>9. How do you choose composite index column order?</summary>
+<p>I start from important query patterns: equality filters, range filters, join columns, ORDER BY, LIMIT, selectivity, and output columns. Then I validate with the actual execution plan and realistic data. I do not use one universal ordering rule blindly.</p></details>
+
+<details><summary>10. Can an index make writes slower?</summary>
+<p>Yes. Every insert, update, and delete may need index maintenance. More indexes increase storage, memory pressure, replication volume, and maintenance time.</p></details>
+
+<details><summary>11. Why is SELECT * bad for index-only access?</summary>
+<p>The index rarely contains every table column, so the database must fetch table rows. Selecting only required columns improves I/O, network, serialization, and the chance of covering access.</p></details>
+
+<details><summary>12. What is the difference between index seek and index scan?</summary>
+<p>A seek/range scan navigates directly to a narrow key range. An index scan reads a large portion or all of the index. A scan may still be better than a table scan if the index is smaller, but it is not the same as selective lookup.</p></details>
+
+<details><summary>13. Why can DATE(created_at) prevent index use?</summary>
+<p>The function transforms every column value before comparison, so the normal ordered key may not be directly searchable. A range predicate on the raw column is usually more index-friendly, or a function-based index may be considered.</p></details>
+
+<details><summary>14. When would you use a partial index?</summary>
+<p>When a frequently queried subset is small and stable, such as active or pending rows. A partial index can be much smaller and more selective than a full-table index.</p></details>
+
+<details><summary>15. Offset or keyset pagination?</summary>
+<p>Offset is simple but becomes expensive for deep pages. Keyset pagination uses the last ordered key and a matching composite index, giving more stable performance and consistency for large datasets.</p></details>
+
+<details><summary>16. What would a senior engineer check before adding an index?</summary>
+<p>I capture the exact query and parameters, inspect the actual plan, check selectivity, data distribution, rows examined, sort and join behavior, then estimate write and storage cost. I test with production-like data and monitor after release.</p></details>
+
+<div class="interview"><h3>Final senior answer</h3><p>A composite index is one ordered structure, so column order defines which query shapes are efficient. Queries do not need to use every column, but they usually need the leading prefix. Equality predicates normally come before range and sort columns, while skipped middle columns can reduce later-column usefulness. I verify all of this with actual execution plans, realistic parameter distributions, and write-cost measurement rather than relying only on theory.</p></div>
+</section>
+
+<div class="footer">Composite Index & SQL Query Optimization — standalone HTML guide</div>
+</div></main>
+</div>
+
+<script>
+const body=document.body;
+if(localStorage.getItem("idx-guide-theme")==="dark") body.classList.add("dark");
+document.getElementById("theme").onclick=()=>{body.classList.toggle("dark");localStorage.setItem("idx-guide-theme",body.classList.contains("dark")?"dark":"light")};
+
+document.querySelectorAll("pre").forEach(pre=>{
+  const b=document.createElement("button");
+  b.className="copy"; b.textContent="Copy";
+  b.onclick=async()=>{try{await navigator.clipboard.writeText(pre.querySelector("code").innerText);b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)}catch(e){b.textContent="Failed"}};
+  pre.appendChild(b);
+});
+
+let expanded=false;
+document.getElementById("expand").onclick=()=>{expanded=!expanded;document.querySelectorAll("details").forEach(d=>d.open=expanded);document.getElementById("expand").textContent=expanded?"Collapse Q&A":"Expand Q&A"};
+
+document.getElementById("search").addEventListener("input",e=>{
+  const q=e.target.value.trim().toLowerCase();
+  document.querySelectorAll("section").forEach(section=>{
+    const text=((section.dataset.search||"")+" "+section.innerText).toLowerCase();
+    section.classList.toggle("hidden",q && !text.includes(q));
+  });
+});
+
+const links=[...document.querySelectorAll(".nav-link")];
+const targets=links.map(l=>document.querySelector(l.getAttribute("href"))).filter(Boolean);
+const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(l=>l.classList.remove("active"));const a=document.querySelector('.nav-link[href="#'+entry.target.id+'"]');if(a)a.classList.add("active")}}),{rootMargin:"-18% 0px -68% 0px"});
+targets.forEach(t=>observer.observe(t));
+</script>
+</body>
+</html>

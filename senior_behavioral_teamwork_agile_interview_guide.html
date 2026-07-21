@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Senior behavioral, culture fit, teamwork, Agile, Scrum, working process, and task workflow interview guide." />
+  <title>Senior Behavioral, Teamwork & Agile Interview Guide</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #dce3ed;
+      --primary: #2856c6;
+      --primary-dark: #173c96;
+      --accent: #0e9384;
+      --warning: #b54708;
+      --shadow: 0 12px 35px rgba(20, 39, 74, 0.09);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at 80% 20%, rgba(69, 125, 255, .28), transparent 32%),
+        linear-gradient(135deg, #0f2457 0%, #1d428f 52%, #2458b7 100%);
+      color: white;
+      padding: 64px 24px 52px;
+    }
+    .hero-inner {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.55fr .75fr;
+      gap: 34px;
+      align-items: end;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,.08);
+    }
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(38px, 5.4vw, 68px);
+      line-height: 1.03;
+      letter-spacing: -.045em;
+      max-width: 900px;
+    }
+    .hero p {
+      max-width: 780px;
+      color: rgba(255,255,255,.84);
+      font-size: 18px;
+      margin: 0;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+    .stat {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 14px;
+      padding: 18px;
+      backdrop-filter: blur(8px);
+    }
+    .stat strong { display:block; font-size: 30px; line-height: 1.1; }
+    .stat span { color: rgba(255,255,255,.78); font-size: 13px; }
+
+    .toolbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244,247,251,.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .toolbar {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .search input {
+      border: 0;
+      outline: 0;
+      width: 100%;
+      font-size: 15px;
+      color: var(--text);
+      background: transparent;
+    }
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      padding: 11px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    button:hover { border-color: #9fb2da; color: var(--primary); }
+
+    .layout {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 32px 24px 72px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .sidebar {
+      position: sticky;
+      top: 86px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      max-height: calc(100vh - 110px);
+      overflow: auto;
+    }
+    .sidebar h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .sidebar nav {
+      display: grid;
+      gap: 5px;
+    }
+    .sidebar a {
+      text-decoration: none;
+      color: #3f4c64;
+      font-size: 13.5px;
+      line-height: 1.35;
+      padding: 8px 9px;
+      border-radius: 8px;
+    }
+    .sidebar a:hover { background: #eef3ff; color: var(--primary); }
+    .content { min-width: 0; }
+    .content-section {
+      margin-bottom: 48px;
+      scroll-margin-top: 90px;
+    }
+    .section-heading { margin: 0 0 18px; }
+    .section-kicker {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+    h2 {
+      margin: 5px 0 6px;
+      font-size: clamp(28px, 3.2vw, 40px);
+      letter-spacing: -.03em;
+      line-height: 1.15;
+    }
+    .section-heading p { color: var(--muted); margin: 0; }
+
+    .qa-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin: 12px 0;
+      box-shadow: 0 6px 18px rgba(20, 39, 74, 0.045);
+      overflow: hidden;
+    }
+    .qa-card[open] { border-color: #b8c8ea; box-shadow: var(--shadow); }
+    summary {
+      display: grid;
+      grid-template-columns: 46px minmax(0,1fr) 24px;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 19px 20px;
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .q-number {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: #edf2ff;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .q-title {
+      font-size: 17px;
+      font-weight: 760;
+      line-height: 1.35;
+    }
+    .chevron {
+      font-size: 20px;
+      color: var(--muted);
+      transition: transform .2s ease;
+    }
+    details[open] .chevron { transform: rotate(180deg); }
+    .answer {
+      padding: 0 24px 24px 78px;
+      color: #344054;
+    }
+    .answer p:first-of-type { margin-top: 10px; }
+    .answer strong { color: #172033; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 2px 0 15px;
+    }
+    .tag {
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #eef8f6;
+      color: #08766b;
+    }
+    .example, .tip, .warning {
+      padding: 14px 16px;
+      border-radius: 11px;
+      margin: 14px 0;
+      background: #f6f8fc;
+      border-left: 4px solid var(--primary);
+    }
+    .tip { background: #effaf7; border-left-color: var(--accent); }
+    .warning { background: #fff7ed; border-left-color: var(--warning); }
+    ol, ul { padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .no-results {
+      display: none;
+      padding: 30px;
+      border: 1px dashed #aab7cb;
+      border-radius: var(--radius);
+      text-align: center;
+      color: var(--muted);
+      background: white;
+    }
+    .footer {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      padding: 30px 20px 48px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .answer { padding-left: 24px; }
+    }
+    @media (max-width: 620px) {
+      .hero { padding-top: 42px; }
+      .hero-stats { grid-template-columns: 1fr 1fr; }
+      .toolbar { padding: 10px 14px; flex-wrap: wrap; }
+      .search { flex-basis: 100%; }
+      .layout { padding: 24px 14px 56px; }
+      summary { grid-template-columns: 38px minmax(0,1fr) 20px; padding: 16px 14px; }
+      .q-number { width: 34px; height: 34px; }
+      .q-title { font-size: 15px; }
+      .answer { padding: 0 16px 18px; }
+    }
+
+    @media print {
+      .toolbar-wrap, .sidebar, .footer { display: none !important; }
+      body { background: white; color: black; }
+      .hero { background: white; color: black; padding: 0 0 20px; }
+      .hero p { color: #333; }
+      .hero-stats { display: none; }
+      .layout { display: block; width: 100%; padding: 0; }
+      .qa-card { break-inside: avoid; box-shadow: none; }
+      details { display: block; }
+      details > * { display: block; }
+      .answer { padding: 0 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">Senior Interview Preparation</span>
+        <h1>Behavior, Culture, Teamwork, Agile & Working Process</h1>
+        <p>A practical question-and-answer guide for senior software engineers. The answers focus on ownership, trade-offs, communication, leadership, delivery, and real production thinking.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><strong>88</strong><span>Interview questions</span></div>
+        <div class="stat"><strong>14</strong><span>Focused sections</span></div>
+        <div class="stat"><strong>STAR+</strong><span>Answer structure</span></div>
+        <div class="stat"><strong>Senior</strong><span>Decision mindset</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar-wrap">
+    <div class="toolbar">
+      <label class="search">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Search: conflict, Scrum, ownership, incident..." />
+      </label>
+      <button id="expandAll">Expand all</button>
+      <button id="collapseAll">Collapse all</button>
+      <button onclick="window.print()">Print / PDF</button>
+    </div>
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <h3>Contents</h3>
+      <nav>
+        <a href="#answer-framework">1. Senior Answer Framework</a><a href="#behavior-ownership">2. Behavior, Ownership, and Accountability</a><a href="#culture-fit">3. Culture Fit and Culture Add</a><a href="#teamwork">4. Teamwork and Collaboration</a><a href="#conflict-feedback">5. Conflict, Communication, and Feedback</a><a href="#agile-scrum">6. Agile and Scrum</a><a href="#working-process">7. Software Working Process and SDLC</a><a href="#task-workflow">8. Task Workflow: From Ticket to Production</a><a href="#leadership">9. Leadership, Mentoring, and Influence</a><a href="#stakeholders">10. Stakeholders and Cross-Team Work</a><a href="#quality-incidents">11. Quality, Production Incidents, and Continuous Improvement</a><a href="#remote-hybrid">12. Remote and Hybrid Collaboration</a><a href="#quick-fire">13. Quick-Fire Interview Questions</a><a href="#questions-to-ask">14. Strong Questions to Ask the Interviewer</a>
+      </nav>
+    </aside>
+
+    <div class="content">
+      <div id="noResults" class="no-results">No matching questions found. Try a broader keyword.</div>
+      
+    <section id="answer-framework" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 01</span>
+        <h2>1. Senior Answer Framework</h2>
+        <p>Use this structure to avoid vague answers and show senior-level thinking.</p>
+      </div>
+      
+    <details class="qa-card" data-search="how should i structure a behavioral interview answer? behavioral framework star">
+      <summary>
+        <span class="q-number">01</span>
+        <span class="q-title">How should I structure a behavioral interview answer?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">framework</span><span class="tag">star</span></div>
+        <p>Use <strong>STAR + Decision + Impact + Learning</strong>.</p>
+<ol>
+  <li><strong>Situation:</strong> Give only the context needed to understand the problem.</li>
+  <li><strong>Task:</strong> Explain your responsibility, not only the team's responsibility.</li>
+  <li><strong>Action:</strong> Describe your decisions, trade-offs, communication, and technical or process actions.</li>
+  <li><strong>Result:</strong> Give measurable results where possible.</li>
+  <li><strong>Learning:</strong> Explain what you improved afterward.</li>
+</ol>
+<div class="example"><strong>Senior example:</strong> “The payment API had repeated duplicate requests during provider timeouts. I was responsible for stabilizing the flow before the next release. I introduced idempotency keys, database-level uniqueness, retry classification, and a reconciliation job. I also aligned the design with QA and operations. Duplicate payment incidents dropped to zero in the following two releases, and our recovery time became much shorter. The main lesson was that retry design must be considered together with idempotency and observability.”</div>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what makes an answer sound senior instead of mid-level? behavioral seniority">
+      <summary>
+        <span class="q-number">02</span>
+        <span class="q-title">What makes an answer sound senior instead of mid-level?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">seniority</span></div>
+        <p>A senior answer shows more than task execution. It shows <strong>ownership, judgment, influence, and system thinking</strong>.</p>
+<ul>
+  <li>Explain why you chose one option over another.</li>
+  <li>Show how you handled risk, dependencies, and stakeholders.</li>
+  <li>Talk about preventing the problem from happening again.</li>
+  <li>Use “I” for your contribution and “we” for team outcomes.</li>
+  <li>Include business impact, not only technical completion.</li>
+</ul>
+<div class="warning"><strong>Avoid:</strong> “My manager told me to do it, so I finished the ticket.” That sounds execution-only and does not show independent judgment.</div>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what should i do when i do not have a perfect example? behavioral framework">
+      <summary>
+        <span class="q-number">03</span>
+        <span class="q-title">What should I do when I do not have a perfect example?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">framework</span></div>
+        <p>Choose the closest real situation. Be honest about the scale. A smaller real example is stronger than an exaggerated story.</p>
+<p>You can say: “I have not handled that exact situation, but I handled a similar problem when…” Then explain the transferable decision-making process.</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="behavior-ownership" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 02</span>
+        <h2>2. Behavior, Ownership, and Accountability</h2>
+        <p>Questions that test responsibility, judgment, resilience, and self-management.</p>
+      </div>
+      
+    <details class="qa-card" data-search="tell me about a difficult problem you owned from beginning to end. behavioral ownership">
+      <summary>
+        <span class="q-number">04</span>
+        <span class="q-title">Tell me about a difficult problem you owned from beginning to end.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">ownership</span></div>
+        <p><strong>Senior answer:</strong> “In one release, an onboarding flow failed intermittently after external identity verification. The issue crossed frontend, backend, Cognito, and a third-party API, so no single ticket clearly owned it. I took ownership of the end-to-end investigation. I created a timeline from distributed logs, added correlation IDs, reproduced the timeout condition, and found that retries were creating inconsistent user states. I proposed a state-machine approach, separated retryable and non-retryable errors, and added reconciliation. I coordinated the rollout with QA, operations, and the frontend team. The failure rate dropped significantly, support cases reduced, and the team reused the same diagnostic pattern for later integrations.”</p>
+<p><strong>Why this is strong:</strong> It shows end-to-end ownership, cross-team coordination, prevention, and measurable impact.</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="tell me about a mistake you made. behavioral accountability learning">
+      <summary>
+        <span class="q-number">05</span>
+        <span class="q-title">Tell me about a mistake you made.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">accountability</span><span class="tag">learning</span></div>
+        <p><strong>Senior answer:</strong> “I once approved a caching change that improved latency but caused stale authorization data for a small set of users. I had focused too much on performance and did not define a clear invalidation strategy. I owned the issue, rolled back safely, informed stakeholders, and led the root-cause review. We then introduced cache ownership rules, TTL guidance, invalidation events, and test cases for stale-data scenarios. The important lesson was that cache correctness must be designed before cache performance.”</p>
+<div class="tip"><strong>Good signal:</strong> Accept responsibility without blaming another person. Explain the permanent improvement.</div>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle a task that is outside your job description? ownership culture">
+      <summary>
+        <span class="q-number">06</span>
+        <span class="q-title">How do you handle a task that is outside your job description?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">ownership</span><span class="tag">culture</span></div>
+        <p>“I first check whether the task is important for the team outcome and whether I am the best available person to unblock it. I do not use job boundaries as a reason to ignore a critical issue. At the same time, I make ownership clear so temporary help does not become a permanent hidden responsibility. I help solve the immediate problem, document what I learned, and align the long-term owner with the manager or product owner.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you respond when requirements are unclear? ownership requirements process">
+      <summary>
+        <span class="q-number">07</span>
+        <span class="q-title">How do you respond when requirements are unclear?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">ownership</span><span class="tag">requirements</span><span class="tag">process</span></div>
+        <p>“I do not start coding based on silent assumptions. I identify the unclear decisions, write concrete examples, and confirm expected behavior with the product owner or stakeholder. For complex flows, I use a small decision table, sequence diagram, or acceptance criteria. I also separate what must be decided now from what can remain flexible. This reduces rework and helps QA prepare test cases early.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="describe a time you had too much work. prioritization ownership">
+      <summary>
+        <span class="q-number">08</span>
+        <span class="q-title">Describe a time you had too much work.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">prioritization</span><span class="tag">ownership</span></div>
+        <p>“When several production issues and release tasks arrived at the same time, I first classified them by customer impact, deadline, dependency, and reversibility. I shared the priority order with my manager and product owner instead of silently working overtime on everything. I delegated work with clear outcomes, kept the highest-risk items, and negotiated scope for lower-value tasks. The team completed the release-critical work without hiding quality risks.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you make decisions with incomplete information? decision-making risk">
+      <summary>
+        <span class="q-number">09</span>
+        <span class="q-title">How do you make decisions with incomplete information?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">decision-making</span><span class="tag">risk</span></div>
+        <p>“I identify which unknowns could materially change the decision. For high-impact unknowns, I run a short spike, inspect production data, or ask the domain owner. For lower-impact unknowns, I choose a reversible option, document the assumption, and create a checkpoint. I avoid waiting for perfect information when the decision is reversible, but I slow down when security, money, or data integrity is involved.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="tell me about a time you disagreed with your manager. behavioral communication leadership">
+      <summary>
+        <span class="q-number">10</span>
+        <span class="q-title">Tell me about a time you disagreed with your manager.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">behavioral</span><span class="tag">communication</span><span class="tag">leadership</span></div>
+        <p>“My manager wanted to include a large refactoring in a time-sensitive release. I agreed with the technical goal but disagreed with the timing. I prepared evidence: impacted modules, regression risk, test coverage, and a smaller isolation change that solved the immediate business need. I presented the options respectfully, including the cost of delaying the refactor. We chose the safer release path and scheduled the larger change with proper tests. I focus on the decision, not on proving that I am right.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="culture-fit" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 03</span>
+        <h2>3. Culture Fit and Culture Add</h2>
+        <p>Modern interviews often evaluate whether you strengthen the culture, not only whether you fit existing habits.</p>
+      </div>
+      
+    <details class="qa-card" data-search="what kind of work culture helps you perform best? culture values">
+      <summary>
+        <span class="q-number">11</span>
+        <span class="q-title">What kind of work culture helps you perform best?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span><span class="tag">values</span></div>
+        <p>“I perform best in a culture with clear goals, respectful challenge, ownership, and transparency. I like teams where people can disagree with ideas without attacking individuals, where incidents are used for learning, and where quality is treated as a shared responsibility. I also value enough autonomy to make decisions, with clear accountability for the result.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what does culture fit mean to you? culture">
+      <summary>
+        <span class="q-number">12</span>
+        <span class="q-title">What does culture fit mean to you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span></div>
+        <p>“I do not see culture fit as everyone thinking in the same way. A strong team shares core principles such as trust, customer focus, integrity, and accountability, while still benefiting from different experiences and viewpoints. I prefer the idea of culture add: I should respect the company’s values and also bring constructive habits that improve the team.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you work with someone whose style is very different from yours? culture teamwork communication">
+      <summary>
+        <span class="q-number">13</span>
+        <span class="q-title">How do you work with someone whose style is very different from yours?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span><span class="tag">teamwork</span><span class="tag">communication</span></div>
+        <p>“I first try to understand the difference. Some people prefer written detail, others prefer quick discussion. Some decide fast, others need more evidence. I adapt the communication channel and define a shared working agreement. I do not require everyone to work exactly like me. My goal is predictable collaboration, not personal similarity.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what values are non-negotiable for you? culture values ethics">
+      <summary>
+        <span class="q-number">14</span>
+        <span class="q-title">What values are non-negotiable for you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span><span class="tag">values</span><span class="tag">ethics</span></div>
+        <p>“Integrity, respect, and responsibility are non-negotiable. For example, I will not hide a production risk to protect a release date. I will communicate the risk clearly, propose options, and support the final decision, but the decision should be made with accurate information.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you contribute to psychological safety? culture leadership teamwork">
+      <summary>
+        <span class="q-number">15</span>
+        <span class="q-title">How do you contribute to psychological safety?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span><span class="tag">leadership</span><span class="tag">teamwork</span></div>
+        <p>“I separate people from problems. In reviews and incidents, I ask what conditions allowed the problem rather than who should be blamed. I invite quieter team members to speak, admit my own mistakes, and respond constructively when someone raises a risk. Psychological safety does not mean avoiding accountability; it means people can share bad news early without fear.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle company processes you disagree with? culture process influence">
+      <summary>
+        <span class="q-number">16</span>
+        <span class="q-title">How do you handle company processes you disagree with?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">culture</span><span class="tag">process</span><span class="tag">influence</span></div>
+        <p>“I first understand why the process exists. Sometimes the reason is compliance, audit, or a past incident. If the process still creates unnecessary cost, I collect examples, propose a smaller improvement, and test it with the process owner. I avoid bypassing controls silently because that creates hidden risk and weakens trust.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="teamwork" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 04</span>
+        <h2>4. Teamwork and Collaboration</h2>
+        <p>These questions test how you contribute to team outcomes beyond your own code.</p>
+      </div>
+      
+    <details class="qa-card" data-search="what does good teamwork look like to you? teamwork">
+      <summary>
+        <span class="q-number">17</span>
+        <span class="q-title">What does good teamwork look like to you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span></div>
+        <p>“Good teamwork means shared goals, clear ownership, transparent communication, and willingness to help across boundaries. Team members should raise risks early, review each other’s work, and avoid optimizing only their own component. A strong team can disagree, make a decision, and then execute consistently.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="tell me about a time you helped a teammate who was struggling. teamwork mentoring">
+      <summary>
+        <span class="q-number">18</span>
+        <span class="q-title">Tell me about a time you helped a teammate who was struggling.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">mentoring</span></div>
+        <p>“A teammate was blocked by a complex authentication flow and was losing confidence. Instead of taking over the task, I paired with them to break the flow into token validation, authorization, error handling, and test scenarios. I asked them to drive the implementation while I reviewed the design. We also created a small internal guide. They completed the feature and later handled a similar integration independently. My goal was to remove the blocker and increase future capability.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you share knowledge in a team? teamwork knowledge-sharing">
+      <summary>
+        <span class="q-number">19</span>
+        <span class="q-title">How do you share knowledge in a team?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">knowledge-sharing</span></div>
+        <p>“I use multiple levels of knowledge sharing: concise design notes for decisions, code review comments for local learning, short demos for completed work, and runbooks for production operations. For repeated questions, I improve documentation or automation instead of answering the same question privately each time.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you avoid knowledge silos? teamwork risk knowledge-sharing">
+      <summary>
+        <span class="q-number">20</span>
+        <span class="q-title">How do you avoid knowledge silos?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">risk</span><span class="tag">knowledge-sharing</span></div>
+        <p>“I rotate reviewers and secondary owners, encourage pairing on high-risk modules, and make sure operational knowledge is documented. For critical services, at least two people should understand deployment, incident handling, and main business rules. I also avoid assigning all related tickets to the same expert forever.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what do you do when another team blocks your work? teamwork dependencies">
+      <summary>
+        <span class="q-number">21</span>
+        <span class="q-title">What do you do when another team blocks your work?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">dependencies</span></div>
+        <p>“I make the dependency explicit: what I need, why, by when, and what impact a delay will have. I contact the right owner early and provide enough context to reduce their effort. If the dependency remains blocked, I look for a temporary contract, mock, feature flag, or parallel task. I escalate based on business impact, not frustration.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you review a teammate’s code? teamwork code-review quality">
+      <summary>
+        <span class="q-number">22</span>
+        <span class="q-title">How do you review a teammate’s code?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">code-review</span><span class="tag">quality</span></div>
+        <p>“I review correctness, readability, security, performance, testability, and consistency with the design. I separate blocking issues from suggestions. Comments should explain the reason, not only say ‘change this’. For complex points, I discuss directly instead of creating a long comment argument. The goal is better software and shared understanding, not showing authority.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle an underperforming teammate? teamwork leadership feedback">
+      <summary>
+        <span class="q-number">23</span>
+        <span class="q-title">How do you handle an underperforming teammate?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">teamwork</span><span class="tag">leadership</span><span class="tag">feedback</span></div>
+        <p>“I avoid labeling the person too quickly. I clarify expectations, gather specific examples, and ask what is blocking them. The cause may be unclear requirements, skill gaps, workload, or personal constraints. I agree on a small improvement plan with measurable checkpoints and provide support. If performance still does not improve, I involve the manager with evidence and fairness.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="conflict-feedback" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 05</span>
+        <h2>5. Conflict, Communication, and Feedback</h2>
+        <p>Senior engineers must handle disagreement without damaging trust or delivery.</p>
+      </div>
+      
+    <details class="qa-card" data-search="tell me about a conflict within your team. conflict teamwork behavioral">
+      <summary>
+        <span class="q-number">24</span>
+        <span class="q-title">Tell me about a conflict within your team.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">conflict</span><span class="tag">teamwork</span><span class="tag">behavioral</span></div>
+        <p>“Two engineers disagreed strongly about whether to use synchronous calls or an event-driven flow. The discussion became personal and delayed the design. I reframed the conversation around system requirements: consistency, latency, failure handling, operational complexity, and delivery timeline. We compared both options against the same criteria and chose a hybrid approach. I also followed up privately to restore working trust. The key was moving the discussion from preference to evidence.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you give difficult feedback? feedback leadership">
+      <summary>
+        <span class="q-number">25</span>
+        <span class="q-title">How do you give difficult feedback?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">feedback</span><span class="tag">leadership</span></div>
+        <p>“I give feedback privately, quickly, and with specific observations. I explain the impact and ask for their perspective before suggesting an improvement. For example: ‘In the last two releases, production risks were raised only on the release day. This reduced our options and increased pressure. What made it difficult to raise them earlier?’ Then we agree on a concrete behavior, such as adding a risk checkpoint during refinement.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you receive critical feedback? feedback self-awareness">
+      <summary>
+        <span class="q-number">26</span>
+        <span class="q-title">How do you receive critical feedback?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">feedback</span><span class="tag">self-awareness</span></div>
+        <p>“I avoid defending myself immediately. I ask for examples, confirm the expected behavior, and think about the pattern. If I disagree, I still look for the useful signal. I then explain what I will change and follow up later. Feedback only creates value when it changes behavior.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what do you do when a meeting becomes unproductive? communication process meetings">
+      <summary>
+        <span class="q-number">27</span>
+        <span class="q-title">What do you do when a meeting becomes unproductive?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">communication</span><span class="tag">process</span><span class="tag">meetings</span></div>
+        <p>“I restate the decision the meeting needs, list the unresolved questions, and separate facts from opinions. If the right people or data are missing, I stop the discussion and assign focused follow-ups. I also document the decision and owner. A meeting should produce a decision, alignment, or useful discovery; otherwise, it should not continue by default.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you communicate bad news to stakeholders? communication stakeholder risk">
+      <summary>
+        <span class="q-number">28</span>
+        <span class="q-title">How do you communicate bad news to stakeholders?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">communication</span><span class="tag">stakeholder</span><span class="tag">risk</span></div>
+        <p>“I communicate early and directly. I explain what happened, current impact, what is known and unknown, immediate mitigation, and the next decision point. I do not hide the risk behind technical language. I also provide options with trade-offs, such as reducing scope, moving the date, or accepting a controlled risk.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you communicate with non-technical stakeholders? communication stakeholder">
+      <summary>
+        <span class="q-number">29</span>
+        <span class="q-title">How do you communicate with non-technical stakeholders?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">communication</span><span class="tag">stakeholder</span></div>
+        <p>“I translate technical details into business outcomes, risk, cost, and time. Instead of saying ‘the Kafka consumer is lagging’, I say ‘customer updates may be delayed by up to 20 minutes because the processing queue is growing’. I keep technical evidence available, but I lead with the information needed for the decision.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="agile-scrum" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 06</span>
+        <h2>6. Agile and Scrum</h2>
+        <p>Interviewers often test whether you understand Agile principles, not only Scrum ceremonies.</p>
+      </div>
+      
+    <details class="qa-card" data-search="what does agile mean to you? agile scrum">
+      <summary>
+        <span class="q-number">30</span>
+        <span class="q-title">What does Agile mean to you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">agile</span><span class="tag">scrum</span></div>
+        <p>“Agile means delivering value in small increments, learning from feedback, and adapting plans based on evidence. It is not simply working without documentation or changing requirements at any time. Good Agile teams keep clear priorities, strong engineering practices, and short feedback loops.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is the purpose of scrum? agile scrum">
+      <summary>
+        <span class="q-number">31</span>
+        <span class="q-title">What is the purpose of Scrum?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">agile</span><span class="tag">scrum</span></div>
+        <p>“Scrum provides a lightweight framework for handling complex work through transparency, inspection, and adaptation. The sprint creates a short planning horizon. The product backlog makes priorities visible. Reviews validate value, and retrospectives improve how the team works.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is your role during sprint planning? scrum planning">
+      <summary>
+        <span class="q-number">32</span>
+        <span class="q-title">What is your role during sprint planning?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">planning</span></div>
+        <p>“I help the team understand scope, technical risks, dependencies, and acceptance criteria. I challenge unclear work before commitment, split large stories, and make capacity visible. I do not treat planning as a manager assigning tasks. The team should understand the sprint goal and make a realistic commitment together.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you estimate work? agile estimation planning">
+      <summary>
+        <span class="q-number">33</span>
+        <span class="q-title">How do you estimate work?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">agile</span><span class="tag">estimation</span><span class="tag">planning</span></div>
+        <p>“I estimate relative complexity, uncertainty, effort, and dependencies. I avoid pretending that story points are exact hours. For high-uncertainty work, I propose a spike or split discovery from delivery. I also compare estimates with actual outcomes to improve planning, but I do not use velocity to judge individual performance.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what should happen in backlog refinement? scrum refinement">
+      <summary>
+        <span class="q-number">34</span>
+        <span class="q-title">What should happen in backlog refinement?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">refinement</span></div>
+        <p>“The team should clarify business value, acceptance criteria, dependencies, risks, and test approach before the story enters a sprint. Large items should be split vertically so each part delivers usable value. Refinement is not a full design meeting, but it should reduce enough uncertainty for the team to plan responsibly.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what makes a good user story? agile requirements">
+      <summary>
+        <span class="q-number">35</span>
+        <span class="q-title">What makes a good user story?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">agile</span><span class="tag">requirements</span></div>
+        <p>“A good user story explains who needs something, what outcome they need, and why it matters. It should have clear acceptance criteria and be small enough to complete within a sprint. The story should describe value, while technical details can be captured in design notes or subtasks.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle a story that cannot finish in the sprint? scrum delivery risk">
+      <summary>
+        <span class="q-number">36</span>
+        <span class="q-title">How do you handle a story that cannot finish in the sprint?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">delivery</span><span class="tag">risk</span></div>
+        <p>“I raise the risk as soon as it becomes visible. I identify whether we can reduce scope while preserving value, remove a blocker, or pair additional support. If the story still cannot finish, I do not hide partial work as done. We review the root cause—unclear requirements, dependency, underestimation, or unexpected complexity—and improve the next planning cycle.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is your view on changing scope during a sprint? scrum scope prioritization">
+      <summary>
+        <span class="q-number">37</span>
+        <span class="q-title">What is your view on changing scope during a sprint?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">scope</span><span class="tag">prioritization</span></div>
+        <p>“Change is possible, but it should be deliberate. If urgent work enters the sprint, the product owner and team should understand the impact on the sprint goal and decide what leaves or changes. Constant unplanned work is a system problem, not something the team should silently absorb.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is a useful daily stand-up? scrum meetings">
+      <summary>
+        <span class="q-number">38</span>
+        <span class="q-title">What is a useful daily stand-up?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">meetings</span></div>
+        <p>“A stand-up is a short coordination meeting for the team. It should focus on progress toward the sprint goal, current blockers, and coordination needed today. It should not become a status report to the manager or a deep technical meeting. Detailed discussions should continue with only the relevant people afterward.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you run a good retrospective? scrum retrospective improvement">
+      <summary>
+        <span class="q-number">39</span>
+        <span class="q-title">How do you run a good retrospective?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">retrospective</span><span class="tag">improvement</span></div>
+        <p>“A good retrospective creates one or two specific improvement actions with owners and a way to check progress. I use evidence such as lead time, escaped defects, review delays, or recurring blockers. I avoid repeating generic points like ‘communicate better’ without defining a behavior.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is definition of done? scrum quality">
+      <summary>
+        <span class="q-number">40</span>
+        <span class="q-title">What is Definition of Done?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">scrum</span><span class="tag">quality</span></div>
+        <p>“Definition of Done is the team’s shared quality standard for completed work. It may include code review, automated tests, security checks, documentation, deployment readiness, and acceptance criteria. It prevents every ticket from using a different meaning of ‘done’.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what metrics are useful in agile teams? agile metrics">
+      <summary>
+        <span class="q-number">41</span>
+        <span class="q-title">What metrics are useful in Agile teams?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">agile</span><span class="tag">metrics</span></div>
+        <p>“Useful metrics include lead time, cycle time, deployment frequency, change failure rate, escaped defects, blocked time, and sprint goal success. Velocity can support planning within one stable team, but it should not be compared across teams or used as an individual performance target.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="working-process" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 07</span>
+        <h2>7. Software Working Process and SDLC</h2>
+        <p>A senior engineer understands the full delivery process, not only implementation.</p>
+      </div>
+      
+    <details class="qa-card" data-search="describe your typical software development process. process sdlc">
+      <summary>
+        <span class="q-number">42</span>
+        <span class="q-title">Describe your typical software development process.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">sdlc</span></div>
+        <p>“I start by clarifying the business outcome, users, constraints, and acceptance criteria. Then I review architecture impact, data model, security, dependencies, and operational needs. For larger changes, I create a lightweight design and align it with relevant teams. During implementation, I use small commits, automated tests, code review, and feature flags where useful. Before release, I verify migration, monitoring, rollback, and support readiness. After release, I monitor behavior and capture learning.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you start a new feature? process feature requirements">
+      <summary>
+        <span class="q-number">43</span>
+        <span class="q-title">How do you start a new feature?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">feature</span><span class="tag">requirements</span></div>
+        <p>“I first understand the customer problem and success criteria. Then I map the main flow, failure cases, data changes, external dependencies, and non-functional requirements. I identify decisions that are expensive to change and validate them early. I avoid designing every detail before learning, but I also avoid coding without understanding the end-to-end flow.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="when do you create a technical design document? process design documentation">
+      <summary>
+        <span class="q-number">44</span>
+        <span class="q-title">When do you create a technical design document?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">design</span><span class="tag">documentation</span></div>
+        <p>“I create one when the change affects multiple services, introduces a new data model, changes security or reliability, has difficult trade-offs, or requires coordination across teams. The document should be proportional to the risk. It normally includes context, goals, non-goals, options, decision, sequence or data flow, failure handling, rollout, and open questions.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you manage technical debt? process technical-debt prioritization">
+      <summary>
+        <span class="q-number">45</span>
+        <span class="q-title">How do you manage technical debt?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">technical-debt</span><span class="tag">prioritization</span></div>
+        <p>“I make technical debt visible with business impact: slower delivery, incident risk, security exposure, or operational cost. I do not ask to ‘clean everything’. I prioritize debt that blocks current goals or creates repeated failures. Some debt can be improved incrementally inside feature work, while larger items need explicit roadmap capacity.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you decide whether to refactor or rewrite? process architecture decision-making">
+      <summary>
+        <span class="q-number">46</span>
+        <span class="q-title">How do you decide whether to refactor or rewrite?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">architecture</span><span class="tag">decision-making</span></div>
+        <p>“I compare the cost and risk of incremental change against replacement. I consider test coverage, domain knowledge, hidden behavior, migration path, team skills, and the ability to run old and new systems in parallel. Rewrites are attractive but often underestimate migration and operational risk. I prefer incremental replacement unless the current design blocks change so deeply that safe evolution is no longer practical.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you ensure a feature is production-ready? process production quality">
+      <summary>
+        <span class="q-number">47</span>
+        <span class="q-title">How do you ensure a feature is production-ready?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">production</span><span class="tag">quality</span></div>
+        <p>“I check functional correctness, performance, security, observability, failure handling, migration, rollback, configuration, and support documentation. I ask how we will know the feature is healthy after release and what we will do if it fails. Production readiness is part of development, not an activity added at the end.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle urgent production changes? process incident release">
+      <summary>
+        <span class="q-number">48</span>
+        <span class="q-title">How do you handle urgent production changes?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">incident</span><span class="tag">release</span></div>
+        <p>“I use the smallest safe change that reduces customer impact. I keep review and testing proportional to the risk, use feature flags or configuration when possible, and define rollback before deployment. After stabilization, I create a permanent fix and complete the root-cause review. An emergency should not become an excuse to skip learning.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what should happen after a release? process release observability">
+      <summary>
+        <span class="q-number">49</span>
+        <span class="q-title">What should happen after a release?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">process</span><span class="tag">release</span><span class="tag">observability</span></div>
+        <p>“We should verify key business and technical metrics, confirm logs and alerts, monitor error rates and latency, and check critical customer journeys. For high-risk releases, I define a monitoring window and clear rollback criteria. I also ensure support and operations know what changed.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="task-workflow" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 08</span>
+        <h2>8. Task Workflow: From Ticket to Production</h2>
+        <p>This section gives a detailed workflow for handling tasks in Jira, Azure DevOps, or similar tools.</p>
+      </div>
+      
+    <details class="qa-card" data-search="what is your workflow when you receive a new task? workflow task jira">
+      <summary>
+        <span class="q-number">50</span>
+        <span class="q-title">What is your workflow when you receive a new task?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">task</span><span class="tag">jira</span></div>
+        <ol>
+  <li><strong>Understand value:</strong> What problem does the task solve?</li>
+  <li><strong>Validate scope:</strong> Confirm acceptance criteria and non-goals.</li>
+  <li><strong>Check dependencies:</strong> APIs, database, other teams, environments, and approvals.</li>
+  <li><strong>Assess risk:</strong> Security, money, data integrity, performance, and backward compatibility.</li>
+  <li><strong>Design:</strong> Choose the smallest maintainable solution.</li>
+  <li><strong>Break down:</strong> Create subtasks for implementation, tests, migration, documentation, and release.</li>
+  <li><strong>Implement:</strong> Use small commits and local validation.</li>
+  <li><strong>Review:</strong> Prepare context for reviewers and resolve comments.</li>
+  <li><strong>Test:</strong> Verify happy path, failure path, edge cases, and non-functional behavior.</li>
+  <li><strong>Release:</strong> Confirm configuration, monitoring, and rollback.</li>
+  <li><strong>Observe:</strong> Validate production outcomes and close follow-up actions.</li>
+</ol>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you decide whether a task is ready to start? workflow definition-ready">
+      <summary>
+        <span class="q-number">51</span>
+        <span class="q-title">How do you decide whether a task is ready to start?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">definition-ready</span></div>
+        <p>“A task is ready when the business outcome is understood, acceptance criteria are testable, major dependencies are identified, and the remaining uncertainty is acceptable for the sprint. It does not need every implementation detail, but the team should not be forced to guess the core behavior.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you split a large task? workflow planning agile">
+      <summary>
+        <span class="q-number">52</span>
+        <span class="q-title">How do you split a large task?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">planning</span><span class="tag">agile</span></div>
+        <p>“I prefer vertical slices that deliver end-to-end value, such as one user journey or one business rule, instead of splitting only by database, backend, and frontend. When a technical foundation is required, I separate it clearly and keep it as small as possible. Each slice should be testable and reduce risk.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what information should a good technical ticket contain? workflow jira documentation">
+      <summary>
+        <span class="q-number">53</span>
+        <span class="q-title">What information should a good technical ticket contain?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">jira</span><span class="tag">documentation</span></div>
+        <ul>
+  <li>Business context and expected outcome.</li>
+  <li>Acceptance criteria with examples.</li>
+  <li>Scope and non-scope.</li>
+  <li>Dependencies and affected systems.</li>
+  <li>Data, API, security, and migration notes.</li>
+  <li>Testing expectations.</li>
+  <li>Release, feature flag, or rollback notes.</li>
+  <li>Links to designs or related incidents.</li>
+</ul>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you update task status? workflow communication jira">
+      <summary>
+        <span class="q-number">54</span>
+        <span class="q-title">How do you update task status?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">communication</span><span class="tag">jira</span></div>
+        <p>“I update status when the state meaningfully changes, not only at the end of the day. A useful update explains completed work, remaining work, blockers, and whether the expected completion date changed. For risks, I notify the relevant people directly instead of assuming they will read the ticket.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what do you do when you find extra work during implementation? workflow scope risk">
+      <summary>
+        <span class="q-number">55</span>
+        <span class="q-title">What do you do when you find extra work during implementation?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">scope</span><span class="tag">risk</span></div>
+        <p>“I classify it as required for correctness, useful improvement, or unrelated work. Required work is added to the current scope with visibility. Useful but non-essential work becomes a follow-up ticket. Unrelated refactoring is not silently included unless it reduces immediate risk. This keeps the task reviewable and protects the timeline.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you prepare a pull request? workflow code-review">
+      <summary>
+        <span class="q-number">56</span>
+        <span class="q-title">How do you prepare a pull request?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">code-review</span></div>
+        <p>“I keep the change focused, use a clear title, explain the problem and design, list test evidence, call out risky areas, and provide migration or rollout notes. For complex changes, I add diagrams or sample requests. I review my own diff before requesting review.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you respond to code review comments? workflow code-review feedback">
+      <summary>
+        <span class="q-number">57</span>
+        <span class="q-title">How do you respond to code review comments?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">code-review</span><span class="tag">feedback</span></div>
+        <p>“I treat comments as collaboration. I fix clear issues, ask questions when the intention is unclear, and explain trade-offs when I disagree. I avoid replying defensively. After changes, I summarize what was updated. For recurring comments, I improve team standards, templates, or automated checks.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="when is a task truly done? workflow quality done">
+      <summary>
+        <span class="q-number">58</span>
+        <span class="q-title">When is a task truly done?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">quality</span><span class="tag">done</span></div>
+        <p>“A task is done when acceptance criteria are met, tests pass, review is complete, documentation and migration are handled, and the change is deployable under the team’s Definition of Done. For production work, I also want enough observability to verify the outcome after release.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you hand over unfinished work? workflow handover teamwork">
+      <summary>
+        <span class="q-number">59</span>
+        <span class="q-title">How do you hand over unfinished work?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">workflow</span><span class="tag">handover</span><span class="tag">teamwork</span></div>
+        <p>“I provide current status, decisions made, open questions, branch or pull request links, test evidence, known risks, and the next concrete steps. I also schedule a short walkthrough for complex work. A good handover allows another engineer to continue without repeating the investigation.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="leadership" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 09</span>
+        <h2>9. Leadership, Mentoring, and Influence</h2>
+        <p>You can demonstrate leadership even without a formal manager title.</p>
+      </div>
+      
+    <details class="qa-card" data-search="how do you lead without authority? leadership influence">
+      <summary>
+        <span class="q-number">60</span>
+        <span class="q-title">How do you lead without authority?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">influence</span></div>
+        <p>“I build trust through useful context, evidence, and consistent follow-through. I involve people early, understand their constraints, and propose solutions that help the shared goal. I do not rely on title. Influence comes from making the problem clear, reducing uncertainty, and helping others succeed.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you mentor junior engineers? leadership mentoring">
+      <summary>
+        <span class="q-number">61</span>
+        <span class="q-title">How do you mentor junior engineers?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">mentoring</span></div>
+        <p>“I adjust support to the person’s level. I explain the reasoning, ask them to propose options, and let them own the implementation. I use code review and pairing as learning tools, but I avoid solving everything for them. I define growth goals and gradually increase task complexity and independence.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you delegate tasks? leadership delegation">
+      <summary>
+        <span class="q-number">62</span>
+        <span class="q-title">How do you delegate tasks?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">delegation</span></div>
+        <p>“I delegate outcomes, context, constraints, and decision boundaries—not only a list of steps. I choose work that matches both delivery needs and development goals. I agree on checkpoints based on risk, then give enough space for ownership. Delegation fails when the senior takes back every decision.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you make technical decisions in a team? leadership decision-making architecture">
+      <summary>
+        <span class="q-number">63</span>
+        <span class="q-title">How do you make technical decisions in a team?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">decision-making</span><span class="tag">architecture</span></div>
+        <p>“I define the decision criteria, gather relevant input, and make trade-offs visible. For reversible decisions, I avoid long debates. For difficult-to-reverse decisions, I seek broader review and document the result. Once a decision is made, I support execution unless new evidence justifies reopening it.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="tell me about a process improvement you introduced. leadership process behavioral">
+      <summary>
+        <span class="q-number">64</span>
+        <span class="q-title">Tell me about a process improvement you introduced.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">process</span><span class="tag">behavioral</span></div>
+        <p>“Our releases often had last-minute configuration issues. I introduced a lightweight release checklist covering configuration, database migration, monitoring, rollback, and ownership. I connected the checklist to the pull request and release ticket, then reviewed failures for two release cycles. Configuration-related deployment issues reduced, and the checklist became part of the team’s standard workflow.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you balance helping others with your own work? leadership prioritization teamwork">
+      <summary>
+        <span class="q-number">65</span>
+        <span class="q-title">How do you balance helping others with your own work?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">leadership</span><span class="tag">prioritization</span><span class="tag">teamwork</span></div>
+        <p>“I distinguish urgent unblockers from questions that can wait. I use office-hour style support, documentation, pairing, or delegation to avoid constant interruption. When support demand becomes high, I make it visible because it affects capacity. Helping the team is part of senior work, but it should be managed intentionally.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="stakeholders" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 10</span>
+        <h2>10. Stakeholders and Cross-Team Work</h2>
+        <p>Senior roles require alignment across product, QA, security, operations, and external teams.</p>
+      </div>
+      
+    <details class="qa-card" data-search="how do you manage stakeholder expectations? stakeholder communication">
+      <summary>
+        <span class="q-number">66</span>
+        <span class="q-title">How do you manage stakeholder expectations?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">stakeholder</span><span class="tag">communication</span></div>
+        <p>“I align early on scope, success criteria, risks, and decision dates. I provide updates based on outcomes and changed assumptions, not only percentage complete. When the plan changes, I explain why, what options exist, and what decision is needed. Predictability comes from early transparency, not from always saying yes.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle unrealistic deadlines? stakeholder planning risk">
+      <summary>
+        <span class="q-number">67</span>
+        <span class="q-title">How do you handle unrealistic deadlines?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">stakeholder</span><span class="tag">planning</span><span class="tag">risk</span></div>
+        <p>“I do not reject the deadline without analysis. I identify the minimum valuable scope, critical risks, dependencies, and quality requirements. Then I present options: reduce scope, add time, change sequencing, or accept a clearly stated risk. I avoid promising full scope by hiding testing or operational work.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you work with qa engineers? stakeholder qa teamwork">
+      <summary>
+        <span class="q-number">68</span>
+        <span class="q-title">How do you work with QA engineers?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">stakeholder</span><span class="tag">qa</span><span class="tag">teamwork</span></div>
+        <p>“I involve QA during refinement and design, especially for edge cases and integration risks. I share test data needs, logs, feature flags, and failure behavior. I treat quality as a team responsibility; QA should not be the final gate that discovers unclear requirements after development is complete.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you work with product owners? stakeholder product">
+      <summary>
+        <span class="q-number">69</span>
+        <span class="q-title">How do you work with product owners?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">stakeholder</span><span class="tag">product</span></div>
+        <p>“I help translate business goals into testable behavior and explain technical trade-offs in business language. I challenge scope when it creates unnecessary complexity, but I do not make product decisions alone. The product owner owns priority and value; engineering owns technical quality and feasibility. Strong delivery requires both perspectives.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you work with security and operations teams? stakeholder security operations">
+      <summary>
+        <span class="q-number">70</span>
+        <span class="q-title">How do you work with security and operations teams?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">stakeholder</span><span class="tag">security</span><span class="tag">operations</span></div>
+        <p>“I involve them early for changes affecting identity, access, sensitive data, infrastructure, or production support. I provide threat scenarios, data flows, logs, alerts, and runbooks. Security and operations are design partners, not teams that should receive a surprise approval request before release.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="quality-incidents" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 11</span>
+        <h2>11. Quality, Production Incidents, and Continuous Improvement</h2>
+        <p>These questions show how you behave when systems fail and pressure is high.</p>
+      </div>
+      
+    <details class="qa-card" data-search="tell me about a production incident you handled. incident behavioral quality">
+      <summary>
+        <span class="q-number">71</span>
+        <span class="q-title">Tell me about a production incident you handled.</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">incident</span><span class="tag">behavioral</span><span class="tag">quality</span></div>
+        <p>“A payment callback service started returning errors after a provider certificate change. I first helped contain impact by disabling the affected path through configuration and routing cases to manual recovery. I created a clear incident channel, assigned investigation areas, and kept stakeholders updated. We identified a certificate-chain validation issue, deployed the fix, and reconciled incomplete transactions. Afterward, we added certificate-expiry monitoring, provider-change checklists, and a staging validation step.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you prioritize during an incident? incident prioritization">
+      <summary>
+        <span class="q-number">72</span>
+        <span class="q-title">How do you prioritize during an incident?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">incident</span><span class="tag">prioritization</span></div>
+        <p>“The order is customer safety, containment, service recovery, communication, root cause, and prevention. I avoid making multiple risky changes at once. I assign clear roles, keep a timeline, and separate hypotheses from confirmed facts. Detailed analysis can continue after impact is controlled.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what is a blameless postmortem? incident culture learning">
+      <summary>
+        <span class="q-number">73</span>
+        <span class="q-title">What is a blameless postmortem?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">incident</span><span class="tag">culture</span><span class="tag">learning</span></div>
+        <p>“A blameless postmortem examines how system design, process, information, and conditions allowed an incident. It does not remove accountability. People still own actions, but the goal is to improve the system rather than find one person to punish. Actions should be specific, prioritized, and tracked.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you prevent repeated defects? quality process testing">
+      <summary>
+        <span class="q-number">74</span>
+        <span class="q-title">How do you prevent repeated defects?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quality</span><span class="tag">process</span><span class="tag">testing</span></div>
+        <p>“I look for the earliest point where the defect could have been prevented or detected: requirement, design, code review, automated test, static analysis, deployment validation, or monitoring. Then I improve the system at that point. Fixing only the line of code is not enough when the same class of problem can return.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you balance speed and quality? quality delivery tradeoff">
+      <summary>
+        <span class="q-number">75</span>
+        <span class="q-title">How do you balance speed and quality?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quality</span><span class="tag">delivery</span><span class="tag">tradeoff</span></div>
+        <p>“Quality is not one fixed level for every change. I scale engineering effort based on impact, reversibility, and uncertainty. A low-risk internal UI change can move quickly. A payment, security, or data migration change needs stronger review and rollback. I optimize for sustainable speed, not maximum short-term output.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you improve system observability? quality observability operations">
+      <summary>
+        <span class="q-number">76</span>
+        <span class="q-title">How do you improve system observability?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quality</span><span class="tag">observability</span><span class="tag">operations</span></div>
+        <p>“I start from the questions we need to answer during normal operation and incidents. I use structured logs with correlation IDs, business and technical metrics, distributed traces for important flows, and alerts tied to user impact. I avoid dashboards that show many numbers but do not support a decision.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="remote-hybrid" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 12</span>
+        <h2>12. Remote and Hybrid Collaboration</h2>
+        <p>Remote work requires stronger written communication and explicit coordination.</p>
+      </div>
+      
+    <details class="qa-card" data-search="how do you stay effective in a remote team? remote teamwork">
+      <summary>
+        <span class="q-number">77</span>
+        <span class="q-title">How do you stay effective in a remote team?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">remote</span><span class="tag">teamwork</span></div>
+        <p>“I make work visible through clear tickets, written decisions, and timely updates. I use asynchronous communication for information sharing and meetings for decisions or complex discussion. I protect focus time, respond predictably, and document outcomes so people in other time zones are not blocked.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle time-zone differences? remote communication">
+      <summary>
+        <span class="q-number">78</span>
+        <span class="q-title">How do you handle time-zone differences?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">remote</span><span class="tag">communication</span></div>
+        <p>“I plan dependencies earlier, write complete handovers, and define response expectations. I rotate inconvenient meeting times when needed instead of always placing the burden on one region. For critical incidents or releases, I create explicit coverage and escalation plans.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you build trust remotely? remote culture trust">
+      <summary>
+        <span class="q-number">79</span>
+        <span class="q-title">How do you build trust remotely?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">remote</span><span class="tag">culture</span><span class="tag">trust</span></div>
+        <p>“I follow through on commitments, communicate risks early, and avoid disappearing when work becomes difficult. I also create space for informal connection and recognize others’ contributions. Remote trust grows through consistency and transparency.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="quick-fire" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 13</span>
+        <h2>13. Quick-Fire Interview Questions</h2>
+        <p>Use these shorter answers when the interviewer asks direct culture or process questions.</p>
+      </div>
+      
+    <details class="qa-card" data-search="do you prefer working alone or in a team? quick teamwork">
+      <summary>
+        <span class="q-number">80</span>
+        <span class="q-title">Do you prefer working alone or in a team?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">teamwork</span></div>
+        <p>“Both are necessary. I use focused individual time for deep work, but software delivery is a team activity. I make sure decisions, interfaces, and risks are shared so individual productivity does not create team dependency.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you handle pressure? quick behavioral">
+      <summary>
+        <span class="q-number">81</span>
+        <span class="q-title">How do you handle pressure?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">behavioral</span></div>
+        <p>“I reduce pressure by making priorities, risks, and decisions explicit. During urgent work, I focus on the highest-impact next action, communicate clearly, and avoid shortcuts that create larger incidents later.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="what motivates you? quick culture">
+      <summary>
+        <span class="q-number">82</span>
+        <span class="q-title">What motivates you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">culture</span></div>
+        <p>“I am motivated by solving meaningful problems, improving systems, and helping a team become more capable. I especially enjoy work where technical decisions have a clear customer or business impact.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="how do you define success? quick values">
+      <summary>
+        <span class="q-number">83</span>
+        <span class="q-title">How do you define success?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">values</span></div>
+        <p>“Success means the intended customer outcome is achieved, the system remains reliable, and the team can maintain the solution. Shipping code is an activity; delivering sustainable value is the result.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="why should we hire you? quick self-introduction">
+      <summary>
+        <span class="q-number">84</span>
+        <span class="q-title">Why should we hire you?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">self-introduction</span></div>
+        <p>“I bring strong Java and backend engineering depth, but my value is broader than implementation. I can take ownership from requirement clarification through design, delivery, release, and production support. I also help teams improve through mentoring, review, and practical process improvements.”</p>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="why are you looking for a new role? quick career">
+      <summary>
+        <span class="q-number">85</span>
+        <span class="q-title">Why are you looking for a new role?</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">quick</span><span class="tag">career</span></div>
+        <p>“I am looking for a role where I can solve larger backend and system-design problems, work with a strong engineering culture, and contribute at both delivery and team level. I want a position with meaningful ownership and opportunities to grow technical leadership.”</p>
+      </div>
+    </details>
+    
+    </section>
+    
+    <section id="questions-to-ask" class="content-section">
+      <div class="section-heading">
+        <span class="section-kicker">SECTION 14</span>
+        <h2>14. Strong Questions to Ask the Interviewer</h2>
+        <p>Senior candidates also evaluate the team, working model, and engineering environment.</p>
+      </div>
+      
+    <details class="qa-card" data-search="questions about team culture interviewer culture">
+      <summary>
+        <span class="q-number">86</span>
+        <span class="q-title">Questions about team culture</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">interviewer</span><span class="tag">culture</span></div>
+        <ul>
+  <li>How does the team handle technical disagreement?</li>
+  <li>What happens when someone raises a delivery or production risk?</li>
+  <li>How are decisions documented and revisited?</li>
+  <li>What behavior is rewarded for senior engineers?</li>
+</ul>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="questions about process and delivery interviewer process">
+      <summary>
+        <span class="q-number">87</span>
+        <span class="q-title">Questions about process and delivery</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">interviewer</span><span class="tag">process</span></div>
+        <ul>
+  <li>How does a feature move from idea to production?</li>
+  <li>How much unplanned work does the team usually handle?</li>
+  <li>How are technical debt and reliability work prioritized?</li>
+  <li>What does the team’s Definition of Done include?</li>
+</ul>
+      </div>
+    </details>
+    
+    <details class="qa-card" data-search="questions about ownership and growth interviewer leadership">
+      <summary>
+        <span class="q-number">88</span>
+        <span class="q-title">Questions about ownership and growth</span>
+        <span class="chevron">⌄</span>
+      </summary>
+      <div class="answer">
+        <div class="tags"><span class="tag">interviewer</span><span class="tag">leadership</span></div>
+        <ul>
+  <li>What level of ownership would I have in the first six months?</li>
+  <li>How do senior engineers influence architecture and engineering standards?</li>
+  <li>How is mentoring expected and supported?</li>
+  <li>What would success look like after three and six months?</li>
+</ul>
+      </div>
+    </details>
+    
+    </section>
+    
+    </div>
+  </main>
+
+  <footer class="footer">
+    Senior Behavioral, Teamwork & Agile Interview Guide · Standalone HTML document
+  </footer>
+
+  <script>
+    const cards = [...document.querySelectorAll('.qa-card')];
+    const sections = [...document.querySelectorAll('.content-section')];
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+
+    function filterCards() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const text = (card.dataset.search + ' ' + card.innerText).toLowerCase();
+        const match = !query || text.includes(query);
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+      });
+
+      sections.forEach(section => {
+        const visibleCards = [...section.querySelectorAll('.qa-card')]
+          .some(card => card.style.display !== 'none');
+        section.style.display = visibleCards ? '' : 'none';
+      });
+
+      noResults.style.display = visibleCount ? 'none' : 'block';
+    }
+
+    searchInput.addEventListener('input', filterCards);
+    document.getElementById('expandAll').addEventListener('click', () => {
+      cards.filter(card => card.style.display !== 'none').forEach(card => card.open = true);
+    });
+    document.getElementById('collapseAll').addEventListener('click', () => {
+      cards.forEach(card => card.open = false);
+    });
+  </script>
+</body>
+</html>

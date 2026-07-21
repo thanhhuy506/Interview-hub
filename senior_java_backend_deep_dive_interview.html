@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Senior Java Backend Deep Dive Interview</title>
+  <style>
+    :root {
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --card2:#eef3f9;
+      --text:#172033;
+      --muted:#5e6b82;
+      --border:#dbe3ef;
+      --brand:#2563eb;
+      --brand2:#7c3aed;
+      --code:#0b1020;
+      --codeText:#e5e7eb;
+      --ok:#047857;
+      --shadow:0 14px 35px rgba(15,23,42,.08);
+    }
+    [data-theme="dark"] {
+      --bg:#0b1020;
+      --card:#111827;
+      --card2:#182235;
+      --text:#e5e7eb;
+      --muted:#aab4c8;
+      --border:#2b3548;
+      --brand:#60a5fa;
+      --brand2:#a78bfa;
+      --code:#020617;
+      --codeText:#f8fafc;
+      --shadow:0 14px 35px rgba(0,0,0,.32);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.65;
+    }
+    .layout{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:100vh}
+    aside{
+      position:sticky;top:0;height:100vh;overflow:auto;
+      padding:22px;background:var(--card);border-right:1px solid var(--border)
+    }
+    main{max-width:1160px;width:100%;padding:30px;margin:0 auto}
+    .brand{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+    .logo{
+      width:44px;height:44px;border-radius:15px;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      display:grid;place-items:center;color:#fff;font-weight:900
+    }
+    h1{font-size:21px;line-height:1.2;margin:0}
+    .side-sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .tools{display:grid;gap:10px;margin:18px 0}
+    input{
+      width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--border);
+      background:var(--card2);color:var(--text);outline:none
+    }
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    button{
+      border:1px solid var(--border);background:var(--card2);color:var(--text);
+      padding:9px 10px;border-radius:10px;cursor:pointer;font-weight:750
+    }
+    button:hover{border-color:var(--brand);color:var(--brand)}
+    nav{display:grid;gap:7px;margin-top:18px}
+    nav a{
+      color:var(--muted);text-decoration:none;padding:9px 10px;border-radius:10px;
+      border:1px solid transparent;font-size:14px
+    }
+    nav a:hover{background:var(--card2);color:var(--brand);border-color:var(--border)}
+    .hero{
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.2), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(124,58,237,.16), transparent 32%),
+        var(--card);
+      border:1px solid var(--border);box-shadow:var(--shadow);border-radius:26px;padding:34px;margin-bottom:24px
+    }
+    .label{font-size:12px;color:var(--brand);font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+    .hero h1{font-size:38px;letter-spacing:-.04em;margin:8px 0 12px}
+    .hero p{color:var(--muted);margin:0;max-width:920px}
+    .note{
+      margin-top:18px;padding:16px;border-radius:18px;background:var(--card2);
+      border:1px solid var(--border);color:var(--muted)
+    }
+    .flow{
+      margin-top:20px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px
+    }
+    .flow div{
+      text-align:center;padding:12px;border-radius:16px;background:var(--card2);
+      border:1px solid var(--border);font-weight:850;font-size:13px
+    }
+    .section{
+      background:var(--card);border:1px solid var(--border);border-radius:24px;
+      box-shadow:var(--shadow);padding:28px;margin-bottom:24px
+    }
+    .section-head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px}
+    h2{font-size:28px;letter-spacing:-.03em;margin:3px 0 0}
+    h3{font-size:18px;margin:24px 0 12px}
+    .summary{font-size:16px;color:var(--muted);margin:0 0 16px}
+    .context{
+      background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:18px
+    }
+    .context h3{margin-top:0}
+    .context ul{margin:0;padding-left:22px;color:var(--muted)}
+    .concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .concept{border:1px solid var(--border);border-radius:18px;padding:16px;background:var(--card)}
+    .concept h4{margin:0 0 6px;color:var(--brand);font-size:16px}
+    .concept p{margin:0;color:var(--muted)}
+    .qa-list{display:grid;gap:12px}
+    details.qa{border:1px solid var(--border);border-radius:18px;overflow:hidden;background:var(--card)}
+    details.qa summary{padding:16px 18px;background:var(--card2);cursor:pointer;font-weight:900}
+    .answer-box{padding:18px}
+    .answer-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px;color:var(--brand)}
+    .answer{background:var(--card2);border:1px solid var(--border);border-radius:15px;padding:16px;color:var(--text)}
+    .copy{font-size:13px;padding:7px 10px;color:var(--brand)}
+    .code-card{margin-top:16px;border:1px solid var(--border);border-radius:18px;padding:16px}
+    pre{margin:0;overflow:auto;background:var(--code);color:var(--codeText);border-radius:14px;padding:16px;font-size:13px;line-height:1.55}
+    code{font-family:"JetBrains Mono", "SFMono-Regular", Consolas, monospace}
+    .hidden{display:none!important}
+    footer{text-align:center;color:var(--muted);font-size:13px;margin:30px 0}
+    @media(max-width:980px){
+      .layout{grid-template-columns:1fr}
+      aside{position:relative;height:auto}
+      .flow{grid-template-columns:1fr 1fr}
+      .concept-grid{grid-template-columns:1fr}
+      main{padding:18px}
+    }
+    @media print{
+      aside,.tools,button{display:none!important}
+      .layout{display:block}
+      main{max-width:none;padding:0}
+      .hero,.section{box-shadow:none;break-inside:avoid}
+      body{background:#fff;color:#000}
+    }
+  </style>
+</head>
+<body>
+<div class="layout" data-theme="light" id="app">
+  <aside>
+    <div class="brand">
+      <div class="logo">J</div>
+      <div>
+        <h1>Senior Java Backend</h1>
+        <div class="side-sub">Senior-only deep dive roadmap</div>
+      </div>
+    </div>
+    <div class="tools">
+      <input id="search" placeholder="Search: threading, HashMap, B-tree, locking..." />
+      <div class="btns">
+        <button id="theme">Dark</button>
+        <button onclick="window.print()">Print/PDF</button>
+      </div>
+      <div class="btns">
+        <button id="openAll">Open all</button>
+        <button id="closeAll">Close all</button>
+      </div>
+    </div>
+    <nav>
+      <a href="#mindset">0. Mindset for &gt;= Mid Java Backend Interview</a><a href="#java-core-threading">1. Java Core — Especially Multithreading</a><a href="#spring-common">2. Spring Common Topics</a><a href="#sorting-hash">3. Advanced Java Internals — Sorting &amp; Hash Implementation Concept</a><a href="#btree-index">4. Database Advanced — B-Tree / Index / Query Plan</a><a href="#isolation-locking">5. Database Isolation &amp; Locking Mechanism</a><a href="#sync-async-reactive">6. Sync / Async / Reactive Programming Use Cases</a><a href="#loose-coupling-microservice">7. Loose Coupling Design in Microservices</a><a href="#study-depth">8. How to Study These Topics Deeply</a>
+    </nav>
+  </aside>
+
+  <main>
+    <section class="hero">
+      <span class="label">Interview Deep Dive</span>
+      <h1>Roadmap học sâu cho Senior Java Backend</h1>
+      <p>
+        Page này bám sát note: vị trí Senior Java Backend cần nắm chắc Java Core, đặc biệt là multithreading,
+        Spring common topics, và nên đào sâu các topic advanced như sorting/hash internals, B-tree/index,
+        DB isolation/locking, sync/async/reactive use cases và loose coupling design trong microservices.
+      </p>
+      <div class="note">
+        <strong>Original note:</strong><br/>
+        Assume là apply vị trí &gt;= mid là nắm vững hết cơ bản như kiểu java core (đặc biệt là multiple threading), spring common topic. Nên đọc và tìm hiểu thêm các topic advance ví dụ sorting/hash của java implement kiểu gì (concept only), Btree/index hđ ntn, db isolation/locking mechanism, asyn/synch/reactive programming usecase, loose coupling design (microservice), ... Topic thì nhiều lắm nhưng ae tìm hiểu đc sâu cái gì thì cũng tốt, có ích cho mình hết thôi, ko chỉ mỗi interview.
+      </div>
+      <div class="flow">
+        <div>Context</div>
+        <div>Concept</div>
+        <div>Mechanism</div>
+        <div>Trade-off</div>
+        <div>Senior Answer</div>
+      </div>
+    </section>
+
+    
+    <section id="mindset" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>0. Mindset for &gt;= Mid Java Backend Interview</h2>
+        </div>
+      </div>
+      <p class="summary">Với vị trí Senior Java Backend, interviewer thường không muốn nghe định nghĩa quá cơ bản. Họ muốn biết anh hiểu cơ chế, trade-off, production issue và cách chọn solution.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Java Core và Spring common topics được xem là nền tảng đã phải vững, không phải phần để trả lời nông.</li><li>Multiple threading là phần đặc biệt quan trọng vì backend service xử lý nhiều request đồng thời.</li><li>Advanced topics không chỉ để pass interview, mà còn giúp mình debug, optimize và design hệ thống tốt hơn.</li><li>Cách trả lời nên chuyển từ “definition-based” sang “context + mechanism + trade-off + real use case”.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Basic knowledge interviewer assumes</h4>
+          <p>OOP, Collection, Exception, Stream API, Java memory, multithreading basics, Spring Boot, REST API, JPA, transaction, unit test.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Senior answer style</h4>
+          <p>Explain problem → internal mechanism → benefit → trade-off → production example → caution.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Depth over quantity</h4>
+          <p>Không cần học mọi topic quá rộng. Nhưng topic nào đã nói trong interview thì nên nói sâu và có ví dụ thật.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>At senior level, how do you answer technical questions differently from junior level?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-1">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-1">At senior level, I try not to answer only with a definition. I explain why the concept exists, how it works internally, what trade-offs it has, and how I apply it in production.<br><br>For example, if I explain HashMap, I do not only say it stores key-value pairs. I explain bucket, hashCode, equals, collision handling, treeification from Java 8, resizing, load factor, and why HashMap is not thread-safe.<br><br>This approach shows that I understand both API usage and production behavior.</div>
+          </div>
+        </details>
+        </div>
+      
+    </section>
+    
+    <section id="java-core-threading" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>1. Java Core — Especially Multithreading</h2>
+        </div>
+      </div>
+      <p class="summary">Java Core là nền tảng. Nhưng với senior, multithreading là phần cần nắm sâu vì nhiều bug production xuất phát từ concurrency.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Java web application xử lý nhiều request cùng lúc.</li><li>Nhiều thread có thể cùng access shared data, cache, collection, counter, DB transaction hoặc external resource.</li><li>Nếu không hiểu thread safety, có thể tạo bug khó reproduce như race condition, deadlock, duplicate update, lost update, memory visibility issue.</li><li>Senior cần biết khi nào dùng synchronized, volatile, Lock, atomic classes, concurrent collections, thread pool, CompletableFuture.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Thread</h4>
+          <p>Đơn vị thực thi nhỏ nhất trong process. Các thread trong cùng JVM share heap memory.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Race condition</h4>
+          <p>Xảy ra khi nhiều thread cùng đọc/ghi shared mutable state và kết quả phụ thuộc thứ tự chạy.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Thread safety</h4>
+          <p>Code/data structure vẫn đúng khi được access bởi nhiều thread cùng lúc.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>synchronized</h4>
+          <p>Dùng intrinsic lock để đảm bảo chỉ một thread vào critical section tại một thời điểm.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>volatile</h4>
+          <p>Đảm bảo visibility của biến giữa các thread, nhưng không đảm bảo atomicity cho compound operation như count++.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>ExecutorService / Thread Pool</h4>
+          <p>Tái sử dụng thread, kiểm soát concurrency và tránh tạo thread không giới hạn.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>CompletableFuture</h4>
+          <p>Hỗ trợ async computation, chaining, combining result và exception handling.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>What is thread safety?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-2">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-2">Thread safety means the code behaves correctly when accessed by multiple threads at the same time.<br><br>The main risk is shared mutable state. If multiple threads read and update the same data without proper synchronization, we may face race conditions or inconsistent data.<br><br>In production, I try to design services as stateless as possible. If shared state is required, I use proper synchronization, atomic classes, concurrent collections, database locking, or external coordination depending on the problem.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>volatile vs synchronized?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-3">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-3">volatile guarantees visibility. When one thread updates a volatile variable, other threads can see the latest value.<br><br>However, volatile does not make compound operations atomic. For example, count++ has read, increment, and write steps, so volatile alone is not enough.<br><br>synchronized provides both visibility and mutual exclusion. It ensures only one thread can execute the critical section at a time.<br><br>I use volatile for simple flags, such as shutdown signals. I use synchronized, Lock, AtomicInteger, or concurrent data structures when I need atomic updates.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How do you design thread pool usage in production?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-4">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-4">I do not create unlimited threads manually. I use ExecutorService or framework-managed thread pools.<br><br>When designing a thread pool, I consider:<br>- task type: CPU-bound or I/O-bound<br>- core pool size<br>- max pool size<br>- queue size<br>- timeout<br>- rejection policy<br>- monitoring<br><br>For CPU-bound tasks, the pool size is usually close to the number of CPU cores. For I/O-bound tasks, we may use more threads because many threads wait for external systems.<br><br>A common production issue is thread pool exhaustion. If the queue is unbounded or timeout is missing, the service can become slow or even crash under load.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>When would you use CompletableFuture?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-5">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-5">I use CompletableFuture when I have independent operations that can run in parallel.<br><br>For example, an API needs user information, order history, and reward points. If these calls are independent, I can call them concurrently and combine the result.<br><br>The benefit is lower response time. But as a senior engineer, I also need to handle timeout, exception, fallback, and custom executor carefully. Otherwise, async code can create hidden thread pool or error-handling problems.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-6">Copy code</button>
+          </div>
+          <pre><code id="code-6">CompletableFuture&lt;User&gt; userFuture =
+    CompletableFuture.supplyAsync(() -&gt; userClient.getUser(userId), executor);
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; orderFuture =
+    CompletableFuture.supplyAsync(() -&gt; orderClient.getOrders(userId), executor);
+
+UserProfile profile = userFuture
+    .thenCombine(orderFuture, UserProfile::new)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(ex -&gt; UserProfile.empty())
+    .join();</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="spring-common" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>2. Spring Common Topics</h2>
+        </div>
+      </div>
+      <p class="summary">Spring Boot common topics là phần interviewer mặc định anh phải nắm. Senior cần hiểu proxy, bean lifecycle, transaction, AOP, security và JPA behavior.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Hầu hết Java backend jobs dùng Spring Boot.</li><li>Câu hỏi không chỉ là annotation dùng để làm gì, mà còn là cơ chế Spring container/proxy hoạt động thế nào.</li><li>Các lỗi production hay gặp: transaction không rollback, self-invocation, lazy loading exception, circular dependency, bean scope misuse, N+1 query.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>IoC</h4>
+          <p>Spring container quản lý object creation, dependency injection và lifecycle thay vì code tự new object.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Dependency Injection</h4>
+          <p>Inject dependency từ bên ngoài, giúp loose coupling và dễ unit test.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Bean scope</h4>
+          <p>Quy định số lượng instance và vòng đời của bean: singleton, prototype, request, session...</p>
+        </div>
+        
+        <div class="concept">
+          <h4>AOP</h4>
+          <p>Tách cross-cutting concerns như logging, security, transaction, audit khỏi business logic.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>@Transactional</h4>
+          <p>Quản lý DB transaction bằng Spring proxy/AOP.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Spring Data JPA</h4>
+          <p>Abstraction trên JPA/Hibernate để làm việc với relational database qua entity/repository.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>What is IoC and why is it important?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-7">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-7">Inversion of Control means the responsibility of creating and managing objects is moved from application code to the Spring container.<br><br>Without IoC, classes create their dependencies manually using new. This creates tight coupling and makes testing harder.<br><br>With Spring, dependencies are injected from outside. The class depends on an abstraction or a dependency provided by the container. This improves loose coupling, testability, and maintainability.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How does @Transactional work internally?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-8">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-8">@Transactional works through Spring AOP proxy.<br><br>When a method annotated with @Transactional is called from outside the bean, Spring proxy intercepts the call, opens a transaction, executes the method, then commits or rolls back depending on the result.<br><br>Important points:<br>- By default, rollback happens for unchecked exceptions.<br>- Checked exceptions do not rollback unless configured.<br>- Self-invocation does not trigger the transactional proxy.<br>- Long transactions can cause DB locks and performance issues.<br>- Avoid external API calls inside a DB transaction when possible.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>What is circular dependency and how do you fix it?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-9">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-9">Circular dependency happens when bean A depends on bean B and bean B depends on bean A.<br><br>This usually indicates a design smell because responsibilities may not be separated clearly.<br><br>Possible fixes:<br>- redesign the service boundary<br>- extract shared logic into another service<br>- use setter injection or @Lazy as temporary workaround<br>- publish domain events instead of direct dependency<br><br>As a senior, I prefer redesigning the dependency rather than just using @Lazy to hide the problem.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How do you handle global exception in Spring Boot?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-10">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-10">I use @RestControllerAdvice and @ExceptionHandler to centralize error handling.<br><br>This avoids repeating try-catch in every controller and gives frontend a consistent error response.<br><br>In production, I usually include errorCode, message, timestamp, path, and traceId. The traceId helps map API error to logs in distributed systems.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-11">Copy code</button>
+          </div>
+          <pre><code id="code-11">@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;ApiError&gt; handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ApiError(&quot;NOT_FOUND&quot;, ex.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ApiError&gt; handleGeneric(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ApiError(&quot;INTERNAL_ERROR&quot;, &quot;Unexpected error&quot;));
+    }
+}</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="sorting-hash" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>3. Advanced Java Internals — Sorting &amp; Hash Implementation Concept</h2>
+        </div>
+      </div>
+      <p class="summary">Không nhất thiết phải implement algorithm từ đầu, nhưng nên hiểu Java sort/hash hoạt động conceptually để nói được performance và trade-off.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Sorting và hashing là nền tảng của Collection, DB indexing, cache key, partitioning và performance optimization.</li><li>Interviewer thường muốn biết anh hiểu concept chứ không bắt nhớ source code chi tiết.</li><li>Senior cần nói được complexity, stable sort, comparator issue, hash collision, equals/hashCode contract.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Sorting</h4>
+          <p>Sắp xếp data theo comparator/order. Thường cost O(n log n).</p>
+        </div>
+        
+        <div class="concept">
+          <h4>TimSort</h4>
+          <p>Java object sorting dùng TimSort conceptually, optimized cho data thực tế thường đã partially sorted và stable.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Dual-Pivot QuickSort</h4>
+          <p>Primitive array sorting trong Java dùng optimized quicksort variant.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Hashing</h4>
+          <p>Chuyển object/key thành hash value để lookup nhanh.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Collision</h4>
+          <p>Nhiều key rơi vào cùng bucket.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>equals/hashCode contract</h4>
+          <p>Nếu two objects equal thì hashCode phải bằng nhau.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>How does Java sorting work conceptually?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-12">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-12">In Java, sorting depends on the data type.<br><br>For object arrays and collections, Java uses a stable sorting algorithm conceptually based on TimSort. It performs well with real-world partially sorted data.<br><br>For primitive arrays, Java uses optimized algorithms such as dual-pivot quicksort.<br><br>As a backend engineer, I care about:<br>- time complexity, usually O(n log n)<br>- comparator correctness<br>- memory usage<br>- whether sorting should happen in Java or in the database<br><br>For large datasets, I usually avoid loading everything into memory just to sort. I prefer database-level sorting with pagination and proper index.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How does HashMap work internally?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-13">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-13">HashMap stores key-value pairs using an array of buckets.<br><br>When we call put, it calculates hashCode of the key, maps it to a bucket index, and stores the entry there. When we call get, it calculates the hash again, finds the bucket, and uses equals to find the exact key.<br><br>If multiple keys go to the same bucket, collision happens. Before Java 8, collision was handled by linked list. From Java 8, when a bucket becomes too large and capacity is enough, it can be converted into a red-black tree, improving worst-case lookup from O(n) to O(log n).<br><br>Important production points:<br>- implement equals and hashCode correctly for custom keys<br>- avoid mutable keys<br>- HashMap is not thread-safe<br>- resizing is expensive<br>- bad hash distribution causes performance degradation.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>Why did Java 8 change collision handling from linked list to red-black tree?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-14">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-14">Before Java 8, if many keys landed in the same bucket, HashMap had to scan a linked list. The worst-case lookup became O(n).<br><br>From Java 8, when the collision chain passes a threshold, the bucket can be treeified into a red-black tree. This improves lookup to O(log n) in worst-case collision scenarios.<br><br>This change protects HashMap performance when hash distribution is poor or when many collisions happen.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-15">Copy code</button>
+          </div>
+          <pre><code id="code-15">Map&lt;UserKey, UserProfile&gt; cache = new HashMap&lt;&gt;();
+
+// For custom key, equals() and hashCode() must be stable and correct.
+// Avoid changing fields used in hashCode after putting the key into the map.</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="btree-index" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>4. Database Advanced — B-Tree / Index / Query Plan</h2>
+        </div>
+      </div>
+      <p class="summary">B-tree/index là topic rất đáng học sâu vì backend performance thường chết ở DB query chứ không phải Java code.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Database index giúp query nhanh hơn nhưng không miễn phí.</li><li>Senior cần biết index dùng để tối ưu read, nhưng ảnh hưởng insert/update/delete.</li><li>Nên hiểu B-tree/B+tree concept, composite index, leftmost prefix, execution plan, full table scan, index scan.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Index</h4>
+          <p>Data structure giúp DB tìm row nhanh hơn thay vì scan toàn table.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>B-Tree / B+Tree</h4>
+          <p>Tree structure giữ key sorted, hỗ trợ equality search và range query hiệu quả.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Composite Index</h4>
+          <p>Index trên nhiều column. Thứ tự column rất quan trọng.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Leftmost Prefix Rule</h4>
+          <p>Index (a,b,c) thường hỗ trợ query theo a, a+b, a+b+c; không tối ưu cho chỉ b hoặc c.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Execution Plan</h4>
+          <p>Kế hoạch DB chọn để chạy query: scan, join, sort, cost, row estimation.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>How does a database index work?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-16">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-16">A database index is a data structure that helps the database find rows faster.<br><br>Without an index, the database may perform a full table scan. With an index, it can traverse a B-tree or B+tree-like structure to locate matching rows more efficiently.<br><br>Indexes are useful for columns used in WHERE, JOIN, ORDER BY, and GROUP BY.<br><br>However, indexes are not free. They improve read performance but add overhead to insert, update, and delete because the index must also be maintained.<br><br>As a senior engineer, I do not add indexes blindly. I check real query patterns and execution plans first.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>What is a composite index and why does column order matter?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-17">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-17">A composite index is an index on multiple columns.<br><br>Column order matters because of the leftmost prefix rule. For example, an index on (status, created_at) can help queries filtering by status, or by status and created_at together. But it may not help much for a query filtering only by created_at.<br><br>I design composite indexes based on the most common filters and sort order in real queries.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>What is query execution plan?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-18">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-18">An execution plan shows how the database executes a SQL query.<br><br>It tells us whether the database uses an index scan, full table scan, nested loop join, hash join, sorting, and estimated cost.<br><br>When a query is slow, I check the execution plan to see:<br>- whether the right index is used<br>- how many rows are scanned<br>- whether sorting is expensive<br>- whether joins are efficient<br>- whether statistics are outdated<br><br>This is much better than guessing.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-19">Copy code</button>
+          </div>
+          <pre><code id="code-19">CREATE INDEX idx_order_status_created
+ON orders(status, created_at);
+
+EXPLAIN ANALYZE
+SELECT *
+FROM orders
+WHERE status = &#x27;PAID&#x27;
+ORDER BY created_at DESC
+LIMIT 50;</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="isolation-locking" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>5. Database Isolation &amp; Locking Mechanism</h2>
+        </div>
+      </div>
+      <p class="summary">Isolation/locking là topic advance nhưng cực kỳ quan trọng trong hệ thống order, inventory, payment, banking, booking.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Nhiều request có thể update cùng một dữ liệu cùng lúc.</li><li>Nếu không hiểu isolation/locking, có thể gặp lost update, dirty read, overselling, duplicate payment, inconsistent report.</li><li>Senior cần biết ACID, isolation levels, optimistic lock, pessimistic lock, deadlock và transaction boundary.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>ACID</h4>
+          <p>Atomicity, Consistency, Isolation, Durability.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Dirty Read</h4>
+          <p>Đọc data chưa commit từ transaction khác.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Non-repeatable Read</h4>
+          <p>Cùng một row nhưng đọc hai lần ra kết quả khác nhau vì transaction khác đã commit update.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Phantom Read</h4>
+          <p>Cùng một query nhưng lần sau xuất hiện thêm/mất row vì transaction khác insert/delete.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Optimistic Lock</h4>
+          <p>Dùng version để detect conflict khi update.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Pessimistic Lock</h4>
+          <p>Lock row trước để ngăn transaction khác update đồng thời.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>Explain transaction isolation levels.</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-20">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-20">Isolation levels define how much one transaction is isolated from others.<br><br>Common levels:<br>- Read Uncommitted: may read uncommitted data, dirty read can happen.<br>- Read Committed: only reads committed data.<br>- Repeatable Read: reading the same row multiple times returns the same result.<br>- Serializable: strongest isolation, transactions behave like they run one by one.<br><br>The trade-off is consistency vs concurrency. Higher isolation gives stronger consistency but may reduce performance due to more locking.<br><br>In production, I choose isolation level based on business requirement, not always the highest level.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>Optimistic locking vs pessimistic locking?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-21">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-21">Optimistic locking assumes conflicts are rare. It does not lock the row when reading. Instead, it uses a version column. When updating, it checks whether the version is still the same.<br><br>Pessimistic locking assumes conflicts are likely. It locks the row immediately so other transactions cannot update it until the lock is released.<br><br>I use optimistic locking for normal update flows where conflicts are rare. I use pessimistic locking when correctness is critical and conflicts are expected, for example inventory reservation under high concurrency.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How do you avoid overselling inventory?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-22">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-22">There are several approaches depending on scale and consistency requirements.<br><br>For simple systems, I can use database row lock with SELECT FOR UPDATE or JPA pessimistic lock.<br>For moderate systems, optimistic lock with retry can work.<br>For high-scale systems, I may use Redis atomic operation, message queue, reservation table, or inventory service with strong consistency boundary.<br><br>The key point is to make the stock deduction atomic and idempotent. We should also avoid long transactions and handle retry carefully.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-23">Copy code</button>
+          </div>
+          <pre><code id="code-23">// Optimistic locking
+@Version
+private Long version;
+
+// Pessimistic locking with JPA
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query(&quot;select p from Product p where p.id = :id&quot;)
+Product findForUpdate(@Param(&quot;id&quot;) Long id);</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="sync-async-reactive" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>6. Sync / Async / Reactive Programming Use Cases</h2>
+        </div>
+      </div>
+      <p class="summary">Không phải cứ async/reactive là tốt. Senior phải biết chọn model theo use case, complexity và failure handling.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Synchronous đơn giản, dễ debug, phù hợp flow cần kết quả ngay.</li><li>Asynchronous giúp giảm waiting time, decouple services, phù hợp notification/event/background processing.</li><li>Reactive phù hợp high-concurrency I/O-bound systems nhưng tăng complexity và yêu cầu non-blocking end-to-end.</li><li>Cần hiểu retry, timeout, fallback, idempotency, ordering, backpressure.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Synchronous</h4>
+          <p>Caller chờ response rồi mới tiếp tục.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Asynchronous</h4>
+          <p>Task chạy background/parallel, caller không cần chờ ngay.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Non-blocking I/O</h4>
+          <p>Thread không bị block khi chờ external I/O.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Reactive</h4>
+          <p>Event-driven non-blocking model, thường dùng Mono/Flux trong Spring WebFlux.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Backpressure</h4>
+          <p>Cơ chế consumer báo producer giảm tốc khi xử lý không kịp.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>Synchronous vs asynchronous processing?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-24">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-24">Synchronous processing means the caller waits for the operation to finish. It is simple and suitable when the user needs the result immediately.<br><br>Asynchronous processing means the task can run in the background or in parallel. It is useful when the caller does not need immediate result.<br><br>For example, login and payment authorization are usually synchronous. Email notification, audit log, report generation, and event publishing can be asynchronous.<br><br>Async improves responsiveness and decoupling, but it introduces complexity: retry, idempotency, error handling, message ordering, and observability.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>When would you use reactive programming?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-25">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-25">I use reactive programming when the system is I/O-heavy and needs to handle high concurrency with fewer threads.<br><br>Examples:<br>- API gateway<br>- streaming data<br>- calling multiple non-blocking external APIs<br>- real-time event processing<br><br>In Spring WebFlux, Mono represents zero or one item, and Flux represents zero to many items.<br><br>But reactive is not always better. It adds complexity and requires the full chain to be non-blocking. If we call blocking JDBC inside reactive flow, we lose the benefit.<br><br>For normal CRUD systems, Spring MVC is often simpler and good enough.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>What mistakes should we avoid in async/reactive systems?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-26">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-26">Common mistakes include:<br>- no timeout<br>- no fallback<br>- using default common ForkJoinPool without control<br>- blocking call inside reactive pipeline<br>- no retry strategy<br>- non-idempotent consumer<br>- no correlation ID for tracing<br>- ignoring backpressure<br><br>Senior engineers should design async systems with failure in mind, not only happy path performance.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-27">Copy code</button>
+          </div>
+          <pre><code id="code-27">Mono&lt;UserProfile&gt; profileMono =
+    Mono.zip(userClient.getUser(userId), orderClient.getOrders(userId))
+        .map(tuple -&gt; new UserProfile(tuple.getT1(), tuple.getT2()))
+        .timeout(Duration.ofSeconds(2))
+        .onErrorResume(ex -&gt; Mono.just(UserProfile.empty()));</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="loose-coupling-microservice" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>7. Loose Coupling Design in Microservices</h2>
+        </div>
+      </div>
+      <p class="summary">Loose coupling là mindset thiết kế microservice quan trọng: service nên phụ thuộc contract, không phụ thuộc internal database hoặc implementation của service khác.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Microservice không chỉ là tách project thành nhiều service.</li><li>Nếu service gọi trực tiếp DB của service khác, share entity quá nhiều, hoặc phụ thuộc implementation chi tiết, hệ thống vẫn bị tight coupling.</li><li>Loose coupling giúp service deploy độc lập, scale độc lập, thay đổi độc lập và giảm blast radius.</li><li>Nhưng loose coupling cũng cần observability, contract testing, API versioning, event design và failure handling.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Bounded Context</h4>
+          <p>Ranh giới domain rõ ràng, mỗi service chịu trách nhiệm một business capability.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>API Contract</h4>
+          <p>Service giao tiếp qua contract ổn định: REST/gRPC/event schema.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Database per Service</h4>
+          <p>Mỗi service sở hữu database/schema của nó, service khác không query trực tiếp.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Event-driven</h4>
+          <p>Service publish event để service khác react mà không cần direct coupling.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Saga</h4>
+          <p>Quản lý distributed transaction bằng local transaction + compensation.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Circuit Breaker</h4>
+          <p>Ngăn cascading failure khi downstream service lỗi.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>What is loose coupling in microservices?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-28">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-28">Loose coupling means each service depends on stable contracts, not internal implementation.<br><br>A service should not directly access another service&#x27;s database. It should communicate through API or events.<br><br>For example, Order Service should not update Payment Service database directly. It should call Payment API or publish an event like OrderCreated.<br><br>Loose coupling allows services to be developed, deployed, scaled, and changed independently. But it also requires good API versioning, contract testing, observability, and failure handling.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How do you define service boundaries?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-29">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-29">I define service boundaries based on business capability and data ownership, not only technical layers.<br><br>A good service should own its data and business rules. It should expose a clear contract to other services.<br><br>For example, User Service owns user profile and identity-related data. Order Service owns order lifecycle. Payment Service owns payment transaction and payment status.<br><br>If two services constantly need each other&#x27;s internal data, the boundary may be wrong or we may need an event-driven read model.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>How do you handle distributed transactions in microservices?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-30">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-30">In microservices, I usually avoid global transactions because they reduce scalability and increase coupling.<br><br>Common approaches are:<br>- Saga pattern<br>- Outbox pattern<br>- event-driven architecture<br>- compensation transaction<br>- idempotent consumer<br><br>For example, order creation can be split into local transactions:<br>1. Create order<br>2. Reserve inventory<br>3. Process payment<br>4. Confirm order<br><br>If payment fails, we release inventory and cancel the order through compensating actions.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>What is circuit breaker and why is it useful?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-31">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-31">Circuit breaker prevents a service from repeatedly calling a failing dependency.<br><br>If the failure rate exceeds a threshold, the circuit opens and calls fail fast or return fallback. After some time, it becomes half-open to test whether the dependency recovered.<br><br>This prevents cascading failures. For example, if Payment Service is down, Order Service should not keep waiting for timeout and exhaust its threads.</div>
+          </div>
+        </details>
+        </div>
+      
+        <div class="code-card">
+          <div class="answer-toolbar">
+            <strong>Example code / script</strong>
+            <button class="copy" data-target="code-32">Copy code</button>
+          </div>
+          <pre><code id="code-32">@CircuitBreaker(name = &quot;paymentService&quot;, fallbackMethod = &quot;paymentFallback&quot;)
+public PaymentResponse callPayment(PaymentRequest request) {
+    return paymentClient.pay(request);
+}
+
+public PaymentResponse paymentFallback(PaymentRequest request, Throwable ex) {
+    return PaymentResponse.pending(&quot;Payment service is temporarily unavailable&quot;);
+}</code></pre>
+        </div>
+        
+    </section>
+    
+    <section id="study-depth" class="section">
+      <div class="section-head">
+        <div>
+          <span class="label">Topic</span>
+          <h2>8. How to Study These Topics Deeply</h2>
+        </div>
+      </div>
+      <p class="summary">Topic thì rất nhiều. Mục tiêu không phải học thuộc tất cả, mà là topic nào đã học thì hiểu đủ sâu để dùng được trong interview và production.</p>
+
+      <div class="context">
+        <h3>Context — Bám sát note</h3>
+        <ul><li>Không nên chỉ học câu trả lời mẫu.</li><li>Mỗi topic nên có mental model: nó giải quyết vấn đề gì, hoạt động thế nào, trade-off là gì.</li><li>Khi học một topic, nên tự hỏi: nếu production lỗi ở đây thì debug bằng cách nào?</li><li>Nên học sâu những phần liên quan trực tiếp tới Java backend: threading, Spring transaction, DB index/lock, microservice failure, async/event-driven.</li></ul>
+      </div>
+
+      <h3>Key concepts cần hiểu</h3>
+      <div class="concept-grid">
+        <div class="concept">
+          <h4>Senior Priority 1</h4>
+          <p>Java Core, multithreading, collection internals, Spring transaction, JPA, SQL index.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Senior Priority 2</h4>
+          <p>DB isolation/locking, async/reactive use case, microservice design, Kafka, caching.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Senior Priority 3</h4>
+          <p>JVM tuning, GC logs, distributed tracing, advanced architecture patterns.</p>
+        </div>
+        
+        <div class="concept">
+          <h4>Practice method</h4>
+          <p>Mỗi topic chuẩn bị 1 definition, 1 mechanism, 1 trade-off, 1 production example, 1 common pitfall.</p>
+        </div>
+        </div>
+
+      <h3>Common interview questions — trả lời như senior</h3>
+      <div class="qa-list">
+        <details class="qa" open>
+          <summary>How should I prepare advanced topics for interview?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-33">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-33">I would not try to memorize every advanced topic superficially.<br><br>Instead, for each important topic, I prepare:<br>1. Why it exists<br>2. How it works conceptually<br>3. Trade-offs<br>4. Production use case<br>5. Common pitfalls<br>6. One example from my project or a realistic scenario<br><br>This helps me answer flexibly even when the interviewer changes the question slightly.</div>
+          </div>
+        </details>
+        
+        <details class="qa" open>
+          <summary>Which topics should a senior Java backend engineer prioritize?</summary>
+          <div class="answer-box">
+            <div class="answer-toolbar">
+              <strong>Senior answer script</strong>
+              <button class="copy" data-target="answer-34">Copy answer</button>
+            </div>
+            <div class="answer" id="answer-34">I would prioritize topics that directly affect production backend systems:<br>- Java multithreading and concurrency<br>- HashMap and collection internals<br>- Spring IoC, AOP, transaction, JPA<br>- SQL index, B-tree, execution plan<br>- DB isolation and locking<br>- sync vs async vs reactive<br>- loose coupling in microservices<br>- Kafka/event-driven communication<br>- observability: logs, metrics, traces<br><br>These topics are useful not only for interviews but also for real system design, debugging, and performance optimization.</div>
+          </div>
+        </details>
+        </div>
+      
+    </section>
+    
+
+    <footer>
+      Created for interview practice · 2026-07-08 19:24
+    </footer>
+  </main>
+</div>
+
+<script>
+  const app = document.getElementById('app');
+  const theme = document.getElementById('theme');
+  const search = document.getElementById('search');
+
+  theme.addEventListener('click', () => {
+    const current = app.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    app.setAttribute('data-theme', next);
+    theme.textContent = next === 'dark' ? 'Light' : 'Dark';
+  });
+
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      await navigator.clipboard.writeText(target.innerText);
+      const old = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = old, 900);
+    });
+  });
+
+  document.getElementById('openAll').addEventListener('click', () => {
+    document.querySelectorAll('details').forEach(d => d.open = true);
+  });
+
+  document.getElementById('closeAll').addEventListener('click', () => {
+    document.querySelectorAll('details').forEach(d => d.open = false);
+  });
+
+  search.addEventListener('input', () => {
+    const kw = search.value.trim().toLowerCase();
+    document.querySelectorAll('.section').forEach(sec => {
+      sec.classList.toggle('hidden', kw && !sec.innerText.toLowerCase().includes(kw));
+    });
+  });
+</script>
+</body>
+</html>

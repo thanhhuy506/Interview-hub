@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A deep-dive guide to Apache Kafka and message queues for senior Java backend engineers." />
+  <title>Kafka & Message Queues — Deep Dive and Senior Interview Guide</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --primary: #3b5bdb;
+      --primary-2: #7048e8;
+      --accent: #0b7285;
+      --success: #087f5b;
+      --warning: #b35c00;
+      --danger: #c92a2a;
+      --border: #dbe2ea;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --shadow: 0 12px 30px rgba(28, 39, 60, 0.08);
+      --radius: 16px;
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --surface: #151b23;
+      --surface-2: #1b2430;
+      --text: #e7edf5;
+      --muted: #a8b3c2;
+      --primary: #91a7ff;
+      --primary-2: #b197fc;
+      --accent: #66d9e8;
+      --success: #63e6be;
+      --warning: #ffc078;
+      --danger: #ffa8a8;
+      --border: #2b3745;
+      --code-bg: #080b10;
+      --code-text: #e8edf4;
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      padding: 22px 18px; background: var(--surface); border-right: 1px solid var(--border);
+    }
+    .brand { font-weight: 800; font-size: 1.05rem; margin-bottom: 4px; }
+    .brand-sub { color: var(--muted); font-size: .82rem; margin-bottom: 18px; }
+    .search {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text); margin-bottom: 14px;
+    }
+    nav a {
+      display: block; padding: 7px 9px; margin: 2px 0; border-radius: 8px;
+      color: var(--muted); font-size: .9rem;
+    }
+    nav a:hover, nav a.active { background: var(--surface-2); color: var(--primary); text-decoration: none; }
+    .side-actions { display: flex; gap: 8px; margin: 14px 0; }
+    button {
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+      border-radius: 9px; padding: 8px 10px; cursor: pointer;
+    }
+    button:hover { border-color: var(--primary); }
+    main { min-width: 0; }
+    .hero {
+      padding: 68px clamp(24px, 6vw, 90px) 54px;
+      background: linear-gradient(135deg, rgba(59,91,219,.15), rgba(112,72,232,.10));
+      border-bottom: 1px solid var(--border);
+    }
+    .eyebrow {
+      display: inline-block; padding: 5px 10px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border); color: var(--primary);
+      font-size: .78rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    }
+    h1 { font-size: clamp(2.15rem, 5vw, 4.4rem); line-height: 1.08; margin: 18px 0 14px; max-width: 1050px; }
+    .hero p { max-width: 900px; color: var(--muted); font-size: 1.1rem; }
+    .hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 28px; max-width: 1000px; }
+    .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 14px; box-shadow: var(--shadow); }
+    .metric strong { display:block; color:var(--primary); font-size:1.25rem; }
+    .content { padding: 34px clamp(20px, 5vw, 74px) 90px; max-width: 1450px; }
+    section {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: clamp(22px, 4vw, 42px); margin: 24px 0; box-shadow: var(--shadow);
+      scroll-margin-top: 20px;
+    }
+    h2 { margin-top: 0; font-size: clamp(1.6rem, 3vw, 2.35rem); line-height:1.2; }
+    h3 { margin-top: 30px; font-size: 1.32rem; }
+    h4 { margin-top: 22px; font-size: 1.08rem; }
+    p, li { max-width: 1040px; }
+    .lead { font-size:1.08rem; color:var(--muted); }
+    .grid-2 { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:18px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:16px; }
+    .card { border:1px solid var(--border); background:var(--surface-2); border-radius:13px; padding:18px; }
+    .card h3, .card h4 { margin-top:0; }
+    .callout {
+      border-left: 5px solid var(--primary); background:var(--surface-2); padding:15px 18px;
+      border-radius: 0 12px 12px 0; margin:18px 0;
+    }
+    .callout.success { border-left-color:var(--success); }
+    .callout.warning { border-left-color:var(--warning); }
+    .callout.danger { border-left-color:var(--danger); }
+    .tag {
+      display:inline-block; font-size:.76rem; padding:3px 8px; border-radius:999px;
+      background:rgba(59,91,219,.12); color:var(--primary); margin:2px;
+    }
+    table { width:100%; border-collapse: collapse; margin:18px 0; font-size:.93rem; }
+    th, td { border:1px solid var(--border); padding:11px 12px; vertical-align:top; text-align:left; }
+    th { background:var(--surface-2); }
+    .table-wrap { overflow-x:auto; }
+    pre {
+      background:var(--code-bg); color:var(--code-text); border-radius:12px; padding:18px;
+      overflow:auto; font-size:.87rem; line-height:1.55; border:1px solid rgba(255,255,255,.06);
+    }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    :not(pre) > code { background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:2px 5px; }
+    .diagram {
+      font-family: "SFMono-Regular", Consolas, monospace; white-space:pre; overflow:auto;
+      background:var(--surface-2); border:1px dashed var(--border); padding:18px; border-radius:12px; line-height:1.45;
+    }
+    details { border:1px solid var(--border); border-radius:12px; margin:12px 0; background:var(--surface-2); }
+    summary { cursor:pointer; font-weight:750; padding:16px 18px; }
+    details > div { padding:0 18px 18px; }
+    .answer { border-top:1px solid var(--border); padding-top:14px; }
+    .senior { color:var(--success); font-weight:750; }
+    .small { font-size:.86rem; color:var(--muted); }
+    .checklist li { margin-bottom:7px; }
+    .flow-step { display:flex; gap:14px; margin:15px 0; align-items:flex-start; }
+    .num {
+      min-width:32px; height:32px; border-radius:50%; display:grid; place-items:center;
+      color:white; background:var(--primary); font-weight:800;
+    }
+    .pill-row { margin:12px 0; }
+    .hidden-by-search { display:none !important; }
+    footer { color:var(--muted); padding:30px clamp(20px,5vw,74px) 60px; }
+    @media(max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position:relative; height:auto; border-right:0; border-bottom:1px solid var(--border); }
+      nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .hero-grid, .grid-3 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width: 650px) {
+      .hero-grid, .grid-2, .grid-3, nav { grid-template-columns:1fr; }
+      .hero { padding-top:38px; }
+      section { border-radius:12px; }
+    }
+    @media print {
+      aside, .side-actions, .search { display:none !important; }
+      .layout { display:block; }
+      body { background:white; color:black; }
+      section { box-shadow:none; break-inside:avoid; }
+      details > div { display:block !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Kafka & Queue Guide</div>
+    <div class="brand-sub">Senior Java Backend Edition</div>
+    <input id="searchBox" class="search" placeholder="Search the document..." />
+    <div class="side-actions">
+      <button id="themeBtn">Dark mode</button>
+      <button onclick="window.print()">Print</button>
+    </div>
+    <nav id="toc">
+      <a href="#mental-model">1. Mental Model</a>
+      <a href="#glossary">2. Core Terms</a>
+      <a href="#kafka-architecture">3. Kafka Architecture</a>
+      <a href="#write-path">4. Producer Write Path</a>
+      <a href="#read-path">5. Consumer Read Path</a>
+      <a href="#partitioning">6. Partitioning & Ordering</a>
+      <a href="#consumer-groups">7. Consumer Groups</a>
+      <a href="#durability">8. Replication & Durability</a>
+      <a href="#semantics">9. Delivery Semantics</a>
+      <a href="#storage">10. Retention & Compaction</a>
+      <a href="#queue-model">11. Queue Model</a>
+      <a href="#comparison">12. Kafka vs Queue</a>
+      <a href="#selection">13. Selection Guide</a>
+      <a href="#setup">14. Production Setup</a>
+      <a href="#configs">15. Critical Configs</a>
+      <a href="#spring">16. Spring Boot Examples</a>
+      <a href="#retries">17. Retry, DLT & Idempotency</a>
+      <a href="#schemas">18. Schema Evolution</a>
+      <a href="#security">19. Security</a>
+      <a href="#monitoring">20. Monitoring</a>
+      <a href="#performance">21. Performance Tuning</a>
+      <a href="#failures">22. Failure Scenarios</a>
+      <a href="#case-study">23. Order Case Study</a>
+      <a href="#antipatterns">24. Anti-patterns</a>
+      <a href="#interview">25. Senior Interview Q&A</a>
+      <a href="#cheatsheet">26. Cheat Sheet</a>
+      <a href="#references">27. References</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <span class="eyebrow">Deep Dive • Production • Interview</span>
+      <h1>Apache Kafka and Message Queues</h1>
+      <p>
+        A detailed guide for Java and Spring Boot engineers. It explains what Kafka and queues are,
+        how messages move through the system, which settings matter in production, how failures are
+        handled, and how a senior engineer should answer interview questions.
+      </p>
+      <div class="pill-row">
+        <span class="tag">Kafka</span><span class="tag">RabbitMQ</span><span class="tag">Amazon SQS</span>
+        <span class="tag">Spring Kafka</span><span class="tag">Reliability</span><span class="tag">System Design</span>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><strong>27</strong>learning sections</div>
+        <div class="metric"><strong>30+</strong>senior questions</div>
+        <div class="metric"><strong>Java</strong>production examples</div>
+        <div class="metric"><strong>End-to-end</strong>failure analysis</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section id="mental-model" data-search>
+        <h2>1. Start with the Correct Mental Model</h2>
+        <p class="lead">The most important difference is not API syntax. It is the way the system stores, distributes, and owns messages.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Traditional Message Queue</h3>
+            <p>A queue is mainly a <strong>work distribution system</strong>. A message is sent to a queue, one worker processes it, and the message is normally removed after successful acknowledgement.</p>
+            <div class="diagram">Producer → Queue → One Consumer
+                    └→ ACK → Message removed</div>
+            <p><strong>Main question:</strong> “Which worker should execute this job?”</p>
+          </div>
+          <div class="card">
+            <h3>Kafka</h3>
+            <p>Kafka is mainly a <strong>distributed, retained, append-only log</strong>. Records stay for a configured retention period. Consumers track their own positions and can replay old records.</p>
+            <div class="diagram">Producer → Topic Partition Log
+                 ├→ Group A reads offsets
+                 ├→ Group B reads offsets
+                 └→ Replay later</div>
+            <p><strong>Main question:</strong> “Which applications need to observe this stream of facts?”</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Simple rule:</strong> A queue distributes tasks. Kafka distributes a history of events.
+          Kafka can be used for work distribution through consumer groups, but its storage and replay model remain different.
+        </div>
+
+        <h3>Command, event, and job are not the same</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Type</th><th>Meaning</th><th>Example</th><th>Common transport</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Command</strong></td><td>A request for one receiver to perform an action.</td><td><code>ChargePayment</code></td><td>Queue, Kafka command topic, HTTP</td></tr>
+            <tr><td><strong>Event</strong></td><td>A fact that already happened. Multiple systems may react.</td><td><code>PaymentCompleted</code></td><td>Kafka topic, exchange with fan-out</td></tr>
+            <tr><td><strong>Job</strong></td><td>A unit of background work that should normally be processed once by one worker.</td><td><code>GenerateMonthlyInvoice</code></td><td>RabbitMQ, SQS, task queue</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="glossary" data-search>
+        <h2>2. Core Terms You Must Understand</h2>
+        <div class="grid-3">
+          <div class="card"><h3>Broker</h3><p>A server that accepts, stores, and serves messages. A Kafka cluster normally has several brokers.</p></div>
+          <div class="card"><h3>Topic</h3><p>A named stream of records, such as <code>order-events</code>. A Kafka topic is divided into partitions.</p></div>
+          <div class="card"><h3>Partition</h3><p>An ordered append-only log. It is Kafka’s unit of parallelism, storage, and replication.</p></div>
+          <div class="card"><h3>Offset</h3><p>A record’s position inside one partition. Offset 150 in partition 0 is unrelated to offset 150 in partition 1.</p></div>
+          <div class="card"><h3>Producer</h3><p>An application that writes records to Kafka or sends messages to a queue.</p></div>
+          <div class="card"><h3>Consumer</h3><p>An application that reads records and performs business processing.</p></div>
+          <div class="card"><h3>Consumer Group</h3><p>A logical application instance group. Within one Kafka group, each partition is assigned to at most one active consumer.</p></div>
+          <div class="card"><h3>Leader Replica</h3><p>The replica that handles reads and writes for a partition.</p></div>
+          <div class="card"><h3>Follower Replica</h3><p>A copy that fetches records from the partition leader and can become leader after failure.</p></div>
+          <div class="card"><h3>ISR</h3><p><strong>In-Sync Replicas</strong>: replicas sufficiently caught up with the leader.</p></div>
+          <div class="card"><h3>Acknowledgement</h3><p>A signal that data was received or processed. Producer acknowledgements and consumer acknowledgements solve different problems.</p></div>
+          <div class="card"><h3>Backpressure</h3><p>A mechanism that prevents fast producers from overwhelming slower consumers or downstream systems.</p></div>
+        </div>
+      </section>
+
+      <section id="kafka-architecture" data-search>
+        <h2>3. Kafka Architecture</h2>
+        <p class="lead">Kafka separates cluster metadata management, data storage, producing, and consuming.</p>
+
+        <div class="diagram">                         KRaft Metadata Quorum
+                    ┌──────────────┬──────────────┐
+                    │ Controller 1 │ Controller 2 │ Controller 3
+                    └──────┬───────┴──────┬───────┘
+                           │ cluster metadata
+      ┌────────────────────┼─────────────────────────┐
+      │                    │                         │
+┌─────▼─────┐        ┌─────▼─────┐             ┌────▼──────┐
+│ Broker 1  │        │ Broker 2  │             │ Broker 3  │
+│ P0 leader │        │ P1 leader │             │ P2 leader │
+│ P1 follow │        │ P2 follow │             │ P0 follow │
+└─────▲─────┘        └─────▲─────┘             └────▲──────┘
+      │                    │                         │
+ Producers write       Consumers fetch          Replicas copy</div>
+
+        <h3>Important components</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Responsibility</th><th>Senior-level concern</th></tr></thead>
+          <tbody>
+            <tr><td>KRaft controller quorum</td><td>Stores cluster metadata and elects the active controller.</td><td>Use an odd controller count, commonly three, so a majority can remain available.</td></tr>
+            <tr><td>Broker</td><td>Stores partition logs and handles produce/fetch requests.</td><td>Disk throughput, network bandwidth, file descriptors, page cache, and rack awareness matter.</td></tr>
+            <tr><td>Topic</td><td>Logical stream name.</td><td>Design names, ownership, retention, schemas, access control, and lifecycle before creation.</td></tr>
+            <tr><td>Partition</td><td>Ordered shard of a topic.</td><td>Too few limits parallelism. Too many increase metadata, open files, rebalances, recovery work, and cost.</td></tr>
+            <tr><td>Replica</td><td>Copy of a partition on another broker.</td><td>Replication factor improves durability but multiplies storage and network use.</td></tr>
+            <tr><td>Group coordinator</td><td>Coordinates group membership and partition assignments.</td><td>Rebalances, timeouts, static membership, and assignment strategy affect availability.</td></tr>
+            <tr><td>Transaction coordinator</td><td>Tracks Kafka producer transactions.</td><td>Kafka transactions cover Kafka records and offsets, not arbitrary external database commits.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout warning">
+          <strong>Current platform note:</strong> Apache Kafka 4.x supports KRaft mode only. ZooKeeper mode was removed in Kafka 4.0.
+          For modern installations, understand controllers, brokers, metadata quorum, and the KRaft migration path.
+        </div>
+      </section>
+
+      <section id="write-path" data-search>
+        <h2>4. How a Kafka Producer Writes a Record</h2>
+        <p class="lead">A successful <code>send()</code> is not a single network call. Several steps happen inside the client and cluster.</p>
+
+        <div class="flow-step"><span class="num">1</span><div><strong>Serialize.</strong> The producer converts the key and value into bytes. Serialization format is a long-term contract, not a small implementation detail.</div></div>
+        <div class="flow-step"><span class="num">2</span><div><strong>Select a partition.</strong> An explicit partition wins. Otherwise the producer normally hashes the key, or uses a keyless partitioning strategy.</div></div>
+        <div class="flow-step"><span class="num">3</span><div><strong>Append to a client-side batch.</strong> Records for the same partition are grouped. <code>batch.size</code> and <code>linger.ms</code> influence batch efficiency.</div></div>
+        <div class="flow-step"><span class="num">4</span><div><strong>Compress.</strong> Compression is most effective on batches. Common choices include gzip, snappy, lz4, and zstd.</div></div>
+        <div class="flow-step"><span class="num">5</span><div><strong>Send to the partition leader.</strong> The client obtains cluster metadata and contacts the broker leading that partition.</div></div>
+        <div class="flow-step"><span class="num">6</span><div><strong>Leader appends the record.</strong> The record is written to the leader log. Followers fetch and replicate it.</div></div>
+        <div class="flow-step"><span class="num">7</span><div><strong>Wait according to <code>acks</code>.</strong> With <code>acks=all</code>, the leader waits for required in-sync replicas.</div></div>
+        <div class="flow-step"><span class="num">8</span><div><strong>Complete or retry.</strong> Retriable failures may be sent again. Idempotent producing prevents retry-created duplicates within its supported scope.</div></div>
+
+        <h3>Why keys matter</h3>
+        <pre><code class="java">ProducerRecord&lt;String, OrderEvent&gt; record =
+    new ProducerRecord&lt;&gt;("order-events", orderId, event);
+
+kafkaTemplate.send(record);</code></pre>
+        <p>Using <code>orderId</code> as the key normally keeps all events for one order in the same partition, which preserves order <strong>for that order</strong>.</p>
+
+        <div class="callout danger">
+          Kafka does not provide one global order across all partitions. Ordering exists inside a single partition only.
+        </div>
+      </section>
+
+      <section id="read-path" data-search>
+        <h2>5. How a Kafka Consumer Reads and Processes Records</h2>
+        <div class="flow-step"><span class="num">1</span><div>The consumer joins a group and receives partition assignments.</div></div>
+        <div class="flow-step"><span class="num">2</span><div>It polls brokers for records beginning from its current position.</div></div>
+        <div class="flow-step"><span class="num">3</span><div>It deserializes records and calls application logic.</div></div>
+        <div class="flow-step"><span class="num">4</span><div>The application updates a database, calls another service, or produces new records.</div></div>
+        <div class="flow-step"><span class="num">5</span><div>The consumer commits offsets, indicating the next position it should resume from.</div></div>
+
+        <h3>Position versus committed offset</h3>
+        <ul>
+          <li><strong>Current position:</strong> where the active consumer is reading now.</li>
+          <li><strong>Committed offset:</strong> the restart checkpoint stored for the consumer group.</li>
+        </ul>
+
+        <h3>The critical ordering decision</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Commit before processing</h3>
+            <p>If the process crashes after committing but before completing business logic, the record may be lost from the application’s perspective.</p>
+            <p><strong>Result:</strong> closer to at-most-once.</p>
+          </div>
+          <div class="card">
+            <h3>Process before committing</h3>
+            <p>If processing succeeds but the process crashes before committing, Kafka delivers the record again.</p>
+            <p><strong>Result:</strong> at-least-once, requiring idempotency.</p>
+          </div>
+        </div>
+
+        <div class="callout success">
+          In most business systems, prefer <strong>process first, commit later, and make processing idempotent</strong>.
+          Duplicates are usually safer than silent data loss.
+        </div>
+      </section>
+
+      <section id="partitioning" data-search>
+        <h2>6. Partitioning, Keys, Ordering, and Hot Partitions</h2>
+        <h3>What a partition controls</h3>
+        <ul>
+          <li>Maximum useful consumer parallelism for one consumer group.</li>
+          <li>Ordering boundary.</li>
+          <li>Replication and leader election unit.</li>
+          <li>Storage files, segment management, and recovery work.</li>
+        </ul>
+
+        <h3>Key selection examples</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Use case</th><th>Good key</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Order lifecycle</td><td><code>orderId</code></td><td>All status changes for one order remain ordered.</td></tr>
+            <tr><td>Bank account ledger</td><td><code>accountId</code></td><td>Transactions for one account are processed sequentially.</td></tr>
+            <tr><td>User profile updates</td><td><code>userId</code></td><td>Profile versions stay ordered per user.</td></tr>
+            <tr><td>Telemetry</td><td><code>deviceId</code></td><td>Measurements remain ordered per device.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Hot partition problem</h3>
+        <p>A hot key sends disproportionate traffic to one partition. For example, using <code>countryCode</code> as the key may put most traffic into the partition for a large country.</p>
+        <p>Possible responses:</p>
+        <ul>
+          <li>Choose a higher-cardinality key.</li>
+          <li>Add a controlled shard suffix such as <code>merchantId + bucket</code>, but accept weaker ordering.</li>
+          <li>Separate extreme tenants into dedicated topics.</li>
+          <li>Apply quotas or upstream rate limits.</li>
+          <li>Measure per-partition throughput instead of only topic totals.</li>
+        </ul>
+
+        <h3>How many partitions?</h3>
+        <p>Do not choose a magic number. Benchmark with your payload, compression, acknowledgement level, hardware, and processing logic.</p>
+        <pre><code>required partitions ≈ max(
+    target produce throughput / tested produce throughput per partition,
+    target consume throughput / tested consume throughput per consumer-partition
+)</code></pre>
+        <div class="callout warning">
+          Increasing partitions later can change key-to-partition mapping. That may break ordering expectations for existing keys.
+          Plan growth and key behavior before production.
+        </div>
+      </section>
+
+      <section id="consumer-groups" data-search>
+        <h2>7. Consumer Groups and Rebalancing</h2>
+        <div class="diagram">Topic: order-events (4 partitions)
+
+Consumer Group: payment-service
+  Consumer A → P0, P1
+  Consumer B → P2, P3
+
+Consumer Group: analytics-service
+  Consumer X → P0, P1, P2, P3
+
+Each group receives the full topic independently.
+Inside one group, partitions are divided among consumers.</div>
+
+        <h3>Rules you must remember</h3>
+        <ul>
+          <li>If a group has 4 partitions and 2 consumers, each consumer usually receives 2 partitions.</li>
+          <li>If a group has 4 partitions and 6 consumers, at least 2 consumers are idle.</li>
+          <li>Adding consumers beyond partition count does not increase record-processing parallelism.</li>
+          <li>Different consumer groups independently read the same records.</li>
+        </ul>
+
+        <h3>What triggers a rebalance?</h3>
+        <ul>
+          <li>A consumer joins or leaves.</li>
+          <li>A consumer is considered dead because heartbeats stop.</li>
+          <li>A consumer takes too long between polls and exceeds <code>max.poll.interval.ms</code>.</li>
+          <li>Subscribed topic partitions change.</li>
+          <li>Group metadata or assignment protocol changes.</li>
+        </ul>
+
+        <h3>Why rebalances hurt</h3>
+        <p>Partitions may temporarily stop processing. In-flight records can be repeated. Caches and local state may need to move. Frequent rebalances create latency spikes and reduce throughput.</p>
+
+        <h3>Ways to reduce disruption</h3>
+        <ul>
+          <li>Keep processing time below <code>max.poll.interval.ms</code>.</li>
+          <li>Reduce <code>max.poll.records</code> when each record is expensive.</li>
+          <li>Move long processing to a controlled executor only when offset and ordering behavior are carefully designed.</li>
+          <li>Use cooperative assignment where appropriate to reduce full stop-the-world movement.</li>
+          <li>Use static membership for stable instances, while still handling actual failures.</li>
+          <li>Avoid unstable deployments that repeatedly start and stop pods.</li>
+        </ul>
+      </section>
+
+      <section id="durability" data-search>
+        <h2>8. Replication, ISR, Acknowledgements, and Durability</h2>
+        <div class="diagram">Partition 0
+  Broker 1: Leader     [0 ... 105]
+  Broker 2: Follower   [0 ... 105]  ← ISR
+  Broker 3: Follower   [0 ... 104]  ← ISR
+
+Producer with acks=all waits for the in-sync replica requirements.</div>
+
+        <h3>Three settings must be understood together</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Setting</th><th>Meaning</th><th>Trade-off</th></tr></thead>
+          <tbody>
+            <tr><td><code>replication.factor</code></td><td>Number of copies of each partition.</td><td>More durability and availability, but more disk and replication traffic.</td></tr>
+            <tr><td><code>acks</code></td><td>How many acknowledgements the producer waits for.</td><td>Lower values reduce latency but increase loss risk.</td></tr>
+            <tr><td><code>min.insync.replicas</code></td><td>Minimum ISR requirement for successful <code>acks=all</code> writes.</td><td>Higher durability may reject writes during replica failures.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Common production durability combination</h3>
+        <pre><code>replication.factor = 3
+min.insync.replicas = 2
+producer acks = all
+enable.idempotence = true</code></pre>
+        <p>With three replicas, the system can normally lose one replica and still accept writes. If too few in-sync replicas remain, writes fail rather than accepting data with a weak durability level.</p>
+
+        <h3>Availability versus durability</h3>
+        <p>A senior engineer does not say “replication factor 3 means no data loss.” Durability also depends on:</p>
+        <ul>
+          <li>Which acknowledgements the producer waits for.</li>
+          <li>Whether replicas are in sync.</li>
+          <li>Whether unclean leader election is allowed.</li>
+          <li>Disk and filesystem behavior.</li>
+          <li>Client retry and timeout configuration.</li>
+          <li>Whether the application correctly handles send failures.</li>
+          <li>Rack and availability-zone placement.</li>
+        </ul>
+      </section>
+
+      <section id="semantics" data-search>
+        <h2>9. At-Most-Once, At-Least-Once, and Exactly-Once</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Semantic</th><th>Possible result</th><th>Typical method</th><th>Suitable for</th></tr></thead>
+          <tbody>
+            <tr><td>At-most-once</td><td>No duplicate, but data may be lost.</td><td>Commit before processing.</td><td>Low-value telemetry where loss is acceptable.</td></tr>
+            <tr><td>At-least-once</td><td>No silent loss under expected failures, but duplicates may occur.</td><td>Process, then commit; retry failures.</td><td>Most business systems with idempotent processing.</td></tr>
+            <tr><td>Exactly-once</td><td>One visible result inside a defined boundary.</td><td>Kafka idempotent producer and transactions for Kafka read-process-write.</td><td>Kafka-to-Kafka pipelines and carefully designed stateful processing.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Exactly-once is always scoped</h3>
+        <div class="callout danger">
+          Kafka transactions do not automatically make a PostgreSQL update and a Kafka publish one atomic transaction.
+          If your consumer updates an external database, you still need database idempotency, an inbox table, an outbox pattern,
+          or another explicit consistency design.
+        </div>
+
+        <h3>Producer idempotence</h3>
+        <p>The producer uses a producer ID and sequence numbers so broker-side retries do not create duplicate log entries in the supported producer session and partition scope.</p>
+
+        <h3>Kafka transaction example</h3>
+        <div class="diagram">Consume input record
+      ↓
+Transform
+      ↓
+Produce output records + commit consumed offsets
+      ↓
+All committed or all aborted as one Kafka transaction</div>
+        <p>Consumers that use <code>isolation.level=read_committed</code> do not expose aborted transactional records.</p>
+      </section>
+
+      <section id="storage" data-search>
+        <h2>10. Retention, Segments, and Log Compaction</h2>
+        <p>Kafka does not normally delete a record just because a consumer read it. Deletion is controlled by topic retention policy.</p>
+
+        <h3>Delete retention</h3>
+        <p>With <code>cleanup.policy=delete</code>, old log segments are removed according to time or size limits.</p>
+        <pre><code>cleanup.policy=delete
+retention.ms=604800000     # 7 days
+retention.bytes=-1         # no size limit</code></pre>
+
+        <h3>Log compaction</h3>
+        <p>With <code>cleanup.policy=compact</code>, Kafka eventually keeps the latest value for each key, plus records needed while compaction is in progress.</p>
+        <div class="diagram">Key A → v1
+Key B → v1
+Key A → v2
+Key A → v3
+
+After compaction, the latest state is approximately:
+Key B → v1
+Key A → v3</div>
+
+        <h3>Tombstone</h3>
+        <p>A record with a key and a null value is a tombstone. It represents deletion of that key in a compacted topic after the configured delete retention period.</p>
+
+        <h3>Use cases</h3>
+        <ul>
+          <li><strong>Delete policy:</strong> event history, audit stream, telemetry, activity logs.</li>
+          <li><strong>Compact policy:</strong> latest customer state, configuration state, changelog, cache rebuild source.</li>
+          <li><strong>Delete + compact:</strong> retain latest key state while also limiting old data.</li>
+        </ul>
+
+        <div class="callout warning">
+          Compaction is asynchronous. Do not assume old versions disappear immediately, and do not use it as a privacy erasure mechanism without a wider data-governance design.
+        </div>
+      </section>
+
+      <section id="queue-model" data-search>
+        <h2>11. Traditional Queue Model: RabbitMQ and Amazon SQS</h2>
+
+        <h3>RabbitMQ routing model</h3>
+        <div class="diagram">Producer
+   ↓ publish with routing key
+Exchange
+   ├─ binding → Queue A → Consumers
+   ├─ binding → Queue B → Consumers
+   └─ binding → Queue C → Consumers</div>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>RabbitMQ component</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Exchange</td><td>Receives published messages and routes them using bindings.</td></tr>
+            <tr><td>Direct exchange</td><td>Routes by exact routing-key match.</td></tr>
+            <tr><td>Topic exchange</td><td>Routes by wildcard patterns such as <code>order.*</code>.</td></tr>
+            <tr><td>Fanout exchange</td><td>Copies a message to all bound queues.</td></tr>
+            <tr><td>Headers exchange</td><td>Routes by message headers.</td></tr>
+            <tr><td>Queue</td><td>Stores messages until consumers receive and acknowledge them.</td></tr>
+            <tr><td>Consumer acknowledgement</td><td>Confirms successful processing so RabbitMQ can remove the delivery.</td></tr>
+            <tr><td>Publisher confirm</td><td>Confirms broker acceptance of a published message. It is different from consumer acknowledgement.</td></tr>
+            <tr><td>Prefetch</td><td>Limits unacknowledged deliveries per consumer to protect workers and improve fairness.</td></tr>
+            <tr><td>Dead-letter exchange</td><td>Receives messages rejected, expired, or otherwise dead-lettered according to policy.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Amazon SQS model</h3>
+        <div class="diagram">Producer → SQS Queue → Consumer polls
+                         ↓ message becomes invisible
+                    process successfully?
+                    ├─ yes → DeleteMessage
+                    └─ no  → visibility timeout expires → redelivery</div>
+
+        <h4>Visibility timeout</h4>
+        <p>After a consumer receives a message, SQS temporarily hides it. The consumer must delete it after successful processing. If it does not delete it before the visibility timeout expires, the message becomes visible again.</p>
+
+        <h4>Standard versus FIFO</h4>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>SQS Standard</th><th>SQS FIFO</th></tr></thead>
+          <tbody>
+            <tr><td>Delivery</td><td>At least once; duplicates are possible.</td><td>Deduplication support with FIFO processing within a message group.</td></tr>
+            <tr><td>Ordering</td><td>Best effort.</td><td>Strict ordering within a message group.</td></tr>
+            <tr><td>Parallelism</td><td>Very high.</td><td>Parallel across message groups; sequential inside one group.</td></tr>
+            <tr><td>Use case</td><td>Independent jobs, notifications, asynchronous work.</td><td>Ordered commands, account or order workflows.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="comparison" data-search>
+        <h2>12. Kafka versus Traditional Message Queue</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Dimension</th><th>Kafka</th><th>RabbitMQ / SQS-style queue</th></tr></thead>
+          <tbody>
+            <tr><td>Primary model</td><td>Retained distributed log / event stream.</td><td>Work queue and message routing.</td></tr>
+            <tr><td>After consumption</td><td>Record remains until retention removes it.</td><td>Message is normally removed after acknowledgement or deletion.</td></tr>
+            <tr><td>Replay</td><td>Native: reset or seek offsets.</td><td>Not the main model; usually requires republishing or a separate archive.</td></tr>
+            <tr><td>Multiple applications</td><td>Each consumer group reads the full stream independently.</td><td>Use separate queues or subscriptions for fan-out.</td></tr>
+            <tr><td>Ordering</td><td>Per partition.</td><td>Queue-dependent; FIFO may be affected by concurrency, redelivery, and priorities.</td></tr>
+            <tr><td>Routing</td><td>Topic and partition model; less flexible broker-side routing.</td><td>Rich exchange, binding, filter, and queue routing options.</td></tr>
+            <tr><td>Delayed message</td><td>Usually implemented with retry topics, scheduling systems, or application logic.</td><td>Often easier through TTL, delay queues, visibility settings, or broker features.</td></tr>
+            <tr><td>Consumer speed</td><td>High-throughput sequential fetch and batching.</td><td>Excellent for task dispatch; throughput varies by product and durability mode.</td></tr>
+            <tr><td>Backlog</td><td>Designed for large retained backlogs and replay.</td><td>Large backlog may be supported, but queue health and latency must be considered carefully.</td></tr>
+            <tr><td>Typical use</td><td>Event-driven architecture, CDC, data pipelines, analytics, integration, event sourcing support.</td><td>Background jobs, commands, request buffering, email sending, workflow tasks.</td></tr>
+            <tr><td>Operational complexity</td><td>Partition planning, brokers, replication, storage, schemas, offsets, rebalances.</td><td>Queue topology, acknowledgements, prefetch, DLQ, visibility timeout, routing, worker concurrency.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>A common interview trap</h3>
+        <p><strong>“Kafka is faster than RabbitMQ.”</strong> This is an incomplete answer. Performance depends on durability, payload, batching, routing, storage, consumer behavior, and workload. The better answer is that Kafka’s append-only partitioned storage and batching are optimized for high-throughput streaming, while queue systems often optimize flexible routing and task dispatch.</p>
+      </section>
+
+      <section id="selection" data-search>
+        <h2>13. How to Choose</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Choose Kafka when...</h3>
+            <ul>
+              <li>Many applications need the same event history.</li>
+              <li>Replay is a business or operational requirement.</li>
+              <li>You need high-throughput pipelines and retained backlogs.</li>
+              <li>You need CDC, stream processing, analytics, or event-driven integration.</li>
+              <li>Per-key ordering is enough.</li>
+              <li>You can operate topics, partitions, schemas, and consumer lag.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Choose a queue when...</h3>
+            <ul>
+              <li>One job should be executed by one available worker.</li>
+              <li>You need rich routing, per-message TTL, priority, or delay behavior.</li>
+              <li>Messages are commands rather than a reusable event history.</li>
+              <li>Workers have varying speed and require explicit prefetch or visibility control.</li>
+              <li>You do not need replay by many independent consumer applications.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Use both when each solves a different problem</h3>
+        <div class="diagram">Business events → Kafka
+  OrderCreated, PaymentCompleted, CustomerUpdated
+
+Task execution → Queue
+  GeneratePDF, SendEmail, ResizeImage, CallSlowPartnerAPI</div>
+        <p>A mature architecture does not force every asynchronous use case into one product.</p>
+      </section>
+
+      <section id="setup" data-search>
+        <h2>14. Production Setup: What Must Be Decided</h2>
+        <p class="lead">Running Kafka is not only starting three containers. Production setup starts with workload and failure requirements.</p>
+
+        <h3>14.1 Workload questions</h3>
+        <ul class="checklist">
+          <li>Peak records per second and peak MB per second?</li>
+          <li>Average and maximum message size?</li>
+          <li>How bursty is traffic?</li>
+          <li>How long must records be retained?</li>
+          <li>How many consumer groups read each topic?</li>
+          <li>What is the acceptable end-to-end latency?</li>
+          <li>What data loss is acceptable?</li>
+          <li>How fast must recovery occur after a broker or zone failure?</li>
+          <li>Are events regulated, confidential, or personally identifiable?</li>
+        </ul>
+
+        <h3>14.2 Cluster topology</h3>
+        <ul>
+          <li>Use multiple brokers across failure domains.</li>
+          <li>Use an odd KRaft controller quorum, commonly three controllers.</li>
+          <li>For larger clusters, consider dedicated controller nodes rather than combined broker-controller roles.</li>
+          <li>Configure rack awareness so replicas do not all live in one availability zone.</li>
+          <li>Separate production from development and test traffic.</li>
+        </ul>
+
+        <h3>14.3 Storage and operating system</h3>
+        <ul>
+          <li>Kafka relies heavily on sequential disk I/O and the operating-system page cache.</li>
+          <li>Use reliable disks with enough sustained throughput, not only enough capacity.</li>
+          <li>Leave memory for page cache; do not assign all RAM to the JVM heap.</li>
+          <li>Monitor disk utilization, disk latency, inode/file descriptor usage, and log-directory failures.</li>
+          <li>Keep network capacity for both client traffic and replica traffic.</li>
+        </ul>
+
+        <h3>14.4 Topic governance</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Decision</th><th>Questions</th></tr></thead>
+          <tbody>
+            <tr><td>Ownership</td><td>Which team owns schema, retention, access, incidents, and deprecation?</td></tr>
+            <tr><td>Naming</td><td>Use a stable convention such as <code>domain.entity.event.v1</code> or organization standards.</td></tr>
+            <tr><td>Partition count</td><td>What throughput and consumer parallelism are required now and later?</td></tr>
+            <tr><td>Replication</td><td>What broker or zone failures must the topic survive?</td></tr>
+            <tr><td>Retention</td><td>How far back must consumers replay? What is the storage cost?</td></tr>
+            <tr><td>Key</td><td>Which entity needs ordering? Is the key distribution balanced?</td></tr>
+            <tr><td>Schema</td><td>What compatibility rules and registry are used?</td></tr>
+            <tr><td>Security</td><td>Which producers and groups may read or write?</td></tr>
+            <tr><td>DLT/retry</td><td>Who handles failures, and how are messages replayed safely?</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>14.5 Capacity model</h3>
+        <pre><code>daily raw bytes =
+  records_per_second × average_record_bytes × 86,400
+
+retained bytes ≈
+  daily raw bytes × retention_days × replication_factor × compression_ratio
+  + index/segment overhead
+  + safety margin</code></pre>
+        <p>Compression ratio should be measured. Replication multiplies cluster storage. Reprocessing, maintenance, and uneven partition distribution require spare capacity.</p>
+
+        <h3>14.6 Security baseline</h3>
+        <ul>
+          <li>TLS for client-broker and inter-broker traffic.</li>
+          <li>SASL or mutual TLS authentication.</li>
+          <li>Least-privilege ACLs for topics, groups, transactional IDs, and cluster operations.</li>
+          <li>Secrets stored outside source code.</li>
+          <li>Audit and access review.</li>
+          <li>Private networking and controlled advertised listeners.</li>
+        </ul>
+
+        <h3>14.7 Upgrade and disaster recovery</h3>
+        <ul>
+          <li>Document compatible broker and client versions.</li>
+          <li>Use rolling upgrades and verify health after each stage.</li>
+          <li>Test restore and regional failover; do not assume replication inside one cluster is a backup.</li>
+          <li>Keep infrastructure configuration in version control.</li>
+          <li>Practice broker loss, disk loss, controller loss, and consumer replay.</li>
+        </ul>
+      </section>
+
+      <section id="configs" data-search>
+        <h2>15. Critical Kafka Configurations</h2>
+
+        <h3>Producer settings</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Setting</th><th>Why it matters</th><th>Typical reasoning</th></tr></thead>
+          <tbody>
+            <tr><td><code>acks</code></td><td>Controls acknowledgement strength.</td><td>Use <code>all</code> for important business events.</td></tr>
+            <tr><td><code>enable.idempotence</code></td><td>Prevents retry-created duplicate writes in the producer scope.</td><td>Keep enabled for reliable producers.</td></tr>
+            <tr><td><code>retries</code></td><td>Retries transient broker/network failures.</td><td>Must be bounded by delivery timeout and application expectations.</td></tr>
+            <tr><td><code>delivery.timeout.ms</code></td><td>Upper bound for completing a send including retries.</td><td>Align with business latency and retry policy.</td></tr>
+            <tr><td><code>request.timeout.ms</code></td><td>How long a request waits for a broker response.</td><td>Too low creates false timeouts; too high delays failure detection.</td></tr>
+            <tr><td><code>linger.ms</code></td><td>Waits briefly for more records to create larger batches.</td><td>Higher throughput at a possible latency cost. Modern Kafka defaults may differ by version.</td></tr>
+            <tr><td><code>batch.size</code></td><td>Target batch buffer per partition.</td><td>Larger batches improve throughput if traffic can fill them.</td></tr>
+            <tr><td><code>compression.type</code></td><td>Reduces network and disk use.</td><td>Benchmark zstd, lz4, or other supported codecs with your CPU budget.</td></tr>
+            <tr><td><code>buffer.memory</code></td><td>Total producer buffering.</td><td>If full, sends block or fail according to timeout behavior.</td></tr>
+            <tr><td><code>max.in.flight.requests.per.connection</code></td><td>Concurrent unacknowledged requests.</td><td>Affects throughput, ordering, and idempotence constraints.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Consumer settings</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Setting</th><th>Why it matters</th><th>Typical reasoning</th></tr></thead>
+          <tbody>
+            <tr><td><code>group.id</code></td><td>Defines logical consumption ownership.</td><td>Each independent application should use a distinct stable group.</td></tr>
+            <tr><td><code>enable.auto.commit</code></td><td>Automatically commits offsets on a schedule.</td><td>Disable when business processing must control acknowledgement precisely.</td></tr>
+            <tr><td><code>auto.offset.reset</code></td><td>Behavior when no valid committed offset exists.</td><td><code>earliest</code> replays retained history; <code>latest</code> starts from new data.</td></tr>
+            <tr><td><code>max.poll.records</code></td><td>Maximum records returned by one poll.</td><td>Reduce for expensive processing; increase for fast batch processing.</td></tr>
+            <tr><td><code>max.poll.interval.ms</code></td><td>Maximum time allowed between polls.</td><td>Must exceed worst expected processing time for a poll batch.</td></tr>
+            <tr><td><code>session.timeout.ms</code></td><td>Failure detection window under the group protocol.</td><td>Lower detects failures faster but is less tolerant of pauses.</td></tr>
+            <tr><td><code>heartbeat.interval.ms</code></td><td>Heartbeat frequency in applicable group protocol modes.</td><td>Coordinate with session timeout and version-specific protocol behavior.</td></tr>
+            <tr><td><code>fetch.min.bytes</code></td><td>Minimum data broker tries to return.</td><td>Higher can improve throughput but add wait latency.</td></tr>
+            <tr><td><code>fetch.max.wait.ms</code></td><td>Maximum wait to satisfy minimum fetch size.</td><td>Balances latency and batching.</td></tr>
+            <tr><td><code>isolation.level</code></td><td>Whether aborted transactional records are visible.</td><td>Use <code>read_committed</code> for Kafka transactional pipelines.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Topic and broker settings</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Setting</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>min.insync.replicas</code></td><td>Required ISR strength for <code>acks=all</code> writes.</td></tr>
+            <tr><td><code>cleanup.policy</code></td><td>Delete, compact, or both.</td></tr>
+            <tr><td><code>retention.ms</code></td><td>Time-based retention.</td></tr>
+            <tr><td><code>retention.bytes</code></td><td>Size-based retention per partition.</td></tr>
+            <tr><td><code>segment.ms</code> / <code>segment.bytes</code></td><td>Controls segment rolling, affecting deletion and compaction granularity.</td></tr>
+            <tr><td><code>max.message.bytes</code></td><td>Topic-side record-batch size limit. Must align with producer and consumer limits.</td></tr>
+            <tr><td><code>unclean.leader.election.enable</code></td><td>Controls whether an out-of-sync replica may become leader, trading availability against potential loss.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="spring" data-search>
+        <h2>16. Spring Boot and Java Examples</h2>
+
+        <h3>16.1 Producer configuration</h3>
+        <pre><code class="yaml">spring:
+  kafka:
+    bootstrap-servers: kafka-1:9093,kafka-2:9093,kafka-3:9093
+    producer:
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 120000
+        linger.ms: 10
+        compression.type: zstd
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer</code></pre>
+
+        <h3>16.2 Publish with a stable key</h3>
+        <pre><code class="java">public record OrderCreatedEvent(
+        UUID eventId,
+        UUID orderId,
+        BigDecimal amount,
+        Instant occurredAt,
+        int schemaVersion) {
+}
+
+@Service
+public class OrderEventPublisher {
+
+    private final KafkaTemplate&lt;String, OrderCreatedEvent&gt; kafkaTemplate;
+
+    public OrderEventPublisher(
+            KafkaTemplate&lt;String, OrderCreatedEvent&gt; kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public CompletableFuture&lt;SendResult&lt;String, OrderCreatedEvent&gt;&gt; publish(
+            OrderCreatedEvent event) {
+
+        ProducerRecord&lt;String, OrderCreatedEvent&gt; record =
+                new ProducerRecord&lt;&gt;(
+                        "commerce.order.created.v1",
+                        event.orderId().toString(),
+                        event);
+
+        record.headers().add(
+                "event-id",
+                event.eventId().toString().getBytes(StandardCharsets.UTF_8));
+
+        return kafkaTemplate.send(record);
+    }
+}</code></pre>
+
+        <h3>16.3 Consumer with controlled acknowledgement</h3>
+        <pre><code class="yaml">spring:
+  kafka:
+    consumer:
+      group-id: payment-service-v1
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      properties:
+        max.poll.interval.ms: 300000
+      max-poll-records: 100
+    listener:
+      ack-mode: record</code></pre>
+
+        <pre><code class="java">@Component
+public class OrderCreatedListener {
+
+    private final PaymentApplicationService paymentService;
+
+    public OrderCreatedListener(PaymentApplicationService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @KafkaListener(
+            topics = "commerce.order.created.v1",
+            groupId = "payment-service-v1")
+    public void onOrderCreated(OrderCreatedEvent event) {
+        // Throwing an exception prevents successful acknowledgement
+        // under the configured container error-handling strategy.
+        paymentService.createPayment(event);
+    }
+}</code></pre>
+
+        <h3>16.4 Do not block the consumer indefinitely</h3>
+        <p>A slow partner API can make the listener exceed <code>max.poll.interval.ms</code>. Better choices include:</p>
+        <ul>
+          <li>Use short client timeouts and controlled retries.</li>
+          <li>Move slow work to a dedicated queue designed for worker jobs.</li>
+          <li>Pause consumption under downstream overload.</li>
+          <li>Use bounded concurrency with clear ordering and offset rules.</li>
+          <li>Use retry topics rather than sleeping inside the listener thread.</li>
+        </ul>
+      </section>
+
+      <section id="retries" data-search>
+        <h2>17. Retry, Dead-Letter Topic, and Idempotent Consumer</h2>
+
+        <h3>Classify failures first</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Failure</th><th>Example</th><th>Response</th></tr></thead>
+          <tbody>
+            <tr><td>Transient</td><td>Database connection timeout, HTTP 503.</td><td>Retry with backoff and limits.</td></tr>
+            <tr><td>Permanent business failure</td><td>Account is closed, order already cancelled.</td><td>Record business outcome; do not retry forever.</td></tr>
+            <tr><td>Poison message</td><td>Invalid schema, impossible field value.</td><td>Send to DLT/quarantine with diagnostic metadata.</td></tr>
+            <tr><td>Code defect</td><td>Null pointer for a valid event.</td><td>Alert, stop or quarantine, fix code, then replay safely.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Retry topic flow</h3>
+        <div class="diagram">main topic
+   ↓ failure
+retry-1 (30 seconds)
+   ↓ failure
+retry-2 (5 minutes)
+   ↓ failure
+dead-letter topic
+   ↓
+operator investigation / repair / controlled replay</div>
+
+        <h3>Why immediate retries are dangerous</h3>
+        <p>If a database is down, retrying the same record immediately in a tight loop increases load, blocks a partition, and creates an incident storm. Use exponential backoff, jitter, maximum attempts, and circuit breaking where appropriate.</p>
+
+        <h3>Idempotency with a database uniqueness constraint</h3>
+        <pre><code class="sql">CREATE TABLE processed_event (
+    consumer_name VARCHAR(100) NOT NULL,
+    event_id UUID NOT NULL,
+    processed_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (consumer_name, event_id)
+);</code></pre>
+
+        <pre><code class="java">@Transactional
+public void createPayment(OrderCreatedEvent event) {
+    try {
+        processedEventRepository.saveAndFlush(
+            new ProcessedEvent("payment-service", event.eventId(), Instant.now())
+        );
+    } catch (DataIntegrityViolationException duplicate) {
+        // This event has already changed the database.
+        return;
+    }
+
+    Payment payment = Payment.pending(
+        event.orderId(),
+        event.amount()
+    );
+    paymentRepository.save(payment);
+}</code></pre>
+
+        <div class="callout">
+          The processed-event insert and business update must be in the same local database transaction.
+          A “check then insert” without a unique constraint is race-prone.
+        </div>
+
+        <h3>DLT is not a trash bin</h3>
+        <ul>
+          <li>Include original topic, partition, offset, timestamp, exception type, and correlation ID.</li>
+          <li>Restrict access because payloads may contain sensitive data.</li>
+          <li>Alert on arrival rate and age.</li>
+          <li>Define ownership and service-level objectives.</li>
+          <li>Provide a tested replay tool that preserves or deliberately changes keys.</li>
+          <li>Do not replay until the cause is fixed, or you create an endless loop.</li>
+        </ul>
+
+        <h3>Outbox integration</h3>
+        <div class="diagram">Application DB transaction:
+  INSERT order
+  INSERT outbox_event
+           ↓
+CDC / outbox publisher
+           ↓
+Kafka topic</div>
+        <p>Outbox solves the database-plus-Kafka dual-write problem. Kafka producer idempotence alone does not make an external database transaction atomic with Kafka.</p>
+      </section>
+
+      <section id="schemas" data-search>
+        <h2>18. Event Schema Design and Evolution</h2>
+        <h3>Recommended event envelope</h3>
+        <pre><code class="json">{
+  "eventId": "d84bb586-8cdd-4e27-8a18-6dfe87ef34a2",
+  "eventType": "OrderCreated",
+  "schemaVersion": 2,
+  "aggregateId": "5dbbeef3-50bd-495d-a805-38d897f0d60e",
+  "occurredAt": "2026-07-17T02:20:00Z",
+  "producer": "order-service",
+  "correlationId": "req-9f61...",
+  "data": {
+    "orderId": "5dbbeef3-50bd-495d-a805-38d897f0d60e",
+    "customerId": "c-1007",
+    "totalAmount": 499000,
+    "currency": "VND"
+  }
+}</code></pre>
+
+        <h3>Evolution rules</h3>
+        <ul>
+          <li>Prefer adding optional fields with meaningful defaults.</li>
+          <li>Do not silently change a field’s meaning.</li>
+          <li>Do not reuse removed field identifiers in formats that track field numbers.</li>
+          <li>Keep producer and consumer deployments compatible during rolling releases.</li>
+          <li>Use schema compatibility checks in CI/CD.</li>
+          <li>Version the event contract when a breaking semantic change is unavoidable.</li>
+        </ul>
+
+        <h3>Event notification versus event-carried state transfer</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Notification</h3>
+            <pre><code>{ "orderId": "O-100", "type": "OrderCreated" }</code></pre>
+            <p>Small and stable, but consumers may need synchronous callbacks to fetch details.</p>
+          </div>
+          <div class="card">
+            <h3>Carried state</h3>
+            <pre><code>{ "orderId": "O-100", "customerId": "C-9",
+  "amount": 100, "currency": "USD" }</code></pre>
+            <p>Reduces runtime coupling, but creates larger contracts and duplication.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="security" data-search>
+        <h2>19. Security</h2>
+        <h3>Threat model</h3>
+        <ul>
+          <li>Unauthorized producer writes fake business events.</li>
+          <li>Unauthorized consumer reads personal or financial data.</li>
+          <li>A compromised service reads unrelated topics.</li>
+          <li>Credentials leak through source code or logs.</li>
+          <li>Unencrypted traffic is inspected or modified.</li>
+          <li>A tenant produces excessive traffic and harms other workloads.</li>
+        </ul>
+
+        <h3>Controls</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Control</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>TLS</td><td>Encrypt traffic and authenticate endpoints where configured.</td></tr>
+            <tr><td>SASL</td><td>Authenticate clients using supported mechanisms.</td></tr>
+            <tr><td>ACLs</td><td>Authorize topic reads/writes, group access, transactional IDs, and administration.</td></tr>
+            <tr><td>Quotas</td><td>Limit producer, consumer, request, or tenant resource use.</td></tr>
+            <tr><td>Network segmentation</td><td>Keep brokers private and expose only required listeners.</td></tr>
+            <tr><td>Encryption at rest</td><td>Protect broker disks, backups, and remote storage according to platform capability.</td></tr>
+            <tr><td>Payload minimization</td><td>Avoid putting secrets or unnecessary private data in long-retained events.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="monitoring" data-search>
+        <h2>20. Monitoring and Observability</h2>
+        <h3>Cluster and broker signals</h3>
+        <ul>
+          <li>Offline partitions.</li>
+          <li>Under-replicated partitions and ISR shrink/expand rate.</li>
+          <li>Active controller count and KRaft quorum health.</li>
+          <li>Request latency, request queue time, and network handler utilization.</li>
+          <li>Disk usage, disk latency, failed log directories, and filesystem errors.</li>
+          <li>Bytes in/out and replication traffic.</li>
+          <li>Produce and fetch error rates.</li>
+        </ul>
+
+        <h3>Producer signals</h3>
+        <ul>
+          <li>Record error and retry rate.</li>
+          <li>Request latency.</li>
+          <li>Batch size and compression ratio.</li>
+          <li>Buffer available, waiting threads, and send timeouts.</li>
+        </ul>
+
+        <h3>Consumer signals</h3>
+        <ul>
+          <li>Lag per group, topic, and partition.</li>
+          <li>Lag growth rate, not only absolute lag.</li>
+          <li>Time lag when event timestamps are trustworthy.</li>
+          <li>Records consumed and processing latency.</li>
+          <li>Rebalance count and duration.</li>
+          <li>Commit failures.</li>
+          <li>Retry and DLT rate.</li>
+        </ul>
+
+        <h3>Lag is not enough</h3>
+        <p>Zero lag can still hide a broken consumer that commits offsets before completing business work. High lag can be acceptable for a batch consumer with a relaxed SLA. Monitor business outcomes such as payments created, emails sent, and order states advanced.</p>
+
+        <h3>Traceability fields</h3>
+        <ul>
+          <li><code>eventId</code></li>
+          <li><code>correlationId</code></li>
+          <li><code>causationId</code></li>
+          <li>topic, partition, offset</li>
+          <li>producer service and schema version</li>
+          <li>business aggregate ID</li>
+        </ul>
+      </section>
+
+      <section id="performance" data-search>
+        <h2>21. Performance Tuning</h2>
+
+        <h3>Producer</h3>
+        <ul>
+          <li>Increase batching with <code>linger.ms</code> and appropriate <code>batch.size</code>.</li>
+          <li>Use compression after measuring CPU and latency.</li>
+          <li>Send asynchronously, but always observe completion failures.</li>
+          <li>Avoid excessively large records. Store large files in object storage and publish references.</li>
+          <li>Use stable, well-distributed keys.</li>
+        </ul>
+
+        <h3>Consumer</h3>
+        <ul>
+          <li>Batch database writes where business semantics allow it.</li>
+          <li>Increase partitions only after proving consumer or partition throughput is the bottleneck.</li>
+          <li>Tune poll size and fetch size with memory and processing time.</li>
+          <li>Avoid one remote API call per event when batching is possible.</li>
+          <li>Protect downstream databases using bounded concurrency and rate limits.</li>
+        </ul>
+
+        <h3>Broker</h3>
+        <ul>
+          <li>Balance leaders and partitions across brokers.</li>
+          <li>Maintain disk and network headroom for recovery traffic.</li>
+          <li>Avoid putting all partitions with high traffic on one broker.</li>
+          <li>Keep JVM pauses controlled, but remember that page cache is central to Kafka performance.</li>
+          <li>Use realistic load tests with replication, TLS, compression, and real payload sizes.</li>
+        </ul>
+
+        <div class="callout warning">
+          Do not optimize only records per second. Measure end-to-end latency, durability, CPU, network, disk,
+          retry rate, consumer lag, downstream impact, and recovery behavior.
+        </div>
+      </section>
+
+      <section id="failures" data-search>
+        <h2>22. Failure Scenarios and Correct Responses</h2>
+
+        <h3>Scenario 1: Producer times out, but broker stored the record</h3>
+        <p>The client cannot know whether the write succeeded. It retries. Without idempotence, a duplicate may be appended. With idempotence, Kafka can deduplicate supported retries.</p>
+
+        <h3>Scenario 2: Consumer updates DB, then crashes before offset commit</h3>
+        <p>The record is delivered again. The database update must be idempotent, normally using a unique event ID or a business uniqueness constraint.</p>
+
+        <h3>Scenario 3: Consumer commits offset, then DB transaction fails</h3>
+        <p>The business update is lost while Kafka moves forward. This is why offset acknowledgement must follow successful processing.</p>
+
+        <h3>Scenario 4: A broker leader fails</h3>
+        <p>An eligible replica is elected leader. Clients refresh metadata and retry. Availability and data safety depend on ISR state and election policy.</p>
+
+        <h3>Scenario 5: One consumer is slow</h3>
+        <p>Its assigned partitions build lag. Adding consumers helps only if enough partitions exist and downstream dependencies can handle the added load.</p>
+
+        <h3>Scenario 6: A poison message blocks a partition</h3>
+        <p>Bound retries, classify the failure, route the record to a DLT, alert, and continue only if business ordering permits. For strict sequences, later events may depend on the failed event and cannot safely pass it.</p>
+
+        <h3>Scenario 7: Database is down for 30 minutes</h3>
+        <p>Pause or back off consumption, avoid hot retry loops, preserve offsets, monitor retention risk, and ensure the backlog can be drained without overloading the database after recovery.</p>
+
+        <h3>Scenario 8: Consumer lag is larger than topic retention</h3>
+        <p>Old records are deleted before the consumer reads them. Recovery may require another source, database snapshot, compacted state topic, or replay from an archive.</p>
+      </section>
+
+      <section id="case-study" data-search>
+        <h2>23. End-to-End Case Study: Order, Payment, Inventory</h2>
+
+        <div class="diagram">Client
+  ↓ POST /orders
+Order Service + PostgreSQL
+  ├─ orders row
+  └─ outbox OrderCreated
+          ↓ CDC
+Kafka: commerce.order.created.v1
+   ├─ Payment Service group
+   ├─ Inventory Service group
+   └─ Analytics group</div>
+
+        <h3>Step 1: Order service local transaction</h3>
+        <pre><code class="sql">BEGIN;
+
+INSERT INTO orders(id, customer_id, status, total_amount)
+VALUES (:orderId, :customerId, 'PENDING', :amount);
+
+INSERT INTO outbox_event(
+    event_id, aggregate_id, event_type, payload, created_at
+) VALUES (
+    :eventId, :orderId, 'OrderCreated', :payload, CURRENT_TIMESTAMP
+);
+
+COMMIT;</code></pre>
+
+        <h3>Step 2: Payment consumer</h3>
+        <ul>
+          <li>Consumes with group <code>payment-service-v1</code>.</li>
+          <li>Uses <code>eventId</code> uniqueness to avoid duplicate charges.</li>
+          <li>Creates a payment intent or calls a payment provider using an idempotency key.</li>
+          <li>Stores payment state and a new outbox event in one database transaction.</li>
+        </ul>
+
+        <h3>Step 3: Inventory consumer</h3>
+        <ul>
+          <li>Uses <code>orderId</code> for business ordering.</li>
+          <li>Reserves stock using an atomic conditional update.</li>
+          <li>Publishes <code>InventoryReserved</code> or <code>InventoryRejected</code>.</li>
+        </ul>
+
+        <h3>Step 4: Saga decision</h3>
+        <div class="diagram">PaymentCompleted + InventoryReserved
+        → Confirm order
+
+PaymentCompleted + InventoryRejected
+        → Refund payment
+        → Cancel order</div>
+
+        <h3>Where Kafka helps</h3>
+        <ul>
+          <li>Durable event transport.</li>
+          <li>Independent consumer groups.</li>
+          <li>Replay and auditing.</li>
+          <li>Per-order ordering with <code>orderId</code> key.</li>
+        </ul>
+
+        <h3>What Kafka does not solve by itself</h3>
+        <ul>
+          <li>Database-Kafka atomicity: use outbox.</li>
+          <li>Duplicate business effects: use idempotency.</li>
+          <li>Saga compensation logic.</li>
+          <li>External payment-provider exactly-once behavior.</li>
+          <li>Correct event schema and business ownership.</li>
+        </ul>
+      </section>
+
+      <section id="antipatterns" data-search>
+        <h2>24. Common Anti-patterns</h2>
+        <div class="grid-2">
+          <div class="card"><h3>One topic for everything</h3><p>Creates unclear ownership, incompatible retention needs, weak ACLs, and difficult schemas.</p></div>
+          <div class="card"><h3>Random key for ordered entities</h3><p>Events for one order move across partitions and can be processed out of order.</p></div>
+          <div class="card"><h3>No key for business events</h3><p>Distribution may be balanced, but per-entity ordering is lost.</p></div>
+          <div class="card"><h3>Auto-commit without understanding</h3><p>Offsets may advance independently of successful business processing.</p></div>
+          <div class="card"><h3>Infinite retry</h3><p>One poison record blocks progress and overloads dependencies.</p></div>
+          <div class="card"><h3>DLT without ownership</h3><p>Failures accumulate silently and are never repaired.</p></div>
+          <div class="card"><h3>Kafka as a database replacement</h3><p>Kafka is powerful storage, but query patterns, constraints, mutations, and transactional needs may still require databases.</p></div>
+          <div class="card"><h3>More partitions fixes everything</h3><p>It may increase parallelism, but also metadata, file handles, rebalances, and operational cost.</p></div>
+          <div class="card"><h3>Large binary payloads</h3><p>Large messages hurt batching, memory, replication, retries, and recovery. Store the blob elsewhere.</p></div>
+          <div class="card"><h3>Assuming exactly-once globally</h3><p>Kafka EOS has boundaries. External databases and APIs require their own consistency design.</p></div>
+        </div>
+      </section>
+
+      <section id="interview" data-search>
+        <h2>25. Senior Interview Questions and Answers</h2>
+        <p class="lead">Open each question. The answers focus on trade-offs and production reasoning rather than definitions only.</p>
+
+        <details open><summary>1. What is the main difference between Kafka and a message queue?</summary><div class="answer"><p class="senior">Senior answer:</p><p>Kafka is a retained, partitioned log. Consumers keep their own offsets and can replay records. A traditional queue is mainly a work-distribution mechanism where a message is normally removed after successful acknowledgement. Kafka is stronger for event history, multiple independent consumer groups, CDC, and streaming. A queue is often simpler for one-worker-per-job execution, flexible routing, delay, TTL, and priority. I choose based on delivery model, replay, ordering, routing, and operational needs rather than popularity.</p></div></details>
+
+        <details><summary>2. Is Kafka a queue?</summary><div class="answer"><p>Kafka can distribute work among consumers in one group, so it can behave like a queue for some workloads. However, its core model is different: records are retained independently of consumption, offsets belong to consumer groups, and multiple groups can replay the same partition history. Calling it only a queue hides the features and responsibilities that matter most.</p></div></details>
+
+        <details><summary>3. What is a Kafka partition?</summary><div class="answer"><p>A partition is an ordered append-only log and the unit of storage, replication, and consumer parallelism. Ordering is guaranteed only within one partition. A consumer group can process a partition with only one active consumer at a time. Therefore partition count limits useful consumer concurrency, while key design decides which records share an ordering boundary.</p></div></details>
+
+        <details><summary>4. Why does Kafka need a message key?</summary><div class="answer"><p>The key normally controls partition selection. Records with the same key are sent to the same partition while the partition count and partitioning logic remain compatible. I use a key such as order ID when per-order ordering is needed. I also review key cardinality to prevent hot partitions. A key is a business and scalability decision, not only a producer parameter.</p></div></details>
+
+        <details><summary>5. Can Kafka guarantee global ordering?</summary><div class="answer"><p>Only if the topic uses one partition, which limits parallelism and availability flexibility. Normally Kafka guarantees ordering per partition. In real systems, we choose a business entity key and require ordering per entity, not globally. If an interviewer asks for both unlimited parallelism and total global order, I would explain that these requirements conflict.</p></div></details>
+
+        <details><summary>6. Explain consumer groups.</summary><div class="answer"><p>A consumer group represents one logical subscriber application. Kafka assigns each partition to at most one active consumer within that group. Different groups independently consume the full topic. If consumers exceed partitions, extra consumers are idle. If partitions exceed consumers, one consumer processes multiple partitions.</p></div></details>
+
+        <details><summary>7. What is a rebalance and why is it expensive?</summary><div class="answer"><p>A rebalance changes partition ownership when group membership or topic metadata changes. Processing can pause, local state may move, and records in progress may be repeated. I reduce unnecessary rebalances by keeping poll timing healthy, sizing poll batches correctly, using stable deployments, and choosing cooperative or static membership features where appropriate.</p></div></details>
+
+        <details><summary>8. What happens if processing takes longer than max.poll.interval.ms?</summary><div class="answer"><p>The group may treat the consumer as unable to make progress and reassign its partitions. The original consumer may then finish work after ownership changed, creating duplicates or commit failures. I reduce the poll batch, increase the interval based on measured worst-case processing, avoid blocking calls, or redesign the slow task.</p></div></details>
+
+        <details><summary>9. Explain acks=0, 1, and all.</summary><div class="answer"><p><code>acks=0</code> does not wait for broker acknowledgement and has the highest loss risk. <code>acks=1</code> waits for the leader, but the leader can fail before followers replicate. <code>acks=all</code> waits for the in-sync replica requirement and is normally used for important business events. It should be combined with a suitable replication factor and <code>min.insync.replicas</code>.</p></div></details>
+
+        <details><summary>10. What is min.insync.replicas?</summary><div class="answer"><p>It is the minimum number of in-sync replicas required for a successful write when the producer uses <code>acks=all</code>. With replication factor three and minimum ISR two, the topic can normally tolerate one unavailable replica and still accept writes. If fewer than two are in sync, Kafka rejects writes to protect durability.</p></div></details>
+
+        <details><summary>11. Does replication factor 3 guarantee no data loss?</summary><div class="answer"><p>No. The producer may use weak acknowledgements, ISR can shrink, unclean leader election can allow stale replicas, the application may ignore send errors, or all replicas may share one failure domain. Replication factor is only one part of a durability design.</p></div></details>
+
+        <details><summary>12. Explain at-least-once delivery.</summary><div class="answer"><p>The system avoids silently skipping a record under expected failures, but it may deliver a record more than once. A common case is: business processing commits, then the consumer crashes before the Kafka offset commits. The record is delivered again. Therefore business operations need idempotency.</p></div></details>
+
+        <details><summary>13. How do you implement an idempotent consumer?</summary><div class="answer"><p>I put a unique event ID in each event. In the consumer database, I insert that ID into a processed-event or inbox table with a unique constraint in the same transaction as the business update. A duplicate insert means the event was already applied. For external providers, I also pass an idempotency key when supported.</p></div></details>
+
+        <details><summary>14. What does Kafka exactly-once semantics really mean?</summary><div class="answer"><p>Kafka EOS gives exactly-once visibility for a defined Kafka read-process-write transaction: consumed offsets and produced Kafka records commit or abort together. It does not automatically include PostgreSQL, REST APIs, email, or payment providers. I always state the transaction boundary rather than saying “the whole system is exactly once.”</p></div></details>
+
+        <details><summary>15. What is the dual-write problem?</summary><div class="answer"><p>A service updates its database and publishes a Kafka event as two separate operations. If the database commits but publish fails, downstream systems miss the event. If publish succeeds but the database rolls back, consumers see an event for nonexistent state. I normally solve this with a transactional outbox and CDC or a reliable publisher.</p></div></details>
+
+        <details><summary>16. What is the difference between producer idempotence and consumer idempotency?</summary><div class="answer"><p>Producer idempotence prevents duplicate log entries caused by supported producer retries. Consumer idempotency prevents duplicate business effects when the same record is processed again. They solve different failure points and are often both required.</p></div></details>
+
+        <details><summary>17. What is consumer lag?</summary><div class="answer"><p>Lag is the difference between the latest available offset and the consumer group’s processed or committed position. It indicates backlog, but it is not enough alone. I also monitor lag growth rate, event age, processing latency, rebalances, errors, and business completion metrics.</p></div></details>
+
+        <details><summary>18. How do you handle a poison message?</summary><div class="answer"><p>I classify whether it is schema corruption, permanent business invalidity, or a software defect. I use bounded retry with backoff, then route it to a DLT or quarantine with diagnostic metadata and alerting. I define how to repair and replay it. For strict per-key workflows, I consider whether later events are allowed to pass the failed event.</p></div></details>
+
+        <details><summary>19. Why should you not sleep inside a Kafka listener for retry?</summary><div class="answer"><p>Sleeping blocks the consumer thread, delays all records on its assigned partitions, can exceed poll intervals, and wastes resources. Retry topics, scheduled queues, or framework-supported backoff provide better control and observability.</p></div></details>
+
+        <details><summary>20. How do you choose the number of partitions?</summary><div class="answer"><p>I start from target producer and consumer throughput, benchmark throughput per partition with real payload and durability settings, and consider the maximum consumer parallelism. I include growth and recovery needs, but avoid excessive partitions because they increase metadata, files, rebalances, and replication work. I also remember that increasing partitions can change key mapping.</p></div></details>
+
+        <details><summary>21. What happens when you add more consumers than partitions?</summary><div class="answer"><p>Extra consumers in the same group stay idle because one partition cannot be actively owned by two consumers in the classic consumer group model. To increase useful parallelism, the topic needs enough partitions, but the downstream system must also support the additional load.</p></div></details>
+
+        <details><summary>22. What is log compaction?</summary><div class="answer"><p>Log compaction eventually retains the latest record for each key, allowing a consumer to rebuild current state. It does not immediately remove all old records, and it is not the same as time retention. A null-valued record acts as a tombstone for deletion.</p></div></details>
+
+        <details><summary>23. When would you use RabbitMQ instead of Kafka?</summary><div class="answer"><p>I would consider RabbitMQ when the main requirement is task dispatch, rich exchange routing, per-message TTL, priorities, short-lived queues, or fine-grained worker acknowledgements and prefetch. Kafka is usually stronger when replay, multiple independent subscribers, retained event history, and streaming throughput are central.</p></div></details>
+
+        <details><summary>24. What is prefetch in RabbitMQ?</summary><div class="answer"><p>Prefetch limits how many unacknowledged messages a consumer can hold. A large value increases throughput but can overload a slow consumer and reduce fair distribution. A small value improves fairness and memory safety but may reduce throughput. I tune it using actual processing time and concurrency.</p></div></details>
+
+        <details><summary>25. What is SQS visibility timeout?</summary><div class="answer"><p>After a message is received, it is hidden from other consumers for the visibility period. The consumer must delete it after successful processing. If processing is not complete before timeout, the message becomes visible and can be delivered again. I set it above normal processing time and extend it for genuinely long tasks, while keeping idempotency.</p></div></details>
+
+        <details><summary>26. How do you guarantee ordering in SQS FIFO?</summary><div class="answer"><p>Ordering is within a message group ID. Messages in one group are processed sequentially, while different groups can run in parallel. Therefore the group ID acts like an ordering and concurrency key. A poor choice such as one global group removes parallelism.</p></div></details>
+
+        <details><summary>27. How would you monitor Kafka in production?</summary><div class="answer"><p>I monitor offline and under-replicated partitions, ISR changes, KRaft quorum health, broker request and disk latency, network throughput, producer errors and retries, consumer lag and lag age, rebalance rate, commit failures, DLT traffic, and business KPIs. Alerts must be connected to runbooks and ownership.</p></div></details>
+
+        <details><summary>28. Why are large Kafka messages a problem?</summary><div class="answer"><p>They increase producer and consumer memory, network transfer, replication time, retries, broker request handling, and recovery cost. Several size settings must also align. I normally put files in object storage and send metadata plus a secure reference.</p></div></details>
+
+        <details><summary>29. How would you migrate from a synchronous design to Kafka?</summary><div class="answer"><p>I first identify which calls are true commands, which are facts, and which responses are required immediately. I define event contracts, ownership, idempotency, outbox publication, retries, DLT, observability, and consistency expectations. I avoid replacing every HTTP call with an event because asynchronous systems introduce eventual consistency and operational complexity.</p></div></details>
+
+        <details><summary>30. Design a reliable payment event flow.</summary><div class="answer"><p>I store payment state and a payment outbox event in one database transaction. CDC publishes it to Kafka using payment or order ID as the key. Consumers use unique event IDs and local transactions. Producer uses strong acknowledgements and idempotence. Retries are bounded, permanent failures go to a controlled DLT, and provider calls use provider idempotency keys. I monitor event age, consumer lag, duplicate detection, provider outcomes, and reconciliation differences.</p></div></details>
+
+        <details><summary>31. How do you deal with events arriving out of order?</summary><div class="answer"><p>First, I preserve per-entity order using the correct key. Because retries, multiple topics, external systems, or repartitioning can still cause stale updates, events carry an aggregate version or event time. Consumers use conditional updates such as “apply only if version is newer.” For workflows where every transition matters, I quarantine gaps rather than blindly skipping them.</p></div></details>
+
+        <details><summary>32. What would you review in a Kafka production readiness checklist?</summary><div class="answer"><p>I review workload sizing, partitions, key distribution, replication, minimum ISR, acknowledgements, retention, schemas, security, quotas, producer failure handling, consumer commit behavior, idempotency, retry and DLT ownership, monitoring, capacity headroom, upgrade compatibility, backup or cross-region strategy, and tested failure runbooks.</p></div></details>
+      </section>
+
+      <section id="cheatsheet" data-search>
+        <h2>26. Quick Revision Cheat Sheet</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Kafka essentials</h3>
+            <ul>
+              <li>Topic = named stream.</li>
+              <li>Partition = ordered shard.</li>
+              <li>Offset = position inside one partition.</li>
+              <li>Key = partition and ordering decision.</li>
+              <li>Consumer group = one logical subscriber.</li>
+              <li>Replay = reset/seek offsets within retention.</li>
+              <li>Replication + acks + ISR = durability design.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Queue essentials</h3>
+            <ul>
+              <li>Queue = pending work.</li>
+              <li>ACK/Delete = successful completion.</li>
+              <li>Prefetch/visibility = in-flight control.</li>
+              <li>DLQ = failed-message isolation.</li>
+              <li>Routing = exchange/binding or subscription rules.</li>
+              <li>FIFO often has a grouping key.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Reliability essentials</h3>
+            <ul>
+              <li>At-least-once means duplicates are expected.</li>
+              <li>Idempotent producer ≠ idempotent consumer.</li>
+              <li>Kafka transaction ≠ DB transaction.</li>
+              <li>Use Outbox for DB + event publication.</li>
+              <li>Use Inbox/unique ID for duplicate business effects.</li>
+              <li>Bound retries; own the DLT.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Setup essentials</h3>
+            <ul>
+              <li>Benchmark before choosing partitions.</li>
+              <li>Use KRaft for modern Kafka.</li>
+              <li>Spread replicas across failure domains.</li>
+              <li>Leave disk/network/recovery headroom.</li>
+              <li>Define schema compatibility and ownership.</li>
+              <li>Monitor lag plus business outcomes.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <strong>Senior summary:</strong> Kafka is not only a transport. It is a distributed storage and coordination system.
+          Correct design requires understanding partitioning, ordering, offset ownership, durability, duplicates, schemas,
+          failure recovery, and downstream capacity.
+        </div>
+      </section>
+
+      <section id="references" data-search>
+        <h2>27. Official References</h2>
+        <p class="small">The behavior and defaults of messaging platforms can change between versions. Verify settings against the exact version used by your project.</p>
+        <ul>
+          <li><a href="https://kafka.apache.org/documentation/" target="_blank" rel="noopener">Apache Kafka Documentation</a></li>
+          <li><a href="https://kafka.apache.org/41/design/design/" target="_blank" rel="noopener">Apache Kafka Design</a></li>
+          <li><a href="https://kafka.apache.org/41/operations/kraft/" target="_blank" rel="noopener">Apache Kafka KRaft Operations</a></li>
+          <li><a href="https://kafka.apache.org/41/configuration/producer-configs/" target="_blank" rel="noopener">Kafka Producer Configurations</a></li>
+          <li><a href="https://kafka.apache.org/41/configuration/consumer-configs/" target="_blank" rel="noopener">Kafka Consumer Configurations</a></li>
+          <li><a href="https://kafka.apache.org/41/configuration/broker-configs/" target="_blank" rel="noopener">Kafka Broker Configurations</a></li>
+          <li><a href="https://kafka.apache.org/41/operations/monitoring/" target="_blank" rel="noopener">Kafka Monitoring</a></li>
+          <li><a href="https://docs.spring.io/spring-kafka/reference/" target="_blank" rel="noopener">Spring for Apache Kafka Reference</a></li>
+          <li><a href="https://www.rabbitmq.com/docs/queues" target="_blank" rel="noopener">RabbitMQ Queues</a></li>
+          <li><a href="https://www.rabbitmq.com/docs/confirms" target="_blank" rel="noopener">RabbitMQ Acknowledgements and Publisher Confirms</a></li>
+          <li><a href="https://www.rabbitmq.com/docs/quorum-queues" target="_blank" rel="noopener">RabbitMQ Quorum Queues</a></li>
+          <li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html" target="_blank" rel="noopener">Amazon SQS Developer Guide</a></li>
+          <li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html" target="_blank" rel="noopener">Amazon SQS Visibility Timeout</a></li>
+        </ul>
+      </section>
+    </div>
+
+    <footer>
+      <p><strong>Kafka & Message Queues — Deep Dive and Senior Interview Guide</strong></p>
+      <p>Prepared as a standalone learning document for Java/Spring backend engineering. Last reviewed: July 2026.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const savedTheme = localStorage.getItem('kafka-guide-theme');
+  if (savedTheme === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    themeBtn.textContent = 'Light mode';
+  }
+  themeBtn.addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') === 'dark';
+    if (dark) {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('kafka-guide-theme', 'light');
+      themeBtn.textContent = 'Dark mode';
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('kafka-guide-theme', 'dark');
+      themeBtn.textContent = 'Light mode';
+    }
+  });
+
+  const searchBox = document.getElementById('searchBox');
+  const searchable = [...document.querySelectorAll('[data-search]')];
+  searchBox.addEventListener('input', () => {
+    const query = searchBox.value.trim().toLowerCase();
+    searchable.forEach(section => {
+      const matches = !query || section.innerText.toLowerCase().includes(query);
+      section.classList.toggle('hidden-by-search', !matches);
+      if (query && matches) {
+        section.querySelectorAll('details').forEach(d => {
+          if (d.innerText.toLowerCase().includes(query)) d.open = true;
+        });
+      }
+    });
+  });
+
+  const navLinks = [...document.querySelectorAll('#toc a')];
+  const sections = [...document.querySelectorAll('section[id]')];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.toggle(
+          'active',
+          a.getAttribute('href') === '#' + entry.target.id
+        ));
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

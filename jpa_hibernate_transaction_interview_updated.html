@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPA, Hibernate, Transaction, ACID, Isolation Level, N+1 Query</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --primary: #2563eb;
+      --accent: #0f766e;
+      --border: #d9e2ef;
+      --code-bg: #0f172a;
+      --code-text: #e5e7eb;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.72;
+    }
+    a { color: inherit; text-decoration: none; }
+    .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      padding: 28px 22px; background: #0f172a; color: #f8fafc;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand .badge {
+      display: inline-flex; padding: 6px 10px; border-radius: 999px;
+      background: rgba(37, 99, 235, 0.25); color: #bfdbfe;
+      font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .brand h1 { margin: 14px 0 8px; font-size: 22px; line-height: 1.25; }
+    .brand p { margin: 0; color: #cbd5e1; font-size: 14px; }
+    .toc-title { margin: 26px 0 10px; color: #94a3b8; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    nav ul { list-style: none; padding: 0; margin: 0; }
+    nav li { margin: 4px 0; }
+    nav a { display: block; padding: 8px 10px; border-radius: 10px; color: #dbeafe; font-size: 14px; }
+    nav a:hover { background: rgba(59,130,246,.18); color: #fff; }
+    .content { padding: 38px; max-width: 1160px; width: 100%; }
+    .hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #0f766e 100%);
+      color: #fff; border-radius: 28px; padding: 42px; box-shadow: var(--shadow); margin-bottom: 28px;
+    }
+    .hero h2 { margin: 0 0 14px; font-size: 38px; line-height: 1.12; letter-spacing: -0.04em; max-width: 880px; }
+    .hero p { margin: 0; color: #dbeafe; font-size: 17px; max-width: 820px; }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .hero-tags span { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.22); font-weight: 700; font-size: 13px; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; margin: 22px 0; box-shadow: 0 12px 30px rgba(15,23,42,.04); }
+    section h2 { margin-top: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: #0f172a; font-size: 28px; letter-spacing: -.025em; }
+    h3 { margin-top: 28px; color: #1e3a8a; font-size: 21px; }
+    h4 { margin-top: 22px; color: #0f766e; font-size: 17px; }
+    .lead { color: var(--muted); font-size: 16px; }
+    .note, .warning, .danger, .success { border-radius: 14px; padding: 14px 16px; margin: 16px 0; border: 1px solid; }
+    .note { background: var(--soft-blue); border-color: #bfdbfe; color: #1e3a8a; }
+    .warning { background: var(--soft-yellow); border-color: #fde68a; color: #92400e; }
+    .danger { background: var(--soft-red); border-color: #fecaca; color: #991b1b; }
+    .success { background: var(--soft-green); border-color: #bbf7d0; color: #166534; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }
+    .mini-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .mini-card h4 { margin: 0 0 8px; color: #0f172a; }
+    .mini-card p { margin: 0; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); font-size: 14px; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f5f9; color: #0f172a; font-weight: 800; }
+    tr:last-child td { border-bottom: none; }
+    .pill { display: inline-block; padding: 3px 9px; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 800; font-size: 12px; white-space: nowrap; }
+    .pill.green { background: #dcfce7; color: #166534; }
+    .pill.orange { background: #ffedd5; color: #9a3412; }
+    .pill.red { background: #fee2e2; color: #991b1b; }
+    pre { background: var(--code-bg); color: var(--code-text); border-radius: 16px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; border: 1px solid rgba(255,255,255,.08); }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+    p code, li code, td code { background: #eef2ff; color: #3730a3; border-radius: 6px; padding: 2px 6px; font-size: .92em; }
+    li { margin: 6px 0; }
+    .interview-answer { background: #0f172a; color: #e5e7eb; border: none; }
+    .interview-answer h2, .interview-answer h3 { color: #fff; border-color: rgba(255,255,255,.12); }
+    .interview-answer blockquote { margin: 0; padding: 20px 22px; border-left: 5px solid #60a5fa; background: rgba(255,255,255,.06); border-radius: 14px; color: #f8fafc; }
+    .footer { text-align: center; color: var(--muted); padding: 32px 0 10px; font-size: 13px; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } aside { position: relative; height: auto; } .content { padding: 22px; } .grid { grid-template-columns: 1fr; } .hero { padding: 28px; } .hero h2 { font-size: 30px; } }
+    @media print { body { background: white; } .layout { display: block; } aside { display: none; } .content { max-width: none; padding: 0; } section, .hero { box-shadow: none; break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <span class="badge">Senior Java Interview</span>
+        <h1>JPA, Hibernate & Transaction</h1>
+        <p>Detailed notes for backend interview preparation.</p>
+      </div>
+      <div class="toc-title">English</div>
+      <nav><ul>
+        <li><a href="#en-overview">Overview</a></li>
+        <li><a href="#en-jpa">JPA</a></li>
+        <li><a href="#en-hibernate">Hibernate</a></li>
+        <li><a href="#en-transaction">Transaction</a></li>
+        <li><a href="#en-acid">ACID</a></li>
+        <li><a href="#en-isolation">Isolation Level</a></li>
+        <li><a href="#en-nplusone">N+1 Query</a></li>
+        <li><a href="#en-answer">Interview Answer</a></li>
+      </ul></nav>
+      <div class="toc-title">Vietnamese</div>
+      <nav><ul>
+        <li><a href="#vi-jpa">JPA là gì?</a></li>
+        <li><a href="#vi-hibernate">Hibernate</a></li>
+        <li><a href="#vi-transaction">Transaction</a></li>
+        <li><a href="#vi-acid">ACID</a></li>
+        <li><a href="#vi-isolation">Isolation Level</a></li>
+        <li><a href="#vi-nplusone">N+1 Query</a></li>
+        <li><a href="#vi-answer">Câu trả lời phỏng vấn</a></li>
+      </ul></nav>
+    </aside>
+
+    <main class="content">
+      <div class="hero">
+        <h2>JPA, Hibernate, Transaction, ACID, Isolation Level, N+1 Query</h2>
+        <p>A practical senior-level study note explaining how ORM, persistence context, transaction management, isolation, and query performance work in real Spring Boot applications.</p>
+        <div class="hero-tags"><span>JPA</span><span>Hibernate</span><span>@Transactional</span><span>ACID</span><span>Isolation Level</span><span>N+1 Query</span><span>Spring Data JPA</span>
+          <span>FetchType</span>
+          <span>Hibernate Cache</span>
+          <span>Database Cache</span></div>
+      </div>
+
+      <section id="en-overview">
+        <h2>1. Big Picture</h2>
+        <p class="lead">In a typical Spring Boot backend application, these concepts work together.</p>
+        <div class="grid">
+          <div class="mini-card"><h4>JPA</h4><p>A Java specification for ORM. It defines annotations and APIs such as <code>@Entity</code>, <code>EntityManager</code>, and JPQL.</p></div>
+          <div class="mini-card"><h4>Hibernate</h4><p>The most common JPA implementation. It provides SQL generation, dirty checking, lazy loading, flushing, and caching.</p></div>
+          <div class="mini-card"><h4>Spring Data JPA</h4><p>A Spring abstraction that reduces repository boilerplate by generating repository implementations at runtime.</p></div>
+          <div class="mini-card"><h4>Transaction</h4><p>A unit of work that should be committed or rolled back as a whole.</p></div>
+        </div>
+        <div class="note"><strong>Simple relationship:</strong> JPA is the standard, Hibernate is the implementation, Spring Data JPA is the repository abstraction, and Spring Transaction manages commit/rollback boundaries.</div>
+      </section>
+
+      <section id="en-jpa">
+        <h2>2. JPA</h2>
+        <h3>Concept Overview</h3>
+        <p><strong>JPA — Java Persistence API</strong> is a Java specification for ORM, which means Object Relational Mapping. It defines how Java objects are mapped to relational database tables.</p>
+        <pre><code>@Entity
+@Table(name = "orders")
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal amount;
+
+    @Column(name = "customer_name")
+    private String customerName;
+}</code></pre>
+        <p>This entity maps to a database table like this:</p>
+        <pre><code>orders
+------
+id
+amount
+customer_name</code></pre>
+        <div class="warning"><strong>Important:</strong> JPA is only a specification. It does not execute SQL by itself. It needs a provider such as Hibernate, EclipseLink, or OpenJPA.</div>
+        <h3>Common JPA APIs and Annotations</h3>
+        <table><thead><tr><th>Item</th><th>Purpose</th></tr></thead><tbody>
+          <tr><td><code>@Entity</code></td><td>Marks a class as a persistent entity.</td></tr>
+          <tr><td><code>@Id</code></td><td>Defines the primary key.</td></tr>
+          <tr><td><code>@OneToMany</code>, <code>@ManyToOne</code></td><td>Defines relationships between entities.</td></tr>
+          <tr><td><code>EntityManager</code></td><td>Main JPA API for persist, find, merge, remove, and query operations.</td></tr>
+          <tr><td>JPQL</td><td>Object-oriented query language based on entities, not database tables directly.</td></tr>
+        </tbody></table>
+        <h3>Spring Data JPA</h3>
+        <p>Spring Data JPA is not JPA itself. It is a Spring abstraction that helps us write less repository code.</p>
+        <pre><code>@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+
+    List&lt;Order&gt; findByCustomerName(String customerName);
+
+    @Query("select o from Order o where o.amount &gt; :amount")
+    List&lt;Order&gt; findLargeOrders(BigDecimal amount);
+}</code></pre>
+      </section>
+
+      <section id="en-hibernate">
+        <h2>3. Hibernate</h2>
+        <h3>Concept Overview</h3>
+        <p><strong>Hibernate</strong> is the most popular implementation of JPA. JPA defines the contract. Hibernate provides the real ORM behavior.</p>
+        <p>When we call:</p>
+        <pre><code>entityManager.persist(order);</code></pre>
+        <p>Hibernate handles:</p>
+        <ul><li>SQL generation</li><li>Entity state management</li><li>Persistence Context / first-level cache</li><li>Dirty checking</li><li>Lazy loading</li><li>Flush</li><li>Mapping Java types to SQL types</li><li>Optional second-level cache</li></ul>
+        <h3>JPA vs Hibernate</h3>
+        <table><thead><tr><th>JPA</th><th>Hibernate</th></tr></thead><tbody>
+          <tr><td>Specification</td><td>Implementation</td></tr>
+          <tr><td>Defines standard API</td><td>Provides real ORM behavior</td></tr>
+          <tr><td>Uses <code>EntityManager</code></td><td>Uses <code>Session</code> internally</td></tr>
+          <tr><td>Portable across providers</td><td>Has provider-specific features</td></tr>
+          <tr><td>Defines annotations like <code>@Entity</code></td><td>Generates SQL, tracks changes, manages proxies</td></tr>
+        </tbody></table>
+        <h3>Persistence Context</h3>
+        <p>The <strong>Persistence Context</strong> is a memory area where Hibernate manages entities during a transaction. It is also known as the first-level cache.</p>
+        <pre><code>@Transactional
+public Order getOrder(Long id) {
+    Order order1 = entityManager.find(Order.class, id);
+    Order order2 = entityManager.find(Order.class, id);
+
+    System.out.println(order1 == order2); // true
+    return order1;
+}</code></pre>
+        <p>Hibernate executes SQL only once. The second call returns the same object from the Persistence Context.</p>
+        <h3>Entity States</h3>
+        <table><thead><tr><th>State</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+          <tr><td><span class="pill">Transient</span></td><td>Object is created but not managed by Hibernate.</td><td><code>new Order()</code></td></tr>
+          <tr><td><span class="pill green">Managed</span></td><td>Object is inside Persistence Context and Hibernate tracks changes.</td><td><code>entityManager.persist(order)</code></td></tr>
+          <tr><td><span class="pill orange">Detached</span></td><td>Object was managed before but is no longer attached to current Persistence Context.</td><td>Entity after transaction/context is closed.</td></tr>
+          <tr><td><span class="pill red">Removed</span></td><td>Object is marked for deletion.</td><td><code>entityManager.remove(order)</code></td></tr>
+        </tbody></table>
+        <h3>Dirty Checking</h3>
+        <p>Dirty checking means Hibernate automatically detects changes in managed entities and generates SQL update during flush or commit.</p>
+        <pre><code>@Transactional
+public void updateOrder(Long id) {
+    Order order = orderRepository.findById(id)
+            .orElseThrow();
+
+    order.setAmount(BigDecimal.valueOf(500));
+
+    // No explicit save is required if the entity is managed.
+}</code></pre>
+        <p>At commit time, Hibernate may execute:</p>
+        <pre><code>update orders
+set amount = ?
+where id = ?</code></pre>
+        <div class="success"><strong>Senior note:</strong> If the entity is managed inside a transaction, Hibernate can update it automatically through dirty checking. Calling <code>save()</code> is not always required for managed entities.</div>
+        <h3>Flush</h3>
+        <p>Flush means synchronizing changes from the Persistence Context to the database. Flush sends SQL to the database, but it does not necessarily commit the transaction.</p>
+        <pre><code>@Transactional
+public void createOrder() {
+    Order order = new Order();
+    orderRepository.save(order);
+
+    entityManager.flush(); // Force SQL execution now
+
+    // Transaction is still not committed until the method finishes.
+}</code></pre>
+        <h3>Lazy Loading and Eager Loading</h3>
+        <pre><code>@Entity
+public class Order {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Customer customer;
+}</code></pre>
+        <p>With lazy loading, Hibernate loads related data only when we access it. Lazy loading usually uses proxy objects internally.</p>
+        <pre><code>Order order = orderRepository.findById(1L).orElseThrow();
+
+// This line can trigger another SQL query
+String customerName = order.getCustomer().getName();</code></pre>
+        <div class="warning"><strong>Production recommendation:</strong> Prefer LAZY by default. Fetch required data explicitly using JOIN FETCH, EntityGraph, or DTO projection.</div>
+      </section>
+
+
+      <section id="en-fetching">
+        <h2>4. Hibernate Fetching: FetchType, FetchMode, Fetch Strategy</h2>
+
+        <p class="lead">
+          Fetching is one of the most important Hibernate topics for performance. It answers two different questions:
+          <strong>when</strong> related data is loaded and <strong>how</strong> related data is loaded.
+        </p>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4>FetchType</h4>
+            <p>Defines when the association is loaded: immediately with the owner or later when accessed.</p>
+          </div>
+          <div class="mini-card">
+            <h4>FetchMode / Fetch Strategy</h4>
+            <p>Defines how Hibernate loads the association: SELECT, JOIN, BATCH, SUBSELECT, query fetch join, or EntityGraph.</p>
+          </div>
+        </div>
+
+        <h3>FetchType.LAZY vs FetchType.EAGER</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Fetch Type</th>
+              <th>Meaning</th>
+              <th>Pros</th>
+              <th>Risks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>FetchType.LAZY</code></td>
+              <td>Load related data only when it is accessed.</td>
+              <td>Better for performance when relationship data is not always needed.</td>
+              <td>Can cause N+1 queries or <code>LazyInitializationException</code> if accessed outside transaction/session.</td>
+            </tr>
+            <tr>
+              <td><code>FetchType.EAGER</code></td>
+              <td>Load related data immediately with the owner entity.</td>
+              <td>Convenient when the relationship is always required.</td>
+              <td>Can load too much data, create heavy joins, and make query behavior hard to control.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Default FetchType in JPA</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Relationship</th>
+              <th>Default FetchType</th>
+              <th>Senior Recommendation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>@ManyToOne</code></td>
+              <td><code>EAGER</code></td>
+              <td>Usually override to <code>LAZY</code>.</td>
+            </tr>
+            <tr>
+              <td><code>@OneToOne</code></td>
+              <td><code>EAGER</code></td>
+              <td>Usually override to <code>LAZY</code>, but be aware of proxy/bytecode enhancement details.</td>
+            </tr>
+            <tr>
+              <td><code>@OneToMany</code></td>
+              <td><code>LAZY</code></td>
+              <td>Keep <code>LAZY</code>.</td>
+            </tr>
+            <tr>
+              <td><code>@ManyToMany</code></td>
+              <td><code>LAZY</code></td>
+              <td>Keep <code>LAZY</code>; avoid direct many-to-many for complex domains.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="warning">
+          <strong>Senior rule:</strong> Prefer marking associations as <code>LAZY</code> by default.
+          Then fetch exactly what each use case needs by using <code>JOIN FETCH</code>, <code>EntityGraph</code>, DTO projection, batch fetching, or subselect fetching.
+        </div>
+
+        <h3>Example: Prefer LAZY for ManyToOne</h3>
+
+        <pre><code>@Entity
+public class Order {
+
+    @Id
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+}</code></pre>
+
+        <p>
+          Even though <code>@ManyToOne</code> is EAGER by default in JPA, in real backend systems it is often better to set it to LAZY explicitly.
+          Otherwise, loading an order may unexpectedly load customer data even when the API does not need it.
+        </p>
+
+        <h3>FetchType vs JOIN FETCH</h3>
+
+        <p>
+          <code>FetchType.LAZY</code> on the mapping does not mean you can never fetch the relationship together.
+          It only means the default behavior is lazy. For a specific query, you can fetch the relationship explicitly.
+        </p>
+
+        <pre><code>@Query("""
+    select o
+    from Order o
+    join fetch o.customer
+    where o.id = :id
+""")
+Optional&lt;Order&gt; findByIdWithCustomer(Long id);</code></pre>
+
+        <p>
+          This keeps the mapping flexible and lets the query decide what data is needed for each use case.
+        </p>
+
+        <h3>Hibernate Fetch Strategies</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>How it works</th>
+              <th>Typical Usage</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SELECT</code></td>
+              <td>Load association using separate select statements.</td>
+              <td>Default lazy behavior.</td>
+              <td>Can cause N+1 queries.</td>
+            </tr>
+            <tr>
+              <td><code>JOIN</code></td>
+              <td>Load association using SQL join.</td>
+              <td>Fetch required <code>ManyToOne</code> or small relationship data in one query.</td>
+              <td>Can duplicate parent rows and become heavy for large collections.</td>
+            </tr>
+            <tr>
+              <td><code>BATCH</code></td>
+              <td>Load multiple lazy associations using <code>IN (?, ?, ?)</code>.</td>
+              <td>Reduce N+1 when multiple proxies/collections are initialized.</td>
+              <td>Still uses extra queries, but fewer than N+1.</td>
+            </tr>
+            <tr>
+              <td><code>SUBSELECT</code></td>
+              <td>Load collections using a subselect based on the original parent query.</td>
+              <td>Useful when loading collections for many parent rows.</td>
+              <td>Can be expensive if the parent query is large.</td>
+            </tr>
+            <tr>
+              <td>DTO Projection</td>
+              <td>Select only required columns into DTO.</td>
+              <td>Best for read-heavy REST APIs.</td>
+              <td>Not suitable when you need managed entities for updates.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Batch Fetching</h3>
+
+        <p>
+          Batch fetching reduces N+1 by grouping multiple lazy loads into fewer SQL queries using an <code>IN</code> clause.
+        </p>
+
+        <pre><code>@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    @BatchSize(size = 50)
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+}</code></pre>
+
+        <p>Or configure globally:</p>
+
+        <pre><code>spring.jpa.properties.hibernate.default_batch_fetch_size=50</code></pre>
+
+        <p>Instead of:</p>
+
+        <pre><code>select * from orders where customer_id = 1;
+select * from orders where customer_id = 2;
+select * from orders where customer_id = 3;</code></pre>
+
+        <p>Hibernate can optimize to:</p>
+
+        <pre><code>select * from orders where customer_id in (?, ?, ?);</code></pre>
+
+        <h3>Subselect Fetching</h3>
+
+        <p>
+          Subselect fetching loads all collections for the parent entities returned by the original query.
+        </p>
+
+        <pre><code>@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    @Fetch(FetchMode.SUBSELECT)
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+}</code></pre>
+
+        <p>Example behavior:</p>
+
+        <pre><code>select * from customers where status = 'ACTIVE';
+
+select * from orders
+where customer_id in (
+    select id from customers where status = 'ACTIVE'
+);</code></pre>
+
+        <div class="note">
+          <strong>When to use:</strong> Batch fetching is usually safer as a general default.
+          Subselect fetching can be useful when you know the parent query is controlled and not too large.
+        </div>
+
+        <h3>EntityGraph</h3>
+
+        <p>
+          EntityGraph lets you keep entity mappings lazy but define a fetch plan for a specific repository method.
+        </p>
+
+        <pre><code>@EntityGraph(attributePaths = {"customer", "items"})
+@Query("select o from Order o where o.id = :id")
+Optional&lt;Order&gt; findDetailById(Long id);</code></pre>
+
+        <h3>LazyInitializationException</h3>
+
+        <p>
+          <code>LazyInitializationException</code> happens when lazy data is accessed after the Hibernate Session / Persistence Context is already closed.
+        </p>
+
+        <pre><code>@Service
+public class OrderService {
+
+    public Order getOrder(Long id) {
+        return orderRepository.findById(id).orElseThrow();
+    }
+}
+
+// Later, outside transaction/session:
+order.getCustomer().getName(); // LazyInitializationException</code></pre>
+
+        <h4>Good solutions</h4>
+        <ul>
+          <li>Use <code>@Transactional(readOnly = true)</code> around read logic and map to DTO inside the transaction.</li>
+          <li>Use <code>JOIN FETCH</code> or <code>EntityGraph</code> for required associations.</li>
+          <li>Use DTO projection for read APIs.</li>
+        </ul>
+
+        <h4>Bad solutions</h4>
+        <ul>
+          <li>Changing everything to <code>EAGER</code>.</li>
+          <li>Relying on Open Session In View to hide poor fetch planning.</li>
+          <li>Returning JPA entities directly from REST controllers.</li>
+        </ul>
+
+        <div class="danger">
+          <strong>Interview warning:</strong> EAGER is not a real solution for N+1 or lazy loading issues.
+          It often moves the problem to another place and makes performance less predictable.
+        </div>
+      </section>
+
+      <section id="en-cache">
+        <h2>5. Hibernate Cache Levels</h2>
+
+        <p class="lead">
+          Hibernate caching is another very important performance topic. There are multiple cache layers, and each one has a different lifecycle and purpose.
+        </p>
+
+        <h3>Cache Level Overview</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cache</th>
+              <th>Scope</th>
+              <th>Enabled by default?</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>First-Level Cache</strong></td>
+              <td>One Hibernate <code>Session</code> / JPA <code>EntityManager</code></td>
+              <td>Yes</td>
+              <td>Avoid repeated DB access for the same entity inside the same Persistence Context.</td>
+            </tr>
+            <tr>
+              <td><strong>Second-Level Cache</strong></td>
+              <td><code>SessionFactory</code> / <code>EntityManagerFactory</code></td>
+              <td>No, must be configured</td>
+              <td>Share cached entity data across sessions.</td>
+            </tr>
+            <tr>
+              <td><strong>Query Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>No, must be enabled and query must be marked cacheable</td>
+              <td>Cache query result identifiers, not full entity objects.</td>
+            </tr>
+            <tr>
+              <td><strong>Collection Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>No, explicit mapping required</td>
+              <td>Cache collection relationship data such as a list of child IDs.</td>
+            </tr>
+            <tr>
+              <td><strong>Natural ID Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>No, explicit mapping required</td>
+              <td>Cache lookup by business key such as email, username, or code.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>First-Level Cache</h3>
+
+        <p>
+          First-level cache is the Persistence Context. It exists inside one Hibernate Session / JPA EntityManager.
+        </p>
+
+        <pre><code>@Transactional(readOnly = true)
+public void demo(Long id) {
+    Product p1 = entityManager.find(Product.class, id);
+    Product p2 = entityManager.find(Product.class, id);
+
+    System.out.println(p1 == p2); // true
+}</code></pre>
+
+        <p>
+          The first query loads the entity from the database. The second call returns the same managed object from the Persistence Context.
+        </p>
+
+        <div class="note">
+          <strong>Important:</strong> First-level cache is not a distributed cache and not an application-wide cache.
+          It only lives within the current Persistence Context.
+        </div>
+
+        <h3>Second-Level Cache</h3>
+
+        <p>
+          Second-level cache is shared across sessions under the same <code>SessionFactory</code>.
+          It can reduce database access for reference data or data that changes infrequently.
+        </p>
+
+        <pre><code>@Entity
+@Cacheable
+@org.hibernate.annotations.Cache(
+    usage = CacheConcurrencyStrategy.READ_WRITE,
+    region = "product"
+)
+public class Product {
+
+    @Id
+    private Long id;
+
+    private String name;
+}</code></pre>
+
+        <p>Typical Spring Boot configuration example:</p>
+
+        <pre><code>spring.jpa.properties.hibernate.cache.use_second_level_cache=true
+spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.jcache.JCacheRegionFactory
+spring.jpa.properties.hibernate.javax.cache.provider=org.ehcache.jsr107.EhcacheCachingProvider</code></pre>
+
+        <h3>Cache Concurrency Strategies</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Use Case</th>
+              <th>Risk / Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>READ_ONLY</code></td>
+              <td>Immutable reference data, countries, currencies, static config.</td>
+              <td>Fastest, but data must not be updated.</td>
+            </tr>
+            <tr>
+              <td><code>NONSTRICT_READ_WRITE</code></td>
+              <td>Data rarely updated and small stale window is acceptable.</td>
+              <td>Possible stale reads.</td>
+            </tr>
+            <tr>
+              <td><code>READ_WRITE</code></td>
+              <td>Data can be updated and stronger consistency is needed.</td>
+              <td>More overhead due to consistency handling.</td>
+            </tr>
+            <tr>
+              <td><code>TRANSACTIONAL</code></td>
+              <td>Requires transactional cache provider support.</td>
+              <td>More complex, provider-dependent.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Query Cache</h3>
+
+        <p>
+          Query cache does not simply cache full entity objects. It usually caches query result identifiers and works together with the second-level cache.
+        </p>
+
+        <pre><code>@QueryHints({
+    @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+    @QueryHint(name = "org.hibernate.cacheRegion", value = "productQueries")
+})
+@Query("select p from Product p where p.status = :status")
+List&lt;Product&gt; findByStatusCached(ProductStatus status);</code></pre>
+
+        <div class="warning">
+          <strong>Important:</strong> Query cache is useful mostly for stable query results.
+          For frequently changing tables, it can add invalidation overhead and may not improve performance.
+        </div>
+
+        <h3>What Should Be Cached?</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Good Candidate</th>
+              <th>Bad Candidate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Reference data: country, currency, role, permission, product category.</td>
+              <td>Highly transactional data: order, payment, stock movement, account balance.</td>
+            </tr>
+            <tr>
+              <td>Data read frequently but updated rarely.</td>
+              <td>Data updated frequently by many users or services.</td>
+            </tr>
+            <tr>
+              <td>Small or medium-size entities.</td>
+              <td>Large entity graphs with many collections.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Cache Eviction</h3>
+
+        <p>
+          Sometimes cached data must be removed manually, especially after external updates or admin operations.
+        </p>
+
+        <pre><code>SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+
+sessionFactory.getCache().evictEntityData(Product.class, productId);
+sessionFactory.getCache().evictEntityData(Product.class);
+sessionFactory.getCache().evictAllRegions();</code></pre>
+
+        <h3>Senior Cache Advice</h3>
+
+        <ul>
+          <li>Do not enable second-level cache for everything.</li>
+          <li>Start with reference/read-mostly data.</li>
+          <li>Measure cache hit ratio, query count, memory usage, and stale data risk.</li>
+          <li>Be careful with multi-node deployments because cache invalidation/replication matters.</li>
+          <li>DTO projection may be better than Hibernate cache for many API read cases.</li>
+        </ul>
+      </section>
+
+      <section id="en-db-cache">
+        <h2>6. Database, Application, and Cache Layers</h2>
+
+        <p class="lead">
+          In production, performance is not only Hibernate cache. Data may be cached at several layers.
+        </p>
+
+        <h3>Common Cache Layers in Backend Systems</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Example</th>
+              <th>Purpose</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hibernate L1 Cache</td>
+              <td>Persistence Context</td>
+              <td>Avoid duplicate entity loads within one transaction/session.</td>
+              <td>Memory grows if processing many entities without clearing.</td>
+            </tr>
+            <tr>
+              <td>Hibernate L2 Cache</td>
+              <td>Ehcache, Infinispan, Hazelcast via provider</td>
+              <td>Reuse entity state across sessions.</td>
+              <td>Stale data, invalidation complexity.</td>
+            </tr>
+            <tr>
+              <td>Application Cache</td>
+              <td>Spring Cache, Caffeine, Redis</td>
+              <td>Cache DTOs, API responses, computed results, external API responses.</td>
+              <td>Cache invalidation, TTL strategy, consistency.</td>
+            </tr>
+            <tr>
+              <td>Database Buffer Cache</td>
+              <td>PostgreSQL shared buffers, Oracle buffer cache, MySQL buffer pool</td>
+              <td>Cache frequently accessed data pages/index pages in DB memory.</td>
+              <td>Not controlled directly from application code.</td>
+            </tr>
+            <tr>
+              <td>Database Plan Cache</td>
+              <td>Prepared statement / execution plan cache</td>
+              <td>Reuse parsed SQL/execution plans.</td>
+              <td>Bad plans can hurt performance depending on parameters/statistics.</td>
+            </tr>
+            <tr>
+              <td>Result / Materialized Cache</td>
+              <td>Materialized view, DB result cache depending on DB</td>
+              <td>Precompute expensive query results.</td>
+              <td>Refresh strategy and stale data.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Hibernate Cache vs Redis/Application Cache</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Hibernate L2 Cache</th>
+              <th>Redis / Application Cache</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Works at ORM entity level.</td>
+              <td>Works at application-defined data level: DTO, response, token, session, external API result.</td>
+            </tr>
+            <tr>
+              <td>Tightly integrated with Hibernate entity lifecycle.</td>
+              <td>More flexible and can cache non-DB data.</td>
+            </tr>
+            <tr>
+              <td>Best for reference/read-mostly entities.</td>
+              <td>Best for expensive computed result, API response, distributed cache, rate limit, session, temporary data.</td>
+            </tr>
+            <tr>
+              <td>Can be risky for transactional entities.</td>
+              <td>Requires explicit TTL/invalidation design.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Example: Spring Cache with Redis/Caffeine</h3>
+
+        <pre><code>@Service
+public class ProductQueryService {
+
+    @Cacheable(value = "productDetail", key = "#id")
+    public ProductDetailDto getProductDetail(Long id) {
+        return productRepository.findProductDetail(id)
+                .orElseThrow();
+    }
+
+    @CacheEvict(value = "productDetail", key = "#id")
+    public void evictProductDetail(Long id) {
+        // Evict cache after update
+    }
+}</code></pre>
+
+        <h3>Cache Decision Guide</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Situation</th>
+              <th>Recommended Approach</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Need to update entity inside transaction.</td>
+              <td>Use JPA/Hibernate normally. Avoid DTO cache for write path.</td>
+            </tr>
+            <tr>
+              <td>Read API needs only a few columns.</td>
+              <td>Use DTO projection first.</td>
+            </tr>
+            <tr>
+              <td>Reference data changes rarely.</td>
+              <td>Consider Hibernate L2 cache or application cache.</td>
+            </tr>
+            <tr>
+              <td>External API result is slow and can be reused.</td>
+              <td>Use Redis/Caffeine with TTL.</td>
+            </tr>
+            <tr>
+              <td>Database query is slow due to missing index.</td>
+              <td>Fix query/index/execution plan before adding cache.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="danger">
+          <strong>Senior mindset:</strong> Cache is not a replacement for a bad query, missing index, wrong fetch plan, or incorrect transaction design.
+          First optimize data access, then add cache when the data access pattern is stable and measurable.
+        </div>
+      </section>
+
+      <section id="en-transaction">
+        <h2>7. Transaction</h2>
+        <h3>Concept Overview</h3>
+        <p>A <strong>transaction</strong> is a unit of work that should be completed fully or rolled back fully.</p>
+        <pre><code>@Transactional
+public void placeOrder(OrderRequest request) {
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+    stockRepository.reduceStock(productId, quantity);
+}</code></pre>
+        <p>If payment fails, the order and stock update should be rolled back.</p>
+        <h3>How <code>@Transactional</code> Works</h3>
+        <p>In Spring, <code>@Transactional</code> is implemented using AOP proxy.</p>
+        <pre><code>Client calls proxy
+↓
+Proxy opens transaction
+↓
+Business method executes
+↓
+If success: commit
+If exception: rollback
+↓
+Release connection</code></pre>
+        <p>Simplified internal flow:</p>
+        <pre><code>@Transactional method called
+↓
+TransactionInterceptor
+↓
+PlatformTransactionManager
+↓
+Open database connection
+↓
+Set autoCommit = false
+↓
+Execute business method
+↓
+Commit or rollback
+↓
+Close/release connection</code></pre>
+        <h3>Rollback Rules</h3>
+        <p>By default, Spring rolls back for <code>RuntimeException</code> and <code>Error</code>, but not checked exceptions.</p>
+        <pre><code>@Transactional(rollbackFor = IOException.class)
+public void process() throws IOException {
+    throw new IOException();
+}</code></pre>
+        <h3>Transaction Propagation</h3>
+        <table><thead><tr><th>Propagation</th><th>Meaning</th><th>Common Usage</th></tr></thead><tbody>
+          <tr><td><code>REQUIRED</code></td><td>Use existing transaction, or create a new one if none exists.</td><td>Default for service methods.</td></tr>
+          <tr><td><code>REQUIRES_NEW</code></td><td>Suspend current transaction and create a new one.</td><td>Audit log, independent event logging.</td></tr>
+          <tr><td><code>MANDATORY</code></td><td>Must run inside an existing transaction.</td><td>Low-level method that must be called from transactional service.</td></tr>
+          <tr><td><code>SUPPORTS</code></td><td>Use transaction if available, otherwise run without transaction.</td><td>Read-only helper logic.</td></tr>
+          <tr><td><code>NOT_SUPPORTED</code></td><td>Always run without transaction.</td><td>Non-transactional long-running work.</td></tr>
+          <tr><td><code>NEVER</code></td><td>Throw exception if transaction exists.</td><td>Rarely used.</td></tr>
+          <tr><td><code>NESTED</code></td><td>Runs inside nested transaction using savepoint if supported.</td><td>Partial rollback with savepoint.</td></tr>
+        </tbody></table>
+        <h3>Common <code>@Transactional</code> Pitfalls</h3>
+        <h4>1. Self-invocation problem</h4>
+        <pre><code>@Service
+public class OrderService {
+
+    public void methodA() {
+        methodB(); // Bypasses proxy
+    }
+
+    @Transactional
+    public void methodB() {
+        // Transaction may not work here
+    }
+}</code></pre>
+        <h4>2. Private method does not work</h4>
+        <pre><code>@Transactional
+private void saveOrder() {
+}</code></pre>
+        <h4>3. Exception swallowed</h4>
+        <pre><code>@Transactional
+public void createOrder() {
+    try {
+        paymentService.pay();
+    } catch (Exception e) {
+        log.error("Payment failed", e);
+        // If not rethrown, Spring may commit the transaction
+    }
+}</code></pre>
+        <div class="danger"><strong>Important:</strong> If exception is caught and not rethrown, Spring thinks the method succeeded and may commit the transaction.</div>
+      </section>
+
+      <section id="en-acid">
+        <h2>8. ACID</h2>
+        <p>ACID is a set of properties that guarantee reliable transaction processing.</p>
+        <table><thead><tr><th>Property</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+          <tr><td><strong>A — Atomicity</strong></td><td>All operations succeed together or fail together.</td><td>Debit account A and credit account B must happen together.</td></tr>
+          <tr><td><strong>C — Consistency</strong></td><td>Database moves from one valid state to another valid state.</td><td>Unique email, valid foreign key, non-negative balance.</td></tr>
+          <tr><td><strong>I — Isolation</strong></td><td>Concurrent transactions should not affect each other incorrectly.</td><td>Two users reducing stock at the same time.</td></tr>
+          <tr><td><strong>D — Durability</strong></td><td>After commit, data should survive system crash.</td><td>Database transaction log / redo log / write-ahead log.</td></tr>
+        </tbody></table>
+        <h3>Atomicity Example</h3>
+        <pre><code>@Transactional
+public void transfer(Long fromId, Long toId, BigDecimal amount) {
+    accountRepository.debit(fromId, amount);
+    accountRepository.credit(toId, amount);
+}</code></pre>
+        <h3>Isolation Example</h3>
+        <pre><code>Stock = 10
+
+Transaction A reads 10
+Transaction B reads 10
+
+A subtracts 1 → 9
+B subtracts 1 → 9
+
+Expected stock = 8
+Actual stock = 9</code></pre>
+        <p>This is a lost update problem.</p>
+      </section>
+
+      <section id="en-isolation">
+        <h2>9. Isolation Level</h2>
+        <p>Isolation level controls how concurrent transactions see each other's changes. Higher isolation gives stronger consistency but lower concurrency.</p>
+        <h3>Common Concurrency Problems</h3>
+        <table><thead><tr><th>Problem</th><th>Description</th></tr></thead><tbody>
+          <tr><td><strong>Dirty Read</strong></td><td>A transaction reads uncommitted data from another transaction.</td></tr>
+          <tr><td><strong>Non-repeatable Read</strong></td><td>A transaction reads the same row twice and gets different values because another transaction committed an update.</td></tr>
+          <tr><td><strong>Phantom Read</strong></td><td>A transaction runs the same query twice and gets different rows because another transaction inserted or deleted rows.</td></tr>
+          <tr><td><strong>Lost Update</strong></td><td>Two transactions read the same value and update based on the old value, causing one update to be lost.</td></tr>
+        </tbody></table>
+        <h3>Isolation Level Comparison</h3>
+        <table><thead><tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-repeatable Read</th><th>Phantom Read</th><th>Performance</th></tr></thead><tbody>
+          <tr><td><code>READ_UNCOMMITTED</code></td><td>Possible</td><td>Possible</td><td>Possible</td><td>Highest</td></tr>
+          <tr><td><code>READ_COMMITTED</code></td><td>Prevented</td><td>Possible</td><td>Possible</td><td>High</td></tr>
+          <tr><td><code>REPEATABLE_READ</code></td><td>Prevented</td><td>Prevented</td><td>Possible depending on DB</td><td>Medium</td></tr>
+          <tr><td><code>SERIALIZABLE</code></td><td>Prevented</td><td>Prevented</td><td>Prevented</td><td>Lowest</td></tr>
+        </tbody></table>
+        <h3>Spring Example</h3>
+        <pre><code>@Transactional(isolation = Isolation.READ_COMMITTED)
+public void createOrder() {
+    // business logic
+}</code></pre>
+        <div class="note"><strong>Senior note:</strong> Spring only passes the isolation level to the database. The actual behavior depends on the database engine.</div>
+        <h3>Database Defaults</h3>
+        <table><thead><tr><th>Database</th><th>Common Default Isolation</th></tr></thead><tbody>
+          <tr><td>PostgreSQL</td><td><code>READ COMMITTED</code></td></tr>
+          <tr><td>Oracle</td><td><code>READ COMMITTED</code></td></tr>
+          <tr><td>MySQL InnoDB</td><td><code>REPEATABLE READ</code></td></tr>
+        </tbody></table>
+      </section>
+
+      <section id="en-nplusone">
+        <h2>10. N+1 Query</h2>
+        <h3>Concept Overview</h3>
+        <p>N+1 query is a common ORM performance problem. It happens when the application executes one query to load parent records, then N additional queries to load related records.</p>
+        <pre><code>1 query to load 100 orders
+100 additional queries to load customer for each order
+
+Total = 101 queries</code></pre>
+        <h3>N+1 with ManyToOne</h3>
+        <pre><code>@Entity
+public class Order {
+
+    @Id
+    private Long id;
+
+    private BigDecimal amount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Customer customer;
+}</code></pre>
+        <pre><code>@Transactional(readOnly = true)
+public List&lt;OrderDto&gt; getOrders() {
+    List&lt;Order&gt; orders = orderRepository.findAll();
+
+    return orders.stream()
+            .map(order -&gt; new OrderDto(
+                    order.getId(),
+                    order.getCustomer().getName()
+            ))
+            .toList();
+}</code></pre>
+        <p>SQL may look like this:</p>
+        <pre><code>select * from orders;
+
+select * from customers where id = ?;
+select * from customers where id = ?;
+select * from customers where id = ?;
+...</code></pre>
+        <h3>N+1 with OneToMany</h3>
+        <pre><code>@Entity
+public class Customer {
+
+    @Id
+    private Long id;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List&lt;Order&gt; orders;
+}</code></pre>
+        <pre><code>@Transactional(readOnly = true)
+public List&lt;CustomerDto&gt; getCustomers() {
+    List&lt;Customer&gt; customers = customerRepository.findAll();
+
+    return customers.stream()
+            .map(customer -&gt; new CustomerDto(
+                    customer.getName(),
+                    customer.getOrders().size()
+            ))
+            .toList();
+}</code></pre>
+        <h3>Why N+1 Happens</h3>
+        <ul><li>Lazy loading inside a loop.</li><li>Accessing relationships after loading parent records.</li><li>Poor fetch planning.</li><li>Returning JPA entities directly from REST APIs.</li><li>JSON serialization triggers lazy loading.</li><li>Using EAGER mapping without understanding the query plan.</li></ul>
+        <div class="danger"><strong>Production warning:</strong> Do not expose JPA entities directly from REST APIs. Use DTOs and control fetching explicitly.</div>
+        <h3>How to Fix N+1</h3>
+        <h4>Solution 1: JOIN FETCH</h4>
+        <pre><code>@Query("""
+    select o
+    from Order o
+    join fetch o.customer
+""")
+List&lt;Order&gt; findAllWithCustomer();</code></pre>
+        <h4>Solution 2: EntityGraph</h4>
+        <pre><code>@EntityGraph(attributePaths = {"customer"})
+@Query("select o from Order o")
+List&lt;Order&gt; findAllWithCustomer();</code></pre>
+        <h4>Solution 3: DTO Projection</h4>
+        <pre><code>@Query("""
+    select new com.example.OrderDto(
+        o.id,
+        c.name,
+        o.amount
+    )
+    from Order o
+    join o.customer c
+""")
+List&lt;OrderDto&gt; findOrderDtos();</code></pre>
+        <h4>Solution 4: Batch Fetching</h4>
+        <pre><code>spring.jpa.properties.hibernate.default_batch_fetch_size=50</code></pre>
+        <pre><code>@BatchSize(size = 50)
+@OneToMany(mappedBy = "customer")
+private List&lt;Order&gt; orders;</code></pre>
+        <h4>Solution 5: Do not use EAGER everywhere</h4>
+        <p>Do not fix N+1 by changing every relationship to <code>FetchType.EAGER</code>. It can load unnecessary data, create huge joins, and make performance unpredictable.</p>
+      </section>
+
+      <section id="en-answer" class="interview-answer">
+        <h2>11. Senior-Level Interview Answer — English</h2>
+        <blockquote>
+          JPA is a Java specification for ORM. It defines how Java objects are mapped to relational database tables using annotations such as <code>@Entity</code>, <code>@Id</code>, <code>@OneToMany</code>, and APIs like <code>EntityManager</code> and JPQL. Hibernate is one of the most popular JPA implementations. It provides the actual ORM behavior such as SQL generation, persistence context, dirty checking, lazy loading, flushing, and caching.
+          <br><br>
+          In Hibernate, the Persistence Context works as a first-level cache and manages entity states such as transient, managed, detached, and removed. When an entity is managed, Hibernate automatically tracks changes through dirty checking and synchronizes them to the database during flush or transaction commit.
+          <br><br>
+          A transaction is a unit of work that should be committed or rolled back as a whole. In Spring, <code>@Transactional</code> is implemented using AOP proxy. The proxy opens a transaction before method execution and commits or rolls back after execution. By default, Spring rolls back on runtime exceptions, but checked exceptions require <code>rollbackFor</code>.
+          <br><br>
+          ACID means Atomicity, Consistency, Isolation, and Durability. Isolation levels control how concurrent transactions interact. <code>READ COMMITTED</code> prevents dirty reads, <code>REPEATABLE READ</code> prevents non-repeatable reads, and <code>SERIALIZABLE</code> provides the strongest isolation but with lower performance.
+          <br><br>
+          N+1 query is a common ORM performance issue where one query loads parent entities and then N additional queries load related entities. It usually happens because of lazy loading inside loops or poor fetch planning. We can solve it using <code>JOIN FETCH</code>, <code>EntityGraph</code>, DTO projection, or Hibernate batch fetching. In production, I usually prefer DTO projection for read APIs and explicit fetch planning instead of relying on default lazy or eager behavior.
+          <br><br>
+          For Hibernate fetching, I normally keep associations LAZY by default and choose the fetch plan per use case. For caching, I treat first-level cache as transaction/session-level cache, and I only enable second-level or query cache for read-mostly data after measuring query count, cache hit ratio, and stale data risk.
+        </blockquote>
+      </section>
+
+      <section id="vi-jpa">
+        <h2>9. JPA là gì?</h2>
+        <p><strong>JPA — Java Persistence API</strong> là một specification của Java dùng cho ORM. ORM nghĩa là mapping giữa object trong Java và table trong database.</p>
+        <pre><code>@Entity
+@Table(name = "orders")
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal amount;
+
+    @Column(name = "customer_name")
+    private String customerName;
+}</code></pre>
+        <div class="warning"><strong>Điểm quan trọng:</strong> JPA không phải implementation. JPA chỉ là specification. Nó cần implementation như Hibernate, EclipseLink hoặc OpenJPA.</div>
+        <h3>JPA cung cấp gì?</h3>
+        <ul><li>Annotation để mapping entity: <code>@Entity</code>, <code>@Id</code>, <code>@Table</code>, <code>@Column</code>.</li><li>Annotation để mapping relationship: <code>@OneToMany</code>, <code>@ManyToOne</code>, <code>@OneToOne</code>, <code>@ManyToMany</code>.</li><li>API thao tác persistence: <code>EntityManager</code>.</li><li>Ngôn ngữ query theo object: JPQL.</li><li>Criteria API cho dynamic query.</li></ul>
+        <h3>Spring Data JPA</h3>
+        <p>Spring Data JPA là abstraction của Spring giúp giảm boilerplate khi viết repository.</p>
+        <pre><code>@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+
+    List&lt;Order&gt; findByCustomerName(String customerName);
+
+    @Query("select o from Order o where o.amount &gt; :amount")
+    List&lt;Order&gt; findLargeOrders(BigDecimal amount);
+}</code></pre>
+      </section>
+
+      <section id="vi-hibernate">
+        <h2>10. Hibernate</h2>
+        <p><strong>Hibernate</strong> là implementation phổ biến nhất của JPA. JPA định nghĩa chuẩn, còn Hibernate thực thi chuẩn đó.</p>
+        <p>Khi gọi:</p>
+        <pre><code>entityManager.persist(order);</code></pre>
+        <p>Hibernate xử lý bên trong:</p>
+        <ul><li>Generate SQL.</li><li>Quản lý Persistence Context.</li><li>Dirty checking.</li><li>Lazy loading.</li><li>Flush.</li><li>Cache.</li><li>Mapping Java type sang SQL type.</li></ul>
+        <h3>JPA vs Hibernate</h3>
+        <table><thead><tr><th>JPA</th><th>Hibernate</th></tr></thead><tbody>
+          <tr><td>Specification</td><td>Implementation</td></tr>
+          <tr><td>Định nghĩa chuẩn API</td><td>Cung cấp ORM thật sự</td></tr>
+          <tr><td>Có <code>EntityManager</code>, <code>@Entity</code>, <code>@Id</code></td><td>Generate SQL, dirty checking, lazy loading</td></tr>
+          <tr><td>Có thể đổi provider</td><td>Có feature riêng của Hibernate</td></tr>
+        </tbody></table>
+        <div class="note">Nói dễ hiểu: JPA giống như interface, Hibernate giống như class implement interface đó.</div>
+        <h3>Persistence Context</h3>
+        <p><strong>Persistence Context</strong> là vùng nhớ nơi Hibernate quản lý entity trong một transaction. Nó cũng chính là first-level cache.</p>
+        <pre><code>@Transactional
+public Order getOrder(Long id) {
+    Order order1 = entityManager.find(Order.class, id);
+    Order order2 = entityManager.find(Order.class, id);
+
+    System.out.println(order1 == order2); // true
+    return order1;
+}</code></pre>
+        <h3>Entity States</h3>
+        <table><thead><tr><th>State</th><th>Ý nghĩa</th></tr></thead><tbody>
+          <tr><td><strong>Transient</strong></td><td>Object mới tạo bằng <code>new</code>, chưa được Hibernate quản lý.</td></tr>
+          <tr><td><strong>Managed</strong></td><td>Entity đang nằm trong Persistence Context, Hibernate đang track thay đổi.</td></tr>
+          <tr><td><strong>Detached</strong></td><td>Entity từng được quản lý, nhưng hiện tại không còn thuộc Persistence Context.</td></tr>
+          <tr><td><strong>Removed</strong></td><td>Entity được đánh dấu để delete.</td></tr>
+        </tbody></table>
+        <h3>Dirty Checking</h3>
+        <p>Dirty checking là cơ chế Hibernate tự phát hiện thay đổi của managed entity và generate SQL update.</p>
+        <pre><code>@Transactional
+public void updateOrder(Long id) {
+    Order order = orderRepository.findById(id)
+            .orElseThrow();
+
+    order.setAmount(BigDecimal.valueOf(500));
+
+    // Không cần gọi save nếu entity đang managed
+}</code></pre>
+        <div class="success">Nếu entity đang ở managed state trong transaction, Hibernate có thể tự update DB thông qua dirty checking.</div>
+        <h3>Flush</h3>
+        <p>Flush là quá trình Hibernate đồng bộ thay đổi trong Persistence Context xuống database. Flush gửi SQL xuống DB, nhưng chưa chắc đã commit transaction.</p>
+        <pre><code>@Transactional
+public void createOrder() {
+    Order order = new Order();
+    orderRepository.save(order);
+
+    entityManager.flush(); // ép Hibernate gửi SQL xuống DB
+}</code></pre>
+        <h3>Lazy Loading và Eager Loading</h3>
+        <p>Lazy loading nghĩa là data liên quan chỉ được load khi thật sự access. Eager loading nghĩa là load relationship ngay lập tức.</p>
+        <div class="warning">Trong production, không nên lạm dụng EAGER. Nên dùng LAZY mặc định và fetch rõ ràng theo từng use case bằng JOIN FETCH, EntityGraph hoặc DTO projection.</div>
+      </section>
+
+
+      <section id="vi-fetching">
+        <h2>11. Hibernate Fetching: FetchType, FetchMode, Fetch Strategy</h2>
+
+        <p class="lead">
+          Fetching là chủ đề rất hay bị hỏi khi phỏng vấn Senior vì nó ảnh hưởng trực tiếp tới performance.
+          Cần phân biệt rõ <strong>khi nào load data</strong> và <strong>load data bằng cách nào</strong>.
+        </p>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4>FetchType</h4>
+            <p>Quyết định khi nào association được load: load ngay hay load khi access.</p>
+          </div>
+          <div class="mini-card">
+            <h4>FetchMode / Fetch Strategy</h4>
+            <p>Quyết định Hibernate load association bằng cách nào: SELECT, JOIN, BATCH, SUBSELECT, JOIN FETCH hoặc EntityGraph.</p>
+          </div>
+        </div>
+
+        <h3>FetchType.LAZY vs FetchType.EAGER</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Fetch Type</th>
+              <th>Ý nghĩa</th>
+              <th>Ưu điểm</th>
+              <th>Rủi ro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>FetchType.LAZY</code></td>
+              <td>Chỉ load data liên quan khi thật sự access.</td>
+              <td>Tốt hơn cho performance nếu không phải lúc nào cũng cần relationship data.</td>
+              <td>Có thể gây N+1 query hoặc <code>LazyInitializationException</code>.</td>
+            </tr>
+            <tr>
+              <td><code>FetchType.EAGER</code></td>
+              <td>Load data liên quan ngay khi load owner entity.</td>
+              <td>Tiện nếu relationship luôn cần.</td>
+              <td>Dễ load dư data, query nặng, khó kiểm soát performance.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Default FetchType trong JPA</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Relationship</th>
+              <th>Default FetchType</th>
+              <th>Khuyến nghị Senior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>@ManyToOne</code></td>
+              <td><code>EAGER</code></td>
+              <td>Thường nên override sang <code>LAZY</code>.</td>
+            </tr>
+            <tr>
+              <td><code>@OneToOne</code></td>
+              <td><code>EAGER</code></td>
+              <td>Thường nên override sang <code>LAZY</code>, nhưng cần hiểu proxy/bytecode enhancement.</td>
+            </tr>
+            <tr>
+              <td><code>@OneToMany</code></td>
+              <td><code>LAZY</code></td>
+              <td>Giữ <code>LAZY</code>.</td>
+            </tr>
+            <tr>
+              <td><code>@ManyToMany</code></td>
+              <td><code>LAZY</code></td>
+              <td>Giữ <code>LAZY</code>, tránh many-to-many trực tiếp nếu domain phức tạp.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="warning">
+          <strong>Rule khi đi phỏng vấn:</strong> Mapping nên để <code>LAZY</code> mặc định.
+          API nào cần data gì thì fetch rõ ràng bằng <code>JOIN FETCH</code>, <code>EntityGraph</code>, DTO projection, batch fetching hoặc subselect fetching.
+        </div>
+
+        <h3>Ví dụ: override ManyToOne sang LAZY</h3>
+
+        <pre><code>@Entity
+public class Order {
+
+    @Id
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+}</code></pre>
+
+        <p>
+          Dù <code>@ManyToOne</code> default là EAGER trong JPA, ở project thực tế thường nên set rõ là LAZY.
+          Nếu không, khi load Order có thể load luôn Customer dù API không cần.
+        </p>
+
+        <h3>FetchType khác JOIN FETCH thế nào?</h3>
+
+        <p>
+          <code>FetchType.LAZY</code> trong mapping chỉ là behavior mặc định.
+          Với từng query cụ thể, mình vẫn có thể fetch association ngay bằng <code>JOIN FETCH</code>.
+        </p>
+
+        <pre><code>@Query("""
+    select o
+    from Order o
+    join fetch o.customer
+    where o.id = :id
+""")
+Optional&lt;Order&gt; findByIdWithCustomer(Long id);</code></pre>
+
+        <p>
+          Cách này giúp entity mapping linh hoạt, còn query quyết định data nào cần load cho từng use case.
+        </p>
+
+        <h3>Các Fetch Strategy của Hibernate</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Cách hoạt động</th>
+              <th>Khi nào dùng</th>
+              <th>Rủi ro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SELECT</code></td>
+              <td>Load association bằng câu select riêng.</td>
+              <td>Default lazy behavior.</td>
+              <td>Có thể gây N+1 query.</td>
+            </tr>
+            <tr>
+              <td><code>JOIN</code></td>
+              <td>Load association bằng SQL join.</td>
+              <td>Khi cần fetch <code>ManyToOne</code> hoặc relationship nhỏ trong một query.</td>
+              <td>Có thể duplicate parent row và query nặng nếu join collection lớn.</td>
+            </tr>
+            <tr>
+              <td><code>BATCH</code></td>
+              <td>Load nhiều lazy association bằng <code>IN (?, ?, ?)</code>.</td>
+              <td>Giảm N+1 khi nhiều proxy/collection được initialize.</td>
+              <td>Vẫn có query phụ, nhưng ít hơn N+1.</td>
+            </tr>
+            <tr>
+              <td><code>SUBSELECT</code></td>
+              <td>Load collection bằng subselect dựa trên parent query ban đầu.</td>
+              <td>Khi load collection cho nhiều parent rows.</td>
+              <td>Có thể nặng nếu parent query quá lớn.</td>
+            </tr>
+            <tr>
+              <td>DTO Projection</td>
+              <td>Select column cần thiết vào DTO.</td>
+              <td>Rất tốt cho read API.</td>
+              <td>Không phù hợp nếu cần managed entity để update.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Batch Fetching</h3>
+
+        <p>
+          Batch fetching giúp giảm N+1 bằng cách gom nhiều lazy load thành ít query hơn bằng mệnh đề <code>IN</code>.
+        </p>
+
+        <pre><code>@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    @BatchSize(size = 50)
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+}</code></pre>
+
+        <p>Hoặc config global:</p>
+
+        <pre><code>spring.jpa.properties.hibernate.default_batch_fetch_size=50</code></pre>
+
+        <p>Thay vì:</p>
+
+        <pre><code>select * from orders where customer_id = 1;
+select * from orders where customer_id = 2;
+select * from orders where customer_id = 3;</code></pre>
+
+        <p>Hibernate có thể tối ưu thành:</p>
+
+        <pre><code>select * from orders where customer_id in (?, ?, ?);</code></pre>
+
+        <h3>Subselect Fetching</h3>
+
+        <pre><code>@Entity
+public class Customer {
+
+    @OneToMany(mappedBy = "customer")
+    @Fetch(FetchMode.SUBSELECT)
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+}</code></pre>
+
+        <p>Ví dụ behavior:</p>
+
+        <pre><code>select * from customers where status = 'ACTIVE';
+
+select * from orders
+where customer_id in (
+    select id from customers where status = 'ACTIVE'
+);</code></pre>
+
+        <div class="note">
+          <strong>Khi nào dùng:</strong> Batch fetching thường an toàn hơn để config chung.
+          Subselect fetching phù hợp khi parent query được kiểm soát và không quá lớn.
+        </div>
+
+        <h3>EntityGraph</h3>
+
+        <p>
+          EntityGraph giúp giữ mapping là LAZY nhưng định nghĩa fetch plan riêng cho từng repository method.
+        </p>
+
+        <pre><code>@EntityGraph(attributePaths = {"customer", "items"})
+@Query("select o from Order o where o.id = :id")
+Optional&lt;Order&gt; findDetailById(Long id);</code></pre>
+
+        <h3>LazyInitializationException</h3>
+
+        <p>
+          <code>LazyInitializationException</code> xảy ra khi lazy data được access sau khi Hibernate Session / Persistence Context đã đóng.
+        </p>
+
+        <pre><code>@Service
+public class OrderService {
+
+    public Order getOrder(Long id) {
+        return orderRepository.findById(id).orElseThrow();
+    }
+}
+
+// Bên ngoài transaction/session:
+order.getCustomer().getName(); // LazyInitializationException</code></pre>
+
+        <h4>Cách xử lý tốt</h4>
+        <ul>
+          <li>Dùng <code>@Transactional(readOnly = true)</code> và map sang DTO bên trong transaction.</li>
+          <li>Dùng <code>JOIN FETCH</code> hoặc <code>EntityGraph</code> cho association cần thiết.</li>
+          <li>Dùng DTO projection cho read API.</li>
+        </ul>
+
+        <h4>Cách xử lý không tốt</h4>
+        <ul>
+          <li>Đổi hết relationship sang <code>EAGER</code>.</li>
+          <li>Phụ thuộc vào Open Session In View để che lỗi fetch plan.</li>
+          <li>Return JPA entity trực tiếp từ REST controller.</li>
+        </ul>
+
+        <div class="danger">
+          <strong>Điểm phỏng vấn:</strong> EAGER không phải giải pháp thật sự cho N+1 hoặc lazy loading issue.
+          Nó thường chỉ chuyển vấn đề performance sang chỗ khác.
+        </div>
+      </section>
+
+      <section id="vi-cache">
+        <h2>12. Hibernate Cache Levels</h2>
+
+        <p class="lead">
+          Hibernate cache có nhiều level khác nhau. Mỗi level có scope, lifecycle và mục đích riêng.
+        </p>
+
+        <h3>Tổng quan cache level</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cache</th>
+              <th>Scope</th>
+              <th>Mặc định bật?</th>
+              <th>Mục đích</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>First-Level Cache</strong></td>
+              <td>Một Hibernate <code>Session</code> / JPA <code>EntityManager</code></td>
+              <td>Có</td>
+              <td>Tránh query DB lặp lại cho cùng entity trong cùng Persistence Context.</td>
+            </tr>
+            <tr>
+              <td><strong>Second-Level Cache</strong></td>
+              <td><code>SessionFactory</code> / <code>EntityManagerFactory</code></td>
+              <td>Không, cần config</td>
+              <td>Share cached entity data giữa nhiều session.</td>
+            </tr>
+            <tr>
+              <td><strong>Query Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>Không, cần enable và mark query cacheable</td>
+              <td>Cache danh sách ID kết quả query, không đơn giản là cache full object.</td>
+            </tr>
+            <tr>
+              <td><strong>Collection Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>Không, cần mapping rõ</td>
+              <td>Cache relationship/collection data, ví dụ list child IDs.</td>
+            </tr>
+            <tr>
+              <td><strong>Natural ID Cache</strong></td>
+              <td>Second-level cache region</td>
+              <td>Không, cần mapping rõ</td>
+              <td>Cache lookup theo business key như email, username, code.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>First-Level Cache</h3>
+
+        <p>
+          First-level cache chính là Persistence Context. Nó tồn tại trong một Hibernate Session / JPA EntityManager.
+        </p>
+
+        <pre><code>@Transactional(readOnly = true)
+public void demo(Long id) {
+    Product p1 = entityManager.find(Product.class, id);
+    Product p2 = entityManager.find(Product.class, id);
+
+    System.out.println(p1 == p2); // true
+}</code></pre>
+
+        <div class="note">
+          First-level cache không phải distributed cache và không phải application-wide cache.
+          Nó chỉ sống trong current Persistence Context.
+        </div>
+
+        <h3>Second-Level Cache</h3>
+
+        <p>
+          Second-level cache được share giữa nhiều session trong cùng <code>SessionFactory</code>.
+          Nó phù hợp với reference data hoặc data ít thay đổi.
+        </p>
+
+        <pre><code>@Entity
+@Cacheable
+@org.hibernate.annotations.Cache(
+    usage = CacheConcurrencyStrategy.READ_WRITE,
+    region = "product"
+)
+public class Product {
+
+    @Id
+    private Long id;
+
+    private String name;
+}</code></pre>
+
+        <p>Ví dụ config Spring Boot:</p>
+
+        <pre><code>spring.jpa.properties.hibernate.cache.use_second_level_cache=true
+spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.jcache.JCacheRegionFactory
+spring.jpa.properties.hibernate.javax.cache.provider=org.ehcache.jsr107.EhcacheCachingProvider</code></pre>
+
+        <h3>Cache Concurrency Strategy</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Khi nào dùng</th>
+              <th>Lưu ý</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>READ_ONLY</code></td>
+              <td>Data immutable/reference data: country, currency, static config.</td>
+              <td>Nhanh nhất, nhưng data không được update.</td>
+            </tr>
+            <tr>
+              <td><code>NONSTRICT_READ_WRITE</code></td>
+              <td>Data ít update và chấp nhận stale data trong thời gian ngắn.</td>
+              <td>Có thể đọc data cũ.</td>
+            </tr>
+            <tr>
+              <td><code>READ_WRITE</code></td>
+              <td>Data có update và cần consistency tốt hơn.</td>
+              <td>Overhead cao hơn.</td>
+            </tr>
+            <tr>
+              <td><code>TRANSACTIONAL</code></td>
+              <td>Cần cache provider hỗ trợ transactional.</td>
+              <td>Phức tạp và phụ thuộc provider.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Query Cache</h3>
+
+        <p>
+          Query cache thường cache result identifiers và phối hợp với second-level cache.
+          Nó không đơn giản là cache full entity object.
+        </p>
+
+        <pre><code>@QueryHints({
+    @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+    @QueryHint(name = "org.hibernate.cacheRegion", value = "productQueries")
+})
+@Query("select p from Product p where p.status = :status")
+List&lt;Product&gt; findByStatusCached(ProductStatus status);</code></pre>
+
+        <div class="warning">
+          Query cache chỉ nên dùng cho query result ổn định. Nếu table thay đổi liên tục, invalidation overhead có thể làm chậm hơn.
+        </div>
+
+        <h3>Nên cache gì?</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Nên cache</th>
+              <th>Không nên cache</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Reference data: country, currency, role, permission, product category.</td>
+              <td>Transactional data: order, payment, stock movement, account balance.</td>
+            </tr>
+            <tr>
+              <td>Data đọc nhiều, update ít.</td>
+              <td>Data update liên tục bởi nhiều user/service.</td>
+            </tr>
+            <tr>
+              <td>Entity nhỏ hoặc vừa.</td>
+              <td>Entity graph lớn, nhiều collection.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Cache Eviction</h3>
+
+        <pre><code>SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+
+sessionFactory.getCache().evictEntityData(Product.class, productId);
+sessionFactory.getCache().evictEntityData(Product.class);
+sessionFactory.getCache().evictAllRegions();</code></pre>
+
+        <h3>Senior Cache Advice</h3>
+
+        <ul>
+          <li>Không bật second-level cache cho tất cả entity.</li>
+          <li>Bắt đầu với reference/read-mostly data.</li>
+          <li>Đo cache hit ratio, số lượng query, memory usage và stale data risk.</li>
+          <li>Cẩn thận với multi-node deployment vì cache invalidation/replication rất quan trọng.</li>
+          <li>Với nhiều read API, DTO projection có thể tốt hơn Hibernate cache.</li>
+        </ul>
+      </section>
+
+      <section id="vi-db-cache">
+        <h2>13. Database, Application, and Cache Layers</h2>
+
+        <p class="lead">
+          Trong production, performance không chỉ nằm ở Hibernate cache. Data có thể được cache ở nhiều layer khác nhau.
+        </p>
+
+        <h3>Các cache layer phổ biến</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Ví dụ</th>
+              <th>Mục đích</th>
+              <th>Rủi ro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hibernate L1 Cache</td>
+              <td>Persistence Context</td>
+              <td>Tránh load duplicate entity trong một transaction/session.</td>
+              <td>Memory tăng nếu xử lý quá nhiều entity mà không clear.</td>
+            </tr>
+            <tr>
+              <td>Hibernate L2 Cache</td>
+              <td>Ehcache, Infinispan, Hazelcast qua provider</td>
+              <td>Reuse entity state giữa nhiều session.</td>
+              <td>Stale data, invalidation phức tạp.</td>
+            </tr>
+            <tr>
+              <td>Application Cache</td>
+              <td>Spring Cache, Caffeine, Redis</td>
+              <td>Cache DTO, API response, computed result, external API response.</td>
+              <td>TTL, invalidation, consistency.</td>
+            </tr>
+            <tr>
+              <td>Database Buffer Cache</td>
+              <td>PostgreSQL shared buffers, Oracle buffer cache, MySQL buffer pool</td>
+              <td>Cache data page/index page trong memory của database.</td>
+              <td>Application không điều khiển trực tiếp.</td>
+            </tr>
+            <tr>
+              <td>Database Plan Cache</td>
+              <td>Prepared statement / execution plan cache</td>
+              <td>Reuse parsed SQL/execution plan.</td>
+              <td>Bad plan có thể làm performance tệ tùy parameter/statistics.</td>
+            </tr>
+            <tr>
+              <td>Result / Materialized Cache</td>
+              <td>Materialized view, DB result cache tùy DB</td>
+              <td>Precompute expensive query result.</td>
+              <td>Cần refresh strategy, có thể stale data.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Hibernate Cache vs Redis/Application Cache</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Hibernate L2 Cache</th>
+              <th>Redis / Application Cache</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cache ở ORM entity level.</td>
+              <td>Cache ở application-defined level: DTO, response, token, session, external API result.</td>
+            </tr>
+            <tr>
+              <td>Gắn chặt với Hibernate entity lifecycle.</td>
+              <td>Linh hoạt hơn và cache được cả non-DB data.</td>
+            </tr>
+            <tr>
+              <td>Tốt cho reference/read-mostly entity.</td>
+              <td>Tốt cho computed result, API response, distributed cache, rate limit, session, temporary data.</td>
+            </tr>
+            <tr>
+              <td>Rủi ro với transactional entity.</td>
+              <td>Cần thiết kế TTL/invalidation rõ ràng.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Ví dụ Spring Cache</h3>
+
+        <pre><code>@Service
+public class ProductQueryService {
+
+    @Cacheable(value = "productDetail", key = "#id")
+    public ProductDetailDto getProductDetail(Long id) {
+        return productRepository.findProductDetail(id)
+                .orElseThrow();
+    }
+
+    @CacheEvict(value = "productDetail", key = "#id")
+    public void evictProductDetail(Long id) {
+        // Evict cache after update
+    }
+}</code></pre>
+
+        <h3>Cache Decision Guide</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Tình huống</th>
+              <th>Cách nên dùng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cần update entity trong transaction.</td>
+              <td>Dùng JPA/Hibernate bình thường. Tránh DTO cache cho write path.</td>
+            </tr>
+            <tr>
+              <td>Read API chỉ cần vài column.</td>
+              <td>Ưu tiên DTO projection.</td>
+            </tr>
+            <tr>
+              <td>Reference data ít thay đổi.</td>
+              <td>Cân nhắc Hibernate L2 cache hoặc application cache.</td>
+            </tr>
+            <tr>
+              <td>External API chậm và có thể reuse.</td>
+              <td>Dùng Redis/Caffeine với TTL.</td>
+            </tr>
+            <tr>
+              <td>Query chậm do thiếu index.</td>
+              <td>Sửa query/index/execution plan trước khi thêm cache.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="danger">
+          <strong>Senior mindset:</strong> Cache không thay thế cho bad query, missing index, wrong fetch plan hoặc transaction design sai.
+          Trước tiên phải tối ưu data access, sau đó mới thêm cache khi access pattern rõ ràng và đo lường được.
+        </div>
+      </section>
+
+      <section id="vi-transaction">
+        <h2>14. Transaction</h2>
+        <p>Transaction là một unit of work. Các thao tác bên trong transaction phải thành công hết hoặc rollback hết.</p>
+        <pre><code>@Transactional
+public void placeOrder(OrderRequest request) {
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+    stockRepository.reduceStock(productId, quantity);
+}</code></pre>
+        <h3><code>@Transactional</code> hoạt động thế nào?</h3>
+        <p>Trong Spring, <code>@Transactional</code> được implement bằng AOP proxy.</p>
+        <pre><code>Client gọi proxy
+↓
+Proxy mở transaction
+↓
+Business method chạy
+↓
+Nếu success → commit
+Nếu exception → rollback
+↓
+Release connection</code></pre>
+        <h3>Rollback Rule</h3>
+        <p>Mặc định Spring rollback với <code>RuntimeException</code> và <code>Error</code>, nhưng không rollback với checked exception theo mặc định.</p>
+        <pre><code>@Transactional(rollbackFor = IOException.class)
+public void process() throws IOException {
+    throw new IOException();
+}</code></pre>
+        <h3>Propagation</h3>
+        <table><thead><tr><th>Propagation</th><th>Ý nghĩa</th></tr></thead><tbody>
+          <tr><td><code>REQUIRED</code></td><td>Default. Có transaction thì dùng transaction hiện tại, chưa có thì tạo mới.</td></tr>
+          <tr><td><code>REQUIRES_NEW</code></td><td>Luôn tạo transaction mới, transaction hiện tại bị suspend.</td></tr>
+          <tr><td><code>MANDATORY</code></td><td>Bắt buộc phải có transaction trước đó.</td></tr>
+          <tr><td><code>SUPPORTS</code></td><td>Có transaction thì tham gia, không có thì chạy không transaction.</td></tr>
+          <tr><td><code>NOT_SUPPORTED</code></td><td>Luôn chạy ngoài transaction.</td></tr>
+          <tr><td><code>NEVER</code></td><td>Không được chạy trong transaction.</td></tr>
+          <tr><td><code>NESTED</code></td><td>Tạo nested transaction dùng savepoint nếu DB hỗ trợ.</td></tr>
+        </tbody></table>
+        <h3>Pitfalls thường gặp</h3>
+        <ul><li>Self-invocation: method trong cùng class gọi nhau làm bypass proxy.</li><li><code>@Transactional</code> trên private method không hoạt động.</li><li>Final method/class có thể làm proxy không hoạt động đúng.</li><li>Catch exception nhưng không throw lại làm transaction commit ngoài ý muốn.</li></ul>
+      </section>
+
+      <section id="vi-acid">
+        <h2>15. ACID</h2>
+        <p>ACID là 4 tính chất quan trọng của transaction.</p>
+        <table><thead><tr><th>Tính chất</th><th>Ý nghĩa</th><th>Ví dụ</th></tr></thead><tbody>
+          <tr><td><strong>Atomicity</strong></td><td>Hoàn tất toàn bộ hoặc rollback toàn bộ.</td><td>Chuyển tiền: trừ A và cộng B phải đi cùng nhau.</td></tr>
+          <tr><td><strong>Consistency</strong></td><td>Database chuyển từ trạng thái hợp lệ này sang trạng thái hợp lệ khác.</td><td>Email unique, balance không âm, foreign key hợp lệ.</td></tr>
+          <tr><td><strong>Isolation</strong></td><td>Các transaction song song không ảnh hưởng sai lẫn nhau.</td><td>Hai user cùng giảm stock.</td></tr>
+          <tr><td><strong>Durability</strong></td><td>Sau khi commit, data phải được lưu bền vững.</td><td>Transaction log, redo log, write-ahead log.</td></tr>
+        </tbody></table>
+        <h3>Ví dụ Atomicity</h3>
+        <pre><code>@Transactional
+public void transfer(Long fromId, Long toId, BigDecimal amount) {
+    accountRepository.debit(fromId, amount);
+    accountRepository.credit(toId, amount);
+}</code></pre>
+        <h3>Ví dụ Isolation</h3>
+        <pre><code>Stock = 10
+
+Transaction A đọc 10
+Transaction B đọc 10
+
+A trừ 1 → 9
+B trừ 1 → 9
+
+Expected = 8
+Actual = 9</code></pre>
+      </section>
+
+      <section id="vi-isolation">
+        <h2>16. Isolation Level</h2>
+        <p>Isolation level quyết định transaction này nhìn thấy dữ liệu của transaction khác như thế nào.</p>
+        <h3>Các vấn đề concurrency phổ biến</h3>
+        <table><thead><tr><th>Vấn đề</th><th>Giải thích</th></tr></thead><tbody>
+          <tr><td><strong>Dirty Read</strong></td><td>Transaction đọc data chưa commit từ transaction khác.</td></tr>
+          <tr><td><strong>Non-repeatable Read</strong></td><td>Đọc cùng một row nhiều lần nhưng kết quả khác nhau do transaction khác update và commit.</td></tr>
+          <tr><td><strong>Phantom Read</strong></td><td>Chạy cùng một query nhiều lần nhưng số lượng row khác nhau do transaction khác insert/delete.</td></tr>
+          <tr><td><strong>Lost Update</strong></td><td>Hai transaction cùng đọc một giá trị cũ rồi update đè lên nhau.</td></tr>
+        </tbody></table>
+        <h3>Bảng Isolation Level</h3>
+        <table><thead><tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-repeatable Read</th><th>Phantom Read</th><th>Performance</th></tr></thead><tbody>
+          <tr><td><code>READ_UNCOMMITTED</code></td><td>Có thể xảy ra</td><td>Có thể xảy ra</td><td>Có thể xảy ra</td><td>Cao nhất</td></tr>
+          <tr><td><code>READ_COMMITTED</code></td><td>Ngăn được</td><td>Có thể xảy ra</td><td>Có thể xảy ra</td><td>Cao</td></tr>
+          <tr><td><code>REPEATABLE_READ</code></td><td>Ngăn được</td><td>Ngăn được</td><td>Tùy DB</td><td>Trung bình</td></tr>
+          <tr><td><code>SERIALIZABLE</code></td><td>Ngăn được</td><td>Ngăn được</td><td>Ngăn được</td><td>Thấp nhất</td></tr>
+        </tbody></table>
+        <h3>Spring Example</h3>
+        <pre><code>@Transactional(isolation = Isolation.READ_COMMITTED)
+public void createOrder() {
+    // business logic
+}</code></pre>
+        <div class="note">Spring chỉ truyền isolation level xuống database. Hành vi thật sự còn phụ thuộc vào database engine.</div>
+      </section>
+
+      <section id="vi-nplusone">
+        <h2>17. N+1 Query</h2>
+        <p>N+1 query là vấn đề performance phổ biến khi dùng ORM. Nó xảy ra khi một query load danh sách parent, sau đó phát sinh thêm N query để load related entity.</p>
+        <pre><code>1 query load 100 orders
+100 query load customer cho từng order
+
+Total = 101 queries</code></pre>
+        <h3>Ví dụ với ManyToOne</h3>
+        <pre><code>@Entity
+public class Order {
+
+    @Id
+    private Long id;
+
+    private BigDecimal amount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Customer customer;
+}</code></pre>
+        <pre><code>@Transactional(readOnly = true)
+public List&lt;OrderDto&gt; getOrders() {
+    List&lt;Order&gt; orders = orderRepository.findAll();
+
+    return orders.stream()
+            .map(order -&gt; new OrderDto(
+                    order.getId(),
+                    order.getCustomer().getName()
+            ))
+            .toList();
+}</code></pre>
+        <p>SQL có thể thành:</p>
+        <pre><code>select * from orders;
+
+select * from customers where id = ?;
+select * from customers where id = ?;
+select * from customers where id = ?;
+...</code></pre>
+        <h3>Vì sao N+1 xảy ra?</h3>
+        <ul><li>Lazy loading trong vòng lặp.</li><li>Access relationship sau khi load parent.</li><li>Không có fetch plan rõ ràng.</li><li>Trả entity trực tiếp ra REST API.</li><li>JSON serialization trigger lazy loading.</li><li>Dùng EAGER không kiểm soát.</li></ul>
+        <h3>Cách fix N+1</h3>
+        <h4>Cách 1: JOIN FETCH</h4>
+        <pre><code>@Query("""
+    select o
+    from Order o
+    join fetch o.customer
+""")
+List&lt;Order&gt; findAllWithCustomer();</code></pre>
+        <h4>Cách 2: EntityGraph</h4>
+        <pre><code>@EntityGraph(attributePaths = {"customer"})
+@Query("select o from Order o")
+List&lt;Order&gt; findAllWithCustomer();</code></pre>
+        <h4>Cách 3: DTO Projection</h4>
+        <pre><code>@Query("""
+    select new com.example.OrderDto(
+        o.id,
+        c.name,
+        o.amount
+    )
+    from Order o
+    join o.customer c
+""")
+List&lt;OrderDto&gt; findOrderDtos();</code></pre>
+        <h4>Cách 4: Batch Fetching</h4>
+        <pre><code>spring.jpa.properties.hibernate.default_batch_fetch_size=50</code></pre>
+        <h4>Cách 5: Không dùng EAGER bừa bãi</h4>
+        <p>Không nên fix N+1 bằng cách đổi hết sang <code>FetchType.EAGER</code>. Nên dùng LAZY mặc định, API nào cần data gì thì fetch rõ ràng ở query đó.</p>
+      </section>
+
+      <section id="vi-answer" class="interview-answer">
+        <h2>18. Câu trả lời phỏng vấn — Vietnamese</h2>
+        <blockquote>
+          JPA là một specification của Java dùng cho ORM, định nghĩa cách map Java object với relational database thông qua các annotation như <code>@Entity</code>, <code>@Id</code>, <code>@OneToMany</code>, <code>@ManyToOne</code> và API như <code>EntityManager</code>, JPQL. Hibernate là implementation phổ biến nhất của JPA, chịu trách nhiệm generate SQL, quản lý Persistence Context, dirty checking, lazy loading, flush và caching.
+          <br><br>
+          Trong Hibernate, Persistence Context đóng vai trò như first-level cache và quản lý các trạng thái của entity như transient, managed, detached và removed. Khi entity đang ở managed state, Hibernate tự động track sự thay đổi thông qua dirty checking và đồng bộ xuống database khi flush hoặc transaction commit.
+          <br><br>
+          Transaction là một unit of work, các thao tác bên trong phải commit cùng nhau hoặc rollback cùng nhau. Trong Spring, <code>@Transactional</code> được implement bằng AOP proxy. Proxy sẽ mở transaction trước khi method chạy, sau đó commit nếu thành công hoặc rollback nếu có exception. Mặc định Spring rollback với runtime exception, còn checked exception thì cần cấu hình <code>rollbackFor</code>.
+          <br><br>
+          ACID gồm Atomicity, Consistency, Isolation và Durability. Isolation level kiểm soát mức độ các transaction song song nhìn thấy dữ liệu của nhau. <code>READ COMMITTED</code> ngăn dirty read, <code>REPEATABLE READ</code> ngăn non-repeatable read, còn <code>SERIALIZABLE</code> là mức cao nhất nhưng performance thấp hơn.
+          <br><br>
+          N+1 query là vấn đề performance phổ biến trong ORM, khi một query load danh sách parent, sau đó phát sinh thêm N query để load related entity. Nó thường xảy ra do lazy loading trong vòng lặp hoặc fetch plan không rõ ràng. Có thể xử lý bằng <code>JOIN FETCH</code>, <code>EntityGraph</code>, DTO projection hoặc Hibernate batch fetching. Trong production, với read API, em thường ưu tiên DTO projection và fetch rõ ràng theo từng use case thay vì phụ thuộc vào lazy/eager mặc định.
+          <br><br>
+          Về Hibernate fetching, em thường để association là LAZY mặc định và chọn fetch plan theo từng use case. Về cache, em hiểu first-level cache là cache theo transaction/session, còn second-level cache hoặc query cache chỉ nên bật cho read-mostly data sau khi đo query count, cache hit ratio và stale data risk.
+        </blockquote>
+      </section>
+
+      <div class="footer">Created for Senior Java Backend interview preparation.</div>
+    </main>
+  </div>
+</body>
+</html>

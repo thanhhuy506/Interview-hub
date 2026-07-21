@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Security Deep Dive — Authentication, JWT, OAuth2, Advanced Topics</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #132033;
+      --muted: #667085;
+      --primary: #2563eb;
+      --primary2: #0f766e;
+      --dark: #0f172a;
+      --border: #d9e2ef;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fef2f2;
+      --soft-purple: #f5f3ff;
+      --code-bg: #0b1120;
+      --code-text: #e5e7eb;
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.72;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 22px;
+      background: var(--dark);
+      color: #f8fafc;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand { margin-bottom: 22px; }
+
+    .badge {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.25);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      margin: 14px 0 8px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .brand p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .toc-title {
+      margin: 24px 0 10px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav li { margin: 4px 0; }
+
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 10px;
+      color: #dbeafe;
+      font-size: 14px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    nav a:hover {
+      background: rgba(59, 130, 246, 0.18);
+      color: #ffffff;
+    }
+
+    .content {
+      padding: 38px;
+      max-width: 1240px;
+      width: 100%;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111827 0%, #1e3a8a 42%, #0f766e 100%);
+      color: #ffffff;
+      border-radius: 30px;
+      padding: 44px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -90px;
+      width: 280px;
+      height: 280px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+    }
+
+    .hero h2 {
+      position: relative;
+      margin: 0 0 14px;
+      font-size: 40px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      max-width: 940px;
+    }
+
+    .hero p {
+      position: relative;
+      margin: 0;
+      color: #dbeafe;
+      font-size: 17px;
+      max-width: 920px;
+    }
+
+    .hero-tags {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .hero-tags span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin: 22px 0;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    section h2 {
+      margin-top: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      color: #0f172a;
+      font-size: 28px;
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin-top: 28px;
+      color: #1e3a8a;
+      font-size: 21px;
+    }
+
+    h4 {
+      margin-top: 22px;
+      color: #0f766e;
+      font-size: 17px;
+    }
+
+    p { margin: 12px 0; }
+
+    .lead {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+
+    .mini-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .mini-card h4 {
+      margin: 0 0 8px;
+      color: #0f172a;
+    }
+
+    .mini-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .note, .warning, .danger, .success, .purple {
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      border: 1px solid;
+    }
+
+    .note { background: var(--soft-blue); border-color: #bfdbfe; color: #1e3a8a; }
+    .success { background: var(--soft-green); border-color: #bbf7d0; color: #166534; }
+    .warning { background: var(--soft-yellow); border-color: #fde68a; color: #92400e; }
+    .danger { background: var(--soft-red); border-color: #fecaca; color: #991b1b; }
+    .purple { background: var(--soft-purple); border-color: #ddd6fe; color: #5b21b6; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #075985;
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.green { background: #dcfce7; color: #166534; }
+    .pill.orange { background: #ffedd5; color: #9a3412; }
+    .pill.red { background: #fee2e2; color: #991b1b; }
+    .pill.purple { background: #ede9fe; color: #5b21b6; }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 16px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-size: 13.4px;
+      line-height: 1.6;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    p code, li code, td code {
+      background: #eef2ff;
+      color: #3730a3;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.92em;
+    }
+
+    ul { margin-top: 8px; }
+    li { margin: 6px 0; }
+
+    .diagram {
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 16px;
+      padding: 18px;
+      margin: 18px 0;
+      overflow-x: auto;
+      color: #0f172a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13.2px;
+      white-space: pre;
+      line-height: 1.65;
+    }
+
+    .checklist li::marker { content: "✅ "; }
+    .avoid li::marker { content: "⚠️ "; }
+
+    .interview-answer {
+      background: #0f172a;
+      color: #e5e7eb;
+      border: none;
+    }
+
+    .interview-answer h2,
+    .interview-answer h3 {
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .interview-answer blockquote {
+      margin: 0;
+      padding: 20px 22px;
+      border-left: 5px solid #60a5fa;
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      color: #f8fafc;
+    }
+
+    .page-break { break-before: page; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 0 10px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; }
+      .content { padding: 22px; }
+      .grid, .grid3 { grid-template-columns: 1fr; }
+      .hero { padding: 28px; }
+      .hero h2 { font-size: 30px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .layout { display: block; }
+      aside { display: none; }
+      .content { max-width: none; padding: 0; }
+      section, .hero { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <span class="badge">Senior Java Backend</span>
+        <h1>Spring Security Deep Dive</h1>
+        <p>Authentication, JWT, OAuth2/OIDC, CSRF/CORS, authorization, and production security notes.</p>
+      </div>
+
+      <div class="toc-title">English</div>
+      <nav>
+        <ul>
+          <li><a href="#en-big-picture">Big Picture</a></li>
+          <li><a href="#en-architecture">Architecture</a></li>
+          <li><a href="#en-authentication">Authentication Flow</a></li>
+          <li><a href="#en-mechanisms">Authentication Mechanisms</a></li>
+          <li><a href="#en-jwt">JWT Deep Dive</a></li>
+          <li><a href="#en-resource-server">OAuth2 Resource Server</a></li>
+          <li><a href="#en-refresh-token">Refresh Token & Revocation</a></li>
+          <li><a href="#en-authorization">Authorization</a></li>
+          <li><a href="#en-csrf-cors">CSRF & CORS</a></li>
+          <li><a href="#en-passwords">Password Security</a></li>
+          <li><a href="#en-advanced">Advanced Production Topics</a></li>
+          <li><a href="#en-interview">Interview Answer</a></li>
+        </ul>
+      </nav>
+
+      <div class="toc-title">Vietnamese</div>
+      <nav>
+        <ul>
+          <li><a href="#vi-big-picture">Tổng quan</a></li>
+          <li><a href="#vi-architecture">Kiến trúc</a></li>
+          <li><a href="#vi-authentication">Authentication Flow</a></li>
+          <li><a href="#vi-mechanisms">Cơ chế authentication</a></li>
+          <li><a href="#vi-jwt">JWT chuyên sâu</a></li>
+          <li><a href="#vi-resource-server">OAuth2 Resource Server</a></li>
+          <li><a href="#vi-refresh-token">Refresh Token & Revocation</a></li>
+          <li><a href="#vi-authorization">Authorization</a></li>
+          <li><a href="#vi-csrf-cors">CSRF & CORS</a></li>
+          <li><a href="#vi-passwords">Password Security</a></li>
+          <li><a href="#vi-advanced">Nâng cao Production</a></li>
+          <li><a href="#vi-interview">Câu trả lời phỏng vấn</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="hero">
+        <h2>Spring Security Deep Dive: Authentication, JWT, OAuth2/OIDC & Advanced Production Security</h2>
+        <p>
+          A bilingual EN/VN learning website for senior backend interviews and real project implementation.
+          Focus: internal architecture, request flow, JWT validation, stateless APIs, method security, CSRF/CORS, token lifecycle, and advanced pitfalls.
+        </p>
+        <div class="hero-tags">
+          <span>SecurityFilterChain</span>
+          <span>AuthenticationManager</span>
+          <span>ProviderManager</span>
+          <span>JWT</span>
+          <span>OAuth2 Resource Server</span>
+          <span>OIDC</span>
+          <span>CSRF</span>
+          <span>CORS</span>
+          <span>Method Security</span>
+          <span>Production Checklist</span>
+        </div>
+      </div>
+
+      <section id="en-big-picture">
+        <h2>1. Big Picture</h2>
+        <p class="lead">
+          Spring Security is a security framework for authentication, authorization, and protection against common attacks.
+          In Spring Boot applications, it is usually configured through one or more <code>SecurityFilterChain</code> beans.
+        </p>
+
+        <div class="grid3">
+          <div class="mini-card">
+            <h4>Authentication</h4>
+            <p>Answers: who are you? Example: username/password, session login, JWT bearer token, OAuth2 login, API key.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Authorization</h4>
+            <p>Answers: what are you allowed to do? Example: role, authority, scope, ownership, policy rule.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Exploit Protection</h4>
+            <p>Protects against common web attacks such as CSRF, clickjacking, insecure headers, and session fixation.</p>
+          </div>
+        </div>
+
+        <div class="diagram">HTTP Request
+  ↓
+Servlet Container
+  ↓
+DelegatingFilterProxy
+  ↓
+FilterChainProxy
+  ↓
+Matched SecurityFilterChain
+  ↓
+Security Filters
+  ↓
+Authentication + Authorization
+  ↓
+Controller / REST API</div>
+
+        <div class="note">
+          <strong>Senior mental model:</strong> Spring Security is not only an annotation library.
+          It is mainly a servlet filter-based security pipeline that authenticates the request, stores the result in a security context,
+          then performs authorization checks before the request reaches business code.
+        </div>
+
+        <h3>Authentication vs Authorization</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Concept</th>
+              <th>Question</th>
+              <th>Spring Security Object / Feature</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Authentication</td>
+              <td>Who is the user/client?</td>
+              <td><code>Authentication</code>, <code>AuthenticationManager</code>, <code>AuthenticationProvider</code>, <code>SecurityContext</code></td>
+            </tr>
+            <tr>
+              <td>Authorization</td>
+              <td>Is this authenticated user allowed?</td>
+              <td><code>AuthorizationFilter</code>, <code>AuthorizationManager</code>, <code>@PreAuthorize</code>, roles/scopes/authorities</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-architecture">
+        <h2>2. Spring Security Architecture</h2>
+
+        <h3>Core Servlet Components</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Role</th>
+              <th>Senior Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>DelegatingFilterProxy</code></td>
+              <td>Servlet container filter that delegates to a Spring bean.</td>
+              <td>Bridge between servlet container and Spring-managed security filters.</td>
+            </tr>
+            <tr>
+              <td><code>FilterChainProxy</code></td>
+              <td>Main Spring Security filter that delegates to a list of security filters through <code>SecurityFilterChain</code>.</td>
+              <td>Good starting point for debugging Spring Security request flow.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityFilterChain</code></td>
+              <td>Defines which security filters apply to a request.</td>
+              <td>Multiple chains can exist; first matching chain wins.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityContextHolder</code></td>
+              <td>Stores the current <code>SecurityContext</code>.</td>
+              <td>Usually ThreadLocal-based in servlet apps.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityContext</code></td>
+              <td>Contains the current <code>Authentication</code>.</td>
+              <td>If Authentication exists and is authenticated, user is considered authenticated.</td>
+            </tr>
+            <tr>
+              <td><code>Authentication</code></td>
+              <td>Represents current principal, credentials, and authorities.</td>
+              <td>Before authentication it can hold credentials; after authentication it represents the authenticated principal.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Basic SecurityFilterChain Configuration</h3>
+        <pre><code>@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/**").hasAuthority("SCOPE_product:read")
+                .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("SCOPE_product:write")
+                .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(Customizer.withDefaults())
+            )
+            .build();
+    }
+}</code></pre>
+
+        <h3>Multiple SecurityFilterChain</h3>
+        <p>
+          In advanced systems, different URL groups may need different authentication mechanisms.
+          For example, API endpoints use JWT while admin pages use form login.
+        </p>
+
+        <pre><code>@Bean
+@Order(1)
+SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+    return http
+        .securityMatcher("/api/**")
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+        .build();
+}
+
+@Bean
+@Order(2)
+SecurityFilterChain adminSecurity(HttpSecurity http) throws Exception {
+    return http
+        .securityMatcher("/admin/**")
+        .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("ADMIN"))
+        .formLogin(Customizer.withDefaults())
+        .build();
+}</code></pre>
+
+        <div class="warning">
+          <strong>Important:</strong> If multiple chains match, only the first matching <code>SecurityFilterChain</code> is used.
+          Order and matchers are extremely important.
+        </div>
+      </section>
+
+      <section id="en-authentication">
+        <h2>3. Authentication Flow</h2>
+
+        <h3>High-Level Flow</h3>
+        <div class="diagram">Unauthenticated Request
+  ↓
+Authentication Filter extracts credentials/token
+  ↓
+Creates Authentication object
+  ↓
+AuthenticationManager.authenticate(authentication)
+  ↓
+ProviderManager chooses AuthenticationProvider
+  ↓
+AuthenticationProvider verifies credentials/token
+  ↓
+Returns authenticated Authentication
+  ↓
+SecurityContextHolder stores Authentication
+  ↓
+Authorization checks run
+  ↓
+Controller executes</div>
+
+        <h3>AuthenticationManager, ProviderManager, AuthenticationProvider</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Meaning</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuthenticationManager</code></td>
+              <td>Strategy interface for authentication.</td>
+              <td>Usually implemented by <code>ProviderManager</code>.</td>
+            </tr>
+            <tr>
+              <td><code>ProviderManager</code></td>
+              <td>Delegates authentication to a list of <code>AuthenticationProvider</code>.</td>
+              <td>Can try DAO provider, JWT provider, LDAP provider, custom provider.</td>
+            </tr>
+            <tr>
+              <td><code>AuthenticationProvider</code></td>
+              <td>Performs a specific authentication type.</td>
+              <td><code>DaoAuthenticationProvider</code>, <code>JwtAuthenticationProvider</code>, custom API key provider.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Username/Password Authentication Flow</h3>
+        <div class="diagram">POST /login username/password
+  ↓
+UsernamePasswordAuthenticationFilter
+  ↓
+UsernamePasswordAuthenticationToken
+  ↓
+AuthenticationManager / ProviderManager
+  ↓
+DaoAuthenticationProvider
+  ↓
+UserDetailsService.loadUserByUsername()
+  ↓
+PasswordEncoder.matches(rawPassword, encodedPassword)
+  ↓
+Authenticated principal + authorities
+  ↓
+SecurityContext stored in session by default</div>
+
+        <h3>Important Objects</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Object</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>UserDetailsService</code></td>
+              <td>Loads user data from database, LDAP, external system, etc.</td>
+            </tr>
+            <tr>
+              <td><code>UserDetails</code></td>
+              <td>Represents username, password, enabled/locked/expired status, and authorities.</td>
+            </tr>
+            <tr>
+              <td><code>PasswordEncoder</code></td>
+              <td>Verifies raw password against stored hash.</td>
+            </tr>
+            <tr>
+              <td><code>GrantedAuthority</code></td>
+              <td>Represents permission, role, or scope. Example: <code>ROLE_ADMIN</code>, <code>SCOPE_order:read</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-mechanisms">
+        <h2>4. Authentication Mechanisms</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Mechanism</th>
+              <th>How it works</th>
+              <th>Best For</th>
+              <th>Production Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Form Login + Session</td>
+              <td>User logs in with username/password; server stores authentication in HTTP session.</td>
+              <td>Server-rendered web apps, admin portals.</td>
+              <td>Keep CSRF enabled. Use secure session cookie settings.</td>
+            </tr>
+            <tr>
+              <td>HTTP Basic</td>
+              <td>Client sends username/password in <code>Authorization: Basic</code> header.</td>
+              <td>Internal tools, simple machine-to-machine only over TLS.</td>
+              <td>Avoid for public user-facing apps. No logout concept.</td>
+            </tr>
+            <tr>
+              <td>JWT Bearer Token</td>
+              <td>Client sends <code>Authorization: Bearer &lt;token&gt;</code>; API validates token signature and claims.</td>
+              <td>Stateless REST APIs, microservices.</td>
+              <td>Validate issuer, audience, expiration, signature, algorithm, and map scopes/roles carefully.</td>
+            </tr>
+            <tr>
+              <td>OAuth2 Login</td>
+              <td>User logs in via external identity provider such as Google, Okta, Keycloak.</td>
+              <td>Web apps needing federated login.</td>
+              <td>Usually uses Authorization Code flow. For OIDC, ID token identifies the user.</td>
+            </tr>
+            <tr>
+              <td>OAuth2 Resource Server</td>
+              <td>API validates access tokens issued by an Authorization Server.</td>
+              <td>Modern REST APIs.</td>
+              <td>The API is not the login server; it validates bearer tokens.</td>
+            </tr>
+            <tr>
+              <td>API Key</td>
+              <td>Client sends a static or rotating key in header.</td>
+              <td>Service integrations, webhooks.</td>
+              <td>Use limited permissions, rotation, rate limits, hashing at rest.</td>
+            </tr>
+            <tr>
+              <td>MFA / TOTP</td>
+              <td>Second factor after password, often time-based OTP.</td>
+              <td>Admin users, sensitive systems.</td>
+              <td>Store backup codes safely, bind MFA to risk-based policies.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="success">
+          <strong>Interview answer:</strong> For modern microservices, the application is often a Resource Server.
+          It should not usually implement its own login/password/token issuing flow unless it is intentionally acting as an Authorization Server.
+        </div>
+      </section>
+
+      <section id="en-jwt">
+        <h2>5. JWT Deep Dive</h2>
+
+        <h3>What is JWT?</h3>
+        <p>
+          JWT — JSON Web Token — is a compact token format commonly used as a bearer access token.
+          It contains claims and is cryptographically signed.
+        </p>
+
+        <div class="diagram">JWT = Base64Url(Header) + "." + Base64Url(Payload) + "." + Signature
+
+Header:
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "key-id-1"
+}
+
+Payload / Claims:
+{
+  "iss": "https://auth.example.com",
+  "sub": "user-123",
+  "aud": "order-api",
+  "exp": 1710000000,
+  "iat": 1709996400,
+  "scope": "order:read order:write",
+  "roles": ["ADMIN"]
+}</div>
+
+        <h3>Important JWT Claims</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Claim</th>
+              <th>Meaning</th>
+              <th>Validation Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>iss</code></td>
+              <td>Issuer</td>
+              <td>Must match trusted Authorization Server.</td>
+            </tr>
+            <tr>
+              <td><code>sub</code></td>
+              <td>Subject / user id</td>
+              <td>Do not assume it is email unless issuer defines it that way.</td>
+            </tr>
+            <tr>
+              <td><code>aud</code></td>
+              <td>Audience</td>
+              <td>Should match your API/service identifier.</td>
+            </tr>
+            <tr>
+              <td><code>exp</code></td>
+              <td>Expiration time</td>
+              <td>Reject expired token.</td>
+            </tr>
+            <tr>
+              <td><code>nbf</code></td>
+              <td>Not before</td>
+              <td>Reject token used too early.</td>
+            </tr>
+            <tr>
+              <td><code>iat</code></td>
+              <td>Issued at</td>
+              <td>Useful for age and debugging.</td>
+            </tr>
+            <tr>
+              <td><code>jti</code></td>
+              <td>JWT ID</td>
+              <td>Useful for revocation/blacklist or audit.</td>
+            </tr>
+            <tr>
+              <td><code>scope</code> / <code>scp</code></td>
+              <td>OAuth2 permissions</td>
+              <td>Usually mapped to Spring authorities like <code>SCOPE_order:read</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>JWT Validation Steps</h3>
+        <ol>
+          <li>Extract bearer token from <code>Authorization</code> header.</li>
+          <li>Decode JWT header and find algorithm/key id.</li>
+          <li>Load public key from JWKS or configured key.</li>
+          <li>Verify signature.</li>
+          <li>Validate issuer.</li>
+          <li>Validate audience.</li>
+          <li>Validate expiration and not-before time.</li>
+          <li>Map claims/scopes/roles to <code>GrantedAuthority</code>.</li>
+          <li>Create authenticated <code>Authentication</code> object.</li>
+          <li>Store it in <code>SecurityContextHolder</code> for the current request.</li>
+        </ol>
+
+        <h3>Symmetric vs Asymmetric Signing</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Example</th>
+              <th>How it works</th>
+              <th>Best Practice</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Symmetric</td>
+              <td><code>HS256</code></td>
+              <td>Same secret signs and verifies token.</td>
+              <td>Harder to share safely across many services. Avoid weak secrets.</td>
+            </tr>
+            <tr>
+              <td>Asymmetric</td>
+              <td><code>RS256</code>, <code>ES256</code></td>
+              <td>Authorization Server signs with private key; Resource Server verifies with public key.</td>
+              <td>Preferred for distributed systems. Supports JWKS and key rotation.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="danger">
+          <strong>Never trust JWT just because it can be decoded.</strong>
+          Base64Url decoding is not validation. A valid JWT must have a trusted signature and valid claims.
+        </div>
+
+        <h3>JWT Access Token vs ID Token vs Refresh Token</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Used By</th>
+              <th>Purpose</th>
+              <th>Should API accept it?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Access Token</td>
+              <td>Resource Server / API</td>
+              <td>Authorize API access.</td>
+              <td>Yes.</td>
+            </tr>
+            <tr>
+              <td>ID Token</td>
+              <td>Client application</td>
+              <td>Proves user authentication in OIDC.</td>
+              <td>Usually no. API should not treat ID token as access token.</td>
+            </tr>
+            <tr>
+              <td>Refresh Token</td>
+              <td>Client + Authorization Server</td>
+              <td>Obtain new access token.</td>
+              <td>No. Resource Server should not accept refresh token for API access.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-resource-server">
+        <h2>6. OAuth2 Resource Server with JWT</h2>
+
+        <p>
+          A Resource Server is an API that accepts bearer tokens issued by an Authorization Server.
+          Its job is to validate the token and enforce authorization rules.
+        </p>
+
+        <div class="diagram">Client
+  ↓ Authorization: Bearer access_token
+Resource Server API
+  ↓
+BearerTokenAuthenticationFilter
+  ↓
+BearerTokenAuthenticationToken
+  ↓
+ProviderManager
+  ↓
+JwtAuthenticationProvider
+  ↓
+JwtDecoder verifies signature + validates claims
+  ↓
+JwtAuthenticationConverter maps claims to authorities
+  ↓
+JwtAuthenticationToken stored in SecurityContext
+  ↓
+Authorization rules
+  ↓
+Controller</div>
+
+        <h3>Spring Boot Configuration</h3>
+        <pre><code>spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://auth.example.com/realms/demo
+          # or jwk-set-uri: https://auth.example.com/realms/demo/protocol/openid-connect/certs</code></pre>
+
+        <h3>SecurityFilterChain for Stateless JWT API</h3>
+        <pre><code>@Bean
+SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+    return http
+        .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/actuator/health").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAuthority("SCOPE_order:read")
+            .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAuthority("SCOPE_order:write")
+            .anyRequest().authenticated()
+        )
+        .oauth2ResourceServer(oauth2 -> oauth2
+            .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+        )
+        .build();
+}</code></pre>
+
+        <h3>Custom Role Mapping from JWT Claims</h3>
+        <pre><code>@Bean
+JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter scopes = new JwtGrantedAuthoritiesConverter();
+    scopes.setAuthorityPrefix("SCOPE_");
+    scopes.setAuthoritiesClaimName("scope");
+
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+        Collection&lt;GrantedAuthority&gt; authorities = new ArrayList&lt;&gt;(scopes.convert(jwt));
+
+        List&lt;String&gt; roles = jwt.getClaimAsStringList("roles");
+        if (roles != null) {
+            roles.stream()
+                .map(role -> "ROLE_" + role)
+                .map(SimpleGrantedAuthority::new)
+                .forEach(authorities::add);
+        }
+
+        return authorities;
+    });
+
+    return converter;
+}</code></pre>
+
+        <h3>Custom Audience Validation</h3>
+        <pre><code>@Bean
+JwtDecoder jwtDecoder() {
+    NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation("https://auth.example.com");
+
+    OAuth2TokenValidator&lt;Jwt&gt; withIssuer =
+        JwtValidators.createDefaultWithIssuer("https://auth.example.com");
+
+    OAuth2TokenValidator&lt;Jwt&gt; audienceValidator = jwt -> {
+        if (jwt.getAudience().contains("order-api")) {
+            return OAuth2TokenValidatorResult.success();
+        }
+
+        OAuth2Error error = new OAuth2Error(
+            "invalid_token",
+            "The required audience is missing",
+            null
+        );
+        return OAuth2TokenValidatorResult.failure(error);
+    };
+
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator&lt;&gt;(
+        withIssuer,
+        audienceValidator
+    ));
+
+    return decoder;
+}</code></pre>
+
+        <div class="warning">
+          <strong>Senior note:</strong> Scope and role mapping must match the identity provider contract.
+          Do not randomly mix <code>ROLE_ADMIN</code>, <code>ADMIN</code>, <code>SCOPE_admin</code>, and <code>realm_access.roles</code> without a clear mapping strategy.
+        </div>
+      </section>
+
+      <section id="en-refresh-token">
+        <h2>7. Refresh Token, Revocation, and Logout</h2>
+
+        <h3>Access Token and Refresh Token Flow</h3>
+        <div class="diagram">User logs in at Authorization Server
+  ↓
+Authorization Server returns:
+  - short-lived access token
+  - longer-lived refresh token
+  ↓
+Client calls API with access token
+  ↓
+Access token expires
+  ↓
+Client sends refresh token to Authorization Server
+  ↓
+Authorization Server validates refresh token
+  ↓
+New access token issued</div>
+
+        <h3>Important Rule</h3>
+        <div class="danger">
+          Refresh tokens should be sent only to the Authorization Server token endpoint.
+          Resource Servers should not accept refresh tokens for API access.
+        </div>
+
+        <h3>JWT Revocation Problem</h3>
+        <p>
+          A signed JWT is usually self-contained. After it is issued, the API can validate it without calling the Authorization Server.
+          This is good for performance, but immediate revocation becomes harder.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>How it works</th>
+              <th>Trade-off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Short access token TTL</td>
+              <td>Access tokens expire quickly.</td>
+              <td>Simple and common. Revocation delay is limited by TTL.</td>
+            </tr>
+            <tr>
+              <td>Refresh token rotation</td>
+              <td>Each refresh returns new refresh token and invalidates old one.</td>
+              <td>Good security, more state in authorization server.</td>
+            </tr>
+            <tr>
+              <td>Blacklist by <code>jti</code></td>
+              <td>Store revoked token IDs in Redis until expiration.</td>
+              <td>Resource Server becomes stateful for revocation checks.</td>
+            </tr>
+            <tr>
+              <td>Introspection / opaque token</td>
+              <td>API calls Authorization Server to validate token.</td>
+              <td>Immediate revocation possible, but adds network latency/dependency.</td>
+            </tr>
+            <tr>
+              <td>User token version</td>
+              <td>Token contains version; server rejects tokens older than current version.</td>
+              <td>Useful for password reset/logout all devices, but requires lookup.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Where to Store Tokens?</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Storage</th>
+              <th>Pros</th>
+              <th>Risks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HttpOnly Secure SameSite cookie</td>
+              <td>Protected from JavaScript access.</td>
+              <td>Needs CSRF strategy if cookie is automatically sent.</td>
+            </tr>
+            <tr>
+              <td>In-memory JS variable</td>
+              <td>Reduced persistence if page is closed.</td>
+              <td>Lost on refresh; still vulnerable to active XSS during page lifetime.</td>
+            </tr>
+            <tr>
+              <td>localStorage</td>
+              <td>Simple persistence.</td>
+              <td>High XSS impact. Avoid storing high-value tokens if possible.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="en-authorization">
+        <h2>8. Authorization: Roles, Authorities, Scopes, Method Security</h2>
+
+        <h3>Role vs Authority vs Scope</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Term</th>
+              <th>Meaning</th>
+              <th>Spring Convention</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Authority</td>
+              <td>Generic permission string.</td>
+              <td><code>order:read</code>, <code>SCOPE_order:read</code>, <code>ROLE_ADMIN</code></td>
+            </tr>
+            <tr>
+              <td>Role</td>
+              <td>A type of authority representing a user group/role.</td>
+              <td><code>hasRole("ADMIN")</code> checks for <code>ROLE_ADMIN</code>.</td>
+            </tr>
+            <tr>
+              <td>Scope</td>
+              <td>OAuth2 permission granted to a client/user.</td>
+              <td>Usually mapped to <code>SCOPE_xxx</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>URL-Level Authorization</h3>
+        <pre><code>.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/public/**").permitAll()
+    .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAuthority("SCOPE_order:read")
+    .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAuthority("SCOPE_order:write")
+    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+    .anyRequest().authenticated()
+)</code></pre>
+
+        <h3>Method-Level Authorization</h3>
+        <pre><code>@Service
+public class OrderService {
+
+    @PreAuthorize("hasAuthority('SCOPE_order:read')")
+    public OrderDto getOrder(Long id) {
+        return orderRepository.findDtoById(id).orElseThrow();
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+    public List&lt;OrderDto&gt; getOrdersForUser(String userId) {
+        return orderRepository.findByUserId(userId);
+    }
+}</code></pre>
+
+        <div class="note">
+          <strong>Request-level vs method-level:</strong> Request-level authorization is good for coarse-grained endpoint protection.
+          Method-level authorization is better for fine-grained business rules near service methods.
+        </div>
+
+        <h3>RBAC vs ABAC</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Meaning</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RBAC</td>
+              <td>Role-Based Access Control</td>
+              <td>Only ADMIN can access user management.</td>
+            </tr>
+            <tr>
+              <td>ABAC</td>
+              <td>Attribute-Based Access Control</td>
+              <td>User can view order only if order.ownerId == currentUser.id and order.tenantId == currentTenant.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>@PreAuthorize("@orderPermission.canRead(authentication, #orderId)")
+public OrderDto getOrder(Long orderId) {
+    return orderRepository.findDtoById(orderId).orElseThrow();
+}
+
+@Component
+public class OrderPermission {
+    public boolean canRead(Authentication authentication, Long orderId) {
+        String currentUserId = authentication.getName();
+        return orderRepository.existsByIdAndOwnerId(orderId, currentUserId);
+    }
+}</code></pre>
+      </section>
+
+      <section id="en-csrf-cors">
+        <h2>9. CSRF and CORS</h2>
+
+        <h3>CORS</h3>
+        <p>
+          CORS is a browser mechanism that controls whether JavaScript from one origin can call resources on another origin.
+          In Spring Security, CORS must be processed before security authentication because preflight requests usually do not contain cookies.
+        </p>
+
+        <pre><code>@Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("https://app.example.com"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
+    config.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}</code></pre>
+
+        <h3>CSRF</h3>
+        <p>
+          CSRF protects applications where authentication is automatically attached by the browser, usually cookies.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Application Type</th>
+              <th>CSRF Recommendation</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Session-based web app / form login</td>
+              <td>Keep CSRF enabled.</td>
+              <td>Browser automatically sends session cookie.</td>
+            </tr>
+            <tr>
+              <td>SPA using cookies for authentication</td>
+              <td>Keep CSRF enabled and expose CSRF token safely.</td>
+              <td>Cookie is automatically sent cross-site depending on settings.</td>
+            </tr>
+            <tr>
+              <td>Stateless REST API using Authorization Bearer header</td>
+              <td>Often disable CSRF.</td>
+              <td>Bearer token is manually attached by client, not automatically by browser cookie.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>// Stateless Bearer-token API
+http
+    .csrf(csrf -> csrf.disable())
+    .sessionManagement(session ->
+        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    )
+    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));</code></pre>
+
+        <div class="warning">
+          <strong>Do not say “CSRF is always disabled for REST”.</strong>
+          The real question is how authentication is stored and sent. If browser cookies authenticate the request, CSRF still matters.
+        </div>
+      </section>
+
+      <section id="en-passwords">
+        <h2>10. Password Security</h2>
+
+        <h3>PasswordEncoder</h3>
+        <p>
+          Passwords should not be stored in plain text. Spring Security uses password encoders to hash and verify passwords.
+        </p>
+
+        <pre><code>@Bean
+PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+}</code></pre>
+
+        <h3>DelegatingPasswordEncoder</h3>
+        <p>
+          DelegatingPasswordEncoder stores an algorithm id prefix in the encoded password, which allows algorithm migration.
+        </p>
+
+        <pre><code>{bcrypt}$2a$10$J7B...
+{argon2}$argon2id$v=19$m=...</code></pre>
+
+        <h3>BCrypt Example</h3>
+        <pre><code>@Bean
+PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(12);
+}</code></pre>
+
+        <h3>Senior Rules for Passwords</h3>
+        <ul class="checklist">
+          <li>Never store plain text passwords.</li>
+          <li>Never use <code>NoOpPasswordEncoder</code> in production.</li>
+          <li>Use adaptive hashing such as BCrypt, Argon2, SCrypt, or PBKDF2.</li>
+          <li>Use secure password reset flow with short-lived one-time token.</li>
+          <li>Consider compromised password checking for sensitive systems.</li>
+          <li>Throttle login attempts and protect against credential stuffing.</li>
+        </ul>
+      </section>
+
+      <section id="en-advanced">
+        <h2>11. Advanced Production Topics</h2>
+
+        <h3>Custom Authentication Filter</h3>
+        <p>
+          Use a custom filter when credentials are not handled by built-in filters, for example API key authentication.
+        </p>
+
+        <pre><code>public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
+
+    private final AuthenticationManager authenticationManager;
+
+    public ApiKeyAuthenticationFilter(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
+    @Override
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String apiKey = request.getHeader("X-API-KEY");
+
+        if (apiKey != null) {
+            Authentication authRequest = new ApiKeyAuthenticationToken(apiKey);
+            Authentication authResult = authenticationManager.authenticate(authRequest);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authResult);
+            SecurityContextHolder.setContext(context);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}</code></pre>
+
+        <h3>Custom AuthenticationProvider</h3>
+        <pre><code>@Component
+public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
+
+    @Override
+    public Authentication authenticate(Authentication authentication) {
+        String apiKey = (String) authentication.getCredentials();
+
+        ApiClient client = apiClientService.findByApiKeyHash(hash(apiKey))
+                .orElseThrow(() -> new BadCredentialsException("Invalid API key"));
+
+        return new ApiKeyAuthenticationToken(
+            client.getClientId(),
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_API_CLIENT"))
+        );
+    }
+
+    @Override
+    public boolean supports(Class&lt;?&gt; authentication) {
+        return ApiKeyAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+}</code></pre>
+
+        <h3>AuthenticationEntryPoint vs AccessDeniedHandler</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>When used</th>
+              <th>HTTP Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuthenticationEntryPoint</code></td>
+              <td>User is not authenticated and tries to access protected resource.</td>
+              <td>401 Unauthorized</td>
+            </tr>
+            <tr>
+              <td><code>AccessDeniedHandler</code></td>
+              <td>User is authenticated but lacks permission.</td>
+              <td>403 Forbidden</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>.exceptionHandling(ex -> ex
+    .authenticationEntryPoint((request, response, authException) -> {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"unauthorized\"}");
+    })
+    .accessDeniedHandler((request, response, accessDeniedException) -> {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"forbidden\"}");
+    })
+)</code></pre>
+
+        <h3>Production Checklist</h3>
+        <ul class="checklist">
+          <li>Use TLS everywhere.</li>
+          <li>Use stateless JWT only when it fits the system; do not force JWT everywhere.</li>
+          <li>Validate JWT signature, issuer, audience, expiration, and algorithm.</li>
+          <li>Use short-lived access tokens.</li>
+          <li>Protect refresh tokens strongly.</li>
+          <li>Keep CSRF enabled for cookie/session-based apps.</li>
+          <li>Configure CORS with specific origins, not wildcard in credentialed flows.</li>
+          <li>Separate public endpoints, API endpoints, admin endpoints, and actuator endpoints carefully.</li>
+          <li>Do not expose stack traces or security exception details.</li>
+          <li>Log authentication failures carefully without leaking secrets.</li>
+          <li>Use method security for business-level authorization.</li>
+          <li>Test security with integration tests and negative cases.</li>
+        </ul>
+
+        <h3>Common Anti-Patterns</h3>
+        <ul class="avoid">
+          <li>Disabling CSRF without understanding cookie-based authentication.</li>
+          <li>Using <code>permitAll()</code> too broadly.</li>
+          <li>Trusting JWT without validating issuer/audience/signature.</li>
+          <li>Using ID token as API access token.</li>
+          <li>Putting secrets or sensitive PII inside JWT claims.</li>
+          <li>Storing access/refresh tokens in insecure browser storage.</li>
+          <li>Mixing roles/scopes without a clear mapping convention.</li>
+          <li>Writing custom security when Spring already provides a standard mechanism.</li>
+        </ul>
+      </section>
+
+      <section id="en-interview" class="interview-answer">
+        <h2>12. Senior Interview Answer — English</h2>
+        <blockquote>
+          Spring Security is a framework that provides authentication, authorization, and protection against common attacks. Internally, in servlet applications, it is mainly implemented as a filter chain. The servlet container delegates to <code>DelegatingFilterProxy</code>, which delegates to Spring Security’s <code>FilterChainProxy</code>. <code>FilterChainProxy</code> selects the first matching <code>SecurityFilterChain</code>, and the filters inside that chain handle authentication, session/security context management, CSRF, CORS, and authorization.
+          <br><br>
+          Authentication is the process of identifying who the user or client is. Spring Security represents this with the <code>Authentication</code> object. Authentication filters extract credentials or tokens and pass an authentication request to <code>AuthenticationManager</code>. The common implementation is <code>ProviderManager</code>, which delegates to one or more <code>AuthenticationProvider</code> implementations, such as <code>DaoAuthenticationProvider</code> for username/password or <code>JwtAuthenticationProvider</code> for JWT bearer tokens. Once authentication succeeds, the authenticated principal and authorities are stored in the <code>SecurityContextHolder</code>.
+          <br><br>
+          For modern stateless REST APIs, I usually configure the application as an OAuth2 Resource Server. The API receives a bearer access token, validates the JWT signature and claims using a <code>JwtDecoder</code>, maps scopes or roles to Spring authorities with a <code>JwtAuthenticationConverter</code>, and then enforces URL-level or method-level authorization rules. I always validate issuer, audience, expiration, signature algorithm, and key rotation strategy through JWKS.
+          <br><br>
+          For authorization, I separate coarse-grained endpoint rules in <code>HttpSecurity</code> from fine-grained business rules using method security like <code>@PreAuthorize</code>. For CSRF, I do not simply disable it everywhere. If authentication is cookie/session-based, CSRF protection is important. For stateless bearer-token APIs where the token is sent explicitly in the Authorization header, CSRF is commonly disabled. For CORS, I configure explicit trusted origins and ensure preflight requests are handled before authentication.
+        </blockquote>
+      </section>
+
+      <section id="vi-big-picture" class="page-break">
+        <h2>13. Tổng quan Spring Security</h2>
+
+        <p class="lead">
+          Spring Security là framework dùng để xử lý authentication, authorization và bảo vệ ứng dụng khỏi các attack phổ biến.
+          Trong Spring Boot, mình thường cấu hình bằng một hoặc nhiều bean <code>SecurityFilterChain</code>.
+        </p>
+
+        <div class="grid3">
+          <div class="mini-card">
+            <h4>Authentication</h4>
+            <p>Trả lời câu hỏi: user/client là ai? Ví dụ: username/password, session login, JWT bearer token, OAuth2 login, API key.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Authorization</h4>
+            <p>Trả lời câu hỏi: user/client được phép làm gì? Ví dụ: role, authority, scope, ownership, policy rule.</p>
+          </div>
+          <div class="mini-card">
+            <h4>Exploit Protection</h4>
+            <p>Bảo vệ khỏi các web attack như CSRF, clickjacking, insecure headers, session fixation.</p>
+          </div>
+        </div>
+
+        <div class="diagram">HTTP Request
+  ↓
+Servlet Container
+  ↓
+DelegatingFilterProxy
+  ↓
+FilterChainProxy
+  ↓
+Matched SecurityFilterChain
+  ↓
+Security Filters
+  ↓
+Authentication + Authorization
+  ↓
+Controller / REST API</div>
+
+        <div class="note">
+          <strong>Mindset Senior:</strong> Spring Security không chỉ là vài annotation.
+          Nó là một security pipeline dựa trên servlet filters: authenticate request, lưu kết quả vào SecurityContext,
+          sau đó kiểm tra authorization trước khi request vào controller/business code.
+        </div>
+
+        <h3>Authentication vs Authorization</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Khái niệm</th>
+              <th>Câu hỏi</th>
+              <th>Object / Feature trong Spring Security</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Authentication</td>
+              <td>Người dùng/client là ai?</td>
+              <td><code>Authentication</code>, <code>AuthenticationManager</code>, <code>AuthenticationProvider</code>, <code>SecurityContext</code></td>
+            </tr>
+            <tr>
+              <td>Authorization</td>
+              <td>Người dùng này có được phép làm action này không?</td>
+              <td><code>AuthorizationFilter</code>, <code>AuthorizationManager</code>, <code>@PreAuthorize</code>, roles/scopes/authorities</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-architecture">
+        <h2>14. Kiến trúc Spring Security</h2>
+
+        <h3>Các component chính</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Vai trò</th>
+              <th>Ghi nhớ khi phỏng vấn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>DelegatingFilterProxy</code></td>
+              <td>Servlet filter delegate request tới Spring bean.</td>
+              <td>Là cầu nối giữa servlet container và Spring-managed security filters.</td>
+            </tr>
+            <tr>
+              <td><code>FilterChainProxy</code></td>
+              <td>Main filter của Spring Security, delegate tới nhiều security filter thông qua <code>SecurityFilterChain</code>.</td>
+              <td>Nơi tốt để debug flow Spring Security.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityFilterChain</code></td>
+              <td>Định nghĩa security filters nào áp dụng cho request.</td>
+              <td>Có thể có nhiều chain; chain match đầu tiên sẽ được dùng.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityContextHolder</code></td>
+              <td>Lưu current <code>SecurityContext</code>.</td>
+              <td>Trong servlet app thường dựa trên ThreadLocal.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityContext</code></td>
+              <td>Chứa current <code>Authentication</code>.</td>
+              <td>Nếu Authentication tồn tại và authenticated, user được xem là đã login/authenticated.</td>
+            </tr>
+            <tr>
+              <td><code>Authentication</code></td>
+              <td>Đại diện cho principal, credentials và authorities.</td>
+              <td>Trước auth có thể chứa credentials; sau auth đại diện cho authenticated principal.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Cấu hình SecurityFilterChain cơ bản</h3>
+        <pre><code>@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/**").hasAuthority("SCOPE_product:read")
+                .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("SCOPE_product:write")
+                .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(Customizer.withDefaults())
+            )
+            .build();
+    }
+}</code></pre>
+
+        <h3>Nhiều SecurityFilterChain</h3>
+        <p>
+          Trong hệ thống nâng cao, các nhóm URL khác nhau có thể cần cơ chế authentication khác nhau.
+          Ví dụ: API dùng JWT, admin page dùng form login.
+        </p>
+
+        <pre><code>@Bean
+@Order(1)
+SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+    return http
+        .securityMatcher("/api/**")
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+        .build();
+}
+
+@Bean
+@Order(2)
+SecurityFilterChain adminSecurity(HttpSecurity http) throws Exception {
+    return http
+        .securityMatcher("/admin/**")
+        .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("ADMIN"))
+        .formLogin(Customizer.withDefaults())
+        .build();
+}</code></pre>
+
+        <div class="warning">
+          <strong>Quan trọng:</strong> Nếu nhiều chain cùng match, chỉ chain đầu tiên match được sử dụng.
+          Vì vậy order và matcher rất quan trọng.
+        </div>
+      </section>
+
+      <section id="vi-authentication">
+        <h2>15. Authentication Flow</h2>
+
+        <h3>Flow tổng quát</h3>
+        <div class="diagram">Unauthenticated Request
+  ↓
+Authentication Filter extract credentials/token
+  ↓
+Tạo Authentication object
+  ↓
+AuthenticationManager.authenticate(authentication)
+  ↓
+ProviderManager chọn AuthenticationProvider phù hợp
+  ↓
+AuthenticationProvider verify credentials/token
+  ↓
+Trả về authenticated Authentication
+  ↓
+SecurityContextHolder lưu Authentication
+  ↓
+Authorization checks
+  ↓
+Controller chạy</div>
+
+        <h3>AuthenticationManager, ProviderManager, AuthenticationProvider</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Ý nghĩa</th>
+              <th>Ví dụ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuthenticationManager</code></td>
+              <td>Interface định nghĩa cách authenticate.</td>
+              <td>Thường được implement bởi <code>ProviderManager</code>.</td>
+            </tr>
+            <tr>
+              <td><code>ProviderManager</code></td>
+              <td>Delegate authentication cho danh sách <code>AuthenticationProvider</code>.</td>
+              <td>Có thể thử DAO provider, JWT provider, LDAP provider, custom provider.</td>
+            </tr>
+            <tr>
+              <td><code>AuthenticationProvider</code></td>
+              <td>Thực hiện một kiểu authentication cụ thể.</td>
+              <td><code>DaoAuthenticationProvider</code>, <code>JwtAuthenticationProvider</code>, custom API key provider.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Username/Password Authentication Flow</h3>
+        <div class="diagram">POST /login username/password
+  ↓
+UsernamePasswordAuthenticationFilter
+  ↓
+UsernamePasswordAuthenticationToken
+  ↓
+AuthenticationManager / ProviderManager
+  ↓
+DaoAuthenticationProvider
+  ↓
+UserDetailsService.loadUserByUsername()
+  ↓
+PasswordEncoder.matches(rawPassword, encodedPassword)
+  ↓
+Authenticated principal + authorities
+  ↓
+SecurityContext được lưu trong session mặc định</div>
+
+        <h3>Các object quan trọng</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Object</th>
+              <th>Mục đích</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>UserDetailsService</code></td>
+              <td>Load user data từ database, LDAP, external system...</td>
+            </tr>
+            <tr>
+              <td><code>UserDetails</code></td>
+              <td>Đại diện username, password, trạng thái enabled/locked/expired và authorities.</td>
+            </tr>
+            <tr>
+              <td><code>PasswordEncoder</code></td>
+              <td>Verify raw password với stored hash.</td>
+            </tr>
+            <tr>
+              <td><code>GrantedAuthority</code></td>
+              <td>Đại diện permission, role hoặc scope. Ví dụ: <code>ROLE_ADMIN</code>, <code>SCOPE_order:read</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-mechanisms">
+        <h2>16. Các cơ chế authentication</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cơ chế</th>
+              <th>Cách hoạt động</th>
+              <th>Phù hợp cho</th>
+              <th>Lưu ý production</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Form Login + Session</td>
+              <td>User login username/password; server lưu authentication trong HTTP session.</td>
+              <td>Server-rendered web app, admin portal.</td>
+              <td>Giữ CSRF enabled. Cấu hình cookie secure.</td>
+            </tr>
+            <tr>
+              <td>HTTP Basic</td>
+              <td>Client gửi username/password trong <code>Authorization: Basic</code>.</td>
+              <td>Internal tools, machine-to-machine đơn giản qua TLS.</td>
+              <td>Không nên dùng cho public app. Không có logout concept rõ ràng.</td>
+            </tr>
+            <tr>
+              <td>JWT Bearer Token</td>
+              <td>Client gửi <code>Authorization: Bearer &lt;token&gt;</code>; API validate signature và claims.</td>
+              <td>Stateless REST APIs, microservices.</td>
+              <td>Validate issuer, audience, expiration, signature, algorithm và map scopes/roles cẩn thận.</td>
+            </tr>
+            <tr>
+              <td>OAuth2 Login</td>
+              <td>User login qua external identity provider như Google, Okta, Keycloak.</td>
+              <td>Web app cần federated login.</td>
+              <td>Thường dùng Authorization Code flow. Với OIDC, ID token định danh user.</td>
+            </tr>
+            <tr>
+              <td>OAuth2 Resource Server</td>
+              <td>API validate access token do Authorization Server cấp.</td>
+              <td>Modern REST APIs.</td>
+              <td>API không phải login server; API chỉ validate bearer token.</td>
+            </tr>
+            <tr>
+              <td>API Key</td>
+              <td>Client gửi static/rotating key trong header.</td>
+              <td>Service integration, webhook.</td>
+              <td>Dùng limited permissions, rotation, rate limit, hash key khi lưu DB.</td>
+            </tr>
+            <tr>
+              <td>MFA / TOTP</td>
+              <td>Yêu cầu factor thứ hai sau password, thường là time-based OTP.</td>
+              <td>Admin user, hệ thống nhạy cảm.</td>
+              <td>Backup code phải lưu an toàn, có thể kết hợp risk-based policy.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="success">
+          <strong>Câu nói phỏng vấn:</strong> Với microservices hiện đại, application thường đóng vai trò Resource Server.
+          Nó không nên tự implement login/password/token issuing trừ khi mình chủ đích xây Authorization Server.
+        </div>
+      </section>
+
+      <section id="vi-jwt">
+        <h2>17. JWT chuyên sâu</h2>
+
+        <h3>JWT là gì?</h3>
+        <p>
+          JWT — JSON Web Token — là token format compact, thường dùng làm bearer access token.
+          Nó chứa claims và được ký bằng cryptographic signature.
+        </p>
+
+        <div class="diagram">JWT = Base64Url(Header) + "." + Base64Url(Payload) + "." + Signature
+
+Header:
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "key-id-1"
+}
+
+Payload / Claims:
+{
+  "iss": "https://auth.example.com",
+  "sub": "user-123",
+  "aud": "order-api",
+  "exp": 1710000000,
+  "iat": 1709996400,
+  "scope": "order:read order:write",
+  "roles": ["ADMIN"]
+}</div>
+
+        <h3>Các claims quan trọng</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Claim</th>
+              <th>Ý nghĩa</th>
+              <th>Lưu ý validate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>iss</code></td>
+              <td>Issuer</td>
+              <td>Phải match trusted Authorization Server.</td>
+            </tr>
+            <tr>
+              <td><code>sub</code></td>
+              <td>Subject / user id</td>
+              <td>Không tự assume là email nếu issuer không định nghĩa vậy.</td>
+            </tr>
+            <tr>
+              <td><code>aud</code></td>
+              <td>Audience</td>
+              <td>Nên match API/service identifier.</td>
+            </tr>
+            <tr>
+              <td><code>exp</code></td>
+              <td>Expiration time</td>
+              <td>Reject expired token.</td>
+            </tr>
+            <tr>
+              <td><code>nbf</code></td>
+              <td>Not before</td>
+              <td>Reject token nếu dùng quá sớm.</td>
+            </tr>
+            <tr>
+              <td><code>iat</code></td>
+              <td>Issued at</td>
+              <td>Hữu ích để debug và kiểm tra token age.</td>
+            </tr>
+            <tr>
+              <td><code>jti</code></td>
+              <td>JWT ID</td>
+              <td>Hữu ích cho revocation/blacklist hoặc audit.</td>
+            </tr>
+            <tr>
+              <td><code>scope</code> / <code>scp</code></td>
+              <td>OAuth2 permissions</td>
+              <td>Thường map sang Spring authorities như <code>SCOPE_order:read</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Các bước validate JWT</h3>
+        <ol>
+          <li>Lấy bearer token từ header <code>Authorization</code>.</li>
+          <li>Decode JWT header để biết algorithm/key id.</li>
+          <li>Load public key từ JWKS hoặc configured key.</li>
+          <li>Verify signature.</li>
+          <li>Validate issuer.</li>
+          <li>Validate audience.</li>
+          <li>Validate expiration và not-before time.</li>
+          <li>Map claims/scopes/roles sang <code>GrantedAuthority</code>.</li>
+          <li>Tạo authenticated <code>Authentication</code>.</li>
+          <li>Lưu vào <code>SecurityContextHolder</code> cho request hiện tại.</li>
+        </ol>
+
+        <h3>Symmetric vs Asymmetric Signing</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Loại</th>
+              <th>Ví dụ</th>
+              <th>Cách hoạt động</th>
+              <th>Best Practice</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Symmetric</td>
+              <td><code>HS256</code></td>
+              <td>Cùng secret dùng để sign và verify token.</td>
+              <td>Khó share an toàn trong nhiều services. Tránh weak secret.</td>
+            </tr>
+            <tr>
+              <td>Asymmetric</td>
+              <td><code>RS256</code>, <code>ES256</code></td>
+              <td>Authorization Server sign bằng private key; Resource Server verify bằng public key.</td>
+              <td>Phù hợp distributed systems. Hỗ trợ JWKS và key rotation.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="danger">
+          <strong>Không bao giờ trust JWT chỉ vì decode được.</strong>
+          Base64Url decoding không phải validation. JWT hợp lệ phải có trusted signature và valid claims.
+        </div>
+
+        <h3>Access Token vs ID Token vs Refresh Token</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Dùng bởi</th>
+              <th>Mục đích</th>
+              <th>API có nên accept?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Access Token</td>
+              <td>Resource Server / API</td>
+              <td>Authorize API access.</td>
+              <td>Có.</td>
+            </tr>
+            <tr>
+              <td>ID Token</td>
+              <td>Client application</td>
+              <td>Chứng minh user authentication trong OIDC.</td>
+              <td>Thường không. API không nên dùng ID token như access token.</td>
+            </tr>
+            <tr>
+              <td>Refresh Token</td>
+              <td>Client + Authorization Server</td>
+              <td>Lấy access token mới.</td>
+              <td>Không. Resource Server không accept refresh token cho API access.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-resource-server">
+        <h2>18. OAuth2 Resource Server với JWT</h2>
+
+        <p>
+          Resource Server là API nhận bearer token do Authorization Server cấp.
+          Nhiệm vụ của nó là validate token và enforce authorization rules.
+        </p>
+
+        <div class="diagram">Client
+  ↓ Authorization: Bearer access_token
+Resource Server API
+  ↓
+BearerTokenAuthenticationFilter
+  ↓
+BearerTokenAuthenticationToken
+  ↓
+ProviderManager
+  ↓
+JwtAuthenticationProvider
+  ↓
+JwtDecoder verify signature + validate claims
+  ↓
+JwtAuthenticationConverter map claims sang authorities
+  ↓
+JwtAuthenticationToken lưu vào SecurityContext
+  ↓
+Authorization rules
+  ↓
+Controller</div>
+
+        <h3>Spring Boot configuration</h3>
+        <pre><code>spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://auth.example.com/realms/demo
+          # hoặc jwk-set-uri: https://auth.example.com/realms/demo/protocol/openid-connect/certs</code></pre>
+
+        <h3>SecurityFilterChain cho stateless JWT API</h3>
+        <pre><code>@Bean
+SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
+    return http
+        .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/actuator/health").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAuthority("SCOPE_order:read")
+            .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAuthority("SCOPE_order:write")
+            .anyRequest().authenticated()
+        )
+        .oauth2ResourceServer(oauth2 -> oauth2
+            .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+        )
+        .build();
+}</code></pre>
+
+        <h3>Custom role mapping từ JWT claims</h3>
+        <pre><code>@Bean
+JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter scopes = new JwtGrantedAuthoritiesConverter();
+    scopes.setAuthorityPrefix("SCOPE_");
+    scopes.setAuthoritiesClaimName("scope");
+
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+        Collection&lt;GrantedAuthority&gt; authorities = new ArrayList&lt;&gt;(scopes.convert(jwt));
+
+        List&lt;String&gt; roles = jwt.getClaimAsStringList("roles");
+        if (roles != null) {
+            roles.stream()
+                .map(role -> "ROLE_" + role)
+                .map(SimpleGrantedAuthority::new)
+                .forEach(authorities::add);
+        }
+
+        return authorities;
+    });
+
+    return converter;
+}</code></pre>
+
+        <h3>Custom audience validation</h3>
+        <pre><code>@Bean
+JwtDecoder jwtDecoder() {
+    NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation("https://auth.example.com");
+
+    OAuth2TokenValidator&lt;Jwt&gt; withIssuer =
+        JwtValidators.createDefaultWithIssuer("https://auth.example.com");
+
+    OAuth2TokenValidator&lt;Jwt&gt; audienceValidator = jwt -> {
+        if (jwt.getAudience().contains("order-api")) {
+            return OAuth2TokenValidatorResult.success();
+        }
+
+        OAuth2Error error = new OAuth2Error(
+            "invalid_token",
+            "The required audience is missing",
+            null
+        );
+        return OAuth2TokenValidatorResult.failure(error);
+    };
+
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator&lt;&gt;(
+        withIssuer,
+        audienceValidator
+    ));
+
+    return decoder;
+}</code></pre>
+
+        <div class="warning">
+          <strong>Senior note:</strong> Scope và role mapping phải khớp với contract của identity provider.
+          Không nên mix bừa <code>ROLE_ADMIN</code>, <code>ADMIN</code>, <code>SCOPE_admin</code>, <code>realm_access.roles</code> nếu chưa có strategy rõ ràng.
+        </div>
+      </section>
+
+      <section id="vi-refresh-token">
+        <h2>19. Refresh Token, Revocation và Logout</h2>
+
+        <h3>Access Token và Refresh Token Flow</h3>
+        <div class="diagram">User login tại Authorization Server
+  ↓
+Authorization Server trả về:
+  - access token ngắn hạn
+  - refresh token dài hạn hơn
+  ↓
+Client gọi API bằng access token
+  ↓
+Access token hết hạn
+  ↓
+Client gửi refresh token tới Authorization Server
+  ↓
+Authorization Server validate refresh token
+  ↓
+Cấp access token mới</div>
+
+        <h3>Rule quan trọng</h3>
+        <div class="danger">
+          Refresh token chỉ nên gửi tới token endpoint của Authorization Server.
+          Resource Server không nên accept refresh token cho API access.
+        </div>
+
+        <h3>Vấn đề revocation của JWT</h3>
+        <p>
+          JWT thường là self-contained token. Sau khi được cấp, API có thể validate token mà không gọi Authorization Server.
+          Điều này tốt cho performance, nhưng làm immediate revocation khó hơn.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Cách hoạt động</th>
+              <th>Trade-off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Short access token TTL</td>
+              <td>Access token hết hạn nhanh.</td>
+              <td>Đơn giản và phổ biến. Revocation delay giới hạn bởi TTL.</td>
+            </tr>
+            <tr>
+              <td>Refresh token rotation</td>
+              <td>Mỗi lần refresh trả token mới và invalidate token cũ.</td>
+              <td>Bảo mật tốt hơn, nhưng Authorization Server cần state.</td>
+            </tr>
+            <tr>
+              <td>Blacklist theo <code>jti</code></td>
+              <td>Lưu revoked token IDs trong Redis đến khi token hết hạn.</td>
+              <td>Resource Server trở nên stateful cho revocation checks.</td>
+            </tr>
+            <tr>
+              <td>Introspection / opaque token</td>
+              <td>API gọi Authorization Server để validate token.</td>
+              <td>Revocation nhanh hơn nhưng thêm network latency/dependency.</td>
+            </tr>
+            <tr>
+              <td>User token version</td>
+              <td>Token chứa version; server reject token cũ hơn current version.</td>
+              <td>Hữu ích cho password reset/logout all devices, nhưng cần lookup.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Nên lưu token ở đâu?</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Storage</th>
+              <th>Ưu điểm</th>
+              <th>Rủi ro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HttpOnly Secure SameSite cookie</td>
+              <td>JavaScript không đọc được token.</td>
+              <td>Cần CSRF strategy nếu cookie tự động được gửi.</td>
+            </tr>
+            <tr>
+              <td>In-memory JS variable</td>
+              <td>Không persist lâu sau khi close page.</td>
+              <td>Mất khi refresh; vẫn bị active XSS trong page lifetime.</td>
+            </tr>
+            <tr>
+              <td>localStorage</td>
+              <td>Dễ persist.</td>
+              <td>Impact XSS cao. Tránh lưu high-value token nếu có thể.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="vi-authorization">
+        <h2>20. Authorization: Roles, Authorities, Scopes, Method Security</h2>
+
+        <h3>Role vs Authority vs Scope</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Khái niệm</th>
+              <th>Ý nghĩa</th>
+              <th>Convention trong Spring</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Authority</td>
+              <td>Permission string tổng quát.</td>
+              <td><code>order:read</code>, <code>SCOPE_order:read</code>, <code>ROLE_ADMIN</code></td>
+            </tr>
+            <tr>
+              <td>Role</td>
+              <td>Một loại authority đại diện cho role/group.</td>
+              <td><code>hasRole("ADMIN")</code> check <code>ROLE_ADMIN</code>.</td>
+            </tr>
+            <tr>
+              <td>Scope</td>
+              <td>OAuth2 permission được cấp cho client/user.</td>
+              <td>Thường map sang <code>SCOPE_xxx</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>URL-Level Authorization</h3>
+        <pre><code>.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/public/**").permitAll()
+    .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAuthority("SCOPE_order:read")
+    .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAuthority("SCOPE_order:write")
+    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+    .anyRequest().authenticated()
+)</code></pre>
+
+        <h3>Method-Level Authorization</h3>
+        <pre><code>@Service
+public class OrderService {
+
+    @PreAuthorize("hasAuthority('SCOPE_order:read')")
+    public OrderDto getOrder(Long id) {
+        return orderRepository.findDtoById(id).orElseThrow();
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+    public List&lt;OrderDto&gt; getOrdersForUser(String userId) {
+        return orderRepository.findByUserId(userId);
+    }
+}</code></pre>
+
+        <div class="note">
+          <strong>Request-level vs method-level:</strong> Request-level tốt cho coarse-grained endpoint protection.
+          Method-level tốt cho fine-grained business rules gần service methods.
+        </div>
+
+        <h3>RBAC vs ABAC</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Ý nghĩa</th>
+              <th>Ví dụ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RBAC</td>
+              <td>Role-Based Access Control</td>
+              <td>Chỉ ADMIN được vào user management.</td>
+            </tr>
+            <tr>
+              <td>ABAC</td>
+              <td>Attribute-Based Access Control</td>
+              <td>User chỉ xem order nếu order.ownerId == currentUser.id và order.tenantId == currentTenant.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>@PreAuthorize("@orderPermission.canRead(authentication, #orderId)")
+public OrderDto getOrder(Long orderId) {
+    return orderRepository.findDtoById(orderId).orElseThrow();
+}
+
+@Component
+public class OrderPermission {
+    public boolean canRead(Authentication authentication, Long orderId) {
+        String currentUserId = authentication.getName();
+        return orderRepository.existsByIdAndOwnerId(orderId, currentUserId);
+    }
+}</code></pre>
+      </section>
+
+      <section id="vi-csrf-cors">
+        <h2>21. CSRF và CORS</h2>
+
+        <h3>CORS</h3>
+        <p>
+          CORS là cơ chế của browser để kiểm soát JavaScript từ origin này có được gọi resource ở origin khác không.
+          Trong Spring Security, CORS cần được xử lý trước authentication vì preflight request thường không có cookies.
+        </p>
+
+        <pre><code>@Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("https://app.example.com"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
+    config.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}</code></pre>
+
+        <h3>CSRF</h3>
+        <p>
+          CSRF bảo vệ application khi authentication tự động được browser attach, thường là cookies.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Loại application</th>
+              <th>Khuyến nghị CSRF</th>
+              <th>Lý do</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Session-based web app / form login</td>
+              <td>Giữ CSRF enabled.</td>
+              <td>Browser tự động gửi session cookie.</td>
+            </tr>
+            <tr>
+              <td>SPA dùng cookies để authenticate</td>
+              <td>Giữ CSRF enabled và expose CSRF token an toàn.</td>
+              <td>Cookie có thể tự động được gửi cross-site tùy settings.</td>
+            </tr>
+            <tr>
+              <td>Stateless REST API dùng Authorization Bearer header</td>
+              <td>Thường disable CSRF.</td>
+              <td>Bearer token được client attach thủ công, không tự động bởi browser cookie.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>// Stateless Bearer-token API
+http
+    .csrf(csrf -> csrf.disable())
+    .sessionManagement(session ->
+        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    )
+    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));</code></pre>
+
+        <div class="warning">
+          <strong>Không nên nói “REST thì luôn disable CSRF”.</strong>
+          Câu hỏi đúng là authentication được lưu và gửi bằng cách nào. Nếu dùng browser cookies để authenticate, CSRF vẫn quan trọng.
+        </div>
+      </section>
+
+      <section id="vi-passwords">
+        <h2>22. Password Security</h2>
+
+        <h3>PasswordEncoder</h3>
+        <p>
+          Password không được lưu plain text. Spring Security dùng password encoder để hash và verify password.
+        </p>
+
+        <pre><code>@Bean
+PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+}</code></pre>
+
+        <h3>DelegatingPasswordEncoder</h3>
+        <p>
+          DelegatingPasswordEncoder lưu algorithm id prefix trong encoded password, giúp migrate thuật toán hash dễ hơn.
+        </p>
+
+        <pre><code>{bcrypt}$2a$10$J7B...
+{argon2}$argon2id$v=19$m=...</code></pre>
+
+        <h3>BCrypt Example</h3>
+        <pre><code>@Bean
+PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(12);
+}</code></pre>
+
+        <h3>Rule Senior cho password</h3>
+        <ul class="checklist">
+          <li>Không bao giờ lưu plain text password.</li>
+          <li>Không dùng <code>NoOpPasswordEncoder</code> trong production.</li>
+          <li>Dùng adaptive hashing như BCrypt, Argon2, SCrypt hoặc PBKDF2.</li>
+          <li>Password reset flow phải dùng short-lived one-time token.</li>
+          <li>Cân nhắc compromised password checking cho hệ thống nhạy cảm.</li>
+          <li>Throttle login attempts và chống credential stuffing.</li>
+        </ul>
+      </section>
+
+      <section id="vi-advanced">
+        <h2>23. Các chủ đề nâng cao trong production</h2>
+
+        <h3>Custom Authentication Filter</h3>
+        <p>
+          Dùng custom filter khi credentials không được xử lý bởi built-in filters, ví dụ API key authentication.
+        </p>
+
+        <pre><code>public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
+
+    private final AuthenticationManager authenticationManager;
+
+    public ApiKeyAuthenticationFilter(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
+    @Override
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String apiKey = request.getHeader("X-API-KEY");
+
+        if (apiKey != null) {
+            Authentication authRequest = new ApiKeyAuthenticationToken(apiKey);
+            Authentication authResult = authenticationManager.authenticate(authRequest);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authResult);
+            SecurityContextHolder.setContext(context);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}</code></pre>
+
+        <h3>Custom AuthenticationProvider</h3>
+        <pre><code>@Component
+public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
+
+    @Override
+    public Authentication authenticate(Authentication authentication) {
+        String apiKey = (String) authentication.getCredentials();
+
+        ApiClient client = apiClientService.findByApiKeyHash(hash(apiKey))
+                .orElseThrow(() -> new BadCredentialsException("Invalid API key"));
+
+        return new ApiKeyAuthenticationToken(
+            client.getClientId(),
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_API_CLIENT"))
+        );
+    }
+
+    @Override
+    public boolean supports(Class&lt;?&gt; authentication) {
+        return ApiKeyAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+}</code></pre>
+
+        <h3>AuthenticationEntryPoint vs AccessDeniedHandler</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Khi nào dùng</th>
+              <th>HTTP Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuthenticationEntryPoint</code></td>
+              <td>User chưa authenticated nhưng access protected resource.</td>
+              <td>401 Unauthorized</td>
+            </tr>
+            <tr>
+              <td><code>AccessDeniedHandler</code></td>
+              <td>User đã authenticated nhưng không đủ quyền.</td>
+              <td>403 Forbidden</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>.exceptionHandling(ex -> ex
+    .authenticationEntryPoint((request, response, authException) -> {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"unauthorized\"}");
+    })
+    .accessDeniedHandler((request, response, accessDeniedException) -> {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"forbidden\"}");
+    })
+)</code></pre>
+
+        <h3>Production Checklist</h3>
+        <ul class="checklist">
+          <li>Dùng TLS ở mọi nơi.</li>
+          <li>Dùng stateless JWT khi phù hợp; không ép JWT cho mọi hệ thống.</li>
+          <li>Validate JWT signature, issuer, audience, expiration và algorithm.</li>
+          <li>Dùng short-lived access token.</li>
+          <li>Bảo vệ refresh token thật kỹ.</li>
+          <li>Giữ CSRF enabled cho cookie/session-based apps.</li>
+          <li>Cấu hình CORS bằng origin cụ thể, không wildcard trong credentialed flows.</li>
+          <li>Tách public endpoints, API endpoints, admin endpoints, actuator endpoints rõ ràng.</li>
+          <li>Không expose stack trace hoặc security exception detail.</li>
+          <li>Log authentication failures cẩn thận, không leak secrets.</li>
+          <li>Dùng method security cho business-level authorization.</li>
+          <li>Test security bằng integration tests và negative cases.</li>
+        </ul>
+
+        <h3>Common Anti-Patterns</h3>
+        <ul class="avoid">
+          <li>Disable CSRF mà không hiểu cookie-based authentication.</li>
+          <li>Dùng <code>permitAll()</code> quá rộng.</li>
+          <li>Trust JWT mà không validate issuer/audience/signature.</li>
+          <li>Dùng ID token như API access token.</li>
+          <li>Đưa secrets hoặc sensitive PII vào JWT claims.</li>
+          <li>Lưu access/refresh token trong browser storage không an toàn.</li>
+          <li>Mix roles/scopes không có convention rõ ràng.</li>
+          <li>Tự viết custom security trong khi Spring đã có standard mechanism.</li>
+        </ul>
+      </section>
+
+      <section id="vi-interview" class="interview-answer">
+        <h2>24. Câu trả lời phỏng vấn — Vietnamese</h2>
+        <blockquote>
+          Spring Security là framework cung cấp authentication, authorization và protection against common attacks. Trong servlet application, Spring Security chủ yếu hoạt động dựa trên filter chain. Servlet container gọi <code>DelegatingFilterProxy</code>, filter này delegate tới Spring Security <code>FilterChainProxy</code>. Sau đó <code>FilterChainProxy</code> chọn <code>SecurityFilterChain</code> đầu tiên match với request, và các filter trong chain sẽ xử lý authentication, session/security context, CSRF, CORS và authorization.
+          <br><br>
+          Authentication là quá trình xác định user hoặc client là ai. Spring Security biểu diễn thông tin này bằng object <code>Authentication</code>. Authentication filter extract credentials hoặc token rồi gửi authentication request tới <code>AuthenticationManager</code>. Implementation phổ biến là <code>ProviderManager</code>, nó delegate tới các <code>AuthenticationProvider</code> như <code>DaoAuthenticationProvider</code> cho username/password hoặc <code>JwtAuthenticationProvider</code> cho JWT bearer token. Khi authentication thành công, principal và authorities được lưu vào <code>SecurityContextHolder</code>.
+          <br><br>
+          Với REST API stateless hiện đại, em thường cấu hình application như một OAuth2 Resource Server. API nhận bearer access token, validate JWT signature và claims bằng <code>JwtDecoder</code>, map scopes hoặc roles sang Spring authorities bằng <code>JwtAuthenticationConverter</code>, sau đó enforce authorization rule ở URL-level hoặc method-level. Em luôn kiểm tra issuer, audience, expiration, signature algorithm và key rotation strategy thông qua JWKS.
+          <br><br>
+          Về authorization, em tách coarse-grained endpoint rules trong <code>HttpSecurity</code> và fine-grained business rules bằng method security như <code>@PreAuthorize</code>. Với CSRF, em không disable một cách máy móc. Nếu authentication dựa trên cookie/session, CSRF protection rất quan trọng. Với stateless bearer-token API gửi token rõ ràng trong Authorization header thì thường disable CSRF. Với CORS, em cấu hình trusted origins cụ thể và đảm bảo preflight request được xử lý trước authentication.
+        </blockquote>
+      </section>
+
+      <section id="sources">
+        <h2>Sources / Nguồn tham khảo</h2>
+        <ul>
+          <li>Spring Security Reference — Overview: https://docs.spring.io/spring-security/reference/index.html</li>
+          <li>Spring Security Servlet Architecture: https://docs.spring.io/spring-security/reference/servlet/architecture.html</li>
+          <li>Spring Security Authentication Architecture: https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html</li>
+          <li>Spring Security OAuth2 Resource Server JWT: https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html</li>
+          <li>Spring Security Method Security: https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html</li>
+          <li>Spring Security CSRF: https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html</li>
+          <li>Spring Security CORS: https://docs.spring.io/spring-security/reference/servlet/integrations/cors.html</li>
+          <li>Spring Security Password Storage: https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html</li>
+        </ul>
+      </section>
+
+      <div class="footer">
+        Created for Senior Java Backend interview preparation — Spring Security Deep Dive EN/VN.
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Senior Java Backend — Threading, Redis, Reactive, Collection</title>
+<style>
+:root { --bg:#f5f7fb; --card:#fff; --card2:#eef3f9; --text:#172033; --muted:#5d6b82; --border:#dbe4ef; --brand:#2563eb; --brand2:#7c3aed; --code:#0b1020; --codeText:#e5e7eb; --shadow:0 16px 36px rgba(15,23,42,.08); }
+[data-theme="dark"] { --bg:#0b1020; --card:#111827; --card2:#182235; --text:#e5e7eb; --muted:#aab4c8; --border:#2b3548; --brand:#60a5fa; --brand2:#a78bfa; --code:#020617; --codeText:#f8fafc; --shadow:0 16px 36px rgba(0,0,0,.35); }
+* { box-sizing:border-box; } html { scroll-behavior:smooth; }
+body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); line-height:1.65; }
+.layout { display:grid; grid-template-columns:330px minmax(0,1fr); min-height:100vh; }
+aside { position:sticky; top:0; height:100vh; overflow:auto; padding:22px; background:var(--card); border-right:1px solid var(--border); }
+main { max-width:1180px; width:100%; margin:0 auto; padding:30px; }
+.brand { display:flex; gap:12px; align-items:center; margin-bottom:18px; }
+.logo { width:44px; height:44px; border-radius:15px; color:#fff; font-weight:900; display:grid; place-items:center; background:linear-gradient(135deg,var(--brand),var(--brand2)); }
+h1 { font-size:21px; line-height:1.2; margin:0; } .sub { color:var(--muted); font-size:13px; margin-top:4px; }
+.tools { display:grid; gap:10px; margin:18px 0; } input { width:100%; padding:12px 13px; border-radius:12px; border:1px solid var(--border); background:var(--card2); color:var(--text); outline:none; }
+.btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; } button { border:1px solid var(--border); background:var(--card2); color:var(--text); padding:9px 10px; border-radius:10px; cursor:pointer; font-weight:750; } button:hover { border-color:var(--brand); color:var(--brand); }
+nav { display:grid; gap:7px; margin-top:18px; } nav a { color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:10px; border:1px solid transparent; font-size:14px; } nav a:hover { background:var(--card2); color:var(--brand); border-color:var(--border); }
+.hero { background:radial-gradient(circle at top left, rgba(37,99,235,.20), transparent 32%),radial-gradient(circle at bottom right, rgba(124,58,237,.16), transparent 32%),var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:28px; padding:34px; margin-bottom:24px; }
+.kicker { color:var(--brand); font-size:12px; text-transform:uppercase; letter-spacing:.09em; font-weight:900; } .hero h1 { font-size:38px; letter-spacing:-.04em; margin:8px 0 12px; } .hero p { color:var(--muted); max-width:900px; margin:0; }
+.note { margin-top:18px; padding:16px; background:var(--card2); border:1px solid var(--border); border-radius:18px; color:var(--muted); } .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:20px; } .flow div { text-align:center; padding:12px; background:var(--card2); border:1px solid var(--border); border-radius:16px; font-weight:850; font-size:13px; }
+.section { background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:26px; padding:28px; margin-bottom:24px; } .section-top { border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px; } h2 { font-size:29px; letter-spacing:-.035em; margin:3px 0 9px; } h3 { font-size:18px; margin:24px 0 12px; } .summary { color:var(--muted); margin:0; }
+.context { background:var(--card2); border:1px solid var(--border); border-radius:18px; padding:18px; } .context h3 { margin-top:0; } .context ul { margin:0; padding-left:22px; color:var(--muted); }
+.concept-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .concept { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px; } .concept h4 { margin:0 0 6px; color:var(--brand); font-size:16px; } .concept p { margin:0; color:var(--muted); }
+.qa-list { display:grid; gap:12px; } details.qa { border:1px solid var(--border); border-radius:18px; overflow:hidden; background:var(--card); } details.qa summary { padding:16px 18px; background:var(--card2); cursor:pointer; font-weight:900; } .qa-body { padding:18px; }
+.bar { display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--brand); margin-bottom:10px; } .answer { background:var(--card2); border:1px solid var(--border); border-radius:15px; padding:16px; } .copy { font-size:13px; padding:7px 10px; color:var(--brand); }
+.code-card { margin-top:16px; border:1px solid var(--border); border-radius:18px; padding:16px; } pre { margin:0; overflow:auto; background:var(--code); color:var(--codeText); border-radius:14px; padding:16px; font-size:13px; line-height:1.55; } code { font-family:"JetBrains Mono","SFMono-Regular",Consolas,monospace; } .hidden { display:none!important; } footer { text-align:center; color:var(--muted); font-size:13px; margin:30px 0; }
+@media(max-width:980px) { .layout { grid-template-columns:1fr; } aside { position:relative; height:auto; } main { padding:18px; } .concept-grid { grid-template-columns:1fr; } .flow { grid-template-columns:1fr 1fr; } }
+@media print { aside,.tools,button { display:none!important; } .layout { display:block; } main { max-width:none; padding:0; } .hero,.section { box-shadow:none; break-inside:avoid; } body { background:#fff; color:#000; } }
+</style>
+</head>
+<body>
+<div class="layout" id="app" data-theme="light">
+<aside>
+  <div class="brand"><div class="logo">S</div><div><h1>Senior Java Backend</h1><div class="sub">Threading · Redis · Reactive · Collection</div></div></div>
+  <div class="tools"><input id="search" placeholder="Search: Redis, race condition, WebFlux..."/><div class="btn-row"><button id="theme">Dark</button><button onclick="window.print()">Print/PDF</button></div><div class="btn-row"><button id="openAll">Open all</button><button id="closeAll">Close all</button></div></div>
+  <nav><a href="#threading">1. Thread Safety, Multithreading, Thread Pool &amp; Connection Pool</a><a href="#redis">2. Redis Deep Dive — Cache, Penetration, Read/Write Flow, Replication, Memory, Consistency, Lua</a><a href="#reactive">3. Reactive Programming &amp; Spring WebFlux</a><a href="#collection">4. Java Collection Deep Dive</a><a href="#placeholder">5. Next Topic Placeholder</a></nav>
+</aside>
+<main>
+  <section class="hero"><span class="kicker">Senior-only add-on</span><h1>Senior Java Backend Deep Dive — Threading, Redis, Reactive, Collection</h1><p>Page này tiếp tục bám sát list topic mới của anh. Mỗi topic có context, key concepts, common interview questions, senior answer scripts, production notes và code/config examples.</p><div class="note"><strong>Original note:</strong><br/>1. Thread safe, thread unsafe, multiple thread, thread pool, database connection pool, race condition<br/>2. Redis: cache basics, cache penetration, redis read/write flow, master–Replica &amp; read/write splitting, memory management, cache consistency, Lua scripting, ...<br/>3. Reactive programming, WebFlux<br/>4. Java collection<br/>5. [blank - to be added]</div><div class="flow"><div>Context</div><div>Concept</div><div>Mechanism</div><div>Trade-off</div><div>Production</div></div></section>
+  
+    <section id="threading" class="section">
+      <div class="section-top">
+        <span class="kicker">Senior Topic</span>
+        <h2>1. Thread Safety, Multithreading, Thread Pool &amp; Connection Pool</h2>
+        <p class="summary">Senior Java Backend phải hiểu concurrency không chỉ ở keyword synchronized, mà còn ở thread model, shared state, pool sizing, DB connection pool, race condition, deadlock và production tuning.</p>
+      </div>
+      <div class="context"><h3>Context — vì sao senior cần nắm?</h3><ul><li>Backend Java service xử lý nhiều request song song, nên thread-safety ảnh hưởng trực tiếp tới correctness.</li><li>Race condition thường không xuất hiện ở local test, nhưng có thể gây lỗi production rất khó debug.</li><li>Thread pool kiểm soát số lượng task chạy đồng thời; database connection pool kiểm soát số kết nối DB.</li><li>Nếu thread pool và connection pool sizing sai, service có thể bị latency cao, queue backlog, timeout hoặc connection starvation.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Thread-safe</h4><p>Code/data structure vẫn hoạt động đúng khi nhiều thread access cùng lúc.</p></article><article class="concept"><h4>Thread-unsafe</h4><p>Code có thể sai khi nhiều thread cùng access shared mutable state mà không có protection.</p></article><article class="concept"><h4>Multiple thread</h4><p>Nhiều luồng thực thi song song trong cùng process, share heap memory.</p></article><article class="concept"><h4>Race condition</h4><p>Kết quả phụ thuộc thứ tự chạy của thread khi cùng đọc/ghi shared data.</p></article><article class="concept"><h4>Thread pool</h4><p>Tái sử dụng thread để giảm cost tạo thread và giới hạn concurrency.</p></article><article class="concept"><h4>Database connection pool</h4><p>Pool giữ sẵn DB connections để reuse; giúp giảm cost mở connection và bảo vệ DB khỏi quá tải.</p></article><article class="concept"><h4>Deadlock</h4><p>Hai hoặc nhiều thread chờ lock lẫn nhau và không thể tiếp tục.</p></article><article class="concept"><h4>Thread starvation</h4><p>Task không được chạy vì thread bị chiếm lâu hoặc pool/queue bị nghẽn.</p></article></div>
+      <h3>Common interview questions — senior answer</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>What is thread-safety?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-1">Copy answer</button></div>
+            <div class="answer" id="answer-1">Thread-safety means the code behaves correctly when accessed by multiple threads at the same time.<br><br>The main risk is shared mutable state. If multiple threads read and update the same variable, object, collection, or cache without proper coordination, the result can be inconsistent.<br><br>In production, I try to design services as stateless as possible. If shared state is required, I use immutable objects, synchronization, locks, atomic classes, concurrent collections, or database-level locking depending on the problem.<br><br>For example, Spring service beans are singleton by default, so I avoid storing request-specific data in instance fields.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What is a race condition? Give a production example.</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-2">Copy answer</button></div>
+            <div class="answer" id="answer-2">A race condition happens when multiple threads access and modify shared data at the same time, and the final result depends on timing.<br><br>Example: two requests try to reserve the last item in stock at the same time. Both read stock = 1, both think the item is available, and both deduct it. The final result can become overselling.<br><br>To fix it, we need atomicity. Depending on the use case, we can use database row lock, optimistic locking with @Version, Redis atomic operation, synchronized block, or message-based serialization.<br><br>As a senior, I do not solve all race conditions with synchronized. I choose the correct boundary: JVM-level, DB-level, Redis-level, or business workflow-level.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you design a thread pool in production?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-3">Copy answer</button></div>
+            <div class="answer" id="answer-3">I design a thread pool based on task type and system limits.<br><br>For CPU-bound tasks, the pool size is usually close to the number of CPU cores.<br>For I/O-bound tasks, we may use more threads because many threads spend time waiting for DB, network, or external APIs.<br><br>I also configure core pool size, max pool size, queue capacity, keep-alive time, rejection policy, timeout, and monitoring metrics.<br><br>A common production mistake is using an unbounded queue. Under load, tasks keep accumulating, memory increases, latency becomes high, and eventually the service becomes unstable.<br><br>For business-critical systems, I prefer explicit ThreadPoolExecutor instead of blindly using default async executors.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>Thread pool vs database connection pool?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-4">Copy answer</button></div>
+            <div class="answer" id="answer-4">Thread pool controls how many tasks can execute concurrently.<br><br>Database connection pool controls how many database connections are available.<br><br>They are related but not the same. If the thread pool is much larger than the DB connection pool, many threads may block waiting for DB connections. This wastes threads and increases latency.<br><br>For example, if a service has 200 worker threads but only 20 DB connections, many requests can be stuck waiting for a connection.<br><br>As a senior, I tune them together based on request traffic, DB capacity, query latency, external API latency, timeout settings, HikariCP metrics, and thread pool metrics.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you detect thread or connection pool issues in production?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-5">Copy answer</button></div>
+            <div class="answer" id="answer-5">I check metrics and symptoms.<br><br>For thread pool, I check active thread count, queue size, task rejection count, execution time, blocked thread count, and thread dump.<br><br>For DB connection pool, I check active connections, idle connections, pending connection requests, connection timeout count, slow query logs, database CPU, and DB locks.<br><br>If many threads are waiting for DB connections, I check whether the pool is too small, queries are slow, transactions are too long, or connections are leaked.<br><br>Thread dumps and HikariCP metrics are very useful for this kind of issue.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Example code / config / script</strong><button class="copy" data-target="code-6">Copy code</button></div>
+          <pre><code id="code-6">// Explicit bounded thread pool
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    10,                         // core pool size
+    50,                         // max pool size
+    60, TimeUnit.SECONDS,
+    new ArrayBlockingQueue&lt;&gt;(500),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);
+
+// HikariCP production properties example
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=3000
+spring.datasource.hikari.idle-timeout=600000
+spring.datasource.hikari.max-lifetime=1800000</code></pre>
+        </div>
+    </section>
+    <section id="redis" class="section">
+      <div class="section-top">
+        <span class="kicker">Senior Topic</span>
+        <h2>2. Redis Deep Dive — Cache, Penetration, Read/Write Flow, Replication, Memory, Consistency, Lua</h2>
+        <p class="summary">Redis không chỉ là cache. Senior cần hiểu cache strategy, failure cases, consistency, penetration/breakdown/avalanche, replication, memory eviction, Lua atomicity và production trade-off.</p>
+      </div>
+      <div class="context"><h3>Context — vì sao senior cần nắm?</h3><ul><li>Redis thường dùng để giảm DB load, tăng response time, lưu session/token, rate limiting, distributed lock, idempotency key.</li><li>Cache design sai có thể gây stale data, DB overload, cache avalanche hoặc incorrect business behavior.</li><li>Redis chạy rất nhanh vì in-memory và single-threaded command execution model, nhưng vẫn cần hiểu memory, persistence, replication, failover.</li><li>Senior cần giải thích được read/write flow, consistency strategy và khi nào không nên cache.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Cache basics</h4><p>Lưu dữ liệu truy cập thường xuyên vào Redis để giảm DB query và tăng tốc response.</p></article><article class="concept"><h4>Cache-aside</h4><p>App đọc cache trước; miss thì đọc DB rồi set cache.</p></article><article class="concept"><h4>Cache penetration</h4><p>Request liên tục query data không tồn tại, cache miss liên tục và đẩy load xuống DB.</p></article><article class="concept"><h4>Cache breakdown</h4><p>Một hot key hết hạn, nhiều request cùng lúc đánh vào DB.</p></article><article class="concept"><h4>Cache avalanche</h4><p>Nhiều key hết hạn cùng lúc hoặc Redis down, traffic dồn xuống DB.</p></article><article class="concept"><h4>Master–Replica</h4><p>Master xử lý write, replica replicate data và có thể phục vụ read.</p></article><article class="concept"><h4>Read/write splitting</h4><p>Write vào master, read từ replica để scale read workload, nhưng có replication lag.</p></article><article class="concept"><h4>Memory eviction</h4><p>Redis remove key theo policy khi memory đầy, ví dụ allkeys-lru, volatile-ttl.</p></article><article class="concept"><h4>Cache consistency</h4><p>Đảm bảo cache và DB không lệch quá mức chấp nhận được.</p></article><article class="concept"><h4>Lua scripting</h4><p>Chạy nhiều Redis commands atomically trong một script.</p></article></div>
+      <h3>Common interview questions — senior answer</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>How does Redis cache-aside read flow work?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-7">Copy answer</button></div>
+            <div class="answer" id="answer-7">In cache-aside pattern, the application controls cache read and write.<br><br>Read flow:<br>1. Client calls API.<br>2. Application checks Redis by key.<br>3. If cache hit, return data immediately.<br>4. If cache miss, query database.<br>5. Store result in Redis with TTL.<br>6. Return data to client.<br><br>This pattern is simple and common, but we must handle cache penetration, hot key expiration, stale data, and serialization carefully.<br><br>I use cache-aside for data that is read frequently and can tolerate slight staleness, such as product detail, configuration, user profile summary, or token metadata.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What is cache penetration and how do you prevent it?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-8">Copy answer</button></div>
+            <div class="answer" id="answer-8">Cache penetration happens when requests query data that does not exist. Since the data is not in cache and not in DB, every request goes through Redis to DB and causes unnecessary DB load.<br><br>Example: attackers or bad clients keep requesting random user IDs that do not exist.<br><br>Common solutions:<br>- cache null values with short TTL<br>- use Bloom filter to reject impossible keys before hitting DB<br>- validate request parameters early<br>- rate limit suspicious traffic<br>- protect APIs with authentication and throttling<br><br>For normal systems, caching null for a short TTL is simple and effective. For very large key spaces, Bloom filter is useful.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What is cache breakdown and how do you handle hot key expiration?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-9">Copy answer</button></div>
+            <div class="answer" id="answer-9">Cache breakdown happens when a hot key expires and many requests hit the database at the same time to rebuild the cache.<br><br>Example: homepage product list or popular promotion detail expires during peak traffic.<br><br>Solutions:<br>- use mutex or distributed lock so only one request rebuilds cache<br>- use logical expiration and async refresh<br>- preload hot keys<br>- extend TTL with randomization<br>- never expire extremely hot keys, but refresh them asynchronously<br><br>The goal is to avoid many concurrent requests rebuilding the same cache value.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What is cache avalanche?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-10">Copy answer</button></div>
+            <div class="answer" id="answer-10">Cache avalanche happens when many cache keys expire at the same time or Redis becomes unavailable, causing a large amount of traffic to hit the database.<br><br>Solutions:<br>- add random TTL jitter so keys do not expire together<br>- use Redis cluster or sentinel for high availability<br>- use local cache as fallback for critical hot data<br>- apply rate limiting and circuit breaker<br>- warm up cache before traffic peak<br>- degrade gracefully when cache is unavailable<br><br>Senior point: cache is a performance optimization, but the system should not blindly collapse when cache fails.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you design Redis read/write flow with master–replica and read/write splitting?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-11">Copy answer</button></div>
+            <div class="answer" id="answer-11">In Redis master–replica setup, writes go to master. Replicas asynchronously copy data from master and can serve read traffic.<br><br>Read/write splitting helps scale read-heavy workloads. But because replication is asynchronous, there can be replication lag. After writing to master, reading immediately from replica may return old data.<br><br>For strong read-after-write consistency, I read from master immediately after write, or design the flow to tolerate eventual consistency.<br><br>For example, after updating user profile, the API response should use the updated value from DB or master path, not rely on replica that may lag.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you maintain cache consistency between Redis and database?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-12">Copy answer</button></div>
+            <div class="answer" id="answer-12">Cache consistency is one of the most important Redis topics.<br><br>Common strategy:<br>1. Update database first.<br>2. Delete cache after DB commit.<br>3. Let next read rebuild cache.<br><br>Why delete instead of update cache? Because update cache can be error-prone if the cached object is computed from multiple tables or services.<br><br>Potential issue: if cache delete fails, stale data remains. To improve reliability, we can retry cache deletion, use message queue or outbox to delete cache asynchronously, use short TTL as safety net, or use double delete pattern in special cases.<br><br>For most business systems, DB is the source of truth and cache is temporary acceleration.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>When would you use Redis Lua scripting?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-13">Copy answer</button></div>
+            <div class="answer" id="answer-13">Redis executes Lua scripts atomically. This means no other Redis command runs in the middle of the script.<br><br>I use Lua when multiple Redis operations must be performed as one atomic operation.<br><br>Common use cases:<br>- rate limiting<br>- distributed lock release<br>- check-and-decrement stock<br>- idempotency key check and set<br>- token bucket algorithm<br><br>For example, when releasing a distributed lock, we should only delete the lock if the value belongs to the current owner. Lua makes this check-and-delete atomic.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Example code / config / script</strong><button class="copy" data-target="code-14">Copy code</button></div>
+          <pre><code id="code-14">// Cache-aside read flow
+public ProductDto getProduct(Long id) {
+    String key = &quot;product:&quot; + id;
+
+    ProductDto cached = redisTemplate.opsForValue().get(key);
+    if (cached != null) {
+        return cached;
+    }
+
+    Product product = productRepository.findById(id)
+        .orElseThrow(() -&gt; new NotFoundException(&quot;Product not found&quot;));
+
+    ProductDto dto = ProductDto.from(product);
+    redisTemplate.opsForValue().set(key, dto, Duration.ofMinutes(10));
+
+    return dto;
+}
+
+// Lua script: safe distributed lock release
+if redis.call(&quot;GET&quot;, KEYS[1]) == ARGV[1] then
+    return redis.call(&quot;DEL&quot;, KEYS[1])
+else
+    return 0
+end</code></pre>
+        </div>
+    </section>
+    <section id="reactive" class="section">
+      <div class="section-top">
+        <span class="kicker">Senior Topic</span>
+        <h2>3. Reactive Programming &amp; Spring WebFlux</h2>
+        <p class="summary">Reactive/WebFlux là advanced topic. Senior cần hiểu non-blocking model, event loop, Mono/Flux, backpressure, when-to-use, when-not-to-use và production pitfalls.</p>
+      </div>
+      <div class="context"><h3>Context — vì sao senior cần nắm?</h3><ul><li>Reactive programming phù hợp với I/O-bound systems có nhiều concurrent requests.</li><li>WebFlux không tự động làm app nhanh hơn nếu bên trong vẫn dùng blocking JDBC hoặc blocking external calls.</li><li>Senior cần biết sự khác nhau giữa Spring MVC thread-per-request và WebFlux event-loop/non-blocking model.</li><li>Production reactive code cần timeout, error handling, backpressure, scheduler control và observability.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Reactive programming</h4><p>Programming model xử lý data/event streams theo non-blocking style.</p></article><article class="concept"><h4>Spring WebFlux</h4><p>Reactive web framework của Spring, dùng Reactor Netty và Project Reactor.</p></article><article class="concept"><h4>Mono</h4><p>Reactive type đại diện cho 0 hoặc 1 item.</p></article><article class="concept"><h4>Flux</h4><p>Reactive type đại diện cho 0 đến nhiều item.</p></article><article class="concept"><h4>Non-blocking I/O</h4><p>Thread không bị block trong lúc chờ network/IO response.</p></article><article class="concept"><h4>Event loop</h4><p>Một số ít thread xử lý nhiều connections/events.</p></article><article class="concept"><h4>Backpressure</h4><p>Consumer báo producer giảm tốc khi xử lý không kịp.</p></article><article class="concept"><h4>Scheduler</h4><p>Điều phối execution context trong Reactor, ví dụ boundedElastic cho blocking work nếu bắt buộc.</p></article></div>
+      <h3>Common interview questions — senior answer</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>What is reactive programming?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-15">Copy answer</button></div>
+            <div class="answer" id="answer-15">Reactive programming is a programming model for handling asynchronous data streams in a non-blocking way.<br><br>In Java Spring, WebFlux uses Project Reactor. Mono represents zero or one value, and Flux represents zero to many values.<br><br>The main benefit is efficient resource usage under high concurrency, especially for I/O-heavy systems such as API gateway, streaming, or services that call many external APIs.<br><br>But reactive is not always better. It adds complexity and requires the whole chain to be non-blocking. If we use blocking JDBC or blocking SDKs inside WebFlux, we can block event-loop threads and hurt performance.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>Spring MVC vs Spring WebFlux?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-16">Copy answer</button></div>
+            <div class="answer" id="answer-16">Spring MVC is based on the servlet model and usually follows thread-per-request. It is simple, mature, and good for typical CRUD applications.<br><br>Spring WebFlux is reactive and non-blocking. It can handle many concurrent I/O operations with fewer threads.<br><br>I choose Spring MVC when the application is mostly CRUD, uses blocking JDBC or JPA, and simplicity is more important.<br><br>I choose WebFlux when the application is I/O-heavy, needs high concurrency, uses non-blocking drivers such as R2DBC or WebClient, and the team is comfortable with reactive programming.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>What are common mistakes in WebFlux?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-17">Copy answer</button></div>
+            <div class="answer" id="answer-17">Common mistakes include:<br>- calling blocking code on event-loop threads<br>- using JPA or JDBC directly inside reactive pipeline<br>- calling block() in request flow<br>- missing timeout<br>- missing error handling<br>- overusing reactive for simple CRUD<br>- not understanding subscribe behavior<br>- using ThreadLocal context incorrectly<br><br>In production WebFlux, I always check whether dependencies are truly non-blocking. If I must call blocking code, I isolate it using boundedElastic, but I treat that as a compromise, not ideal design.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you handle errors in reactive flow?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-18">Copy answer</button></div>
+            <div class="answer" id="answer-18">In Reactor, errors are part of the stream.<br><br>Common operators:<br>- onErrorReturn for static fallback<br>- onErrorResume for dynamic fallback<br>- onErrorMap to convert exception<br>- doOnError for logging side effect<br>- retryWhen for controlled retry<br>- timeout to avoid waiting forever<br><br>As a senior, I avoid unlimited retry. I define timeout, retry count, backoff, and fallback based on business requirement.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Example code / config / script</strong><button class="copy" data-target="code-19">Copy code</button></div>
+          <pre><code id="code-19">public Mono&lt;UserProfile&gt; getUserProfile(String userId) {
+    Mono&lt;User&gt; userMono = userClient.getUser(userId);
+    Mono&lt;List&lt;Order&gt;&gt; orderMono = orderClient.getOrders(userId);
+
+    return Mono.zip(userMono, orderMono)
+        .map(tuple -&gt; new UserProfile(tuple.getT1(), tuple.getT2()))
+        .timeout(Duration.ofSeconds(2))
+        .onErrorResume(ex -&gt; {
+            log.warn(&quot;Failed to build user profile for {}&quot;, userId, ex);
+            return Mono.just(UserProfile.empty(userId));
+        });
+}
+
+// Avoid this in WebFlux request flow
+User user = userClient.getUser(userId).block(); // blocks thread, bad in reactive flow</code></pre>
+        </div>
+    </section>
+    <section id="collection" class="section">
+      <div class="section-top">
+        <span class="kicker">Senior Topic</span>
+        <h2>4. Java Collection Deep Dive</h2>
+        <p class="summary">Collection không chỉ là API. Senior cần biết internal implementation, complexity, memory trade-off, concurrent behavior, equals/hashCode, iterator behavior và production pitfalls.</p>
+      </div>
+      <div class="context"><h3>Context — vì sao senior cần nắm?</h3><ul><li>Collection xuất hiện trong hầu hết Java backend code.</li><li>Interview thường hỏi HashMap, ArrayList, LinkedList, ConcurrentHashMap, fail-fast/fail-safe, Set uniqueness, sorting.</li><li>Production bug thường đến từ dùng sai collection trong concurrent environment, mutable key, memory growth hoặc wrong equals/hashCode.</li><li>Senior cần chọn collection dựa trên access pattern, concurrency requirement và data size.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>List</h4><p>Ordered collection, cho phép duplicate. ArrayList là implementation phổ biến nhất.</p></article><article class="concept"><h4>Set</h4><p>Không cho duplicate. HashSet dựa trên HashMap internally.</p></article><article class="concept"><h4>Map</h4><p>Key-value structure. HashMap phổ biến nhưng không thread-safe.</p></article><article class="concept"><h4>ArrayList</h4><p>Dynamic array, get(index) nhanh O(1), insert giữa list có thể shift elements.</p></article><article class="concept"><h4>LinkedList</h4><p>Doubly linked list, random access chậm O(n), memory overhead cao hơn.</p></article><article class="concept"><h4>HashMap</h4><p>Array of buckets, hashCode + equals, collision handling, treeification Java 8.</p></article><article class="concept"><h4>ConcurrentHashMap</h4><p>Thread-safe map optimized for concurrent access.</p></article><article class="concept"><h4>CopyOnWriteArrayList</h4><p>Thread-safe list phù hợp read-heavy, write ít vì mỗi write copy array mới.</p></article><article class="concept"><h4>Fail-fast iterator</h4><p>Throw ConcurrentModificationException khi collection bị structural modification trong lúc iterate.</p></article><article class="concept"><h4>Fail-safe iterator</h4><p>Không throw exception, thường iterate trên copy hoặc weakly consistent view.</p></article></div>
+      <h3>Common interview questions — senior answer</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>How does HashMap work internally?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-20">Copy answer</button></div>
+            <div class="answer" id="answer-20">HashMap stores key-value pairs using an array of buckets.<br><br>When we put a key, HashMap calculates the key&#x27;s hashCode, applies a hash spreading function, maps it to a bucket index, and stores the entry.<br><br>When we get a value, it calculates the hash again, finds the bucket, and uses equals to compare the actual key.<br><br>If multiple keys map to the same bucket, collision happens. Before Java 8, collisions were handled by linked list. From Java 8, if the bucket becomes too large and capacity is enough, it can be converted into a red-black tree. This improves worst-case lookup from O(n) to O(log n).<br><br>Production cautions:<br>- HashMap is not thread-safe.<br>- Custom keys must implement equals and hashCode correctly.<br>- Avoid mutable keys.<br>- Bad hash distribution can degrade performance.<br>- Resizing can be expensive.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>ArrayList vs LinkedList?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-21">Copy answer</button></div>
+            <div class="answer" id="answer-21">ArrayList is backed by a dynamic array. It provides fast random access by index, O(1), and is usually cache-friendly.<br><br>LinkedList is backed by a doubly linked list. It has slower random access, O(n), because it must traverse nodes. It also uses more memory because each node stores references to previous and next nodes.<br><br>A common misconception is that LinkedList is always better for insertion and deletion. In reality, if we need to search the position first, traversal still costs O(n).<br><br>In most backend applications, ArrayList is the default choice. I use LinkedList only when there is a specific access pattern that justifies it.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>HashMap vs ConcurrentHashMap?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-22">Copy answer</button></div>
+            <div class="answer" id="answer-22">HashMap is not thread-safe. If multiple threads update it concurrently, data can become inconsistent.<br><br>ConcurrentHashMap is designed for concurrent access. It allows multiple threads to read and update safely with better performance than synchronizing the whole map.<br><br>In Java 8, ConcurrentHashMap uses CAS, synchronized blocks on bins, and internal control mechanisms to reduce lock contention.<br><br>However, thread-safe collection does not automatically make the whole business logic thread-safe. Compound actions may still need additional coordination.<br><br>For example, check-then-act logic can still be unsafe if not done atomically.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>Fail-fast vs fail-safe iterator?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-23">Copy answer</button></div>
+            <div class="answer" id="answer-23">Fail-fast iterators throw ConcurrentModificationException when the collection is structurally modified during iteration.<br><br>Examples:<br>- ArrayList<br>- HashMap<br>- HashSet<br><br>Fail-safe or weakly consistent iterators do not throw this exception. They may iterate over a copy or reflect some concurrent changes safely.<br><br>Examples:<br>- CopyOnWriteArrayList<br>- ConcurrentHashMap<br><br>In production, I choose based on concurrency pattern. CopyOnWriteArrayList is good for many reads and rare writes, such as listener lists. ConcurrentHashMap is better for concurrent key-value access.</div>
+          </div>
+        </details>
+        <details class="qa" open>
+          <summary>How do you choose the right collection?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-24">Copy answer</button></div>
+            <div class="answer" id="answer-24">I choose collection based on access pattern.<br><br>If I need ordered elements and fast index access, I use ArrayList.<br>If I need uniqueness, I use HashSet or TreeSet depending on ordering requirement.<br>If I need key-value lookup, I use HashMap.<br>If multiple threads access the map, I use ConcurrentHashMap.<br>If I need sorted keys, I use TreeMap.<br>If I need priority-based processing, I use PriorityQueue.<br>If I need read-heavy thread-safe list with rare writes, I use CopyOnWriteArrayList.<br><br>Senior point: do not choose collection only by habit. Choose based on lookup, insert/delete, ordering, uniqueness, concurrency, and memory.</div>
+          </div>
+        </details></div>
+      
+        <div class="code-card">
+          <div class="bar"><strong>Example code / config / script</strong><button class="copy" data-target="code-25">Copy code</button></div>
+          <pre><code id="code-25">// Safe compound operation with ConcurrentHashMap
+ConcurrentHashMap&lt;String, LongAdder&gt; counters = new ConcurrentHashMap&lt;&gt;();
+
+public void increment(String key) {
+    counters.computeIfAbsent(key, k -&gt; new LongAdder()).increment();
+}
+
+// Dangerous with normal HashMap under concurrency
+Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+map.put(&quot;count&quot;, map.getOrDefault(&quot;count&quot;, 0) + 1); // not thread-safe</code></pre>
+        </div>
+    </section>
+    <section id="placeholder" class="section">
+      <div class="section-top">
+        <span class="kicker">Senior Topic</span>
+        <h2>5. Next Topic Placeholder</h2>
+        <p class="summary">Mục số 5 trong note của anh đang để trống. Em giữ placeholder để anh bổ sung tiếp topic sau.</p>
+      </div>
+      <div class="context"><h3>Context — vì sao senior cần nắm?</h3><ul><li>Anh có thể bổ sung tiếp các topic như Kafka, Security, JPA/Hibernate, Microservice patterns, CI/CD, JVM/GC, System Design.</li><li>Khi anh gửi thêm, em sẽ append theo đúng format: context, concepts, senior Q&amp;A, examples/code.</li></ul></div>
+      <h3>Key concepts</h3><div class="concept-grid"><article class="concept"><h4>Placeholder</h4><p>Waiting for next topic from user.</p></article></div>
+      <h3>Common interview questions — senior answer</h3><div class="qa-list">
+        <details class="qa" open>
+          <summary>How should new topics be added?</summary>
+          <div class="qa-body">
+            <div class="bar"><strong>Senior answer script</strong><button class="copy" data-target="answer-26">Copy answer</button></div>
+            <div class="answer" id="answer-26">Add new topics using the same senior format: context, core concepts, interview questions, senior answer scripts, production examples, and code when relevant.</div>
+          </div>
+        </details></div>
+      
+    </section>
+  <footer>Generated for Senior Java Backend Interview Practice · 2026-07-09 06:15</footer>
+</main>
+</div>
+<script>
+const app=document.getElementById('app');const theme=document.getElementById('theme');const search=document.getElementById('search');
+theme.addEventListener('click',()=>{const c=app.getAttribute('data-theme');const n=c==='dark'?'light':'dark';app.setAttribute('data-theme',n);theme.textContent=n==='dark'?'Light':'Dark';});
+document.querySelectorAll('.copy').forEach(btn=>{btn.addEventListener('click',async()=>{const t=document.getElementById(btn.dataset.target);if(!t)return;await navigator.clipboard.writeText(t.innerText);const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,900);});});
+document.getElementById('openAll').addEventListener('click',()=>{document.querySelectorAll('details').forEach(d=>d.open=true);});
+document.getElementById('closeAll').addEventListener('click',()=>{document.querySelectorAll('details').forEach(d=>d.open=false);});
+search.addEventListener('input',()=>{const kw=search.value.trim().toLowerCase();document.querySelectorAll('.section').forEach(sec=>{sec.classList.toggle('hidden',kw&&!sec.innerText.toLowerCase().includes(kw));});});
+</script>
+</body>
+</html>
