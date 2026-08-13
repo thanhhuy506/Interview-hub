@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caching Patterns & Anti-Stampede — Senior Java Interview Guide</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#172033;--muted:#5f6b7a;--accent:#2563eb;--border:#dfe5ee;--code:#101827;--good:#087443;--warn:#a15c00;--danger:#b42318}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.container{max-width:1200px;margin:auto;padding:36px 24px 70px}.hero{background:linear-gradient(135deg,#172554,#2563eb);color:white;border-radius:18px;padding:42px;margin-bottom:26px}
+h1{font-size:38px;line-height:1.15;margin:0 0 12px}h2{margin-top:42px;font-size:28px;border-bottom:1px solid var(--border);padding-bottom:8px}h3{margin-top:28px;font-size:21px}h4{margin-bottom:6px}
+p{margin:10px 0}.lead{font-size:18px;opacity:.94}.toc,.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin:18px 0;box-shadow:0 3px 12px #1720330a}
+.toc a{color:var(--accent);text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#e8efff;color:#174ea6;font-size:13px;font-weight:700}.good{color:var(--good)}.warn{color:var(--warn)}.danger{color:var(--danger)}
+pre{background:var(--code);color:#e6edf7;padding:18px;border-radius:10px;overflow:auto;font-size:14px;line-height:1.5}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+table{width:100%;border-collapse:collapse;background:white;margin:14px 0}th,td{padding:11px;border:1px solid var(--border);vertical-align:top;text-align:left}th{background:#eef3f9}
+.callout{border-left:5px solid var(--accent);padding:14px 18px;background:#edf4ff;border-radius:8px;margin:16px 0}.dangerbox{border-left-color:var(--danger);background:#fff0ef}.goodbox{border-left-color:var(--good);background:#eefbf5}
+li{margin:5px 0}.flow{font-weight:700;background:#f0f4f8;padding:12px;border-radius:8px;overflow:auto}.small{color:var(--muted);font-size:14px}
+details{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 17px;margin:10px 0}summary{cursor:pointer;font-weight:700}
+@media(max-width:700px){h1{font-size:30px}.container{padding:20px 14px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section class="hero">
+<h1>Caching Patterns & Anti-Stampede</h1>
+<p class="lead">A senior-level interview and production guide: cache fundamentals, common caching patterns, Redis architecture, TTL behavior, and how to protect a database when 10,000 concurrent requests arrive after the same cache entry expires.</p>
+</section>
+
+<div class="toc card">
+<strong>Contents</strong>
+<ol>
+<li><a href="#fundamentals">Caching Fundamentals</a></li>
+<li><a href="#patterns">Basic Caching Patterns</a></li>
+<li><a href="#ttl">TTL, Expiration and Eviction</a></li>
+<li><a href="#stampede">The 10,000-Request Cache Stampede</a></li>
+<li><a href="#techniques">Anti-Stampede Techniques</a></li>
+<li><a href="#architecture">Recommended Production Architecture</a></li>
+<li><a href="#failure">Failure Scenarios and Trade-offs</a></li>
+<li><a href="#interview">Senior Interview Questions & Answers</a></li>
+</ol>
+</div>
+
+<h2 id="fundamentals">1. Caching Fundamentals</h2>
+<div class="card">
+<h3>What is caching?</h3>
+<p>A cache stores frequently accessed data in a faster storage layer so that future requests can avoid an expensive operation such as a database query, remote API call, disk read, or computation.</p>
+<div class="flow">Client → Application → Cache → (hit) return data<br>
+Client → Application → Cache → (miss) Database → Cache → return data</div>
+<p>The important senior-level idea is that a cache is normally an <strong>optimization, not the source of truth</strong>. The database or another authoritative system owns correctness unless the architecture explicitly defines otherwise.</p>
+</div>
+
+<div class="grid">
+<div class="card"><span class="badge">Cache Hit</span><p>The requested key exists and the cached value is usable. The application avoids the expensive backend operation.</p></div>
+<div class="card"><span class="badge">Cache Miss</span><p>The key is absent, expired, or unusable. The application needs another source, usually the database.</p></div>
+<div class="card"><span class="badge">TTL</span><p>Time To Live defines how long an entry is considered valid. TTL is useful for controlling staleness and memory usage.</p></div>
+<div class="card"><span class="badge">Eviction</span><p>Eviction removes entries because of memory pressure or an eviction policy such as LRU/LFU. Eviction is different from TTL expiration.</p></div>
+</div>
+
+<h2 id="patterns">2. Basic Caching Patterns</h2>
+
+<div class="card">
+<h3>2.1 Cache-Aside / Lazy Loading</h3>
+<p>The application explicitly checks the cache. On a miss, it loads data from the database and then populates the cache.</p>
+<pre><code>public Product getProduct(long id) {
+    String key = "product:" + id;
+
+    Product cached = redis.get(key);
+    if (cached != null) {
+        return cached;
+    }
+
+    Product product = productRepository.findById(id);
+
+    if (product != null) {
+        redis.set(key, product, Duration.ofMinutes(10));
+    }
+
+    return product;
+}</code></pre>
+<p><strong>Advantages:</strong> simple, flexible, only requested data is cached.</p>
+<p><strong>Risks:</strong> cache miss storms, stale data, race conditions, and cache/database inconsistency.</p>
+<p><strong>Typical use:</strong> product details, user profiles, configuration, reference data, read-heavy APIs.</p>
+<div class="callout"><strong>Interview point:</strong> Cache-aside is usually the default choice in application-level caching because the application controls what is cached and when. But a senior engineer must immediately think about stampede protection and invalidation.</div>
+</div>
+
+<div class="card">
+<h3>2.2 Read-Through Cache</h3>
+<p>The application asks the cache layer for data. The cache itself loads missing data from the backend through a configured loader.</p>
+<div class="flow">Application → Cache → hit: return<br>Application → Cache → miss: Cache Loader → DB → Cache → Application</div>
+<p>This reduces cache-loading logic in business code, but it couples the cache layer to the backend and can make failure behavior more complex.</p>
+</div>
+
+<div class="card">
+<h3>2.3 Write-Through Cache</h3>
+<p>Writes go through the cache, and the cache synchronously writes to the backing store before the operation is considered successful.</p>
+<div class="flow">Application → Cache → Database<br>
+                    ↓<br>
+                 success</div>
+<p><strong>Benefit:</strong> cache is less likely to contain stale data after writes.</p>
+<p><strong>Cost:</strong> write latency increases because the backend write is part of the request path.</p>
+</div>
+
+<div class="card">
+<h3>2.4 Write-Behind / Write-Back</h3>
+<p>The application writes to the cache first. The cache asynchronously persists changes to the database.</p>
+<div class="flow">Application → Cache → immediate response<br>
+                    ↓ async<br>
+                  Queue/Worker → Database</div>
+<p>This can provide extremely high write throughput but introduces durability and consistency risks. It requires careful handling of retries, ordering, duplicate events, and process failure.</p>
+</div>
+
+<div class="card">
+<h3>2.5 Refresh-Ahead</h3>
+<p>The system refreshes an entry before it expires, usually when the entry is close to its TTL. This reduces the probability that a hot key becomes unavailable at exactly the expiration time.</p>
+<p>It is especially useful for predictable, frequently accessed data such as product catalogs, exchange rates, or configuration.</p>
+</div>
+
+<div class="card">
+<h3>2.6 Multi-Level Cache: L1 + L2</h3>
+<div class="flow">Application<br>  ↓<br>L1: Local Caffeine / in-process cache<br>  ↓ miss<br>L2: Redis<br>  ↓ miss<br>Database</div>
+<p>L1 avoids network calls for extremely hot keys. Redis provides shared caching across application instances. The trade-off is invalidation complexity because multiple cache copies exist.</p>
+</div>
+
+<h2 id="ttl">3. TTL, Expiration and Eviction</h2>
+<div class="card">
+<h3>Why use TTL?</h3>
+<ul>
+<li>Limit how long stale data remains cached.</li>
+<li>Automatically remove data that should no longer be used.</li>
+<li>Control memory consumption.</li>
+<li>Reduce the need for explicit invalidation for data that can tolerate bounded staleness.</li>
+</ul>
+<div class="callout"><strong>Important:</strong> TTL does not prevent a stampede. In fact, synchronized TTLs can create a stampede.</div>
+</div>
+
+<div class="card">
+<h3>Fixed TTL vs TTL Jitter</h3>
+<p>Suppose 100,000 product keys are loaded at 12:00:00 and all receive exactly a 10-minute TTL. They may expire around 12:10:00, creating a synchronized burst of cache misses.</p>
+<p>Instead, add random jitter:</p>
+<pre><code>baseTtl = 10 minutes
+jitter = random(0..120 seconds)
+
+actualTtl = baseTtl + jitter</code></pre>
+<p>Expiration is distributed over time instead of synchronized.</p>
+</div>
+
+<h2 id="stampede">4. The 10,000-Request Cache Stampede</h2>
+<div class="card dangerbox">
+<h3>The production problem</h3>
+<p>Assume:</p>
+<ul>
+<li>Redis contains <code>product:123</code>.</li>
+<li>TTL = 10 minutes.</li>
+<li>At 10:00:00 the key expires.</li>
+<li>10,000 requests arrive almost simultaneously.</li>
+<li>All 10,000 requests check Redis.</li>
+<li>All receive a miss.</li>
+<li>All execute <code>SELECT ... FROM product WHERE id = 123</code>.</li>
+</ul>
+<div class="flow">10,000 requests<br>
+      ↓<br>
+10,000 Redis MISS<br>
+      ↓<br>
+10,000 DB queries<br>
+      ↓<br>
+DB connection pool exhausted<br>
+      ↓<br>
+DB CPU / I/O increases<br>
+      ↓<br>
+timeouts → retries<br>
+      ↓<br>
+even MORE requests<br>
+      ↓<br>
+cascading failure</div>
+<p>This is called a <strong>cache stampede</strong>, <strong>cache avalanche</strong> in broader cases, or <strong>thundering herd</strong>.</p>
+</div>
+
+<div class="card">
+<h3>Why can retries make it worse?</h3>
+<p>Suppose the DB can safely handle 500 expensive queries/second but 10,000 requests arrive. The first wave overloads the DB. Requests time out. Clients or upstream services retry. Now the DB receives the original requests plus retries.</p>
+<p>A senior engineer should recognize this as a <strong>positive feedback loop</strong>:</p>
+<div class="flow">Cache miss → DB overload → latency → timeout → retry → more DB load → higher latency → more timeout</div>
+</div>
+
+<h2 id="techniques">5. Anti-Stampede Techniques</h2>
+
+<div class="card">
+<h3>Technique 1 — Distributed Lock / Single Flight</h3>
+<p>The most important technique for a hot key is to allow only one request to rebuild the cache while the others wait or use an alternative response.</p>
+<pre><code>Request A → Redis MISS → acquire lock product:123:lock → DB → Redis SET
+Request B → Redis MISS → lock exists → wait/retry Redis
+Request C → Redis MISS → lock exists → wait/retry Redis
+...
+Request 10,000 → Redis MISS → lock exists → wait/retry Redis</code></pre>
+<p>After A populates Redis, B–10,000 read the newly cached value.</p>
+<p><strong>Goal:</strong> convert 10,000 DB reads into approximately 1 DB read.</p>
+<p>The lock must have a TTL so that a crashed lock holder does not block the key forever.</p>
+<div class="callout"><strong>Senior warning:</strong> A distributed lock is not automatically safe just because Redis supports SET NX. You must consider lock expiration, ownership, retries, process crashes, and whether the protected operation can outlive the lock.</div>
+</div>
+
+<div class="card">
+<h3>Technique 2 — Request Coalescing / SingleFlight</h3>
+<p>Inside one application instance, requests for the same key can share one in-flight computation.</p>
+<pre><code>Concurrent requests:
+product:123
+product:123
+product:123
+        ↓
+one in-flight load
+        ↓
+DB
+        ↓
+shared result
+        ↓
+all callers</code></pre>
+<p>This is excellent for reducing duplicate work locally. However, if there are 50 application instances, each instance could still perform one DB request. A distributed coordination mechanism may be required for globally hot keys.</p>
+</div>
+
+<div class="card">
+<h3>Technique 3 — Stale-While-Revalidate</h3>
+<p>Do not immediately discard a hot value when it reaches its freshness boundary. Serve the stale value for a short grace period while one background process refreshes it.</p>
+<div class="flow">Request → stale-but-acceptable value → return immediately<br>
+                         ↓<br>
+                  background refresh → DB → Redis</div>
+<p>This is often one of the best approaches for read-heavy systems where slightly stale data is acceptable.</p>
+<p>Example policy:</p>
+<ul>
+<li>Fresh for 5 minutes.</li>
+<li>Stale-but-servable for another 2 minutes.</li>
+<li>Only one refresh is allowed during the stale window.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>Technique 4 — TTL Jitter</h3>
+<p>Add randomness to TTL values so large numbers of keys do not expire simultaneously.</p>
+<pre><code>TTL = 600 + random(0, 120) seconds</code></pre>
+<p>This is simple and cheap, but it does <strong>not</strong> solve a single extremely hot key that expires. Combine it with locking or stale-while-revalidate.</p>
+</div>
+
+<div class="card">
+<h3>Technique 5 — Background Refresh / Pre-Warming</h3>
+<p>For known hot keys, refresh the cache before expiration.</p>
+<div class="flow">Scheduler / event / background worker<br>
+              ↓<br>
+          Redis TTL low<br>
+              ↓<br>
+           load DB<br>
+              ↓<br>
+        update Redis TTL</div>
+<p>This works particularly well for predictable traffic, promotions, flash sales, and popular product pages.</p>
+</div>
+
+<div class="card">
+<h3>Technique 6 — L1 Local Cache + L2 Redis</h3>
+<p>Put very hot data in an in-process cache such as Caffeine, with Redis as the distributed second-level cache.</p>
+<p>For 10,000 requests hitting the same application instance, many requests never reach Redis. Redis itself also avoids unnecessary network traffic.</p>
+<p>The challenge is invalidation: every application instance may hold its own copy. Pub/Sub, events, versioning, or short local TTLs can help.</p>
+</div>
+
+<div class="card">
+<h3>Technique 7 — Rate Limiting / Concurrency Limiting</h3>
+<p>Even with stampede protection, backend load should be bounded. Limit the number of concurrent cache rebuilds or database calls.</p>
+<p>For example, allow at most 20 expensive product loads concurrently. Other requests wait, receive stale data, or fail fast depending on business requirements.</p>
+<div class="callout"><strong>Key idea:</strong> protecting the DB is more important than making every request succeed immediately.</div>
+</div>
+
+<div class="card">
+<h3>Technique 8 — Circuit Breaker + Fallback</h3>
+<p>If the database becomes unhealthy, stop sending unlimited traffic to it. A circuit breaker can temporarily reject or short-circuit expensive operations.</p>
+<p>Possible fallbacks include:</p>
+<ul>
+<li>Serve stale cached data.</li>
+<li>Return a degraded response.</li>
+<li>Return a controlled 503.</li>
+<li>Use a secondary read source if the architecture supports it.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>Technique 9 — Negative Caching</h3>
+<p>If a key does not exist in the database, cache the negative result for a short TTL.</p>
+<pre><code>product:999999 = NOT_FOUND, TTL 30 seconds</code></pre>
+<p>This protects the database from repeated requests for invalid IDs. Use a short TTL because the entity may be created later.</p>
+</div>
+
+<h2 id="architecture">6. Recommended Production Architecture</h2>
+<div class="card goodbox">
+<h3>For a very hot product key</h3>
+<div class="flow">Client
+  ↓
+API / Load Balancer
+  ↓
+Application
+  ↓
+L1 Caffeine
+  ↓ miss
+Redis
+  ↓ miss / stale
+Single-flight or distributed lock
+  ↓
+DB concurrency limit
+  ↓
+Database
+  ↓
+Redis SET with jittered TTL
+  ↓
+L1 update
+</div>
+<p>For a high-traffic production system, combine mechanisms rather than expecting one mechanism to solve everything.</p>
+</div>
+
+<div class="card">
+<h3>Example request algorithm</h3>
+<pre><code>1. Check L1.
+2. If fresh → return.
+3. Check Redis.
+4. If fresh → populate L1 and return.
+5. If stale value is available → return stale value.
+6. Trigger one background refresh.
+7. If no usable value exists:
+      acquire distributed lock
+      double-check Redis
+      if another request already refreshed:
+          return Redis value
+      otherwise:
+          load DB
+          write Redis
+          populate L1
+          release lock
+8. Apply timeout and concurrency limits to DB.
+9. Never allow unlimited retries.</code></pre>
+</div>
+
+<h2 id="failure">7. Failure Scenarios & Trade-offs</h2>
+<table>
+<tr><th>Problem</th><th>Risk</th><th>Typical Protection</th></tr>
+<tr><td>One hot key expires</td><td>Thundering herd</td><td>Single-flight, distributed lock, stale-while-revalidate</td></tr>
+<tr><td>Millions of keys expire together</td><td>Cache avalanche</td><td>TTL jitter, staggered refresh, pre-warming</td></tr>
+<tr><td>Many requests for invalid IDs</td><td>DB repeated misses</td><td>Negative caching</td></tr>
+<tr><td>Redis unavailable</td><td>DB receives cache traffic</td><td>Local cache, rate limiting, circuit breaker, DB protection</td></tr>
+<tr><td>DB is slow</td><td>Request pile-up</td><td>Timeout, concurrency limit, stale fallback</td></tr>
+<tr><td>Lock holder crashes</td><td>Requests wait forever</td><td>Lock TTL + safe ownership/recovery strategy</td></tr>
+<tr><td>Stale cache</td><td>Incorrect data</td><td>Explicit freshness policy + invalidation/events</td></tr>
+</table>
+
+<h2 id="interview">8. Senior-Level Interview Questions & Answers</h2>
+
+<details open>
+<summary>Q1. What happens if 10,000 requests hit the same Redis key exactly when its TTL expires?</summary>
+<p><strong>Senior answer:</strong> If the application uses naive cache-aside, all 10,000 requests can observe a cache miss and independently query the database. That creates a thundering-herd problem and can exhaust the DB connection pool, CPU, I/O, or downstream capacity. Timeouts can then trigger retries and cause a cascading failure.</p>
+<p>I would prevent this with a combination of single-flight or a distributed lock, stale-while-revalidate for data that can tolerate bounded staleness, TTL jitter for large populations of keys, and database concurrency limits. For predictable hot keys, I would also pre-warm or refresh them before expiration.</p>
+</details>
+
+<details>
+<summary>Q2. Is a distributed lock enough?</summary>
+<p>No. A lock reduces duplicate rebuilds, but it does not automatically solve every failure mode. I need a lock TTL, ownership semantics, timeout handling, and a strategy for a lock holder that crashes. I also need to avoid making every waiting request hammer Redis with aggressive polling.</p>
+<p>For example, waiting requests can use exponential backoff with jitter and then re-check the cache. If stale data is acceptable, I would prefer stale-while-revalidate because it avoids making thousands of requests wait behind a lock.</p>
+</details>
+
+<details>
+<summary>Q3. Distributed lock vs stale-while-revalidate — which would you choose?</summary>
+<p>It depends on the consistency requirement. If the value must be fresh before responding, a lock or request coalescing mechanism is appropriate. If bounded staleness is acceptable, stale-while-revalidate is usually better for user-facing high-read traffic because most requests can return immediately while one worker refreshes the value.</p>
+</details>
+
+<details>
+<summary>Q4. Why is TTL jitter useful?</summary>
+<p>Without jitter, many entries created at approximately the same time can expire at approximately the same time. That creates synchronized cache misses. Jitter spreads expiration across a time window. However, jitter does not solve a single hot key. For a hot key I still need single-flight, locking, refresh-ahead, or stale-while-revalidate.</p>
+</details>
+
+<details>
+<summary>Q5. What if Redis itself goes down?</summary>
+<p>I would assume the cache can fail and design the system so Redis is not the only protection. A local L1 cache can absorb some traffic. The application should also use database concurrency limits, timeouts, circuit breakers, and controlled degradation. The key principle is: a cache failure must not automatically become a database outage.</p>
+</details>
+
+<details>
+<summary>Q6. What metrics would you monitor?</summary>
+<ul>
+<li>Cache hit ratio by key/category.</li>
+<li>Redis latency and error rate.</li>
+<li>Cache miss rate and miss bursts.</li>
+<li>Number of cache rebuilds per key.</li>
+<li>Lock acquisition success/failure/wait time.</li>
+<li>Database connection pool utilization.</li>
+<li>Database QPS, CPU, I/O, latency and slow queries.</li>
+<li>Application request latency and timeout rate.</li>
+<li>Retry rate.</li>
+<li>Evictions and memory usage.</li>
+</ul>
+<p>A particularly useful metric is <strong>load amplification</strong>: how many backend requests are generated per logical cache miss. A healthy single-flight design should keep this close to one for a hot key.</p>
+</details>
+
+<details>
+<summary>Q7. How would you explain the design in an interview?</summary>
+<p><strong>Recommended answer:</strong> “I normally use cache-aside with Redis for read-heavy data. The application first checks cache and falls back to the database on a miss. The main issue is that cache-aside alone is unsafe for hot keys because a synchronized expiration can cause a thundering herd. If 10,000 requests miss simultaneously, I don't want 10,000 DB queries. I would use request coalescing locally and distributed single-flight or locking across instances. If the business can tolerate bounded staleness, I prefer stale-while-revalidate so requests continue serving the previous value while one refresh happens in the background. I would also add TTL jitter, pre-warming for predictable hot keys, database concurrency limits, timeouts, and circuit breakers. Finally, I would monitor cache misses, rebuild counts, Redis latency, DB load, lock contention, and retry rates.”</p>
+</details>
+
+<h2>9. Senior Design Checklist</h2>
+<div class="card">
+<ul>
+<li>Define the source of truth.</li>
+<li>Choose the caching pattern based on consistency and workload.</li>
+<li>Define TTL and acceptable staleness.</li>
+<li>Prevent synchronized expiration with TTL jitter.</li>
+<li>Protect hot keys with single-flight / distributed coordination.</li>
+<li>Use stale-while-revalidate when business rules allow it.</li>
+<li>Consider L1 local cache for extremely hot reads.</li>
+<li>Pre-warm predictable traffic.</li>
+<li>Limit database concurrency.</li>
+<li>Use timeouts and circuit breakers.</li>
+<li>Control retries with exponential backoff and jitter.</li>
+<li>Monitor cache and database amplification.</li>
+<li>Design for Redis failure instead of assuming the cache is always available.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>Core takeaway</h3>
+<p><strong>The senior-level answer is not “use Redis.”</strong> Redis only reduces normal read latency. The real design question is what happens when the cache is empty, expired, unavailable, or overloaded.</p>
+<p>For the 10,000-request scenario, the key objective is:</p>
+<div class="flow">10,000 requests → ideally 1 cache rebuild → 1 DB load → Redis → 10,000 cache responses</div>
+<p>Then add stale serving, jitter, pre-warming, concurrency limits, timeouts, and circuit breakers according to the consistency and availability requirements.</p>
+</div>
+
+
+<h2 id="special-cases">10. Important Caching Cases Often Missed in Interviews</h2>
+
+<div class="card">
+<h3>10.1 Cache Penetration — Requests for Data That Does Not Exist</h3>
+<p>This is different from cache stampede. The requested key does not exist in the database, so every request misses Redis and then hits the database.</p>
+<div class="flow">Request product:999999<br>↓<br>Redis MISS<br>↓<br>DB MISS<br>↓<br>Do NOT cache result<br>↓<br>Next request repeats the same DB query</div>
+<p><strong>Protection:</strong> negative caching with a short TTL, Bloom filter for very large key spaces, request validation, and rate limiting.</p>
+<pre><code>// Example
+product:999999 = NOT_FOUND
+TTL = 30 seconds</code></pre>
+<p><strong>Typical attack:</strong> a client generates millions of random IDs. Redis hit ratio remains low and the database receives most of the traffic.</p>
+</div>
+
+<div class="card">
+<h3>10.2 Cache Avalanche — Many Keys Expire Together</h3>
+<p>Cache stampede usually focuses on one hot key. Cache avalanche is broader: a large number of cached keys become unavailable at approximately the same time.</p>
+<div class="flow">100,000 keys created together<br>↓<br>All TTL = 10 minutes<br>↓<br>10 minutes later<br>↓<br>Huge number of cache misses<br>↓<br>Huge DB traffic</div>
+<p><strong>Protection:</strong> TTL jitter, staggered expiration, refresh-ahead, pre-warming, multiple cache tiers, and backend load protection.</p>
+</div>
+
+<div class="card">
+<h3>10.3 Hot Key Problem</h3>
+<p>A hot key is one key receiving a disproportionate amount of traffic. Even if Redis can handle the requests, one logical key can become a bottleneck at the application, network, or Redis shard level.</p>
+<p>Examples include:</p>
+<ul>
+<li>A product during a flash sale.</li>
+<li>A viral article.</li>
+<li>A celebrity profile.</li>
+<li>A global configuration object.</li>
+<li>A promotion page.</li>
+</ul>
+<p><strong>Protection:</strong> L1 local cache, replication/read scaling where appropriate, request coalescing, pre-warming, stale-while-revalidate, and sometimes key replication/sharding strategies.</p>
+<div class="callout"><strong>Interview distinction:</strong> A hot key is a traffic-distribution problem. A cache stampede is a synchronized-miss problem. They can happen together, but they are not the same thing.</div>
+</div>
+
+<div class="card">
+<h3>10.4 Cache Inconsistency After a Database Update</h3>
+<p>Suppose the application updates the database but Redis still contains the old value.</p>
+<div class="flow">DB = Product price $100<br>Redis = $100<br>↓<br>Update DB → $120<br>↓<br>Redis still = $100<br>↓<br>Users read stale value</div>
+<p>Common strategies include:</p>
+<ul>
+<li>Cache invalidation after DB update.</li>
+<li>Update cache after DB update.</li>
+<li>Transactional Outbox + event-driven cache invalidation.</li>
+<li>Short TTL when bounded staleness is acceptable.</li>
+<li>Versioned cache values.</li>
+</ul>
+<p>A senior engineer should explicitly define whether stale data is acceptable and for how long.</p>
+</div>
+
+<div class="card">
+<h3>10.5 The Double-Delete / Race Condition</h3>
+<p>A classic race can occur when cache invalidation and DB updates happen concurrently.</p>
+<div class="flow">Request A: update DB<br>Request B: read DB<br>Request A: delete cache<br>Request B: reads old DB value<br>Request B: writes old value to cache<br>↓<br>Cache becomes stale again</div>
+<p>Possible solutions include delayed double-delete, versioning, serialized updates, transactional event processing, or an architecture where cache updates are driven from committed database events.</p>
+<p><strong>Important:</strong> “Delete Redis after UPDATE” is not automatically race-free.</p>
+</div>
+
+<div class="card">
+<h3>10.6 Cache-Aside Failure Between DB Write and Cache Update</h3>
+<p>Consider:</p>
+<pre><code>1. UPDATE database succeeds
+2. Redis SET fails
+3. Request returns success</code></pre>
+<p>The next request may read stale data from Redis until expiration.</p>
+<p>Possible policies:</p>
+<ul>
+<li>Delete cache after a successful DB write.</li>
+<li>Retry cache invalidation asynchronously.</li>
+<li>Publish an invalidation event.</li>
+<li>Use an outbox so the invalidation event is not lost.</li>
+</ul>
+<p>For critical systems, cache invalidation should be treated as a reliable asynchronous operation rather than an optional best-effort side effect.</p>
+</div>
+
+<div class="card">
+<h3>10.7 Cache-Aside Failure Between Cache Write and Response</h3>
+<p>The DB request succeeds, but Redis is unavailable. The application should usually still be able to return the DB result.</p>
+<div class="flow">Redis GET → timeout<br>↓<br>Fallback to DB<br>↓<br>DB succeeds<br>↓<br>Redis SET fails<br>↓<br>Return DB result</div>
+<p>A cache failure should normally degrade performance, not destroy correctness.</p>
+</div>
+
+<div class="card">
+<h3>10.8 Redis Failure / Cache Outage</h3>
+<p>If Redis becomes unavailable, a naive application can send all traffic directly to the database. This can turn a Redis outage into a database outage.</p>
+<p><strong>Protection:</strong></p>
+<ul>
+<li>L1 local cache.</li>
+<li>Connection and command timeouts.</li>
+<li>Circuit breaker around Redis.</li>
+<li>Database concurrency limits.</li>
+<li>Load shedding.</li>
+<li>Stale local data where acceptable.</li>
+<li>Graceful degradation.</li>
+</ul>
+<div class="callout dangerbox"><strong>Senior principle:</strong> Never design “Redis down → every request goes to DB” without checking whether the DB can survive the resulting traffic.</div>
+</div>
+
+<div class="card">
+<h3>10.9 Cache Serialization / Deserialization Problems</h3>
+<p>Objects stored in Redis may become incompatible after a deployment.</p>
+<p>Example:</p>
+<pre><code>Version 1:
+Product { id, name, price }
+
+Version 2:
+Product { id, name, price, currency }</code></pre>
+<p>Problems can occur when old cached payloads are read by new application code.</p>
+<p><strong>Protection:</strong> versioned cache keys, backward-compatible serialization, explicit schema/version fields, and safe cache invalidation during incompatible releases.</p>
+</div>
+
+<div class="card">
+<h3>10.10 Cache Key Collision / Poor Key Design</h3>
+<p>Bad key naming can cause different business objects to share the same key.</p>
+<pre><code>user:123
+order:123
+product:123</code></pre>
+<p>Using only <code>123</code> would be dangerous. Use namespaces and include important dimensions:</p>
+<pre><code>user:v2:123
+order:v1:123
+product:v3:123</code></pre>
+<p>For multi-tenant systems, tenant identity must usually be part of the key:</p>
+<pre><code>tenant:{tenantId}:product:{productId}</code></pre>
+</div>
+
+<div class="card">
+<h3>10.11 Multi-Tenant Cache Isolation</h3>
+<p>A particularly dangerous production bug occurs when tenant-specific data is cached without tenant identity in the key.</p>
+<div class="flow">Tenant A → product:123 → cache<br>
+Tenant B → product:123 → receives Tenant A data</div>
+<p>This is not just a cache performance issue. It can become a serious data-isolation/security problem.</p>
+<p><strong>Rule:</strong> Every dimension that affects the result must be represented in the cache key or otherwise guaranteed by the cache boundary.</p>
+</div>
+
+<div class="card">
+<h3>10.12 Cache Memory Pressure / Eviction Storm</h3>
+<p>Redis can evict keys when memory is exhausted depending on its configured policy. A large eviction event can suddenly reduce the hit ratio and send traffic to the database.</p>
+<p>Monitor:</p>
+<ul>
+<li>Used memory.</li>
+<li>Evicted keys.</li>
+<li>Expired keys.</li>
+<li>Hit/miss ratio.</li>
+<li>Fragmentation.</li>
+<li>Memory growth rate.</li>
+</ul>
+<p>Do not assume that “Redis has a TTL” means memory usage is automatically safe.</p>
+</div>
+
+<div class="card">
+<h3>10.13 Large Object / Large Value Problem</h3>
+<p>Putting very large payloads into Redis can create memory pressure, network latency, serialization overhead, and replication cost.</p>
+<p>Instead of caching a 5 MB object for every request, consider:</p>
+<ul>
+<li>Cache only required fields.</li>
+<li>Split the object into smaller independently cached parts.</li>
+<li>Use pagination.</li>
+<li>Store large blobs in object storage and cache metadata.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>10.14 Cache Warming After Restart</h3>
+<p>After Redis restart, deployment, cluster migration, or mass eviction, the cache can become cold.</p>
+<p>If millions of requests arrive immediately, the database can receive a sudden load spike.</p>
+<p><strong>Protection:</strong> controlled warm-up, background preloading, request rate limiting, and gradual traffic ramp-up.</p>
+</div>
+
+<div class="card">
+<h3>10.15 Deployment / Cache Versioning</h3>
+<p>When the cache representation changes, old entries may no longer be valid.</p>
+<p>Instead of deleting millions of keys synchronously, use versioned namespaces:</p>
+<pre><code>product:v1:123
+product:v2:123</code></pre>
+<p>Deploy the new version, gradually populate v2, and remove v1 later. This can reduce deployment-time cache storms.</p>
+</div>
+
+<div class="card">
+<h3>10.16 Negative Cache Becoming Too Sticky</h3>
+<p>Negative caching protects the DB, but a long negative TTL can hide newly created data.</p>
+<div class="flow">10:00 → product does not exist<br>
+10:00 → cache NOT_FOUND for 10 minutes<br>
+10:01 → product is created<br>
+10:02 → users still receive NOT_FOUND</div>
+<p>Use short TTLs for negative entries and explicitly invalidate them when the entity is created.</p>
+</div>
+
+<div class="card">
+<h3>10.17 Cache Poisoning / Untrusted Cache Inputs</h3>
+<p>Never blindly cache data based on untrusted user-controlled input or cache responses that should not be shared.</p>
+<p>Be careful with:</p>
+<ul>
+<li>Authorization-dependent responses.</li>
+<li>User-specific data.</li>
+<li>Headers and locale.</li>
+<li>Query parameters.</li>
+<li>Permissions and roles.</li>
+</ul>
+<p>A cache key must represent all inputs that change the response. Otherwise one user's response can accidentally be served to another user.</p>
+</div>
+
+<div class="card">
+<h3>10.18 Cache Stampede Caused by Application Restart</h3>
+<p>Even if Redis is healthy, restarting all application instances can destroy L1 local caches simultaneously.</p>
+<div class="flow">50 application instances restart<br>↓<br>All L1 caches become empty<br>↓<br>All instances query Redis<br>↓<br>Redis load spikes</div>
+<p>If Redis is also cold, the load can propagate to the DB.</p>
+<p><strong>Protection:</strong> rolling deployments, gradual instance replacement, warm-up, L2 caching, and traffic ramp-up.</p>
+</div>
+
+<div class="card">
+<h3>10.19 Distributed Cache Lock Contention</h3>
+<p>A distributed lock can prevent a DB stampede but create a different bottleneck if many requests wait for the same lock.</p>
+<p>For a hot key:</p>
+<div class="flow">10,000 requests<br>↓<br>1 request owns lock<br>↓<br>9,999 requests waiting<br>↓<br>lock holder is slow<br>↓<br>large queue / latency</div>
+<p>This is why stale-while-revalidate can be preferable when stale data is acceptable. Do not simply replace DB overload with lock contention.</p>
+</div>
+
+<div class="card">
+<h3>10.20 Lock Expiration While the Owner Is Still Working</h3>
+<p>Suppose a lock has a 5-second TTL but the DB operation takes 8 seconds. The lock can expire while the first worker is still running. Another worker may acquire the lock and start the same rebuild.</p>
+<p>This creates duplicate work and can cause correctness problems.</p>
+<p>Production approaches include safe lock ownership, lease renewal where appropriate, fencing/version tokens, or choosing a design that does not require long-held distributed locks.</p>
+</div>
+
+<div class="card">
+<h3>10.21 Retry Storm</h3>
+<p>Cache misses, Redis timeouts, DB timeouts, and client retries can multiply traffic.</p>
+<p>For example:</p>
+<div class="flow">10,000 original requests<br>× 3 automatic retries<br>≈ 40,000 attempts</div>
+<p><strong>Protection:</strong> bounded retries, exponential backoff, jitter, retry budgets, deadlines, circuit breakers, and avoiding retries for non-transient failures.</p>
+</div>
+
+<div class="card">
+<h3>10.22 Cache + Database Transaction Boundary</h3>
+<p>Redis normally does not participate in the same ACID transaction as the relational database.</p>
+<p>Therefore, avoid pretending that:</p>
+<pre><code>BEGIN DB TX
+UPDATE DB
+UPDATE Redis
+COMMIT</code></pre>
+<p>is one atomic transaction. The cache update can fail independently.</p>
+<p>For reliable propagation, transactional outbox + asynchronous cache invalidation is often a better architecture.</p>
+</div>
+
+<div class="card">
+<h3>10.23 Cache Invalidation Ordering</h3>
+<p>With asynchronous events, events can arrive out of order.</p>
+<div class="flow">Update v2 → event v2<br>
+Update v3 → event v3<br>
+Consumer receives v3 first<br>
+Consumer receives v2 later<br>
+↓<br>
+Cache can accidentally move backward</div>
+<p>Use version numbers, timestamps with care, sequence numbers, or idempotent consumers that reject older versions.</p>
+</div>
+
+<div class="card">
+<h3>10.24 Partial Cache Failure in a Redis Cluster</h3>
+<p>In a distributed Redis cluster, one shard can have problems while other shards remain healthy. The application may see partial failures rather than a complete outage.</p>
+<p>Design for:</p>
+<ul>
+<li>Timeouts.</li>
+<li>Retry only when safe.</li>
+<li>Cluster failover behavior.</li>
+<li>Hot-key concentration on a shard.</li>
+<li>Memory imbalance.</li>
+<li>Monitoring per node/shard.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>10.25 When NOT to Cache</h3>
+<p>Senior engineers should also know when caching is a bad idea.</p>
+<ul>
+<li>Data is rarely read and expensive to invalidate.</li>
+<li>Data must always be strongly consistent.</li>
+<li>Data is extremely large and rarely reused.</li>
+<li>The backend is already faster than the cache path after serialization/network overhead.</li>
+<li>Cache complexity is greater than the performance benefit.</li>
+</ul>
+<p>A cache adds another failure mode and another consistency boundary. It should solve a measured performance/scalability problem, not be added automatically.</p>
+</div>
+
+
+<h2 id="deep-dive">13. Deep-Dive: Production Caching Failure Cases</h2>
+
+<div class="card">
+<h3>13.1 Cache Penetration — Detailed Design</h3>
+<p><strong>Problem:</strong> A request asks for a key that does not exist. Because there is no cached value, every request queries the database. If attackers or buggy clients generate random IDs, the cache provides almost no protection.</p>
+<div class="flow">GET product:ABC123<br>↓<br>Redis MISS<br>↓<br>DB MISS<br>↓<br>No positive cache entry<br>↓<br>Next request repeats the same DB query</div>
+<h4>Solution A — Negative Caching</h4>
+<p>Cache the fact that the entity does not exist for a short period.</p>
+<pre><code>product:ABC123 = NOT_FOUND
+TTL = 10–60 seconds</code></pre>
+<p><strong>Trade-off:</strong> If the product is created immediately after the negative cache is written, users may temporarily receive NOT_FOUND. Therefore the TTL should usually be short, and entity creation can explicitly invalidate the negative key.</p>
+<h4>Solution B — Bloom Filter</h4>
+<p>A Bloom filter can quickly answer “this ID definitely does not exist” without querying the database. It is memory-efficient but probabilistic: a false positive is possible, while a false negative should not occur with a correctly maintained filter.</p>
+<h4>Solution C — Request Validation / Rate Limiting</h4>
+<p>Reject obviously invalid IDs before reaching Redis or the database. Rate-limit clients that generate abnormal numbers of random IDs.</p>
+<div class="callout"><strong>Senior choice:</strong> For normal invalid requests, use short negative caching. For very large key spaces or abuse-prone APIs, combine negative caching with a Bloom filter and rate limiting.</div>
+</div>
+
+<div class="card">
+<h3>13.2 Cache Avalanche — Detailed Design</h3>
+<p><strong>Problem:</strong> A large population of keys expires at nearly the same time, causing a sudden cache miss wave.</p>
+<pre><code>100,000 keys
+TTL = exactly 10 minutes
+↓
+all created around 12:00
+↓
+12:10
+↓
+many keys expire together
+↓
+DB QPS suddenly increases</code></pre>
+<h4>Solution A — TTL Jitter</h4>
+<pre><code>baseTTL = 600 seconds
+jitter = random(0, 120)
+
+actualTTL = baseTTL + jitter</code></pre>
+<p>This spreads expiration over a window instead of synchronizing it.</p>
+<h4>Solution B — Refresh-Ahead</h4>
+<p>Refresh frequently used keys before their expiration time. For example, if TTL is 10 minutes, refresh at 8–9 minutes when the key is known to be hot.</p>
+<h4>Solution C — Pre-Warming</h4>
+<p>Before a known promotion, preload predictable hot data. This is useful for flash sales, campaign pages, scheduled events, and morning traffic peaks.</p>
+<h4>Solution D — Backend Protection</h4>
+<p>Even if the cache becomes cold, the DB must not receive unlimited requests. Use a concurrency semaphore, connection-pool limits, timeouts, circuit breakers, and load shedding.</p>
+<div class="callout"><strong>Senior point:</strong> TTL jitter reduces synchronized expiration; it does not protect one extremely hot key. For hot keys, combine it with single-flight or stale-while-revalidate.</div>
+</div>
+
+<div class="card">
+<h3>13.3 Hot Key — Detailed Design</h3>
+<p><strong>Problem:</strong> One key receives a huge percentage of traffic. Example: a product page receives 500,000 requests/second during a flash sale.</p>
+<p>Even if Redis can process high throughput, the same key can become concentrated on one shard or create unnecessary network traffic from every application instance.</p>
+<h4>Solution A — L1 Local Cache</h4>
+<div class="flow">Application<br>↓<br>Caffeine L1<br>↓ miss<br>Redis L2<br>↓ miss<br>DB</div>
+<p>Frequently accessed values can be served directly from application memory. This reduces network latency and Redis QPS.</p>
+<h4>Solution B — Request Coalescing</h4>
+<p>If the value is missing locally, only one request should rebuild it while concurrent requests share the result.</p>
+<h4>Solution C — Pre-Warming</h4>
+<p>Load predictable hot data before traffic arrives.</p>
+<h4>Solution D — Hot-Key Replication</h4>
+<p>In architectures that support it, extremely hot values can be replicated across cache nodes or read replicas to distribute read pressure. This adds operational complexity and invalidation cost.</p>
+<div class="callout"><strong>Senior distinction:</strong> Hot key = uneven traffic distribution. Stampede = many requests rebuilding after a miss. A hot key can exist without expiration, and a stampede can happen without a single permanent hot key.</div>
+</div>
+
+<div class="card">
+<h3>13.4 Cache Consistency — DB and Cache Race Conditions</h3>
+<p>Consider this common sequence:</p>
+<div class="flow">T1: update DB → price = $120<br>
+T2: read DB → old price = $100<br>
+T1: delete Redis<br>
+T2: SET Redis = $100<br>
+↓<br>Redis contains stale data again</div>
+<p>The problem is not simply “forgot to invalidate.” The real issue is concurrent read/write ordering.</p>
+<h4>Solution A — Versioned Values</h4>
+<pre><code>Redis:
+product:123 = {
+    version: 42,
+    price: 120
+}</code></pre>
+<p>When updating the cache, reject an older version if a newer version is already present.</p>
+<h4>Solution B — Transactional Outbox</h4>
+<p>Update the DB and write an outbox event in the same database transaction. A background publisher sends the committed event to a cache-invalidation consumer.</p>
+<div class="flow">DB transaction<br>├── update product<br>└── insert ProductUpdated event<br>↓ commit<br>Outbox publisher<br>↓<br>Cache invalidation consumer<br>↓<br>Redis DEL / SET</div>
+<p>This avoids losing the invalidation event if the application crashes after the DB commit.</p>
+<h4>Solution C — Short TTL</h4>
+<p>Useful as a safety net, but TTL should not be treated as the primary consistency mechanism when freshness matters.</p>
+</div>
+
+<div class="card">
+<h3>13.5 Delayed Double Delete</h3>
+<p>A commonly discussed technique is:</p>
+<pre><code>1. Delete cache
+2. Update DB
+3. Wait briefly
+4. Delete cache again</code></pre>
+<p>The second delete attempts to remove a stale value that may have been written by a concurrent reader.</p>
+<p>However, the delay is heuristic. It does not provide a formal transactional guarantee. The correct delay depends on system latency and concurrency and can still fail in unusual schedules.</p>
+<div class="callout warn"><strong>Interview answer:</strong> Mention delayed double-delete as a practical technique, but do not present it as a perfect consistency guarantee. For stronger guarantees, discuss versioning, serialized updates, transactional outbox, or CDC.</div>
+</div>
+
+<div class="card">
+<h3>13.6 Redis Failure — Preventing DB Fallback Storm</h3>
+<p>The dangerous design is:</p>
+<pre><code>try Redis
+catch RedisException:
+    query DB</code></pre>
+<p>If 10,000 requests arrive while Redis is down, this can generate 10,000 DB queries.</p>
+<h4>Better design</h4>
+<div class="flow">Redis timeout<br>↓<br>Fast failure / circuit breaker<br>↓<br>L1 stale cache?<br>├─ YES → return stale<br>└─ NO → bounded DB concurrency<br>             ↓<br>         DB timeout<br>             ↓<br>       controlled 503</div>
+<p>The application should define a maximum number of concurrent fallback DB requests. Excess traffic should wait briefly, use stale data, or fail fast.</p>
+<h4>Important Configuration</h4>
+<ul>
+<li>Redis connection timeout.</li>
+<li>Redis command timeout.</li>
+<li>Bounded connection pools.</li>
+<li>Circuit breaker.</li>
+<li>Bulkhead/concurrency isolation.</li>
+<li>Fallback policy.</li>
+<li>Observability and alerting.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>13.7 Distributed Lock — Correctness Details</h3>
+<p>A simple Redis pattern is conceptually:</p>
+<pre><code>SET product:123:lock requestId NX EX 10</code></pre>
+<p><code>NX</code> means only create the lock if it does not already exist. <code>EX</code> prevents an abandoned lock from remaining forever.</p>
+<p>But the lock must be released only by its owner. Never blindly execute:</p>
+<pre><code>DEL product:123:lock</code></pre>
+<p>because the original lease might have expired and another worker may now own the lock.</p>
+<p>A safe release checks ownership using a unique token.</p>
+<h4>Long-running operation problem</h4>
+<div class="flow">Worker A gets lock for 5 sec<br>DB operation takes 8 sec<br>↓<br>lock expires<br>↓<br>Worker B gets lock<br>↓<br>A and B both rebuild cache</div>
+<p>Possible approaches include lease renewal, fencing tokens, or avoiding long lock ownership entirely through stale-while-revalidate.</p>
+<div class="callout"><strong>Senior answer:</strong> A distributed lock is a coordination mechanism, not a magic correctness guarantee. Always discuss ownership, lease expiry, crashes, contention, and bounded waiting.</div>
+</div>
+
+<div class="card">
+<h3>13.8 Stale-While-Revalidate — Why It Is Often Better</h3>
+<p>For read-heavy data where a few seconds of staleness is acceptable, do not make thousands of requests wait for a rebuild.</p>
+<div class="flow">Fresh value<br>↓<br>return immediately<br><br>Stale but acceptable<br>↓<br>return stale immediately<br>↓<br>ONE background refresh<br>↓<br>DB → Redis<br><br>Too old / unavailable<br>↓<br>controlled synchronous rebuild</div>
+<p>This gives excellent latency and protects the database. The key requirement is a clearly defined freshness policy.</p>
+<table>
+<tr><th>State</th><th>Action</th></tr>
+<tr><td>Fresh</td><td>Return immediately.</td></tr>
+<tr><td>Stale but within grace period</td><td>Return stale; trigger one refresh.</td></tr>
+<tr><td>Expired beyond grace</td><td>Single-flight rebuild.</td></tr>
+<tr><td>DB unavailable but stale exists</td><td>Serve stale if business rules allow.</td></tr>
+<tr><td>No cache and DB unavailable</td><td>Fail gracefully.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>13.9 Retry Storm — Detailed Protection</h3>
+<p>Retries can multiply traffic dramatically.</p>
+<div class="flow">10,000 original requests<br>↓<br>each retries 3 times<br>↓<br>up to ~40,000 attempts</div>
+<p>Use:</p>
+<ul>
+<li>Exponential backoff.</li>
+<li>Random jitter.</li>
+<li>Maximum retry count.</li>
+<li>Retry budgets.</li>
+<li>Request deadlines.</li>
+<li>Circuit breakers.</li>
+<li>Do not retry non-transient errors.</li>
+</ul>
+<pre><code>delay = min(maxDelay, baseDelay * 2^attempt)
+actualDelay = random(0, delay)</code></pre>
+<p>The important idea is that retries must be treated as additional traffic. They are not free.</p>
+</div>
+
+<div class="card">
+<h3>13.10 Multi-Tenant / Authorization-Sensitive Caching</h3>
+<p>Suppose an endpoint returns data based on tenant and user permissions. A cache key containing only the resource ID can accidentally share data between users.</p>
+<pre><code>BAD:
+document:123
+
+BETTER:
+tenant:42:document:123
+
+Possibly required:
+tenant:42:user:88:document:123</code></pre>
+<p>The correct key depends on whether the response is tenant-wide, user-specific, role-specific, locale-specific, or permission-specific.</p>
+<div class="callout dangerbox"><strong>Security rule:</strong> Every input that can change the authorization or response must be represented in the cache boundary. A cache hit must never bypass authorization semantics.</div>
+</div>
+
+<div class="card">
+<h3>13.11 Memory Pressure and Eviction Storm</h3>
+<p>When Redis reaches its memory limit, keys may be evicted according to the configured policy. A sudden eviction increase can reduce cache hit ratio and amplify DB traffic.</p>
+<div class="flow">Memory reaches limit<br>↓<br>Redis evicts keys<br>↓<br>Hit ratio drops<br>↓<br>DB traffic increases<br>↓<br>DB latency increases<br>↓<br>application latency increases</div>
+<h4>Solutions</h4>
+<ul>
+<li>Set an appropriate maxmemory policy.</li>
+<li>Monitor memory headroom.</li>
+<li>Monitor evicted_keys and hit ratio.</li>
+<li>Control object size.</li>
+<li>Set TTL for disposable data.</li>
+<li>Separate critical and disposable cache workloads where appropriate.</li>
+<li>Scale Redis capacity before sustained memory pressure becomes an outage.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>13.12 Large Cache Values</h3>
+<p>A cache hit is not automatically cheap. A 5 MB Redis value still requires network transfer and deserialization.</p>
+<p>Large values can cause:</p>
+<ul>
+<li>Network bandwidth pressure.</li>
+<li>Higher Redis latency.</li>
+<li>Higher JVM allocation and GC pressure.</li>
+<li>Longer replication time.</li>
+<li>Higher memory fragmentation.</li>
+</ul>
+<p>Prefer smaller payloads, partial objects, pagination, or storing large blobs outside Redis and caching only metadata or references.</p>
+</div>
+
+<div class="card">
+<h3>13.13 Serialization and Cache Schema Versioning</h3>
+<p>Deployments can change object structure while old entries remain in Redis.</p>
+<p>A robust strategy is versioned cache keys:</p>
+<pre><code>product:v1:123
+product:v2:123</code></pre>
+<p>Deploy the new application version using v2. Old v1 entries can expire naturally or be removed later. This avoids requiring an enormous synchronous cache flush during deployment.</p>
+<p>For Java systems, also consider compatibility of JSON, Java serialization, protobuf, or other formats. Avoid native Java serialization for long-lived distributed cache contracts when safer schema-controlled formats are available.</p>
+</div>
+
+<div class="card">
+<h3>13.14 Cache Warm-Up and Cold Start</h3>
+<p>A cold cache after Redis restart or deployment can create a sudden backend spike.</p>
+<h4>Controlled warm-up</h4>
+<ol>
+<li>Start a small number of application instances.</li>
+<li>Warm the most important keys.</li>
+<li>Gradually increase traffic.</li>
+<li>Monitor DB utilization.</li>
+<li>Continue warming less important data asynchronously.</li>
+</ol>
+<p>For predictable workloads, maintain a list of top keys based on historical traffic and pre-warm them.</p>
+</div>
+
+<div class="card">
+<h3>13.15 Cache Invalidation Event Ordering</h3>
+<p>Suppose two updates happen:</p>
+<pre><code>v2 event
+v3 event</code></pre>
+<p>If the consumer receives v3 first and v2 later, blindly applying events can make the cache move backward.</p>
+<h4>Solution</h4>
+<pre><code>if incomingVersion &lt; cachedVersion:
+    ignore event
+else:
+    update cache</code></pre>
+<p>This requires the domain event to carry a reliable version or sequence number. Consumers should also be idempotent because duplicate event delivery is common.</p>
+</div>
+
+<div class="card">
+<h3>13.16 Application Restart and L1 Cache Stampede</h3>
+<p>With Caffeine L1 + Redis L2, restarting all application instances simultaneously empties every L1 cache.</p>
+<p>Even if Redis remains healthy, Redis QPS can suddenly increase. If Redis is also cold, the load propagates further to the DB.</p>
+<p><strong>Solution:</strong> rolling deployment, gradual instance replacement, startup warm-up, L1 TTL jitter, and controlled traffic ramp-up.</p>
+</div>
+
+<div class="card">
+<h3>13.17 When NOT to Cache</h3>
+<p>A senior engineer should challenge unnecessary caching.</p>
+<p>Do not automatically cache data when:</p>
+<ul>
+<li>It is rarely read.</li>
+<li>It changes extremely frequently.</li>
+<li>Strong consistency is required.</li>
+<li>Invalidation is harder than the original DB query.</li>
+<li>The object is too large.</li>
+<li>The database query is already cheap and well-indexed.</li>
+<li>The cache introduces more operational complexity than performance benefit.</li>
+</ul>
+<div class="callout"><strong>Senior principle:</strong> Cache only when measured latency, throughput, cost, or scalability requirements justify the additional consistency and failure complexity.</div>
+</div>
+
+<h2 id="production-decision">14. How I Would Design It in Production</h2>
+<div class="card goodbox">
+<h3>Recommended architecture for a read-heavy hot-key workload</h3>
+<div class="flow">Client
+  ↓
+Load Balancer
+  ↓
+Spring Boot Application
+  ↓
+L1 Caffeine
+  │
+  └── miss
+       ↓
+     Redis L2
+       │
+       ├── fresh → return
+       │
+       ├── stale → return stale
+       │            + one async refresh
+       │
+       └── unavailable/miss
+              ↓
+        SingleFlight / Distributed Lease
+              ↓
+        DB Concurrency Limit
+              ↓
+           Database
+              ↓
+        Redis SET + TTL Jitter
+              ↓
+         L1 population
+</div>
+<h4>Protection layers</h4>
+<table>
+<tr><th>Layer</th><th>Purpose</th></tr>
+<tr><td>L1 Caffeine</td><td>Absorb extremely hot local reads.</td></tr>
+<tr><td>Redis L2</td><td>Shared cache across instances.</td></tr>
+<tr><td>TTL jitter</td><td>Prevent synchronized expiration.</td></tr>
+<tr><td>SWR</td><td>Avoid blocking users during refresh.</td></tr>
+<tr><td>SingleFlight / lease</td><td>Prevent duplicate rebuilds.</td></tr>
+<tr><td>DB semaphore</td><td>Put a hard ceiling on DB fallback load.</td></tr>
+<tr><td>Timeouts</td><td>Prevent resource exhaustion.</td></tr>
+<tr><td>Circuit breaker</td><td>Stop repeated calls to an unhealthy dependency.</td></tr>
+<tr><td>Retry budget</td><td>Prevent retries from multiplying traffic.</td></tr>
+<tr><td>Observability</td><td>Detect amplification before it becomes an outage.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>What I would say in a Senior Interview</h3>
+<p>“I would start with cache-aside because it is simple and gives the application control over caching. But I would not stop there. The failure modes are more important than the happy path. For a hot key, synchronized expiration can create a thundering herd where thousands of requests hit the database simultaneously. If bounded staleness is acceptable, I prefer stale-while-revalidate so requests continue serving a previous value while only one refresh happens. If freshness is mandatory, I use request coalescing or a distributed lease with bounded concurrency.</p>
+<p>I also use TTL jitter to prevent mass expiration, negative caching for nonexistent objects, and pre-warming for predictable hot keys. Redis failure must not cause an uncontrolled DB fallback, so I add timeouts, circuit breakers, bulkheads, and a hard DB concurrency limit. For cache consistency, I consider invalidation races, versioned values, and transactional outbox or CDC for reliable propagation. Finally, I monitor cache hit ratio, miss bursts, rebuild amplification, Redis latency, eviction rate, lock contention, DB connection utilization, retries, and end-to-end latency.</p>
+<p>The key principle is that a cache is not just a performance layer. It is another distributed-system component with its own consistency, availability, failure, and concurrency problems.”</p>
+</div>
+
+<h2>11. Caching Failure Matrix</h2>
+<table>
+<tr><th>Scenario</th><th>What goes wrong</th><th>Primary solution</th><th>Secondary protection</th></tr>
+<tr><td>One hot key expires</td><td>10,000 requests hit DB</td><td>Single-flight / distributed lock</td><td>SWR, pre-warm</td></tr>
+<tr><td>Millions of keys expire</td><td>DB receives huge miss burst</td><td>TTL jitter</td><td>Refresh-ahead</td></tr>
+<tr><td>Random invalid IDs</td><td>Repeated DB misses</td><td>Negative cache</td><td>Bloom filter, rate limit</td></tr>
+<tr><td>Redis unavailable</td><td>Traffic falls through to DB</td><td>DB concurrency limit</td><td>L1, circuit breaker</td></tr>
+<tr><td>DB updated, cache stale</td><td>Old data returned</td><td>Invalidate/update cache</td><td>Events, TTL</td></tr>
+<tr><td>Out-of-order invalidation</td><td>Old value overwrites new value</td><td>Versioning</td><td>Sequence checks</td></tr>
+<tr><td>Tenant omitted from key</td><td>Cross-tenant data leak</td><td>Tenant-aware key</td><td>Authorization checks</td></tr>
+<tr><td>Large values</td><td>Memory/network pressure</td><td>Smaller payloads</td><td>Object storage</td></tr>
+<tr><td>Cold cache after restart</td><td>Backend traffic spike</td><td>Warm-up</td><td>Rate limiting</td></tr>
+<tr><td>Lock contention</td><td>Requests queue</td><td>SWR</td><td>Timeout/fallback</td></tr>
+<tr><td>Retry storm</td><td>Traffic multiplication</td><td>Retry budget/backoff</td><td>Circuit breaker</td></tr>
+<tr><td>Schema changed</td><td>Old cache incompatible</td><td>Versioned keys</td><td>Compatible serialization</td></tr>
+</table>
+
+<h2>12. Extra Senior Interview Questions</h2>
+
+<details>
+<summary>Q8. What is cache penetration vs cache stampede vs cache avalanche?</summary>
+<p><strong>Cache penetration:</strong> requests repeatedly ask for data that does not exist, so every request can hit the DB.</p>
+<p><strong>Cache stampede:</strong> many requests miss the same hot cache entry at the same time and all rebuild it.</p>
+<p><strong>Cache avalanche:</strong> a large population of cache entries becomes unavailable around the same time, creating a broad backend load spike.</p>
+</details>
+
+<details>
+<summary>Q9. What happens if Redis is healthy but the DB is down?</summary>
+<p>If the requested data is still cached and acceptable to serve, the application can continue serving cache hits. But cache misses must not blindly retry the unavailable DB. Timeouts, circuit breakers, stale fallback, and controlled degradation are important.</p>
+</details>
+
+<details>
+<summary>Q10. What is the most dangerous cache bug?</summary>
+<p>From a security perspective, serving one user's or tenant's data to another because of an incorrect cache key is extremely serious. From a reliability perspective, a cache failure that causes an uncontrolled DB flood is also dangerous. A senior engineer should consider correctness, security, and availability—not only hit ratio.</p>
+</details>
+
+<details>
+<summary>Q11. Why can adding a cache make a system less reliable?</summary>
+<p>Because the system now has another dependency, another consistency boundary, serialization overhead, invalidation logic, memory management, and failure modes. If the fallback path is not protected, a cache outage can overload the database. Therefore caching improves performance only when its failure behavior is designed properly.</p>
+</details>
+
+<details>
+<summary>Q12. How would you design caching for a flash-sale product?</summary>
+<p>I would treat the product as a hot-key scenario. I would pre-warm the product data, use L1/L2 caching, avoid synchronized TTL expiration, use stale-while-revalidate where acceptable, coalesce rebuilds, and strictly limit DB access. I would also consider whether inventory should be cached at all because inventory correctness and concurrency requirements are different from read-only product metadata. The inventory reservation path should have its own consistency design.</p>
+</details>
+
+<div class="card goodbox">
+<h3>Senior Mental Model</h3>
+<p>When you see a caching problem, ask these questions in order:</p>
+<ol>
+<li><strong>What is the source of truth?</strong></li>
+<li><strong>How stale can the data be?</strong></li>
+<li><strong>What happens on a cache miss?</strong></li>
+<li><strong>What happens when 10,000 requests miss together?</strong></li>
+<li><strong>What happens if Redis is down?</strong></li>
+<li><strong>What happens if the DB is down?</strong></li>
+<li><strong>Can invalidation race with reads/writes?</strong></li>
+<li><strong>Can different users/tenants receive the wrong cached response?</strong></li>
+<li><strong>Can retries multiply the traffic?</strong></li>
+<li><strong>How do we observe and measure the behavior?</strong></li>
+</ol>
+<p>This mental model is usually more valuable in a senior interview than memorizing individual caching patterns.</p>
+</div>
+
+
+<h2 id="real-world">15. Real Production Patterns Used by Large-Scale Companies</h2>
+
+<div class="card">
+<h3>15.1 Facebook/Meta — Request Coalescing for Massive Fan-Out</h3>
+<p>At Meta scale, the cache is not treated as a simple key-value store. Facebook has described using request coalescing to prevent a large number of requests for the same uncached object from reaching the origin simultaneously. In a live-video scenario, the first request can fetch the object while subsequent requests wait and are served after the object reaches the edge cache.</p>
+<div class="flow">1st request → origin fetch<br>
+next 999,999 requests → wait/coalesce<br>
+origin response → edge cache<br>
+all waiting requests → cache hit</div>
+<p><strong>Production lesson:</strong> when one object can suddenly become extremely popular, “just add Redis” is insufficient. The cache layer needs to understand duplicate in-flight work.</p>
+<p><strong>Interview takeaway:</strong> “For a hot object, I would use request coalescing so one request performs the expensive fill while concurrent requests share the result.”</p>
+</div>
+
+<div class="card">
+<h3>15.2 Facebook/Meta — Multi-Level Caching</h3>
+<p>Meta has described cache architectures with multiple cache layers for high-scale workloads. For example, its photo infrastructure used cache layers between the user-facing edge and the underlying storage system.</p>
+<div class="flow">User<br>↓<br>Edge cache<br>↓ miss<br>Origin cache<br>↓ miss<br>Storage</div>
+<p>This is a powerful production pattern because the cache hierarchy prevents every request from travelling all the way to the source of truth.</p>
+<p><strong>Use case:</strong> CDN → application cache → Redis → database/object storage.</p>
+<p><strong>Trade-off:</strong> every additional layer increases consistency and invalidation complexity.</p>
+</div>
+
+<div class="card">
+<h3>15.3 Facebook/Meta — Cache Routing and Sharding</h3>
+<p>At very large scale, cache infrastructure itself becomes a distributed system. Meta built mcrouter to route traffic across many memcached servers and clusters. This illustrates an important production transition: the cache eventually needs its own routing, failure isolation, reconfiguration, and observability layer.</p>
+<p><strong>Production lesson:</strong> consistent hashing, shard distribution, failure isolation, and online reconfiguration become important when one cache cluster is no longer enough.</p>
+<p><strong>Senior interview question:</strong> “What happens if one Redis node becomes hot?”</p>
+<p><strong>Answer:</strong> inspect key distribution and hot keys, because increasing the number of nodes does not automatically solve a single hot key concentrated on one shard.</p>
+</div>
+
+<div class="card">
+<h3>15.4 Facebook/Meta — Cache Consistency Is a Distributed-Systems Problem</h3>
+<p>Meta has publicly described cache consistency as a major engineering problem. One important lesson is that cache fill and cache invalidation can race with each other, creating stale values even when the application appears to follow a simple “update DB then invalidate cache” rule.</p>
+<div class="flow">Reader fills old value<br>       ↘<br>        cache ← stale value<br>       ↗<br>Writer invalidates cache</div>
+<p><strong>Production lesson:</strong> invalidation ordering, versions, race detection, and reliable propagation matter much more than simply choosing Redis versus Memcached.</p>
+</div>
+
+<div class="card">
+<h3>15.5 Facebook/Meta — Delete Holds to Protect Against Stale Sets</h3>
+<p>Meta has described a production technique where a delete can temporarily prevent a stale set from repopulating a key. This addresses a subtle race in which an old cache fill arrives after an invalidation.</p>
+<div class="flow">Old reader starts<br>↓<br>Writer deletes cache<br>↓<br>Old reader finishes<br>↓<br>old value tries SET<br>↓<br>delete hold-off blocks stale SET</div>
+<p><strong>Why this matters:</strong> cache invalidation races can exist even when every individual operation is technically successful.</p>
+<p><strong>Interview takeaway:</strong> “I would reason about the ordering of cache fill and invalidation, not just the individual commands.”</p>
+</div>
+
+<div class="card">
+<h3>15.6 Facebook/Meta — Observability at Cache Scale</h3>
+<p>Meta has described dedicated cache monitoring because diagnosing whether an incident originates in the cache or backend is difficult at scale.</p>
+<p>Useful production dashboards include:</p>
+<ul>
+<li>Hit ratio by cache cluster and key class.</li>
+<li>Miss rate and miss burst.</li>
+<li>p50/p95/p99 cache latency.</li>
+<li>Backend load generated by misses.</li>
+<li>Eviction rate.</li>
+<li>Hot-key concentration.</li>
+<li>Connection utilization.</li>
+<li>Error and timeout rate.</li>
+<li>Cache fill latency.</li>
+</ul>
+<p><strong>Important metric:</strong> cache miss amplification — how much backend work one cache miss creates.</p>
+</div>
+
+<div class="card">
+<h3>15.7 Facebook/Meta — Flash-Crowd / “Everyone Arrives at Once” Events</h3>
+<p>Meta has described handling events where millions of users may request the same content simultaneously. This is not the same workload as normal traffic because the arrival rate is synchronized.</p>
+<p>Examples in other companies include:</p>
+<ul>
+<li>Flash sales.</li>
+<li>Concert ticket releases.</li>
+<li>Sports finals.</li>
+<li>Product launches.</li>
+<li>Breaking news.</li>
+<li>Limited inventory drops.</li>
+</ul>
+<p><strong>Production response:</strong> pre-warm important data, use CDN/edge caching, coalesce requests, protect origins with concurrency limits, and gradually admit traffic when necessary.</p>
+</div>
+
+<div class="card">
+<h3>15.8 Karrot — Probabilistic Early Expiration</h3>
+<p>Karrot's feature-serving platform, described in an AWS Architecture Blog case study, uses probabilistic early expiration to proactively refresh data likely to be requested again. The system also combines soft and hard TTL concepts, jitter, negative caching, and locking to address cache misses, consistency, stampede, and penetration.</p>
+<p>This is a useful real-world example because it demonstrates that mature caching systems often use <strong>multiple defenses simultaneously</strong>, not one universal pattern.</p>
+<div class="flow">Normal TTL<br>↓<br>probabilistic early refresh<br>↓<br>soft TTL<br>↓<br>hard TTL<br>↓<br>jitter + lock + negative cache</div>
+<p><strong>Interview takeaway:</strong> “For very high-scale feature serving, I can use probabilistic early refresh instead of waiting for every key to reach exactly the same expiration boundary.”</p>
+</div>
+
+<div class="card">
+<h3>15.9 AWS / ElastiCache — Monitor TTL Population for Stampede Risk</h3>
+<p>AWS documentation and architecture guidance highlight that TTL configuration and the population of expiring items are useful signals for identifying potential cache stampedes. If many volatile keys exist and hit ratio suddenly drops, the cache may be entering a synchronized-expiration pattern.</p>
+<p><strong>Production lesson:</strong> do not monitor only Redis CPU and memory. Monitor the shape of expiration and cache-miss behavior.</p>
+</div>
+
+<div class="card">
+<h3>15.10 CDN / Edge Caching — Origin Protection</h3>
+<p>Large-scale video and web systems often put caches close to users. The purpose is not only latency reduction; it is also <strong>origin protection</strong>.</p>
+<div class="flow">Millions of clients<br>↓<br>Edge cache<br>↓ only on miss<br>Origin<br>↓<br>Storage</div>
+<p>Without the edge layer, a viral object can turn into millions of origin requests. With request coalescing, only a small number of requests need to fetch the object from the origin.</p>
+<p><strong>Senior insight:</strong> cache architecture should be designed around protecting the slowest and most expensive dependency, not merely making individual requests faster.</p>
+</div>
+
+<div class="card">
+<h3>15.11 Real-World Pattern — Separate Freshness From Availability</h3>
+<p>A mature cache design often defines two limits instead of one TTL:</p>
+<ul>
+<li><strong>Soft TTL:</strong> data is preferred to be fresh, but stale data may still be served.</li>
+<li><strong>Hard TTL:</strong> data is too old and cannot be served normally.</li>
+</ul>
+<div class="flow">0 ───────── 5 min ───────── 10 min ────────→<br>
+     Fresh          Soft-expired           Hard-expired<br>
+     return         serve + refresh        rebuild/fail</div>
+<p>This separation is particularly useful for recommendation systems, product metadata, configuration, and other read-heavy workloads where a few seconds of staleness is much cheaper than a database outage.</p>
+</div>
+
+<div class="card">
+<h3>15.12 Real-World Pattern — Protect the Database Even When Cache Is Correct</h3>
+<p>A common mistake is to calculate capacity from cache hit ratio alone.</p>
+<p>Example:</p>
+<pre><code>1,000,000 requests/sec
+99.9% cache hit ratio
+
+Misses = 1,000 requests/sec</code></pre>
+<p>That may sound safe. But if each miss causes five downstream queries, the database actually receives:</p>
+<pre><code>1,000 × 5 = 5,000 queries/sec</code></pre>
+<p>If each query also triggers a remote call, the real amplification is even higher.</p>
+<p><strong>Production rule:</strong> measure the entire miss path, not just the cache hit ratio.</p>
+</div>
+
+<h2>16. Real Production Scenarios — What Would You Do?</h2>
+
+<div class="card">
+<h3>Scenario A — Flash Sale Product</h3>
+<p><strong>Situation:</strong> 500,000 users request the same product page in 2 seconds.</p>
+<p><strong>Design:</strong></p>
+<ol>
+<li>CDN/edge cache static and cacheable content.</li>
+<li>L1 local cache for application-level hot metadata.</li>
+<li>Redis for shared product data.</li>
+<li>Pre-warm the product before the event.</li>
+<li>Use stale-while-revalidate.</li>
+<li>Single-flight cache rebuild.</li>
+<li>Hard DB concurrency limit.</li>
+<li>Keep inventory reservation separate from read-only product metadata.</li>
+</ol>
+<p><strong>Why separate inventory?</strong> Product description can tolerate staleness. Inventory usually has stricter correctness and concurrency requirements. Treating both as the same cache problem is a design mistake.</p>
+</div>
+
+<div class="card">
+<h3>Scenario B — Celebrity / Viral Content</h3>
+<p><strong>Situation:</strong> one post suddenly receives millions of reads.</p>
+<p><strong>Solution:</strong> hot-key detection, edge caching, L1 cache, request coalescing, pre-warming if the event is predictable, and stale serving if acceptable.</p>
+<p>The key question is not “Can Redis handle millions of GETs?” It is “What happens when this object is unavailable or changes, and where does the load concentrate?”</p>
+</div>
+
+<div class="card">
+<h3>Scenario C — Redis Cluster Loses One Shard</h3>
+<p><strong>Situation:</strong> one shard is unavailable while other shards continue serving.</p>
+<p><strong>Solution:</strong> failover, bounded client timeouts, avoid aggressive retries, detect affected key ranges, use L1/stale fallback, and protect the database from sudden fallback traffic.</p>
+<p>Do not assume “cluster = no failure.” A distributed cache can fail partially.</p>
+</div>
+
+<div class="card">
+<h3>Scenario D — Deployment Changes Cache Schema</h3>
+<p><strong>Situation:</strong> Java service v1 stores one JSON structure. v2 expects a different structure.</p>
+<p><strong>Solution:</strong> version the cache key, support compatible reads during migration, gradually warm v2, and allow v1 to expire naturally.</p>
+</div>
+
+<div class="card">
+<h3>Scenario E — Database Is Healthy but Cache Hit Ratio Suddenly Drops</h3>
+<p><strong>Possible causes:</strong></p>
+<ul>
+<li>Mass expiration.</li>
+<li>Eviction storm.</li>
+<li>Changed key format after deployment.</li>
+<li>Hot-key workload shift.</li>
+<li>Cache node failure.</li>
+<li>TTL changed accidentally.</li>
+<li>Serialization failures causing cache writes to fail.</li>
+</ul>
+<p><strong>Senior debugging sequence:</strong> check hit ratio → miss rate → key distribution → eviction → TTL population → Redis latency/errors → application deployment changes → DB QPS.</p>
+</div>
+
+<h2>17. Production Design Rules to Remember</h2>
+<div class="card goodbox">
+<ol>
+<li><strong>Never assume cache hit ratio alone proves the design is safe.</strong></li>
+<li><strong>Protect the origin/DB from cache failure.</strong></li>
+<li><strong>Hot keys and stampedes are different problems.</strong></li>
+<li><strong>TTL jitter prevents synchronization; it does not solve a single hot key.</strong></li>
+<li><strong>Request coalescing is one of the most powerful anti-stampede techniques.</strong></li>
+<li><strong>Serve stale data when business requirements allow it.</strong></li>
+<li><strong>Use hard limits on backend concurrency.</strong></li>
+<li><strong>Cache invalidation is a distributed concurrency problem.</strong></li>
+<li><strong>Every response-changing dimension belongs in the cache key.</strong></li>
+<li><strong>Version cache schemas when deployments change representations.</strong></li>
+<li><strong>Monitor cache misses as a source of backend load amplification.</strong></li>
+<li><strong>Pre-warm predictable traffic.</strong></li>
+<li><strong>Do not cache by default; cache when the workload justifies the complexity.</strong></li>
+</ol>
+</div>
+
+<p class="small">Senior Java / Spring interview study page — caching, Redis, cache-aside, stampede protection and production resilience.</p>
+</div>
+</body>
+</html>

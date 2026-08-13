@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Under Peak Traffic — E-commerce Concurrency & Inventory</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#172033;--muted:#5f6b7a;--accent:#2563eb;--border:#dfe5ee;--code:#101827;--danger:#b42318;--good:#087443;--warn:#a15c00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+.container{max-width:1220px;margin:auto;padding:34px 24px 70px}.hero{background:linear-gradient(135deg,#111827,#1d4ed8);color:#fff;border-radius:18px;padding:42px;margin-bottom:24px}
+h1{font-size:38px;line-height:1.15;margin:0 0 12px}h2{font-size:28px;margin-top:42px;border-bottom:1px solid var(--border);padding-bottom:8px}h3{font-size:21px;margin-top:28px}h4{margin-bottom:6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin:17px 0;box-shadow:0 3px 12px #1720330a}.lead{font-size:18px;opacity:.95}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#e8efff;color:#174ea6;font-size:13px;font-weight:700}
+pre{background:var(--code);color:#e6edf7;padding:17px;border-radius:10px;overflow:auto;font-size:14px;line-height:1.5}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.flow{background:#f0f4f8;padding:13px;border-radius:8px;font-weight:700;overflow:auto}.callout{border-left:5px solid var(--accent);padding:14px 18px;background:#edf4ff;border-radius:8px;margin:15px 0}.danger{border-left-color:var(--danger);background:#fff0ef}.good{border-left-color:var(--good);background:#eefbf5}.warn{border-left-color:var(--warn);background:#fff8eb}
+table{width:100%;border-collapse:collapse;margin:15px 0;background:#fff}th,td{border:1px solid var(--border);padding:11px;text-align:left;vertical-align:top}th{background:#eef3f9}
+li{margin:5px 0}details{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 17px;margin:10px 0}summary{cursor:pointer;font-weight:700}
+@media(max-width:700px){.container{padding:20px 14px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section class="hero">
+<h1>Database Under Peak Traffic</h1>
+<p class="lead">A senior-level guide to database concurrency, inventory correctness, order processing, locking, transactions, idempotency, queues, sharding, and user experience during flash sales and promotion events.</p>
+</section>
+
+<div class="card">
+<strong>Core question:</strong>
+<p>Imagine an e-commerce promotion where <strong>100,000 users arrive within seconds</strong>, 10,000 users try to buy the same SKU, and only 100 units exist.</p>
+<p>The real engineering problem is not simply “How can the database handle 10,000 requests?” It is:</p>
+<div class="flow">How do we guarantee that at most 100 units are sold<br>
+while keeping latency acceptable,<br>
+preventing duplicate orders,<br>
+protecting the database,<br>
+and giving users a good experience?</div>
+</div>
+
+<div class="card">
+<h3>Important production principle</h3>
+<p><strong>Inventory correctness must have one authoritative source of truth.</strong> A cache can accelerate availability checks, but the final reservation/commit must be protected by an authoritative concurrency mechanism.</p>
+<p>Recent production material from Shopify describes moving inventory reservation into MySQL so reservation and inventory ledger operations can share ACID guarantees, while using database techniques such as <code>SKIP LOCKED</code> and a design that avoids a single highly contended quantity row. citeturn0search7</p>
+</div>
+
+<div class="card">
+<strong>Contents</strong>
+<ol>
+<li>Peak Traffic Problem</li>
+<li>Why Naive Inventory Logic Oversells</li>
+<li>Database Concurrency Fundamentals</li>
+<li>Atomic Conditional Update</li>
+<li>Pessimistic Locking</li>
+<li>Optimistic Locking</li>
+<li>Reservation / Hold Model</li>
+<li>Multi-Item Orders and Deadlocks</li>
+<li>Idempotency</li>
+<li>Queue-Based Order Processing</li>
+<li>Connection Pool Protection</li>
+<li>Read Replicas and Why They Cannot Be the Inventory Source of Truth</li>
+<li>Hot Rows and Data Modeling</li>
+<li>Partitioning / Sharding</li>
+<li>Transaction Isolation Levels</li>
+<li>Deadlocks and Retry</li>
+<li>Timeouts and Backpressure</li>
+<li>How to Give a Good User Experience When Stock Runs Out</li>
+<li>End-to-End Flash Sale Architecture</li>
+<li>Production Scenarios</li>
+<li>Senior Interview Questions</li>
+</ol>
+</div>
+
+<h2>1. What Actually Happens During a Promotion Event?</h2>
+<div class="card">
+<p>Normal traffic may look like:</p>
+<div class="flow">200 requests/sec → DB handles comfortably</div>
+<p>A promotion may suddenly become:</p>
+<div class="flow">10:00:00 → 100,000 users enter<br>
+10:00:01 → 20,000 checkout attempts<br>
+10:00:02 → 10,000 attempts target the same SKU<br>
+10:00:03 → payment/order retries begin</div>
+<p>The important observation is that <strong>average traffic is not the problem</strong>. The problem is synchronized concurrency against the same data.</p>
+</div>
+
+<div class="grid">
+<div class="card"><span class="badge">Connection Pool</span><p>Too many requests can wait for DB connections.</p></div>
+<div class="card"><span class="badge">Hot Row</span><p>Thousands of transactions may contend for one inventory row.</p></div>
+<div class="card"><span class="badge">Lock Wait</span><p>Transactions queue behind one another.</p></div>
+<div class="card"><span class="badge">CPU / I/O</span><p>Queries, indexes, WAL/redo, locks and fsync can increase DB pressure.</p></div>
+<div class="card"><span class="badge">Retries</span><p>Timeouts can create even more traffic.</p></div>
+<div class="card"><span class="badge">Read Replica Lag</span><p>Users may see stale availability if reads are routed to replicas.</p></div>
+</div>
+
+<h2>2. The Classic Overselling Bug</h2>
+<div class="card danger">
+<h3>Naive read → check → write</h3>
+<pre><code>// Request A
+SELECT quantity FROM inventory WHERE sku = 'IPHONE';
+
+// Request B
+SELECT quantity FROM inventory WHERE sku = 'IPHONE';
+
+// Both see quantity = 1
+
+if (quantity > 0) {
+    UPDATE inventory
+    SET quantity = quantity - 1
+    WHERE sku = 'IPHONE';
+}</code></pre>
+<p>Both requests can observe the same old value before either update commits. This is a classic read-modify-write race. Concurrent updates without an appropriate concurrency-control strategy can produce lost updates or overselling. AWS also explicitly notes that read-modify-write operations require concurrency control. citeturn0search9</p>
+</div>
+
+<div class="card good">
+<h3>Better: make the decision atomic</h3>
+<pre><code>UPDATE inventory
+SET available_quantity = available_quantity - 1
+WHERE sku = ?
+  AND available_quantity >= 1;</code></pre>
+<p>Then check:</p>
+<pre><code>rowsAffected == 1 → reservation succeeded
+rowsAffected == 0 → out of stock / conflict</code></pre>
+<p>The database performs the condition and modification as one atomic write operation. This is often much better than reading a value into Java and then deciding what to do.</p>
+</div>
+
+<h2>3. Atomic Conditional Update — Often the Best Starting Point</h2>
+<div class="card">
+<h3>Why it works</h3>
+<div class="flow">Request A → UPDATE ... WHERE quantity >= 1 → success → quantity 0<br>
+Request B → UPDATE ... WHERE quantity >= 1 → 0 rows → sold out</div>
+<p>The application never needs to trust a previously read quantity for the final decision.</p>
+<pre><code>UPDATE inventory
+SET available_quantity = available_quantity - :qty,
+    reserved_quantity = reserved_quantity + :qty,
+    version = version + 1
+WHERE sku = :sku
+  AND available_quantity >= :qty;</code></pre>
+<p>Check the affected-row count. If zero, the reservation did not happen.</p>
+<div class="callout"><strong>Senior point:</strong> “Check then update” should usually become “conditional update that contains the check.”</div>
+</div>
+
+<h2>4. Pessimistic Locking — SELECT FOR UPDATE</h2>
+<div class="card">
+<p>For a transaction that needs to read inventory and then make multiple related changes, a row-level lock can serialize modifications for the same SKU.</p>
+<pre><code>BEGIN;
+
+SELECT available_quantity
+FROM inventory
+WHERE sku = 'IPHONE'
+FOR UPDATE;
+
+-- row is locked
+
+UPDATE inventory
+SET available_quantity = available_quantity - 1
+WHERE sku = 'IPHONE';
+
+INSERT INTO reservations (...);
+
+COMMIT;</code></pre>
+<p>Only one transaction can hold the lock on that row at a time.</p>
+<p>Recent examples of inventory reservation designs use row-level locking specifically to prevent concurrent reservations from overselling. citeturn0search4turn0search6</p>
+</div>
+
+<div class="card">
+<h3>The problem with SELECT FOR UPDATE during a flash sale</h3>
+<div class="flow">10,000 requests<br>↓<br>all want same SKU row<br>↓<br>1 transaction gets lock<br>↓<br>9,999 wait<br>↓<br>connection pool fills<br>↓<br>latency explodes<br>↓<br>timeouts / retries</div>
+<p>So pessimistic locking guarantees correctness but can serialize a very hot SKU. It is often excellent for moderate concurrency, but you must measure lock wait and throughput under peak load.</p>
+</div>
+
+<h2>5. Optimistic Locking</h2>
+<div class="card">
+<p>Instead of holding a DB lock while the application works, store a version number.</p>
+<pre><code>id | sku | available | version
+1  | A   | 10        | 42</code></pre>
+<p>Update only if the version is still the one that was read:</p>
+<pre><code>UPDATE inventory
+SET available_quantity = available_quantity - 1,
+    version = version + 1
+WHERE sku = :sku
+  AND version = :version
+  AND available_quantity >= 1;</code></pre>
+<p>If <code>rowsAffected = 0</code>, another transaction changed the row first.</p>
+<p>Optimistic locking can reduce explicit lock waiting, but retries themselves can become expensive under extreme contention. It is not automatically better for a flash-sale hot row.</p>
+</div>
+
+<div class="card warn">
+<h3>Important senior nuance</h3>
+<p>If 10,000 requests all optimistically update the same row and 9,999 retry repeatedly, you can simply replace lock contention with retry contention.</p>
+<p>Therefore combine optimistic concurrency with:</p>
+<ul>
+<li>Bounded retries.</li>
+<li>Exponential backoff + jitter.</li>
+<li>Early rejection.</li>
+<li>Queueing for extreme hot SKUs.</li>
+<li>Admission control.</li>
+</ul>
+</div>
+
+<h2>6. Inventory Reservation Is Better Than Immediate Final Deduction</h2>
+<div class="card">
+<p>A strong e-commerce model separates:</p>
+<ul>
+<li><strong>Physical stock:</strong> units physically available.</li>
+<li><strong>Reserved stock:</strong> temporarily held by active checkouts.</li>
+<li><strong>Available-to-sell:</strong> stock that can still be promised.</li>
+<li><strong>Sold/committed stock:</strong> permanently committed after successful payment/order completion.</li>
+</ul>
+<div class="flow">AVAILABLE → RESERVED → SOLD<br>
+     │           │<br>
+     │           └── payment timeout → RELEASED<br>
+     └── direct failure → no reservation</div>
+<p>Shopify's 2026 engineering write-up describes a similar reservation concept: reserve inventory during payment processing, then claim it permanently after payment succeeds. citeturn0search7</p>
+</div>
+
+<h3>Reservation table example</h3>
+<div class="card">
+<pre><code>inventory
+--------------------------------
+sku
+physical_quantity
+reserved_quantity
+version
+updated_at
+
+inventory_reservation
+--------------------------------
+reservation_id
+order_id
+sku
+quantity
+status
+expires_at
+created_at
+</code></pre>
+<p>Availability can be modeled as:</p>
+<pre><code>available_to_sell =
+    physical_quantity
+  - reserved_quantity
+  - safety_stock</code></pre>
+</div>
+
+<h2>7. The Correct Reservation Flow</h2>
+<div class="card">
+<div class="flow">1. User clicks Buy / Checkout
+↓
+2. Validate request
+↓
+3. Idempotency check
+↓
+4. Optional cache/Redis pre-check
+↓
+5. Authoritative DB reservation
+↓
+6. Reservation succeeds?
+   ├── NO → return controlled SOLD_OUT result
+   └── YES
+        ↓
+7. Create/advance order state
+        ↓
+8. Payment processing
+        ↓
+9. Payment success → COMMIT / SOLD
+   Payment timeout/failure → RELEASE
+</div>
+<p>The crucial point is that the cache or UI availability indicator is not the final authority. The DB reservation is the authoritative decision.</p>
+</div>
+
+<h2>8. What If Inventory Is Already Sold Out?</h2>
+<div class="card good">
+<h3>Do not treat “out of stock” as an exceptional server error</h3>
+<p>From the user's perspective, “sold out” is often a normal business result during a promotion.</p>
+<p>Instead of:</p>
+<pre><code>HTTP 500
+"Database update failed"</code></pre>
+<p>return a controlled business response:</p>
+<pre><code>{
+  "status": "SOLD_OUT",
+  "message": "This item is no longer available.",
+  "canJoinWaitlist": true
+}</code></pre>
+<p>The frontend can then show a friendly message, suggest another seller/product, offer a waitlist, or update the cart.</p>
+</div>
+
+<h2>9. How to Avoid a Bad User Experience When Inventory Runs Out</h2>
+<div class="card">
+<h3>Separate technical failure from business failure</h3>
+<table>
+<tr><th>Situation</th><th>User experience</th></tr>
+<tr><td>Inventory truly unavailable</td><td>“Sold out” / suggest alternatives.</td></tr>
+<tr><td>Reservation conflict</td><td>“This item was just taken by another customer.” Refresh availability.</td></tr>
+<tr><td>DB temporarily overloaded</td><td>Do not expose DB errors. Use controlled retry/pending state.</td></tr>
+<tr><td>Payment timeout after reservation</td><td>Keep reservation temporarily; show payment processing state.</td></tr>
+<tr><td>Payment fails</td><td>Release reservation and allow retry.</td></tr>
+<tr><td>Client retries same request</td><td>Return the original result using idempotency.</td></tr>
+</table>
+</div>
+
+<h2>10. Idempotency — Essential for Order Creation</h2>
+<div class="card">
+<p>Imagine the user clicks “Pay” and the server successfully creates the order, but the network response is lost.</p>
+<div class="flow">Client → POST /orders<br>
+↓<br>DB creates ORDER-123<br>↓<br>response lost<br>↓<br>client retries<br>↓<br>WITHOUT idempotency → ORDER-124<br>WITH idempotency → ORDER-123 result returned</div>
+<p>Payment APIs such as Stripe explicitly use idempotency keys so retries do not accidentally create duplicate objects or repeat operations. citeturn0search2</p>
+<pre><code>POST /orders
+Idempotency-Key: 8d7c...
+
+Database:
+idempotency_key UNIQUE
+</code></pre>
+<p>The first successful request stores the result. A retry with the same key returns the same logical result.</p>
+</div>
+
+<h2>11. Database Constraint for Idempotency</h2>
+<div class="card">
+<pre><code>CREATE UNIQUE INDEX ux_order_idempotency
+ON orders(customer_id, idempotency_key);</code></pre>
+<p>Do not rely only on an application-level “check first, then insert.” Two concurrent requests can both pass that check.</p>
+<p>Let the database unique constraint be the final authority.</p>
+</div>
+
+<h2>12. Multi-Item Order — Deadlock Risk</h2>
+<div class="card danger">
+<p>Suppose an order contains SKU A and SKU B.</p>
+<div class="flow">Transaction 1: lock A → then B<br>
+Transaction 2: lock B → then A<br>
+↓<br>
+T1 waits for B<br>
+T2 waits for A<br>
+↓<br>
+DEADLOCK</div>
+<p>Use a deterministic lock order, for example always lock SKUs in ascending ID order.</p>
+<pre><code>Order items:
+A, B, C
+
+Always lock:
+A → B → C</code></pre>
+<p>This dramatically reduces circular wait patterns.</p>
+</div>
+
+<h2>13. SKIP LOCKED — When Queue-Like DB Processing Helps</h2>
+<div class="card">
+<p>For worker-style workloads, <code>FOR UPDATE SKIP LOCKED</code> can allow workers to skip rows already being processed instead of waiting.</p>
+<pre><code>SELECT id
+FROM reservations
+WHERE status = 'PENDING'
+ORDER BY created_at
+FOR UPDATE SKIP LOCKED
+LIMIT 100;</code></pre>
+<p>This is useful when the database is being used as a work queue and many workers process independent rows.</p>
+<p>Shopify's 2026 inventory reservation architecture describes using MySQL <code>SKIP LOCKED</code> with a row-per-unit model to increase reservation throughput and avoid one highly contended quantity row. citeturn0search7</p>
+<div class="callout"><strong>Important:</strong> SKIP LOCKED does not magically make every inventory update scalable. It is most useful when work can be divided into independently lockable rows.</div>
+</div>
+
+<h2>14. Hot Row Problem</h2>
+<div class="card">
+<p>A classic schema is:</p>
+<pre><code>inventory
+----------------
+sku = IPHONE
+available = 100</code></pre>
+<p>Every checkout modifies the same row.</p>
+<p>Even if the database is otherwise capable of thousands of writes/sec, one hot row creates a serialization point.</p>
+<h3>Possible approaches</h3>
+<ul>
+<li>Atomic conditional update.</li>
+<li>Optimistic concurrency.</li>
+<li>Reservation queue.</li>
+<li>Inventory bucket/shard design.</li>
+<li>One row per inventory unit for extreme contention.</li>
+<li>Separate hot-SKU processing path.</li>
+</ul>
+</div>
+
+<h2>15. Inventory Bucketing</h2>
+<div class="card">
+<p>Instead of one counter:</p>
+<pre><code>SKU A → available = 10,000</code></pre>
+<p>split inventory into multiple buckets:</p>
+<pre><code>SKU A
+bucket 1 → 1,000
+bucket 2 → 1,000
+bucket 3 → 1,000
+...
+bucket 10 → 1,000</code></pre>
+<p>Requests can be distributed across buckets. This can reduce contention, but it introduces allocation complexity and requires careful correctness rules.</p>
+<p>For extremely hot SKUs, this can be more scalable than forcing every transaction to update one physical database row.</p>
+</div>
+
+<h2>16. Queue-Based Reservation</h2>
+<div class="card">
+<p>When demand is much higher than the number of units available, processing every request synchronously against the database may be wasteful.</p>
+<div class="flow">100,000 requests<br>
+↓<br>Admission control<br>
+↓<br>Queue<br>
+↓<br>Inventory workers<br>
+↓<br>DB reservation<br>
+↓<br>Winner / SOLD_OUT</div>
+<p>The queue converts uncontrolled concurrency into controlled work.</p>
+<h3>But what does the user see?</h3>
+<p>Instead of waiting for a DB transaction to finish:</p>
+<div class="flow">“Your request is being processed.”<br>
+Request ID / order attempt ID<br>
+↓<br>Poll or WebSocket/SSE<br>
+↓<br>RESERVED / SOLD_OUT</div>
+<p>This can produce a much better experience than thousands of requests timing out.</p>
+</div>
+
+<h2>17. Queue vs DB Lock</h2>
+<table>
+<tr><th>Approach</th><th>Correctness</th><th>Peak concurrency</th><th>Latency</th><th>Best use</th></tr>
+<tr><td>Atomic UPDATE</td><td>Strong</td><td>Good</td><td>Low</td><td>Simple inventory decrement</td></tr>
+<tr><td>SELECT FOR UPDATE</td><td>Strong</td><td>Moderate</td><td>Can rise under contention</td><td>Complex transaction around one row</td></tr>
+<tr><td>Optimistic locking</td><td>Strong</td><td>Good at lower contention</td><td>Retries under conflict</td><td>Moderate concurrent writes</td></tr>
+<tr><td>Queue</td><td>Strong if worker is correct</td><td>Very high admission control</td><td>Async</td><td>Extreme flash-sale bursts</td></tr>
+<tr><td>Redis counter only</td><td>Fast but consistency depends on design</td><td>Very high</td><td>Very low</td><td>Fast admission/pre-check, not automatically source of truth</td></tr>
+</table>
+
+<h2>18. Why Redis DECR Alone Is Dangerous for Inventory</h2>
+<div class="card danger">
+<p>A tempting design is:</p>
+<pre><code>if Redis.DECR(stockKey) >= 0:
+    create order
+else:
+    reject</code></pre>
+<p>Redis can serialize the decrement, but now inventory exists in Redis and the authoritative ledger exists in the database.</p>
+<div class="flow">Redis reservation succeeds<br>
+↓<br>DB transaction fails<br>
+↓<br>Redis says reserved<br>
+DB says not reserved<br>
+↓<br>inventory divergence</div>
+<p>Shopify's engineering write-up describes this exact class of consistency problem when reservations and the inventory ledger lived in separate systems, motivating a move toward a unified database strategy. citeturn0search7</p>
+<p><strong>Better:</strong> Redis can be used as a fast admission/filter layer, but the authoritative reservation should have a clear consistency boundary.</p>
+</div>
+
+<h2>19. Transaction Isolation Levels</h2>
+<div class="card">
+<table>
+<tr><th>Isolation</th><th>Typical behavior</th><th>Inventory consideration</th></tr>
+<tr><td>READ UNCOMMITTED</td><td>Can observe uncommitted changes</td><td>Usually inappropriate for inventory correctness.</td></tr>
+<tr><td>READ COMMITTED</td><td>Reads committed data</td><td>Common default; still need atomic updates/locking.</td></tr>
+<tr><td>REPEATABLE READ</td><td>Stable transaction snapshot semantics</td><td>Useful, but understand DB-specific locking behavior.</td></tr>
+<tr><td>SERIALIZABLE</td><td>Strongest isolation</td><td>Correct but can reduce throughput and increase retries.</td></tr>
+</table>
+<p><strong>Senior point:</strong> Increasing isolation is not automatically the solution to high concurrency. It can increase contention and aborts. Prefer the smallest concurrency-control mechanism that guarantees the business invariant.</p>
+</div>
+
+<h2>20. Database Connection Pool Protection</h2>
+<div class="card">
+<p>Suppose the application receives 20,000 requests/sec but the DB connection pool has 100 connections.</p>
+<div class="flow">20,000 HTTP requests<br>↓<br>100 DB connections<br>↓<br>19,900 requests wait<br>↓<br>thread/request queues grow<br>↓<br>timeouts<br>↓<br>retries</div>
+<p>Increasing the pool to 1,000 is not necessarily a solution. The database may become overloaded with 1,000 concurrent queries.</p>
+<p>Use:</p>
+<ul>
+<li>Bounded DB pool.</li>
+<li>Application-level concurrency limit.</li>
+<li>Short connection acquisition timeout.</li>
+<li>Query timeout.</li>
+<li>Bulkhead isolation for critical operations.</li>
+<li>Separate pools for different workloads where appropriate.</li>
+</ul>
+<div class="callout"><strong>Senior principle:</strong> The connection pool is a protective boundary, not a number you maximize.</div>
+</div>
+
+<h2>21. Read Replicas — Why Inventory Reads Are Special</h2>
+<div class="card">
+<p>Read replicas are excellent for read-heavy catalog queries, but inventory availability is often sensitive to replication lag.</p>
+<div class="flow">Primary DB: quantity = 0<br>↓ replication lag<br>Replica: quantity = 1<br>↓<br>User sees “In Stock”<br>↓<br>Checkout reaches primary<br>↓<br>SOLD OUT</div>
+<p>This can be acceptable if the UI treats availability as advisory. The final reservation must be decided against the authoritative write path.</p>
+<p><strong>Pattern:</strong> use replicas for browsing; use primary/authoritative reservation path for commit.</p>
+</div>
+
+<h2>22. CQRS-Style Separation for E-commerce</h2>
+<div class="card">
+<div class="flow">Read side<br>CDN / Cache / Read replicas / Search<br>↓<br>Product browsing<br><br>Write side<br>Primary DB / Inventory service<br>↓<br>Order + Reservation</div>
+<p>Do not force the same database path to serve product browsing and inventory correctness.</p>
+<p>During a promotion, product pages can generate millions of reads while only a smaller subset actually performs reservation. Separating read-heavy and correctness-critical workloads prevents browsing traffic from starving inventory writes.</p>
+</div>
+
+<h2>23. Order State Machine</h2>
+<div class="card">
+<div class="flow">CREATED<br>↓<br>RESERVING_INVENTORY<br>├── SOLD_OUT → FAILED<br>└── RESERVED<br>       ↓<br>   PAYMENT_PENDING<br>       ├── PAYMENT_FAILED → RELEASED<br>       └── PAYMENT_SUCCESS<br>               ↓<br>            CONFIRMED<br>               ↓<br>            FULFILLING<br>               ↓<br>             SHIPPED</div>
+<p>A state machine is safer than scattered boolean flags such as <code>paid=true</code>, <code>reserved=true</code>, <code>cancelled=false</code>. Every transition should have clear ownership and idempotency rules.</p>
+</div>
+
+<h2>24. Payment + Inventory: Do Not Hold DB Locks During Payment</h2>
+<div class="card danger">
+<p>Bad design:</p>
+<div class="flow">BEGIN DB transaction<br>↓<br>lock inventory<br>↓<br>call payment provider<br>↓<br>wait 2 seconds<br>↓<br>commit</div>
+<p>Holding an inventory DB lock while calling an external payment service can create massive lock contention.</p>
+<p>Better:</p>
+<div class="flow">DB TX → reserve inventory for short TTL → COMMIT<br>
+↓<br>call payment provider outside DB transaction<br>
+↓<br>payment success → confirm reservation<br>
+payment failure → release reservation</div>
+<p>The DB transaction should be short and contain only the operations that must be atomic.</p>
+</div>
+
+<h2>25. Reservation Expiration</h2>
+<div class="card">
+<p>If users abandon checkout, reserved inventory must return to available stock.</p>
+<pre><code>reservation:
+status = ACTIVE
+expires_at = now + 10 minutes</code></pre>
+<p>Release can be driven by:</p>
+<ul>
+<li>Delayed message.</li>
+<li>Scheduled worker.</li>
+<li>Database job.</li>
+<li>Event-driven timeout service.</li>
+</ul>
+<p>A robust design often has both an event-driven fast path and a periodic reconciliation job as a safety net.</p>
+</div>
+
+<h2>26. Reconciliation — The Safety Net</h2>
+<div class="card">
+<p>Even with good transactional logic, distributed systems eventually encounter partial failures. Build reconciliation jobs that compare:</p>
+<div class="flow">Inventory ledger<br>vs<br>Reservations<br>vs<br>Orders<br>vs<br>Payment state</div>
+<p>Examples:</p>
+<ul>
+<li>Reservation ACTIVE but expired.</li>
+<li>Payment succeeded but order is still PAYMENT_PENDING.</li>
+<li>Order CONFIRMED but inventory reservation is missing.</li>
+<li>Inventory count does not equal ledger-derived quantity.</li>
+</ul>
+<p>Reconciliation should repair or flag inconsistencies rather than silently ignoring them.</p>
+</div>
+
+<h2>27. Database Indexes During Peak Traffic</h2>
+<div class="card">
+<p>Concurrency is not only about locks. Bad indexes can turn a simple operation into a large scan.</p>
+<pre><code>UPDATE inventory
+SET available_quantity = available_quantity - 1
+WHERE sku = ?;</code></pre>
+<p>The <code>sku</code> lookup must be indexed appropriately.</p>
+<p>For reservations:</p>
+<pre><code>CREATE INDEX idx_reservation_expiry
+ON inventory_reservation(status, expires_at);</code></pre>
+<p>For order lookup:</p>
+<pre><code>CREATE UNIQUE INDEX ux_order_idempotency
+ON orders(customer_id, idempotency_key);</code></pre>
+<p>Peak traffic is a terrible time to discover that a supposedly tiny operation is scanning millions of rows.</p>
+</div>
+
+<h2>28. Database Capacity Planning</h2>
+<div class="card">
+<p>Do not calculate DB capacity from HTTP RPS alone.</p>
+<p>Estimate:</p>
+<pre><code>HTTP requests
+× DB operations/request
+× retry factor
+× cache-miss factor
+= effective DB operation rate</code></pre>
+<p>Example:</p>
+<pre><code>50,000 checkout attempts/sec
+× 4 DB statements
+× 1.1 retry factor
+= 220,000 DB statements/sec</code></pre>
+<p>Then benchmark the actual query mix, transaction duration, lock contention, CPU, I/O, WAL/redo, connection pool and storage latency.</p>
+</div>
+
+<h2>29. End-to-End Recommended Architecture</h2>
+<div class="card good">
+<div class="flow">                    ┌───────────────┐
+Users ───────────────→ │ CDN / Edge    │
+                       └──────┬────────┘
+                              ↓
+                       ┌───────────────┐
+                       │ API Gateway   │
+                       └──────┬────────┘
+                              ↓
+                   ┌──────────────────────┐
+                   │ Rate Limit /         │
+                   │ Admission Control    │
+                   └──────────┬───────────┘
+                              ↓
+                     ┌────────────────┐
+                     │ Order Service  │
+                     └───────┬────────┘
+                             ↓
+                    Idempotency Check
+                             ↓
+                    Inventory Service
+                             ↓
+                  ┌─────────────────────┐
+                  │ Fast pre-check      │
+                  │ Cache / Redis       │
+                  └──────────┬──────────┘
+                             ↓
+                 Authoritative DB Reserve
+                             ↓
+                    ┌────────────────┐
+                    │ Primary DB     │
+                    │ ACID / Lock    │
+                    └───────┬────────┘
+                            ↓
+                     Reservation OK?
+                       ↙          ↘
+                    NO             YES
+                    ↓               ↓
+                 SOLD_OUT       Order Pending
+                                    ↓
+                                Payment
+                              ↙         ↘
+                           FAIL         SUCCESS
+                            ↓              ↓
+                         RELEASE        CONFIRM
+</div>
+</div>
+
+<h2>30. What Happens When 10,000 Users Buy the Last 100 Units?</h2>
+<div class="card">
+<p>Let's walk through a concrete design using an atomic DB update.</p>
+<pre><code>UPDATE inventory
+SET available_quantity = available_quantity - 1
+WHERE sku = 'PROMO-001'
+  AND available_quantity >= 1;</code></pre>
+<p>Exactly 100 transactions can successfully affect one row before the quantity reaches zero.</p>
+<p>The remaining requests get zero affected rows.</p>
+<div class="flow">10,000 attempts
+↓
+100 successful reservations
+↓
+9,900 business-level SOLD_OUT results
+↓
+No oversell
+</div>
+<p>But this does not mean all 10,000 DB requests should be allowed to hammer the database. At extreme scale, add admission control, pre-checking, queueing, and/or a dedicated hot-SKU strategy.</p>
+</div>
+
+<h2>31. The Most Important Optimization: Reject Work Before the DB</h2>
+<div class="card">
+<p>If only 100 units exist and 100,000 users want them, making all 100,000 requests execute expensive DB transactions is wasteful.</p>
+<p>Use layers:</p>
+<div class="flow">100,000 users
+↓
+rate limit / virtual queue
+↓
+fast availability signal
+↓
+admission control
+↓
+small number of DB reservation attempts
+↓
+100 winners
+</div>
+<p>The authoritative DB still decides correctness, but the system avoids creating unnecessary database contention.</p>
+</div>
+
+<h2>32. Production Scenarios</h2>
+
+<div class="card">
+<h3>Scenario A — 1 SKU, 100 Units, 100,000 Users</h3>
+<p><strong>Recommendation:</strong> virtual queue/admission control + fast pre-check + authoritative DB atomic reservation + idempotency + asynchronous payment + reservation timeout.</p>
+<p>Do not put a long DB lock around payment.</p>
+</div>
+
+<div class="card">
+<h3>Scenario B — 10,000 Different SKUs, Normal Distribution</h3>
+<p>Contention is spread across many rows. Atomic updates or optimistic locking may be sufficient. A single global queue would unnecessarily reduce parallelism.</p>
+</div>
+
+<div class="card">
+<h3>Scenario C — One Hot SKU With 1,000,000 Requests</h3>
+<p>Use a specialized hot-key path. Consider pre-warming, admission control, request coalescing for reads, inventory buckets or queue-based reservation, and strict DB concurrency limits.</p>
+</div>
+
+<div class="card">
+<h3>Scenario D — Multi-SKU Cart</h3>
+<p>Reserve all required inventory in a deterministic order. If any SKU cannot be reserved, roll back the reservation transaction or use a clearly defined saga/reservation workflow. Avoid inconsistent partial reservation.</p>
+</div>
+
+<div class="card">
+<h3>Scenario E — Payment Provider Is Slow</h3>
+<p>Never keep DB inventory locks open while waiting for the payment provider. Create a short-lived reservation, commit it, then process payment asynchronously or outside the transaction.</p>
+</div>
+
+<h2>33. Senior Interview Questions & Answers</h2>
+
+<details open>
+<summary>Q1. How do you prevent overselling during a flash sale?</summary>
+<p><strong>Answer:</strong> I would make the inventory reservation atomic at the authoritative store. The simplest form is a conditional update such as <code>UPDATE inventory SET available = available - ? WHERE sku = ? AND available >= ?</code> and checking affected rows. For more complex reservation workflows, I may use row-level locking or optimistic concurrency. At extreme contention, I would add admission control or a queue so the DB does not receive unlimited concurrent attempts. I would also use idempotency to prevent duplicate reservations caused by retries.</p>
+</details>
+
+<details>
+<summary>Q2. Would you use Redis to manage inventory?</summary>
+<p><strong>Answer:</strong> Redis can be useful as a fast admission or pre-check layer, but I would be careful about making Redis and the relational database independent sources of truth. If reservation state and the inventory ledger are split across Redis and the DB, failures between the two systems can create divergence. For strong correctness, I want a clearly defined authoritative reservation boundary. Shopify's 2026 inventory architecture is a good real-world example of moving reservation state into the database to keep ACID consistency with the inventory ledger. citeturn0search7</p>
+</details>
+
+<details>
+<summary>Q3. SELECT FOR UPDATE or optimistic locking?</summary>
+<p><strong>Answer:</strong> It depends on contention and transaction complexity. SELECT FOR UPDATE is simple and predictable when I need to read and update several related values atomically, but a very hot row can create lock queues. Optimistic locking avoids holding a long lock but can create many retries under extreme contention. I would benchmark lock wait, conflict rate and transaction latency before choosing. For a flash-sale hot SKU, I may move toward atomic conditional updates, admission control, queueing or a more scalable inventory allocation model.</p>
+</details>
+
+<details>
+<summary>Q4. How do you prevent 10,000 requests from exhausting the DB connection pool?</summary>
+<p><strong>Answer:</strong> I would not simply increase the pool. I would control concurrency before the DB using rate limiting, bulkheads, admission control and bounded DB concurrency. Requests that cannot be admitted should fail fast or enter a queue rather than wait indefinitely for a connection. I would also use query timeouts and monitor connection acquisition latency.</p>
+</details>
+
+<details>
+<summary>Q5. What happens if the payment succeeds but the order service crashes before confirming the inventory?</summary>
+<p><strong>Answer:</strong> This is a distributed transaction problem. I would use an explicit order state machine and durable events/outbox. The payment result must be recoverable, and a reconciliation worker can find PAYMENT_SUCCESS + ORDER_PENDING records and complete the transition. The inventory reservation should have a durable state and a timeout so it is not silently lost.</p>
+</details>
+
+<details>
+<summary>Q6. How do you give a good UX when inventory is gone?</summary>
+<p><strong>Answer:</strong> I would model SOLD_OUT as a business outcome, not a server exception. The API can return a stable business code such as SOLD_OUT, and the UI can show a clear message, suggest alternatives, allow a waitlist, or refresh the cart. If the request is still processing, I would expose a pending state rather than making the user wait synchronously for a heavily contended DB transaction.</p>
+</details>
+
+<details>
+<summary>Q7. How do you handle duplicate checkout requests?</summary>
+<p><strong>Answer:</strong> Use an idempotency key generated for the logical checkout operation. Store it with a unique database constraint and return the original result when the same key is retried. This is essential because network timeouts do not tell the client whether the server committed the operation.</p>
+</details>
+
+<details>
+<summary>Q8. Why not set SERIALIZABLE isolation for everything?</summary>
+<p><strong>Answer:</strong> SERIALIZABLE provides strong guarantees but can increase contention, blocking or serialization failures. Under a promotion event, that can reduce throughput significantly. I prefer a targeted concurrency mechanism that protects the actual business invariant, such as an atomic conditional update or row-level lock, instead of globally increasing isolation.</p>
+</details>
+
+<details>
+<summary>Q9. What metrics do you monitor during a promotion?</summary>
+<ul>
+<li>DB CPU and I/O.</li>
+<li>Transaction latency p50/p95/p99.</li>
+<li>Lock wait time.</li>
+<li>Deadlock count.</li>
+<li>Serialization/deadlock retry count.</li>
+<li>Connection pool utilization and acquisition time.</li>
+<li>Slow query count.</li>
+<li>Rows affected by inventory reservations.</li>
+<li>SOLD_OUT rate.</li>
+<li>Reservation success/failure rate.</li>
+<li>Payment pending duration.</li>
+<li>Order state transition failures.</li>
+<li>Queue depth and consumer lag.</li>
+<li>Inventory reconciliation discrepancies.</li>
+</ul>
+</details>
+
+<h2>34. Senior Mental Model</h2>
+<div class="card good">
+<p>When designing DB behavior for a promotion event, ask:</p>
+<ol>
+<li>What is the source of truth?</li>
+<li>What exact business invariant must never be violated?</li>
+<li>Can two transactions read the same old state?</li>
+<li>Can I make the check + update atomic?</li>
+<li>Where is the serialization point?</li>
+<li>What happens when thousands of requests target the same row?</li>
+<li>Can I reject work before reaching the DB?</li>
+<li>Can retries multiply traffic?</li>
+<li>Can a client safely retry?</li>
+<li>Can payment or another external call hold a DB lock?</li>
+<li>What happens if the DB times out after the transaction actually committed?</li>
+<li>How are reservations released?</li>
+<li>How do I reconcile partial failures?</li>
+<li>How does the user experience the business failure?</li>
+<li>What metrics prove the design is safe under peak load?</li>
+</ol>
+</div>
+
+<h2>35. Final Architecture Principle</h2>
+<div class="card">
+<p><strong>The goal is not to make the database accept unlimited concurrency.</strong></p>
+<p>The goal is to control concurrency so the database only processes the work necessary to maintain correctness.</p>
+<div class="flow">Millions of requests
+↓
+Cache / CDN / fast reads
+↓
+Rate limiting / admission control
+↓
+Virtual queue if necessary
+↓
+Idempotency
+↓
+Short authoritative DB transaction
+↓
+Atomic inventory reservation
+↓
+Reservation state machine
+↓
+Async payment / fulfillment
+↓
+Reconciliation + observability</div>
+<p>That architecture gives you three properties:</p>
+<ul>
+<li><strong>Correctness:</strong> no overselling and no duplicate order.</li>
+<li><strong>Resilience:</strong> DB is protected from synchronized traffic and retries.</li>
+<li><strong>User experience:</strong> SOLD_OUT and PENDING are normal business states rather than mysterious 500 errors.</li>
+</ul>
+</div>
+
+
+<h2>36. User Experience: Never Expose Concurrency Problems to the Buyer</h2>
+<div class="card good">
+<h3>The most important UX principle</h3>
+<p><strong>A database conflict is a technical event. SOLD_OUT is a business outcome.</strong></p>
+<p>The customer should not see:</p>
+<pre><code>500 Internal Server Error
+Deadlock found
+Lock wait timeout
+Connection pool exhausted
+SQL timeout
+UPDATE failed</code></pre>
+<p>Those details belong to logs, metrics and traces. The customer should see a small set of understandable states.</p>
+<table>
+<tr><th>Technical event</th><th>Internal handling</th><th>User-facing result</th></tr>
+<tr><td>Another buyer reserved the last unit</td><td>Atomic update affects 0 rows</td><td>“Sorry, this item was just purchased by another customer.”</td></tr>
+<tr><td>Deadlock</td><td>Rollback + bounded retry with jitter</td><td>Usually invisible; retry automatically.</td></tr>
+<tr><td>Transient DB timeout</td><td>Retry only if operation is idempotent</td><td>Show “Processing…” instead of failure when safe.</td></tr>
+<tr><td>DB overloaded</td><td>Admission control / queue</td><td>“You’re in line. We’ll confirm your order shortly.”</td></tr>
+<tr><td>Payment is slow</td><td>Reservation remains ACTIVE until TTL</td><td>“Your item is reserved while payment is processing.”</td></tr>
+<tr><td>Payment failed</td><td>Release reservation</td><td>“Payment failed. Your item has been released.”</td></tr>
+<tr><td>Client retries</td><td>Idempotency lookup</td><td>Return the original order/result.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>UX state machine for a flash sale</h3>
+<div class="flow">BUY NOW
+  ↓
+RESERVING
+  ↓
+┌───────────────────────┐
+│                       │
+RESERVED              SOLD_OUT
+  ↓                       ↓
+PAYMENT_PENDING       “Just sold out”
+  ↓                       ↓
+┌───────────────┐      Alternatives /
+│               │      Waitlist
+SUCCESS        FAIL
+│               │
+CONFIRMED      RELEASED
+</div>
+<p>The key idea is that <strong>RESERVING</strong> is a valid temporary state. The user does not need to receive a failure simply because the system is processing a highly contested operation.</p>
+</div>
+
+<h2>37. Virtual Queue — Better Than Letting 100,000 Users Hit the DB</h2>
+<div class="card">
+<p>Suppose 100 units are available and 100,000 users click at exactly 10:00:00.</p>
+<p>A poor design lets all 100,000 requests enter checkout. A better design introduces a <strong>virtual waiting room</strong>.</p>
+<div class="flow">100,000 users
+↓
+Virtual Queue
+↓
+Admission controller releases 500 users
+↓
+Reservation processing
+↓
+next batch of users
+↓
+...
+</div>
+<p>The queue protects the DB and also improves perceived reliability. Instead of thousands of users receiving errors, users receive a stable position/token and a predictable state.</p>
+<p>AWS explicitly recommends planning for flash-sale traffic because sudden demand can create resource bottlenecks and system unavailability. citeturn0search2</p>
+</div>
+
+<div class="card">
+<h3>Fairness vs raw throughput</h3>
+<p>A queue is not only a DB protection mechanism. It can also provide fairness.</p>
+<ul>
+<li>One user should not create 500 concurrent checkout attempts and dominate the inventory.</li>
+<li>Rate-limit purchase attempts per account/device/session.</li>
+<li>Use a signed admission token so clients cannot freely bypass the queue.</li>
+<li>Optionally randomize or lottery the first admission batch for extremely scarce products.</li>
+</ul>
+<p><strong>Senior interview point:</strong> “For scarce inventory, admission control is part of business correctness and fairness, not just infrastructure protection.”</p>
+</div>
+
+<h2>38. Hide Retries From the User — But Only When Safe</h2>
+<div class="card">
+<p>Suppose the DB returns a transient deadlock. It is usually a poor UX to immediately show an error.</p>
+<div class="flow">Request
+↓
+DB transaction
+↓
+Deadlock
+↓
+Rollback
+↓
+bounded retry #1
+↓
+success
+↓
+user sees normal confirmation</div>
+<p>But retrying is safe only when the operation is designed for it.</p>
+<p><strong>Required:</strong></p>
+<ul>
+<li>Idempotency key.</li>
+<li>Unique business constraint where appropriate.</li>
+<li>Bounded retry count.</li>
+<li>Backoff + jitter.</li>
+<li>Retry only transient failures.</li>
+<li>Never blindly retry an unknown payment outcome.</li>
+</ul>
+</div>
+
+<h2>39. “Processing” Is Better Than a Fake Failure</h2>
+<div class="card good">
+<p>There is a major difference between:</p>
+<pre><code>POST /checkout
+→ 5 second timeout
+→ HTTP 500
+</code></pre>
+<p>and:</p>
+<pre><code>POST /checkout
+→ 202 Accepted
+
+{
+  "orderAttemptId": "OA-123",
+  "status": "PROCESSING"
+}
+</code></pre>
+<p>The second model allows the backend to continue processing and the client to query or receive an event later.</p>
+<div class="flow">Client
+↓
+POST /checkout
+↓
+202 PROCESSING
+↓
+Queue
+↓
+Inventory reservation
+↓
+Payment
+↓
+CONFIRMED / SOLD_OUT
+↓
+WebSocket / SSE / polling
+↓
+UI update
+</div>
+<p>This is especially useful when peak traffic is intentionally throttled.</p>
+</div>
+
+<h2>40. Do Not Promise Inventory Too Early in the UI</h2>
+<div class="card warn">
+<p>“Only 1 left!” is not the same as “Your item is reserved.”</p>
+<p>During a promotion, product pages may use cached or replicated availability. That number is an <strong>advisory signal</strong>.</p>
+<p>The UI should make the guarantee only after the authoritative reservation succeeds.</p>
+<table>
+<tr><th>State</th><th>Meaning</th></tr>
+<tr><td>AVAILABLE</td><td>System believes stock exists.</td></tr>
+<tr><td>RESERVING</td><td>Checkout is attempting an authoritative reservation.</td></tr>
+<tr><td>RESERVED</td><td>Stock is actually held for this user/order.</td></tr>
+<tr><td>SOLD_OUT</td><td>No reservation was obtained.</td></tr>
+</table>
+<p>This prevents a painful UX where the UI says “success” and then the backend later cancels the order.</p>
+</div>
+
+<h2>41. Production Case Study — Shopify Inventory Reservations</h2>
+<div class="card">
+<p>Shopify published a detailed engineering post in May 2026 describing its inventory reservation system. During Black Friday 2025, Shopify reported a peak of <strong>$5.1 million in sales per minute</strong>. The engineering problem was not merely speed; it was preventing oversells while avoiding lost sales and preserving checkout latency. citeturn0search0</p>
+<p>The important production lessons are directly relevant to system design interviews:</p>
+<ul>
+<li>Reservation is a short hold during payment processing.</li>
+<li>Successful payment permanently claims inventory.</li>
+<li>A single quantity row created too much contention.</li>
+<li><code>SKIP LOCKED</code> enabled concurrent transactions to select different available inventory rows.</li>
+<li>Reservations and inventory ledger were moved into the same MySQL consistency boundary to obtain ACID guarantees.</li>
+<li>Composite primary-key design reduced lock overhead.</li>
+<li>They changed selected reservation transactions to <code>READ COMMITTED</code> to avoid problematic gap-lock behavior.</li>
+<li>They standardized lock ordering to eliminate deadlock cycles.</li>
+<li>They discovered that connection usage, not only CPU/query performance, was a major throughput bottleneck.</li>
+<li>They used shadow mode and gradual rollout before switching the source of truth.</li>
+</ul>
+<p><strong>Senior lesson:</strong> high concurrency is a whole-system problem. A perfectly optimized inventory query can still fail if unrelated checkout code holds DB connections too long.</p>
+</div>
+
+<h2>42. Production Case Study — Redis vs Database: There Is No Universal Answer</h2>
+<div class="card">
+<p>There are two legitimate production strategies.</p>
+<h3>A. Database-authoritative reservation</h3>
+<div class="flow">Request
+↓
+DB atomic reservation
+↓
+ACID order/inventory state
+</div>
+<p>This is attractive when correctness and a unified transactional boundary are the priority. Shopify's 2026 architecture is an example. citeturn0search0</p>
+
+<h3>B. Fast admission layer + durable database</h3>
+<div class="flow">Request
+↓
+Redis / admission gate
+↓
+Queue
+↓
+DB authoritative persistence
+</div>
+<p>This can reduce the number of expensive DB attempts dramatically, especially when demand is many orders of magnitude larger than supply. The important requirement is that the architecture defines what happens if the fast layer and DB disagree.</p>
+<div class="callout"><strong>Interview answer:</strong> “I would not choose Redis or MySQL based on fashion. I would first define the consistency boundary. Then I would decide where admission control happens and where the authoritative inventory transition is committed.”</div>
+</div>
+
+<h2>43. Production Case Study — Flash Sales Are About Traffic Shaping</h2>
+<div class="card">
+<p>A flash sale is fundamentally a traffic-shaping problem.</p>
+<div class="flow">Normal system:
+traffic ≈ processing capacity
+
+Flash sale:
+traffic >>> processing capacity
+
+Correct architecture:
+traffic
+↓
+shape
+↓
+admit
+↓
+process at sustainable rate
+</div>
+<p>If 100 units exist, accepting 100,000 simultaneous synchronous transactions is not inherently a sign of a better system. It is often a sign that the system has failed to shape traffic.</p>
+<p>AWS's flash-sale guidance emphasizes preparing for sudden traffic spikes, resource bottlenecks and capacity constraints before the event. citeturn0search2</p>
+</div>
+
+<h2>44. High-Consistency Pattern: Keep the Business Invariant Small</h2>
+<div class="card good">
+<p>Do not put the entire checkout workflow inside one huge ACID transaction.</p>
+<p>Instead define the smallest invariant that absolutely requires strong consistency:</p>
+<pre><code>INVARIANT:
+reserved_quantity + sold_quantity
+    <= physical_quantity
+</code></pre>
+<p>Then protect that invariant with a short transaction.</p>
+<p>Everything else can be state-machine/event driven:</p>
+<div class="flow">Short ACID reservation
+↓
+Order state = RESERVED
+↓
+Payment event
+↓
+Claim inventory
+↓
+Fulfillment event
+↓
+Shipment
+</div>
+<p>This is the key balance between <strong>strong consistency</strong> and <strong>high throughput</strong>.</p>
+</div>
+
+<h2>45. Outbox Pattern for Reliable Order Events</h2>
+<div class="card">
+<p>If the DB commits an order and the application then publishes Kafka/RabbitMQ, there is a failure window:</p>
+<div class="flow">DB COMMIT ✓
+↓
+publish event ✗
+↓
+Order exists but downstream never hears about it
+</div>
+<p>Use a transactional outbox:</p>
+<pre><code>BEGIN
+
+INSERT INTO orders(...);
+
+INSERT INTO outbox(
+  event_type,
+  aggregate_id,
+  payload,
+  status
+);
+
+COMMIT</code></pre>
+<p>A publisher reads the outbox and publishes the event. If publishing fails, it retries later.</p>
+<p>This does not create a distributed ACID transaction across Kafka and the DB; it creates a reliable bridge from the authoritative transaction to asynchronous processing.</p>
+</div>
+
+<h2>46. Exactly-Once Is Usually an Application Property</h2>
+<div class="card">
+<p>Do not casually claim “Kafka gives exactly once” or “the DB guarantees exactly once.” At the business level, duplicate messages and retries can still occur around system boundaries.</p>
+<p>Use:</p>
+<ul>
+<li>Idempotent consumers.</li>
+<li>Unique business keys.</li>
+<li>Processed-event tables when appropriate.</li>
+<li>State transition validation.</li>
+<li>Outbox pattern.</li>
+</ul>
+<pre><code>UPDATE orders
+SET status = 'CONFIRMED'
+WHERE order_id = ?
+  AND status = 'PAYMENT_PENDING';</code></pre>
+<p>If affected rows = 0, the transition may already have happened. That makes retries safe.</p>
+</div>
+
+<h2>47. Reconciliation Is Part of High Consistency</h2>
+<div class="card">
+<p><strong>Strong consistency does not mean “nothing can ever go wrong.”</strong></p>
+<p>Distributed failures can happen after a transaction commits and before another system observes it.</p>
+<p>Build periodic reconciliation:</p>
+<div class="flow">Orders
+↕
+Reservations
+↕
+Inventory ledger
+↕
+Payment records
+</div>
+<p>Examples:</p>
+<ul>
+<li>Payment SUCCESS + order still PENDING → repair transition.</li>
+<li>Reservation expired but still ACTIVE → release.</li>
+<li>Order CANCELLED but inventory not released → compensate.</li>
+<li>Inventory ledger and reservation totals differ → alert and repair according to business rules.</li>
+</ul>
+<p>Reconciliation should be designed before the incident, not after the first production mismatch.</p>
+</div>
+
+<h2>48. Production Failure: Database Is Healthy, but Connections Are Exhausted</h2>
+<div class="card danger">
+<p>This is a particularly important senior-level scenario.</p>
+<p>You observe:</p>
+<pre><code>DB CPU: 45%
+DB latency: acceptable
+Connection pool: 100%
+Request latency: huge
+</code></pre>
+<p>A junior diagnosis may be: “Increase DB CPU.”</p>
+<p>A senior diagnosis asks: <strong>Who is holding connections, and for how long?</strong></p>
+<p>Shopify reported exactly this class of lesson: their reservation workload hit a throughput ceiling even though query/CPU symptoms did not initially point to the real bottleneck. They instrumented connection usage by business process and found other checkout work was holding connections too long. citeturn0search0</p>
+<p><strong>Interview takeaway:</strong> always monitor connection acquisition time and connection hold duration, not just DB CPU.</p>
+</div>
+
+<h2>49. Peak Traffic Test Plan</h2>
+<div class="card">
+<h3>Do not test only average traffic</h3>
+<table>
+<tr><th>Test</th><th>Purpose</th></tr>
+<tr><td>10x normal RPS</td><td>Basic capacity.</td></tr>
+<tr><td>100x hot-SKU concurrency</td><td>Row contention.</td></tr>
+<tr><td>Last-unit race</td><td>Correctness.</td></tr>
+<tr><td>Payment timeout</td><td>Reservation TTL/release.</td></tr>
+<tr><td>DB deadlock injection</td><td>Retry behavior.</td></tr>
+<tr><td>DB connection exhaustion</td><td>Backpressure.</td></tr>
+<tr><td>Replica lag</td><td>Stale availability behavior.</td></tr>
+<tr><td>Redis unavailable</td><td>Fast-layer failure.</td></tr>
+<tr><td>Queue backlog</td><td>User pending experience.</td></tr>
+<tr><td>Duplicate requests</td><td>Idempotency.</td></tr>
+<tr><td>Process crash after DB commit</td><td>Outbox/reconciliation.</td></tr>
+<tr><td>Payment succeeds then service crashes</td><td>State recovery.</td></tr>
+</table>
+</div>
+
+<h2>50. Senior System Design Answer — Complete Version</h2>
+<div class="card good">
+<p><strong>“For a flash-sale e-commerce system, I would separate the problem into traffic management, inventory correctness, order processing and user experience.</strong></p>
+<p>First, I would not allow every incoming request to hit the primary database. I would use CDN/cache for read-heavy product data, rate limiting and admission control, and for extremely scarce inventory I would introduce a virtual queue. This protects the database and also gives users a stable waiting experience instead of thousands of timeout errors.</p>
+<p>For inventory, I would define the primary database as the authoritative source of truth or establish another explicit consistency boundary. The critical invariant is that we must never reserve more inventory than physically available. I would protect that invariant with a short atomic database transaction, for example a conditional update, row-level locking, or a scalable row-allocation design such as <code>SKIP LOCKED</code> when the workload justifies it.</p>
+<p>I would not hold database locks while calling payment services. I would create a short-lived inventory reservation, commit it, then process payment outside the transaction. On success, the reservation becomes SOLD/CONFIRMED. On failure or timeout, it is released.</p>
+<p>Every checkout request would have an idempotency key, because network retries are unavoidable. Database unique constraints and state-transition conditions would provide the final protection against duplicate orders.</p>
+<p>For multi-item orders, I would use deterministic lock ordering to reduce deadlocks, and I would retry only transient database conflicts with a small bounded retry budget and jitter.</p>
+<p>For asynchronous events, I would use a transactional outbox so an order commit and the event describing that commit cannot silently diverge.</p>
+<p>From the UX perspective, SOLD_OUT is not a server error. If another customer wins the final unit, I would return a business-level SOLD_OUT response and show a friendly message. If the system is overloaded but the request is accepted into the processing queue, I would return PROCESSING and let the user see progress rather than exposing database timeouts.</p>
+<p>Finally, I would monitor lock wait, deadlocks, connection utilization, connection hold time, transaction latency, queue depth, reservation success rate and inventory reconciliation. The objective is not to make the database accept unlimited concurrency. The objective is to shape traffic and keep the authoritative transaction short enough that the database remains healthy while maintaining the inventory invariant.”</p>
+</div>
+
+<h2>51. Interview Trap Questions</h2>
+<div class="card">
+<ul>
+<li><strong>“Just use Redis for inventory.”</strong> → Ask where the authoritative consistency boundary is.</li>
+<li><strong>“Just use SELECT FOR UPDATE.”</strong> → Ask what happens when 100,000 requests target one row.</li>
+<li><strong>“Just increase DB connections.”</strong> → More connections can make overload worse.</li>
+<li><strong>“Just use SERIALIZABLE.”</strong> → Stronger isolation can reduce throughput.</li>
+<li><strong>“Just retry every failure.”</strong> → Retries can amplify an outage and duplicate business operations.</li>
+<li><strong>“Return 500 when inventory is gone.”</strong> → SOLD_OUT is a business state, not necessarily a server failure.</li>
+<li><strong>“Keep the DB transaction open until payment finishes.”</strong> → External latency can hold locks/connections and collapse throughput.</li>
+<li><strong>“Cache says one item is available, so reserve it.”</strong> → Cache availability is advisory; final reservation needs authoritative concurrency control.</li>
+<li><strong>“Exactly once means no duplicates.”</strong> → Design idempotency at business boundaries.</li>
+</ul>
+</div>
+
+<p class="muted">Senior Java / Spring / System Design study page — database concurrency, inventory reservation, flash-sale architecture and production resilience.</p>
+</div>
+</body>
+</html>
