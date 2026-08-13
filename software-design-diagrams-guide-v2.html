@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Software Design Diagrams — Practical Guide</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --surface:#ffffff; --surface2:#f1f4f9; --text:#172033; --muted:#5f6b7c;
+      --line:#dce2ea; --accent:#3559e0; --accent2:#0f8a6a; --warn:#c67b12; --shadow:0 12px 30px rgba(30,45,75,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    a{color:inherit}
+    .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+    .hero{padding:68px 0 44px;background:linear-gradient(135deg,#eef2ff 0%,#f7fbff 55%,#eefaf6 100%);border-bottom:1px solid var(--line)}
+    .eyebrow{display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--accent)}
+    h1{font-size:clamp(38px,6vw,72px);line-height:1.02;margin:18px 0 18px;letter-spacing:-.04em;max-width:900px}
+    .lead{font-size:20px;color:var(--muted);max-width:800px;margin:0 0 28px}
+    .hero-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:stretch}
+    .hero-card,.panel,.diagram-card,.catalog-card,.rule-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero-card{padding:24px}
+    .mini-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+    .mini-map div{padding:12px;border-radius:12px;background:var(--surface2);font-size:14px}
+    .mini-map strong{display:block;margin-bottom:2px}
+    .toc{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .toc .wrap{display:flex;gap:6px;overflow:auto;padding-top:10px;padding-bottom:10px}
+    .toc a{white-space:nowrap;text-decoration:none;font-size:13px;font-weight:700;padding:8px 11px;border-radius:999px;color:var(--muted)}
+    .toc a:hover{background:var(--surface2);color:var(--text)}
+    main{padding:42px 0 80px}
+    section{scroll-margin-top:80px;margin:0 0 58px}
+    .section-head{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:18px}
+    .section-head h2{font-size:32px;line-height:1.15;margin:0;letter-spacing:-.025em}
+    .section-head p{margin:0;color:var(--muted);max-width:620px}
+    .note{border-left:4px solid var(--accent);background:#eef2ff;padding:14px 16px;border-radius:10px;color:#34405a;margin:18px 0}
+    .term{font-weight:750;color:var(--text)}
+    .vi{font-weight:600;color:var(--accent2)}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .category{padding:20px}
+    .category .n{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:#eef2ff;color:var(--accent);font-weight:800;margin-bottom:10px}
+    .category h3{margin:0 0 6px;font-size:18px}
+    .category p{margin:0;color:var(--muted);font-size:14px}
+    .category ul{margin:12px 0 0;padding-left:18px;font-size:14px}
+    .comparison{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+    table{border-collapse:collapse;width:100%;min-width:820px}
+    th,td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+    th{background:#f4f6fa;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#526071}
+    td{font-size:14px}
+    tr:last-child td{border-bottom:none}
+    .tag{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef2ff;color:var(--accent);font-size:12px;font-weight:800}
+    .tag.green{background:#eaf8f3;color:#08785b}.tag.gold{background:#fff4df;color:#9a5d00}
+    .diagram-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .diagram-card{overflow:hidden}
+    .diagram-top{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:start}
+    .diagram-top h3{margin:0 0 4px;font-size:20px}.diagram-top p{margin:0;color:var(--muted);font-size:14px}
+    .diagram-body{padding:18px 20px}
+    .svgbox{background:#fbfcfe;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px;overflow:auto}
+    svg{width:100%;height:auto;min-width:460px;display:block}
+    .why{font-size:14px;margin:0;color:#334155}.why strong{color:var(--text)}
+    .example{margin-top:10px;padding:10px 12px;background:#f7f9fc;border-radius:10px;font-size:13px;color:#475569}
+    .catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .catalog-card{padding:16px 18px;display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start}
+    .catalog-card h3{margin:0;font-size:16px}.catalog-card p{margin:0;color:var(--muted);font-size:14px}
+    .decision{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .rule-card{padding:18px}.rule-card .q{font-weight:800;margin-bottom:6px}.rule-card .a{color:var(--accent);font-weight:800}.rule-card p{margin:7px 0 0;color:var(--muted);font-size:14px}
+    .glossary{columns:2;column-gap:18px}
+    .glossary-item{break-inside:avoid;margin-bottom:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
+    footer{padding:26px 0 50px;color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef1f5;border:1px solid #d7dde6;border-bottom-width:2px;padding:2px 6px;border-radius:6px;font-size:12px}
+
+    .db-intro{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+    .metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .metric{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px}
+    .metric strong{display:block;font-size:15px;margin-bottom:3px}.metric span{font-size:13px;color:var(--muted)}
+    .pattern-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .pattern{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+    .pattern h3{margin:0 0 7px;font-size:17px}.pattern p{margin:0 0 8px;color:var(--muted);font-size:14px}.pattern ul{margin:8px 0 0;padding-left:18px;font-size:14px}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#101828;color:#e5edf8;border-radius:14px;padding:16px;overflow:auto;font-size:13px;line-height:1.65;white-space:pre}
+    .danger{border-left:4px solid #d64545;background:#fff1f1;padding:14px 16px;border-radius:10px;color:#713434;margin:14px 0}
+    .success{border-left:4px solid var(--accent2);background:#ecfaf5;padding:14px 16px;border-radius:10px;color:#255e50;margin:14px 0}
+    .scenario{background:linear-gradient(135deg,#fff8eb,#ffffff);border:1px solid #ecd9b6;border-radius:18px;padding:22px}
+    .scenario h3{margin:0 0 8px}.scenario p{margin:0;color:#5f5545}
+    .steps{counter-reset:step;display:grid;gap:10px}
+    .step{display:grid;grid-template-columns:36px 1fr;gap:11px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px}
+    .step:before{counter-increment:step;content:counter(step);width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#eef2ff;color:var(--accent);font-weight:800}
+    .step strong{display:block;margin-bottom:2px}.step p{margin:0;color:var(--muted);font-size:14px}
+    .compare-small{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .compare-small table{min-width:760px}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2ff;color:var(--accent)}
+    .pill.good{background:#eaf8f3;color:#08785b}.pill.warn{background:#fff4df;color:#9a5d00}.pill.bad{background:#ffeded;color:#b13a3a}
+    @media(max-width:900px){.db-intro,.metric-grid,.pattern-grid{grid-template-columns:1fr}}
+    @media(max-width:900px){.hero-grid,.grid,.diagram-grid,.decision{grid-template-columns:1fr}.catalog{grid-template-columns:1fr}.hero{padding-top:46px}.glossary{columns:1}.catalog-card{grid-template-columns:1fr}}
+    @media print{.toc{display:none}.hero{padding:30px 0}.diagram-card,.panel,.hero-card,.catalog-card,.rule-card{box-shadow:none}body{background:#fff}section{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Practical Software Design Guide · English + Vietnamese terms</span>
+      <h1>Software Design Diagrams</h1>
+      <p class="lead">A practical guide to the diagrams that software teams use to explain structure, behavior, data, deployment, security, and user experience.</p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>How to read this page</strong>
+          <p class="small">The English is kept around IELTS 5.5–6.5 level. Important technical words include a short Vietnamese meaning.</p>
+          <div class="mini-map">
+            <div><strong>Structure</strong>What parts exist?</div>
+            <div><strong>Behavior</strong>What happens next?</div>
+            <div><strong>Data</strong>How is information stored or moved?</div>
+            <div><strong>Deployment</strong>Where does the system run?</div>
+          </div>
+        </div>
+        <div class="hero-card">
+          <strong>One key idea</strong>
+          <p>A diagram is not “better” because it looks more complex. A good diagram answers one clear question for one clear audience.</p>
+          <div class="note" style="margin-bottom:0"><span class="term">Architecture</span> = structure. <span class="term">Flow</span> = process. <span class="term">Sequence</span> = who talks to whom, and in what order.</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <div class="wrap">
+      <a href="#map">Diagram map</a>
+      <a href="#core">Most-used diagrams</a>
+      <a href="#catalog">Full catalog</a>
+      <a href="#choose">How to choose</a>
+      <a href="#database">Database layer</a>
+      <a href="#caching">Caching layer</a>
+      <a href="#glossary">Technical vocabulary</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="map">
+      <div class="section-head">
+        <div><h2>1. The main groups of software diagrams</h2></div>
+        <p>There is no single official list for every software team. In practice, most diagrams fit into these groups.</p>
+      </div>
+      <div class="grid">
+        <div class="panel category"><span class="n">1</span><h3>Architecture & System</h3><p>Shows the main parts of a system and their connections.</p><ul><li>System Context</li><li>System Architecture</li><li>C4 Model</li><li>Component Diagram</li></ul></div>
+        <div class="panel category"><span class="n">2</span><h3>Behavior & Interaction</h3><p>Shows how parts of the system act over time.</p><ul><li>Sequence</li><li>Activity</li><li>State Machine</li><li>Communication</li></ul></div>
+        <div class="panel category"><span class="n">3</span><h3>Flow & Process</h3><p>Shows steps, decisions, branches, and business work.</p><ul><li>Flowchart</li><li>BPMN</li><li>Swimlane</li><li>Decision Tree</li></ul></div>
+        <div class="panel category"><span class="n">4</span><h3>Data</h3><p>Shows how data is structured, stored, or moved.</p><ul><li>ERD</li><li>Database Schema</li><li>DFD</li><li>Data Lineage</li></ul></div>
+        <div class="panel category"><span class="n">5</span><h3>API, Integration & Events</h3><p>Shows communication between services or external systems.</p><ul><li>API Interaction</li><li>Integration</li><li>Event Flow</li><li>Message Flow</li></ul></div>
+        <div class="panel category"><span class="n">6</span><h3>Infrastructure & Deployment</h3><p>Shows where software runs and how infrastructure is connected.</p><ul><li>Deployment</li><li>Cloud Architecture</li><li>Network</li><li>Environment</li></ul></div>
+        <div class="panel category"><span class="n">7</span><h3>Security</h3><p>Shows trust, access, threats, and security checks.</p><ul><li>Trust Boundary</li><li>Threat Model</li><li>Authentication Flow</li><li>Authorization Flow</li></ul></div>
+        <div class="panel category"><span class="n">8</span><h3>Code & Object Design</h3><p>Shows code structure and relationships between objects.</p><ul><li>Class Diagram</li><li>Object Diagram</li><li>Package Diagram</li><li>Dependency Graph</li></ul></div>
+        <div class="panel category"><span class="n">9</span><h3>UI / UX / Product</h3><p>Shows how a user moves through screens and product actions.</p><ul><li>User Flow</li><li>Wireflow</li><li>Sitemap</li><li>User Journey</li></ul></div>
+      </div>
+    </section>
+
+    <section id="core">
+      <div class="section-head">
+        <div><h2>2. The diagrams software teams use most often</h2></div>
+        <p>The examples below use one e-commerce system, so you can see how different diagrams explain different views of the same product.</p>
+      </div>
+
+      <div class="comparison" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th>Diagram</th><th>Main question</th><th>Best for</th><th>Typical audience</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Architecture Diagram</strong></td><td>What parts does the system have?</td><td>High-level structure</td><td>Engineers, architects, managers</td></tr>
+            <tr><td><strong>C4 Diagram</strong></td><td>What is the right level of detail?</td><td>Context → container → component</td><td>Engineering teams</td></tr>
+            <tr><td><strong>Sequence Diagram</strong></td><td>Who calls whom, and in what order?</td><td>API and service interaction</td><td>Developers, QA</td></tr>
+            <tr><td><strong>Flowchart / Activity</strong></td><td>What happens next?</td><td>Logic and workflow</td><td>BA, developers, QA</td></tr>
+            <tr><td><strong>State Diagram</strong></td><td>How does an object change status?</td><td>Lifecycle rules</td><td>Developers, BA, QA</td></tr>
+            <tr><td><strong>ERD</strong></td><td>How is data related?</td><td>Database design</td><td>Backend, data engineers</td></tr>
+            <tr><td><strong>Deployment Diagram</strong></td><td>Where does the system run?</td><td>Runtime and infrastructure</td><td>DevOps, SRE, architects</td></tr>
+            <tr><td><strong>Event Flow</strong></td><td>Which event is published and consumed?</td><td>Event-driven systems</td><td>Backend, architects</td></tr>
+            <tr><td><strong>User Flow</strong></td><td>How does the user move through the product?</td><td>Screen and task flow</td><td>Product, UX, QA</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="diagram-grid">
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>Architecture Diagram</h3><p><span class="term">Architecture <span class="vi">(kiến trúc)</span></span> shows the major building blocks.</p></div><span class="tag">Very common</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 300" role="img" aria-label="Architecture diagram example">
+                <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="30" y="115" width="130" height="60" rx="12"/><rect x="220" y="115" width="150" height="60" rx="12"/><rect x="440" y="40" width="150" height="60" rx="12"/><rect x="440" y="120" width="150" height="60" rx="12"/><rect x="440" y="200" width="150" height="60" rx="12"/><rect x="640" y="120" width="90" height="60" rx="12"/></g>
+                <g font-family="system-ui" font-size="16" text-anchor="middle" fill="#172033"><text x="95" y="151">Web App</text><text x="295" y="151">API Gateway</text><text x="515" y="76">Order Service</text><text x="515" y="156">Payment Service</text><text x="515" y="236">Inventory Service</text><text x="685" y="156">DB</text></g>
+                <g stroke="#64748b" stroke-width="2" marker-end="url(#a1)"><line x1="160" y1="145" x2="218" y2="145"/><line x1="370" y1="145" x2="437" y2="70"/><line x1="370" y1="145" x2="437" y2="150"/><line x1="370" y1="145" x2="437" y2="230"/><line x1="590" y1="150" x2="638" y2="150"/></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> you need to explain the system structure before going into detailed logic.</p>
+            <div class="example"><strong>Example:</strong> “Our checkout request goes from the Web App to the API Gateway, then to Order, Payment, and Inventory services.”</div>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>C4 Model</h3><p><span class="term">C4 Model <span class="vi">(mô hình 4 cấp kiến trúc)</span></span> gives several levels of detail.</p></div><span class="tag green">Best practice</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 280" role="img" aria-label="C4 model levels">
+                <g font-family="system-ui" text-anchor="middle">
+                  <rect x="40" y="40" width="150" height="190" rx="18" fill="#eef2ff" stroke="#93a4f5"/><text x="115" y="72" font-size="18" font-weight="700">Level 1</text><text x="115" y="102" font-size="15">Context</text><text x="115" y="142" font-size="13" fill="#5f6b7c">System + users</text><text x="115" y="164" font-size="13" fill="#5f6b7c">+ external systems</text>
+                  <rect x="215" y="40" width="150" height="190" rx="18" fill="#f2f8ff" stroke="#8fb7e8"/><text x="290" y="72" font-size="18" font-weight="700">Level 2</text><text x="290" y="102" font-size="15">Container</text><text x="290" y="142" font-size="13" fill="#5f6b7c">Web app</text><text x="290" y="164" font-size="13" fill="#5f6b7c">API · DB · Worker</text>
+                  <rect x="390" y="40" width="150" height="190" rx="18" fill="#eefaf6" stroke="#82cdb7"/><text x="465" y="72" font-size="18" font-weight="700">Level 3</text><text x="465" y="102" font-size="15">Component</text><text x="465" y="142" font-size="13" fill="#5f6b7c">Order module</text><text x="465" y="164" font-size="13" fill="#5f6b7c">Payment module</text>
+                  <rect x="565" y="40" width="150" height="190" rx="18" fill="#fff7e9" stroke="#e8bd77"/><text x="640" y="72" font-size="18" font-weight="700">Level 4</text><text x="640" y="102" font-size="15">Code</text><text x="640" y="142" font-size="13" fill="#5f6b7c">Classes</text><text x="640" y="164" font-size="13" fill="#5f6b7c">Functions</text>
+                </g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> one architecture picture is either too simple or too detailed. C4 lets you zoom in step by step.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>Sequence Diagram</h3><p><span class="term">Sequence <span class="vi">(trình tự tương tác)</span></span> shows messages in time order.</p></div><span class="tag">Very common</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 330" role="img" aria-label="Sequence diagram example">
+                <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" font-size="15" text-anchor="middle"><text x="90" y="28">User</text><text x="280" y="28">API</text><text x="470" y="28">Order Service</text><text x="660" y="28">Payment</text></g>
+                <g stroke="#cbd5e1" stroke-dasharray="6 6"><line x1="90" y1="42" x2="90" y2="310"/><line x1="280" y1="42" x2="280" y2="310"/><line x1="470" y1="42" x2="470" y2="310"/><line x1="660" y1="42" x2="660" y2="310"/></g>
+                <g stroke="#64748b" stroke-width="2" marker-end="url(#a2)"><line x1="92" y1="80" x2="278" y2="80"/><line x1="282" y1="125" x2="468" y2="125"/><line x1="472" y1="170" x2="658" y2="170"/><line x1="658" y1="215" x2="472" y2="215"/><line x1="468" y1="260" x2="282" y2="260"/><line x1="278" y1="295" x2="92" y2="295"/></g>
+                <g font-family="system-ui" font-size="13" fill="#475569"><text x="155" y="72">1. Checkout</text><text x="345" y="117">2. Create order</text><text x="535" y="162">3. Charge</text><text x="535" y="207">4. Success</text><text x="345" y="252">5. Order created</text><text x="155" y="287">6. 200 OK</text></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> debugging API calls, designing a new feature, or checking the order of service calls.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>Flowchart / Activity Diagram</h3><p><span class="term">Flow <span class="vi">(luồng xử lý)</span></span> shows steps, decisions, and branches.</p></div><span class="tag">Very common</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 340" role="img" aria-label="Flowchart example">
+                <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" text-anchor="middle" font-size="15" fill="#172033" stroke="#94a3b8" stroke-width="2"><rect x="295" y="20" width="170" height="50" rx="25" fill="#fff"/><text x="380" y="51" stroke="none">Start checkout</text><rect x="285" y="100" width="190" height="58" rx="12" fill="#fff"/><text x="380" y="135" stroke="none">Validate cart</text><polygon points="380,188 480,238 380,288 280,238" fill="#fff"/><text x="380" y="234" stroke="none">Stock available?</text><rect x="535" y="210" width="160" height="56" rx="12" fill="#fff"/><text x="615" y="244" stroke="none">Show error</text><rect x="65" y="210" width="160" height="56" rx="12" fill="#fff"/><text x="145" y="244" stroke="none">Take payment</text><rect x="65" y="290" width="160" height="40" rx="20" fill="#eefaf6"/><text x="145" y="316" stroke="none">Order complete</text></g>
+                <g stroke="#64748b" stroke-width="2" marker-end="url(#a3)"><line x1="380" y1="70" x2="380" y2="98"/><line x1="380" y1="158" x2="380" y2="186"/><line x1="280" y1="238" x2="227" y2="238"/><line x1="480" y1="238" x2="533" y2="238"/><line x1="145" y1="266" x2="145" y2="288"/></g><g font-family="system-ui" font-size="13" fill="#5f6b7c"><text x="235" y="226">Yes</text><text x="500" y="226">No</text></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Flowchart:</strong> simple process or logic. <strong>Activity Diagram:</strong> better when the workflow has parallel work, joins, or more formal UML rules.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>State Diagram</h3><p><span class="term">State <span class="vi">(trạng thái)</span></span> shows how one object changes over time.</p></div><span class="tag green">Great for rules</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 250" role="img" aria-label="State diagram example">
+                <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" text-anchor="middle" font-size="15"><g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="40" y="90" width="120" height="52" rx="26"/><rect x="220" y="90" width="120" height="52" rx="26"/><rect x="400" y="90" width="120" height="52" rx="26"/><rect x="580" y="90" width="140" height="52" rx="26"/></g><text x="100" y="122">Created</text><text x="280" y="122">Paid</text><text x="460" y="122">Shipped</text><text x="650" y="122">Delivered</text></g>
+                <g stroke="#64748b" stroke-width="2" marker-end="url(#a4)"><line x1="160" y1="116" x2="218" y2="116"/><line x1="340" y1="116" x2="398" y2="116"/><line x1="520" y1="116" x2="578" y2="116"/><path d="M280 90 C280 35,100 35,100 88" fill="none"/></g><g font-family="system-ui" font-size="13" fill="#5f6b7c"><text x="188" y="105">pay</text><text x="368" y="105">ship</text><text x="545" y="105">deliver</text><text x="185" y="30">refund / cancel</text></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> an object has strict lifecycle rules. Good examples are Order, Payment, Ticket, Document, or Account.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>ERD — Entity Relationship Diagram</h3><p><span class="term">Entity <span class="vi">(thực thể)</span></span> and <span class="term">relationship <span class="vi">(quan hệ)</span></span> explain database structure.</p></div><span class="tag">Backend staple</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 300" role="img" aria-label="ERD example">
+                <defs><marker id="a5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" font-size="14"><g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="60" y="65" width="180" height="150" rx="12"/><rect x="290" y="65" width="180" height="150" rx="12"/><rect x="520" y="65" width="180" height="150" rx="12"/></g><g font-weight="700" font-size="16"><text x="82" y="95">USER</text><text x="312" y="95">ORDER</text><text x="542" y="95">ORDER_ITEM</text></g><g fill="#475569"><text x="82" y="126">id (PK)</text><text x="82" y="150">name</text><text x="82" y="174">email</text><text x="312" y="126">id (PK)</text><text x="312" y="150">user_id (FK)</text><text x="312" y="174">status</text><text x="542" y="126">id (PK)</text><text x="542" y="150">order_id (FK)</text><text x="542" y="174">quantity</text></g></g><g stroke="#64748b" stroke-width="2"><line x1="240" y1="140" x2="290" y2="140"/><line x1="470" y1="140" x2="520" y2="140"/></g><g font-family="system-ui" font-size="12" fill="#5f6b7c"><text x="248" y="130">1</text><text x="278" y="130">N</text><text x="478" y="130">1</text><text x="508" y="130">N</text></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> designing or discussing relational data. ERD focuses on entities, keys, and relationships.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>Deployment Diagram</h3><p><span class="term">Deployment <span class="vi">(triển khai)</span></span> shows where software runs.</p></div><span class="tag gold">DevOps</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 300" role="img" aria-label="Deployment diagram example">
+                <defs><marker id="a6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" text-anchor="middle" font-size="15"><g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="30" y="115" width="120" height="56" rx="12"/><rect x="200" y="115" width="140" height="56" rx="12"/><rect x="390" y="50" width="190" height="190" rx="18" fill="#f8fbff"/><rect x="420" y="90" width="130" height="50" rx="10"/><rect x="420" y="165" width="130" height="50" rx="10"/><rect x="630" y="115" width="100" height="56" rx="12"/></g><text x="90" y="149">Internet</text><text x="270" y="149">Load Balancer</text><text x="485" y="77" font-weight="700">Kubernetes</text><text x="485" y="121">API Pod</text><text x="485" y="196">Worker Pod</text><text x="680" y="149">Postgres</text></g><g stroke="#64748b" stroke-width="2" marker-end="url(#a6)"><line x1="150" y1="143" x2="198" y2="143"/><line x1="340" y1="143" x2="388" y2="143"/><line x1="580" y1="143" x2="628" y2="143"/></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> discussing servers, containers, clusters, cloud services, environments, and runtime connections.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>Event Flow Diagram</h3><p><span class="term">Event-driven <span class="vi">(hướng sự kiện)</span></span> systems often need a clear event map.</p></div><span class="tag green">Microservices</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 270" role="img" aria-label="Event flow example">
+                <defs><marker id="a7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" text-anchor="middle" font-size="15"><g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="40" y="105" width="150" height="58" rx="12"/><rect x="290" y="95" width="160" height="78" rx="18" fill="#eef2ff"/><rect x="560" y="45" width="160" height="58" rx="12"/><rect x="560" y="165" width="160" height="58" rx="12"/></g><text x="115" y="139">Order Service</text><text x="370" y="128" font-weight="700">Message Broker</text><text x="370" y="150" font-size="13">Kafka / PubSub</text><text x="640" y="79">Payment Service</text><text x="640" y="199">Notification</text></g><g stroke="#64748b" stroke-width="2" marker-end="url(#a7)"><line x1="190" y1="134" x2="288" y2="134"/><line x1="450" y1="120" x2="558" y2="75"/><line x1="450" y1="150" x2="558" y2="194"/></g><g font-family="system-ui" font-size="13" fill="#5f6b7c"><text x="214" y="123">OrderCreated</text><text x="475" y="84">consume</text><text x="475" y="190">consume</text></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> services communicate through events, queues, topics, or a message broker.</p>
+          </div>
+        </article>
+
+        <article class="diagram-card">
+          <div class="diagram-top"><div><h3>User Flow</h3><p><span class="term">User flow <span class="vi">(luồng người dùng)</span></span> shows the path a user follows in the product.</p></div><span class="tag gold">Product / UX</span></div>
+          <div class="diagram-body">
+            <div class="svgbox">
+              <svg viewBox="0 0 760 250" role="img" aria-label="User flow example">
+                <defs><marker id="a8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+                <g font-family="system-ui" text-anchor="middle" font-size="15"><g fill="#fff" stroke="#94a3b8" stroke-width="2"><rect x="30" y="95" width="120" height="58" rx="12"/><rect x="180" y="95" width="120" height="58" rx="12"/><rect x="330" y="95" width="120" height="58" rx="12"/><rect x="480" y="95" width="120" height="58" rx="12"/><rect x="630" y="95" width="100" height="58" rx="12" fill="#eefaf6"/></g><text x="90" y="129">Home</text><text x="240" y="129">Product</text><text x="390" y="129">Cart</text><text x="540" y="129">Checkout</text><text x="680" y="129">Success</text></g><g stroke="#64748b" stroke-width="2" marker-end="url(#a8)"><line x1="150" y1="124" x2="178" y2="124"/><line x1="300" y1="124" x2="328" y2="124"/><line x1="450" y1="124" x2="478" y2="124"/><line x1="600" y1="124" x2="628" y2="124"/></g>
+              </svg>
+            </div>
+            <p class="why"><strong>Use it when:</strong> discussing screens, user tasks, navigation, onboarding, checkout, or product experience.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="catalog">
+      <div class="section-head">
+        <div><h2>3. Full practical catalog</h2></div>
+        <p>These are common names you may meet in software, product, data, security, or DevOps work.</p>
+      </div>
+      <div class="catalog">
+        <div class="catalog-card"><h3>System Context Diagram</h3><p>Shows the system, its users, and external systems. <span class="vi">Sơ đồ bối cảnh hệ thống.</span></p></div>
+        <div class="catalog-card"><h3>System Architecture Diagram</h3><p>Shows the major parts of a software system. <span class="vi">Sơ đồ kiến trúc hệ thống.</span></p></div>
+        <div class="catalog-card"><h3>Solution Architecture</h3><p>Shows a full solution across applications, platforms, and external services. <span class="vi">Kiến trúc giải pháp.</span></p></div>
+        <div class="catalog-card"><h3>C4 Context / Container / Component</h3><p>Shows architecture from high level to detailed level. <span class="vi">Các cấp độ kiến trúc C4.</span></p></div>
+        <div class="catalog-card"><h3>Component Diagram</h3><p>Shows modules or components and their dependencies. <span class="vi">Sơ đồ thành phần.</span></p></div>
+        <div class="catalog-card"><h3>Package / Module Diagram</h3><p>Shows how the codebase is divided into packages or modules. <span class="vi">Sơ đồ package / module.</span></p></div>
+        <div class="catalog-card"><h3>Dependency Graph</h3><p>Shows what depends on what. <span class="vi">Đồ thị phụ thuộc.</span></p></div>
+        <div class="catalog-card"><h3>Sequence Diagram</h3><p>Shows messages between actors or services in time order. <span class="vi">Sơ đồ tuần tự.</span></p></div>
+        <div class="catalog-card"><h3>Activity Diagram</h3><p>Shows a workflow with branches, joins, and parallel actions. <span class="vi">Sơ đồ hoạt động.</span></p></div>
+        <div class="catalog-card"><h3>Flowchart</h3><p>Shows steps and decisions in a simple process. <span class="vi">Lưu đồ.</span></p></div>
+        <div class="catalog-card"><h3>Swimlane Diagram</h3><p>Shows a process and who is responsible for each step. <span class="vi">Sơ đồ làn trách nhiệm.</span></p></div>
+        <div class="catalog-card"><h3>BPMN</h3><p>A formal notation for business processes. <span class="vi">Ký pháp mô hình hóa quy trình nghiệp vụ.</span></p></div>
+        <div class="catalog-card"><h3>State Machine Diagram</h3><p>Shows object states and allowed transitions. <span class="vi">Sơ đồ máy trạng thái.</span></p></div>
+        <div class="catalog-card"><h3>Timing Diagram</h3><p>Shows how states or signals change over exact time. <span class="vi">Sơ đồ thời gian.</span></p></div>
+        <div class="catalog-card"><h3>Communication Diagram</h3><p>Shows object communication with focus on relationships. <span class="vi">Sơ đồ giao tiếp.</span></p></div>
+        <div class="catalog-card"><h3>Use Case Diagram</h3><p>Shows what actions each actor can perform. <span class="vi">Sơ đồ ca sử dụng.</span></p></div>
+        <div class="catalog-card"><h3>ERD</h3><p>Shows entities, keys, and database relationships. <span class="vi">Sơ đồ quan hệ thực thể.</span></p></div>
+        <div class="catalog-card"><h3>Database Schema</h3><p>Shows real tables, columns, types, keys, and constraints. <span class="vi">Lược đồ cơ sở dữ liệu.</span></p></div>
+        <div class="catalog-card"><h3>Conceptual Data Model</h3><p>High-level business view of data entities. <span class="vi">Mô hình dữ liệu khái niệm.</span></p></div>
+        <div class="catalog-card"><h3>Logical Data Model</h3><p>Detailed data structure without physical database details. <span class="vi">Mô hình dữ liệu logic.</span></p></div>
+        <div class="catalog-card"><h3>Physical Data Model</h3><p>Implementation-level data model with real database details. <span class="vi">Mô hình dữ liệu vật lý.</span></p></div>
+        <div class="catalog-card"><h3>Data Flow Diagram (DFD)</h3><p>Shows where data comes from, how it is processed, and where it goes. <span class="vi">Sơ đồ luồng dữ liệu.</span></p></div>
+        <div class="catalog-card"><h3>Data Lineage Diagram</h3><p>Shows the origin and movement of data across systems. <span class="vi">Sơ đồ nguồn gốc và hành trình dữ liệu.</span></p></div>
+        <div class="catalog-card"><h3>ETL / Data Pipeline Diagram</h3><p>Shows the steps used to collect, transform, and store data. <span class="vi">Sơ đồ pipeline dữ liệu.</span></p></div>
+        <div class="catalog-card"><h3>API Interaction Diagram</h3><p>Shows how one application calls another through APIs. <span class="vi">Sơ đồ tương tác API.</span></p></div>
+        <div class="catalog-card"><h3>Integration Diagram</h3><p>Shows connections between systems, vendors, and platforms. <span class="vi">Sơ đồ tích hợp.</span></p></div>
+        <div class="catalog-card"><h3>Event Flow Diagram</h3><p>Shows which events are published and consumed. <span class="vi">Sơ đồ luồng sự kiện.</span></p></div>
+        <div class="catalog-card"><h3>Message Flow Diagram</h3><p>Shows messages moving through queues, topics, or services. <span class="vi">Sơ đồ luồng thông điệp.</span></p></div>
+        <div class="catalog-card"><h3>Deployment Diagram</h3><p>Shows where software components run. <span class="vi">Sơ đồ triển khai.</span></p></div>
+        <div class="catalog-card"><h3>Infrastructure Diagram</h3><p>Shows servers, cloud resources, storage, and networking. <span class="vi">Sơ đồ hạ tầng.</span></p></div>
+        <div class="catalog-card"><h3>Cloud Architecture Diagram</h3><p>Shows cloud services such as AWS, Azure, or GCP resources. <span class="vi">Sơ đồ kiến trúc cloud.</span></p></div>
+        <div class="catalog-card"><h3>Network Diagram</h3><p>Shows networks, subnets, firewalls, routes, and connections. <span class="vi">Sơ đồ mạng.</span></p></div>
+        <div class="catalog-card"><h3>Authentication Flow</h3><p>Shows how the system proves a user’s identity. <span class="vi">Luồng xác thực danh tính.</span></p></div>
+        <div class="catalog-card"><h3>Authorization Flow</h3><p>Shows how the system checks what a user is allowed to do. <span class="vi">Luồng phân quyền.</span></p></div>
+        <div class="catalog-card"><h3>Trust Boundary Diagram</h3><p>Shows trusted and untrusted areas of a system. <span class="vi">Sơ đồ ranh giới tin cậy.</span></p></div>
+        <div class="catalog-card"><h3>Threat Model Diagram</h3><p>Shows possible attack paths and security risks. <span class="vi">Sơ đồ mô hình mối đe dọa.</span></p></div>
+        <div class="catalog-card"><h3>Class Diagram</h3><p>Shows classes, properties, methods, and relationships. <span class="vi">Sơ đồ lớp.</span></p></div>
+        <div class="catalog-card"><h3>Object Diagram</h3><p>Shows example object instances at one point in time. <span class="vi">Sơ đồ đối tượng.</span></p></div>
+        <div class="catalog-card"><h3>User Flow</h3><p>Shows the path a user takes through a product. <span class="vi">Luồng người dùng.</span></p></div>
+        <div class="catalog-card"><h3>Wireflow / Screen Flow</h3><p>Combines screen ideas with navigation flow. <span class="vi">Luồng màn hình.</span></p></div>
+        <div class="catalog-card"><h3>Sitemap</h3><p>Shows the page or information hierarchy of a website or product. <span class="vi">Sơ đồ cấu trúc trang.</span></p></div>
+        <div class="catalog-card"><h3>User Journey Map</h3><p>Shows user goals, actions, pain points, and experience over time. <span class="vi">Bản đồ hành trình người dùng.</span></p></div>
+        <div class="catalog-card"><h3>CI/CD Pipeline Diagram</h3><p>Shows build, test, scan, and deployment steps. <span class="vi">Sơ đồ pipeline CI/CD.</span></p></div>
+        <div class="catalog-card"><h3>Git / Branching Flow</h3><p>Shows branch and merge strategy. <span class="vi">Luồng nhánh Git.</span></p></div>
+        <div class="catalog-card"><h3>Observability Architecture</h3><p>Shows logs, metrics, traces, alerts, and monitoring tools. <span class="vi">Kiến trúc quan sát hệ thống.</span></p></div>
+        <div class="catalog-card"><h3>Incident Response Flow</h3><p>Shows what the team does after an alert or production issue. <span class="vi">Luồng xử lý sự cố.</span></p></div>
+        <div class="catalog-card"><h3>Decision Tree</h3><p>Shows decisions and possible results as branches. <span class="vi">Cây quyết định.</span></p></div>
+      </div>
+    </section>
+
+    <section id="choose">
+      <div class="section-head">
+        <div><h2>4. How to choose the right diagram</h2></div>
+        <p>Start with the question you want to answer. Do not start with the drawing tool.</p>
+      </div>
+      <div class="decision">
+        <div class="rule-card"><div class="q">“What parts does the system have?”</div><div class="a">→ Architecture / C4</div><p>Use for system structure and boundaries.</p></div>
+        <div class="rule-card"><div class="q">“Who talks to whom, and when?”</div><div class="a">→ Sequence Diagram</div><p>Use for API calls and service interactions.</p></div>
+        <div class="rule-card"><div class="q">“What happens next?”</div><div class="a">→ Flowchart / Activity</div><p>Use for logic and process steps.</p></div>
+        <div class="rule-card"><div class="q">“How does the status change?”</div><div class="a">→ State Diagram</div><p>Use for lifecycle rules.</p></div>
+        <div class="rule-card"><div class="q">“How is data structured?”</div><div class="a">→ ERD / Schema</div><p>Use for database and entity relationships.</p></div>
+        <div class="rule-card"><div class="q">“Where does data move?”</div><div class="a">→ DFD / Data Lineage</div><p>Use for data processing and data movement.</p></div>
+        <div class="rule-card"><div class="q">“Where does the software run?”</div><div class="a">→ Deployment / Infrastructure</div><p>Use for runtime, servers, cloud, and networks.</p></div>
+        <div class="rule-card"><div class="q">“Which events move between services?”</div><div class="a">→ Event Flow</div><p>Use for queues, topics, and event-driven systems.</p></div>
+        <div class="rule-card"><div class="q">“How does the user move through the product?”</div><div class="a">→ User Flow</div><p>Use for UX, screens, and product tasks.</p></div>
+      </div>
+
+      <div class="note"><strong>Important:</strong> <span class="term">architecture style <span class="vi">(phong cách kiến trúc)</span></span> is not the same as a diagram type. Microservices, Clean Architecture, Hexagonal Architecture, Layered Architecture, and Event-Driven Architecture are design approaches. You can use several diagram types to explain them.</div>
+    </section>
+
+
+    <section id="database">
+      <div class="section-head">
+        <div><h2>5. Database layer design for high-concurrency order systems</h2></div>
+        <p>This section uses an e-commerce order system as a practical case. The main problem is keeping data correct while a promotion creates a very large traffic spike.</p>
+      </div>
+
+      <div class="db-intro">
+        <div class="panel" style="padding:22px">
+          <h3 style="margin-top:0">The main design goal</h3>
+          <p>A database layer should give both <span class="term">correctness <span class="vi">(tính đúng đắn dữ liệu)</span></span> and good speed. For an order system, the hardest data is usually <strong>inventory</strong>, because many users may try to buy the same product at the same time.</p>
+          <div class="note"><strong>Key idea:</strong> one million incoming requests should not become one million database writes at the same moment. The system should control traffic before it reaches the database.</div>
+        </div>
+        <div class="scenario">
+          <h3>Example scenario: promotion event</h3>
+          <p>A flash sale starts at 20:00. A popular SKU has only <strong>10,000 units</strong>, but millions of clients may refresh, add to cart, and press Buy during a short period. The system must avoid <span class="term">overselling <span class="vi">(bán vượt tồn kho)</span></span>, remain responsive, and give users a clear result.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">5.1 What a good database layer must protect</h3>
+      <div class="metric-grid">
+        <div class="metric"><strong>Consistency <span class="vi">(tính nhất quán)</span></strong><span>Do not sell more items than the real stock.</span></div>
+        <div class="metric"><strong>Throughput <span class="vi">(thông lượng)</span></strong><span>Process many operations per second without collapse.</span></div>
+        <div class="metric"><strong>Latency <span class="vi">(độ trễ)</span></strong><span>Return useful feedback quickly.</span></div>
+        <div class="metric"><strong>Availability <span class="vi">(tính sẵn sàng)</span></strong><span>Keep important functions working during failures.</span></div>
+        <div class="metric"><strong>Scalability <span class="vi">(khả năng mở rộng)</span></strong><span>Grow capacity when users and data grow.</span></div>
+        <div class="metric"><strong>Recoverability <span class="vi">(khả năng phục hồi)</span></strong><span>Recover safely after crashes, retries, or partial failures.</span></div>
+      </div>
+
+      <h3 style="margin-top:30px">5.2 Basic data model for an order application</h3>
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>Core order and inventory entities</h3><p>Keep business history separate from the current stock counter.</p></div><span class="tag">Database design</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 900 330" role="img" aria-label="Order database model with inventory reservation">
+              <g font-family="system-ui" font-size="14">
+                <g fill="#fff" stroke="#94a3b8" stroke-width="2">
+                  <rect x="20" y="45" width="170" height="180" rx="12"/><rect x="235" y="45" width="180" height="180" rx="12"/><rect x="460" y="45" width="190" height="180" rx="12"/><rect x="700" y="45" width="180" height="180" rx="12"/>
+                </g>
+                <g font-weight="700" font-size="16"><text x="42" y="76">ORDER</text><text x="257" y="76">ORDER_ITEM</text><text x="482" y="76">INVENTORY</text><text x="722" y="76">RESERVATION</text></g>
+                <g fill="#475569">
+                  <text x="42" y="108">id (PK)</text><text x="42" y="132">user_id</text><text x="42" y="156">status</text><text x="42" y="180">total_amount</text><text x="42" y="204">idempotency_key</text>
+                  <text x="257" y="108">order_id (FK)</text><text x="257" y="132">sku_id</text><text x="257" y="156">quantity</text><text x="257" y="180">unit_price</text>
+                  <text x="482" y="108">sku_id (PK)</text><text x="482" y="132">available</text><text x="482" y="156">reserved</text><text x="482" y="180">version</text>
+                  <text x="722" y="108">id (PK)</text><text x="722" y="132">sku_id</text><text x="722" y="156">order_id</text><text x="722" y="180">quantity</text><text x="722" y="204">expires_at</text>
+                </g>
+              </g>
+              <g stroke="#64748b" stroke-width="2"><line x1="190" y1="135" x2="235" y2="135"/><line x1="415" y1="135" x2="460" y2="135"/><line x1="650" y1="135" x2="700" y2="135"/></g>
+              <g font-family="system-ui" font-size="12" fill="#5f6b7c"><text x="198" y="124">1:N</text><text x="423" y="124">SKU</text><text x="658" y="124">1:N</text></g>
+              <text x="450" y="285" text-anchor="middle" font-family="system-ui" font-size="14" fill="#475569">Reservation = temporary stock hold before the order is fully confirmed</text>
+            </svg>
+          </div>
+          <p class="why"><strong>Reservation <span class="vi">(giữ chỗ tồn kho)</span>:</strong> a temporary stock hold. It prevents another user from taking the same unit while payment or order confirmation is still in progress.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">5.3 The classic inventory race condition</h3>
+      <p><span class="term">Race condition <span class="vi">(điều kiện tranh chấp)</span></span> happens when several requests read and change the same data at nearly the same time.</p>
+      <div class="danger"><strong>Unsafe pattern:</strong> Request A reads stock = 1. Request B also reads stock = 1. Both decide that the item is available. Both create an order. The system has sold 2 items while only 1 item existed.</div>
+      <div class="pattern-grid">
+        <div class="pattern">
+          <h3>Atomic conditional update</h3>
+          <p>For a simple relational database, let the database check and reduce stock in one atomic write.</p>
+          <div class="code">UPDATE inventory
+SET available = available - :qty
+WHERE sku_id = :sku
+  AND available &gt;= :qty;</div>
+          <ul><li>If affected rows = 1 → stock was reserved/decreased.</li><li>If affected rows = 0 → not enough stock.</li></ul>
+          <p><span class="pill good">Strong default</span> Good when contention is not extreme.</p>
+        </div>
+        <div class="pattern">
+          <h3>Optimistic locking <span class="vi">(khóa lạc quan)</span></h3>
+          <p>Store a version number. Update only if the version has not changed.</p>
+          <div class="code">UPDATE inventory
+SET available = :new_value,
+    version = version + 1
+WHERE sku_id = :sku
+  AND version = :old_version;</div>
+          <p><span class="pill warn">Good at medium contention</span> Under a hot flash-sale SKU, many requests may retry and waste work.</p>
+        </div>
+        <div class="pattern">
+          <h3>Pessimistic locking <span class="vi">(khóa bi quan)</span></h3>
+          <p>Use a row lock such as <span class="kbd">SELECT ... FOR UPDATE</span> before changing stock.</p>
+          <ul><li>Easy to understand.</li><li>Strong consistency inside a short transaction.</li><li>But many buyers on one row become a long waiting line.</li></ul>
+          <p><span class="pill bad">Poor for a very hot row</span> Lock waits and deadlocks can grow quickly.</p>
+        </div>
+        <div class="pattern">
+          <h3>Serialized inventory worker</h3>
+          <p>Send purchase attempts to a queue partitioned by SKU. One logical writer handles each SKU or partition in order.</p>
+          <ul><li>Removes write races for the same hot key.</li><li>Creates clear backpressure.</li><li>Can process in small batches.</li></ul>
+          <p><span class="pill good">Strong for flash sales</span> Requires queue, worker ownership, recovery, and monitoring.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">5.4 Millions of requests: protect the database before the database</h3>
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>High-demand order architecture</h3><p>The database is the final data store, not the first place that receives raw traffic.</p></div><span class="tag gold">Flash sale</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 980 350" role="img" aria-label="High concurrency order architecture">
+              <defs><marker id="dbarr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+              <g font-family="system-ui" text-anchor="middle" font-size="14">
+                <g fill="#fff" stroke="#94a3b8" stroke-width="2">
+                  <rect x="20" y="120" width="120" height="58" rx="12"/><rect x="180" y="120" width="150" height="58" rx="12"/><rect x="370" y="120" width="150" height="58" rx="12"/><rect x="560" y="120" width="150" height="58" rx="12"/><rect x="750" y="70" width="185" height="58" rx="12"/><rect x="750" y="185" width="185" height="58" rx="12"/>
+                </g>
+                <text x="80" y="154">Clients</text><text x="255" y="145">CDN / Gateway</text><text x="255" y="164" fill="#5f6b7c" font-size="12">rate limit</text><text x="445" y="145">Order API</text><text x="445" y="164" fill="#5f6b7c" font-size="12">fast validation</text><text x="635" y="145">Queue</text><text x="635" y="164" fill="#5f6b7c" font-size="12">partition by SKU</text><text x="842" y="95">Inventory Workers</text><text x="842" y="114" fill="#5f6b7c" font-size="12">controlled writers</text><text x="842" y="210">Primary Database</text><text x="842" y="229" fill="#5f6b7c" font-size="12">orders + stock truth</text>
+              </g>
+              <g stroke="#64748b" stroke-width="2" marker-end="url(#dbarr)"><line x1="140" y1="149" x2="178" y2="149"/><line x1="330" y1="149" x2="368" y2="149"/><line x1="520" y1="149" x2="558" y2="149"/><line x1="710" y1="149" x2="770" y2="128"/><line x1="842" y1="128" x2="842" y2="183"/></g>
+              <g font-family="system-ui" font-size="12" fill="#5f6b7c"><text x="202" y="100">Reject bots / excess traffic early</text><text x="555" y="280">The queue changes a traffic spike into controlled work</text></g>
+            </svg>
+          </div>
+          <p class="why"><strong>Backpressure <span class="vi">(kiểm soát áp lực ngược)</span>:</strong> when downstream capacity is full, the system slows, queues, or rejects new work instead of allowing every request to overload the database.</p>
+        </div>
+      </div>
+
+      <div class="steps" style="margin-top:16px">
+        <div class="step"><div><strong>Filter traffic at the edge.</strong><p>Use CDN, bot protection, authentication, request limits, and a waiting-room model when demand is far above supply.</p></div></div>
+        <div class="step"><div><strong>Cache read-heavy data.</strong><p>Product detail, promotion rules, images, and approximate availability can come from cache. Do not use an old cache value as the final decision for stock.</p></div></div>
+        <div class="step"><div><strong>Use admission control <span class="vi">(kiểm soát lượng request được nhận)</span>.</strong><p>Only allow a safe amount of checkout work into the critical path. Fast rejection is often better than a 30-second timeout.</p></div></div>
+        <div class="step"><div><strong>Partition the queue by SKU.</strong><p>Requests for the same product go to the same logical owner. Different SKUs can still run in parallel.</p></div></div>
+        <div class="step"><div><strong>Keep transactions short.</strong><p>Update inventory and local order data quickly. Never keep a database lock open while calling an external payment provider.</p></div></div>
+        <div class="step"><div><strong>Scale reads separately from writes.</strong><p>Read replicas can serve product history, order history, or reports. Final inventory writes still need a clear source of truth.</p></div></div>
+      </div>
+
+      <h3 style="margin-top:30px">5.5 Inventory reservation is usually better than “pay first, check later”</h3>
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>Recommended checkout flow</h3><p>Reserve stock first, then complete payment, then confirm the sale.</p></div><span class="tag green">Good UX + correctness</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 930 390" role="img" aria-label="Inventory reservation checkout sequence">
+              <defs><marker id="seqdb" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+              <g font-family="system-ui" font-size="14" text-anchor="middle"><text x="70" y="28">User</text><text x="245" y="28">Order API</text><text x="440" y="28">Inventory</text><text x="625" y="28">Payment</text><text x="830" y="28">Database</text></g>
+              <g stroke="#cbd5e1" stroke-dasharray="6 6"><line x1="70" y1="42" x2="70" y2="370"/><line x1="245" y1="42" x2="245" y2="370"/><line x1="440" y1="42" x2="440" y2="370"/><line x1="625" y1="42" x2="625" y2="370"/><line x1="830" y1="42" x2="830" y2="370"/></g>
+              <g stroke="#64748b" stroke-width="2" marker-end="url(#seqdb)"><line x1="72" y1="75" x2="243" y2="75"/><line x1="247" y1="115" x2="438" y2="115"/><line x1="442" y1="155" x2="828" y2="155"/><line x1="438" y1="195" x2="247" y2="195"/><line x1="247" y1="235" x2="623" y2="235"/><line x1="623" y1="275" x2="247" y2="275"/><line x1="247" y1="315" x2="828" y2="315"/><line x1="243" y1="350" x2="72" y2="350"/></g>
+              <g font-family="system-ui" font-size="12" fill="#475569"><text x="140" y="67">Buy</text><text x="330" y="107">Reserve stock</text><text x="620" y="147">Atomic reserve + TTL</text><text x="330" y="187">Reservation OK</text><text x="430" y="227">Charge payment</text><text x="430" y="267">Success</text><text x="550" y="307">Confirm order + reservation</text><text x="140" y="342">Order confirmed</text></g>
+            </svg>
+          </div>
+          <div class="success"><strong>Why this helps UX:</strong> once stock is reserved, the user can receive a short countdown such as “Item reserved for 5 minutes.” They do not need to race other users during the payment form.</div>
+        </div>
+      </div>
+
+      <p>If payment fails or the timer ends, change the reservation to expired and return the quantity to available stock. This is a <span class="term">compensation <span class="vi">(thao tác bù)</span></span> step.</p>
+
+      <h3 style="margin-top:30px">5.6 Do not keep one large transaction across services</h3>
+      <div class="danger"><strong>Bad idea:</strong> lock the inventory row → call payment provider for several seconds → wait for network → update order → commit. This keeps a scarce database lock for too long and can block many other buyers.</div>
+      <p>A distributed order flow normally uses several short local transactions. The system keeps business state such as <span class="kbd">PENDING</span>, <span class="kbd">RESERVED</span>, <span class="kbd">PAID</span>, <span class="kbd">CONFIRMED</span>, or <span class="kbd">CANCELLED</span>. This approach is often called a <span class="term">Saga <span class="vi">(chuỗi giao dịch cục bộ có bước bù)</span></span>.</p>
+
+      <h3 style="margin-top:30px">5.7 Common database patterns and when to use them</h3>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Pattern</th><th>Good for</th><th>Main risk / limit</th><th>Typical order use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Atomic conditional update</strong></td><td>Simple strong stock check</td><td>One very hot row can still serialize</td><td>Normal checkout, moderate promotions</td></tr>
+            <tr><td><strong>Optimistic locking</strong></td><td>Many reads, fewer collisions</td><td>Retry storm under heavy contention</td><td>Profile/config data, moderate stock traffic</td></tr>
+            <tr><td><strong>Pessimistic row lock</strong></td><td>Short critical sections</td><td>Lock waits and deadlocks</td><td>Small workflows where contention is low</td></tr>
+            <tr><td><strong>Queue + single logical writer</strong></td><td>Hot SKU / controlled order</td><td>More infrastructure and async behavior</td><td>Flash sale inventory allocation</td></tr>
+            <tr><td><strong>Cache</strong></td><td>Read-heavy product data</td><td>Stale data</td><td>Catalog, promotion metadata, approximate stock</td></tr>
+            <tr><td><strong>Read replica</strong></td><td>Scale non-critical reads</td><td>Replication lag</td><td>Order history, reports, product views</td></tr>
+            <tr><td><strong>Partitioning / sharding</strong></td><td>Very large data or write volume</td><td>Cross-shard queries and operations are harder</td><td>Orders by region/user/time; inventory ownership by SKU partition</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:30px">5.8 Idempotency: retries must not create duplicate orders</h3>
+      <p>Mobile networks, proxies, and clients can retry the same request. An <span class="term">idempotent operation <span class="vi">(thao tác lặp lại nhưng không tạo tác dụng phụ mới)</span></span> gives the same business result when the same request is repeated.</p>
+      <div class="code">POST /orders
+Idempotency-Key: checkout-user-123-attempt-456
+
+UNIQUE(idempotency_key)</div>
+      <p>The first request creates the order. Later retries return the existing result instead of creating another order or charging the user twice.</p>
+
+      <h3 style="margin-top:30px">5.9 Reliable events: database + message broker</h3>
+      <p>A common failure is: the database commits an order, but publishing <span class="kbd">OrderCreated</span> to the message broker fails. The <span class="term">Transactional Outbox <span class="vi">(bảng sự kiện giao dịch)</span></span> pattern solves this by writing the order and an outbox event in the same database transaction. A separate publisher sends the event later.</p>
+      <div class="code">BEGIN;
+  INSERT INTO orders (...);
+  INSERT INTO outbox_events (type, payload)
+  VALUES ('OrderCreated', ...);
+COMMIT;</div>
+      <p>Consumers should also be idempotent because the same message may be delivered more than once.</p>
+
+      <h3 style="margin-top:30px">5.10 Hot SKU design: one product is different from many products</h3>
+      <p>Sharding the database into 100 servers does not automatically solve one famous product with one shared stock counter. That SKU is a <span class="term">hot key <span class="vi">(khóa dữ liệu có lượng truy cập cực cao)</span></span>.</p>
+      <div class="success"><strong>Useful strategy:</strong> route the same SKU to the same queue partition or inventory owner, serialize only that SKU’s critical writes, and allow different SKUs to process in parallel. This keeps correctness without locking the whole database.</div>
+      <p>For extreme traffic, some systems keep a fast inventory counter in an in-memory store and update it with an atomic script. This can reduce database pressure, but the design must define durability, recovery, and reconciliation. A cache should not silently become the source of truth without a recovery plan.</p>
+
+      <h3 style="margin-top:30px">5.11 Failure scenarios you should design before launch</h3>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Scenario</th><th>Risk</th><th>Design response</th></tr></thead>
+          <tbody>
+            <tr><td>User double-clicks Buy</td><td>Duplicate order / payment</td><td>Idempotency key + unique constraint</td></tr>
+            <tr><td>Client times out but server succeeded</td><td>User retries and creates duplicates</td><td>Return previous result for the same idempotency key</td></tr>
+            <tr><td>Cache says stock = 5 but real stock = 0</td><td>Wrong expectation</td><td>Cache is advisory; final reserve uses authoritative write</td></tr>
+            <tr><td>Payment is slow</td><td>Long DB lock</td><td>Reservation + short transactions; payment outside DB transaction</td></tr>
+            <tr><td>Payment succeeds after reservation expires</td><td>Money taken but no stock</td><td>Reconciliation + refund/compensation workflow</td></tr>
+            <tr><td>Message is delivered twice</td><td>Duplicate downstream action</td><td>Idempotent consumer + processed-event key</td></tr>
+            <tr><td>Worker crashes</td><td>Queued orders stop</td><td>Durable queue, retry, ownership recovery, dead-letter handling</td></tr>
+            <tr><td>Primary DB is overloaded</td><td>Long timeout and system collapse</td><td>Admission control, load shedding, circuit breaker, queue limits</td></tr>
+            <tr><td>Deadlock</td><td>Transaction failure</td><td>Short transactions, stable lock order, bounded retry</td></tr>
+            <tr><td>Thousands refresh the same item</td><td>Thundering herd</td><td>CDN/cache, request coalescing, TTL jitter, push updates</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:30px">5.12 Good user experience during extreme demand</h3>
+      <div class="pattern-grid">
+        <div class="pattern"><h3>1. Give a fast, honest status</h3><p>“High demand — checking availability” is better than a long frozen spinner. If the system cannot safely accept more checkout work, fail fast with a clear message.</p></div>
+        <div class="pattern"><h3>2. Use a waiting room when demand is much higher than stock</h3><p>A controlled queue can improve fairness and protect backend capacity. Show position or progress when possible.</p></div>
+        <div class="pattern"><h3>3. Reserve stock for a short time</h3><p>After reservation succeeds, show a countdown. The user can complete payment without racing for stock every second.</p></div>
+        <div class="pattern"><h3>4. Make retries safe</h3><p>The user can press Retry after a network error without creating a second order or second charge.</p></div>
+        <div class="pattern"><h3>5. Separate “request accepted” from “order confirmed”</h3><p>For async flows, show states such as Processing, Reserved, Payment pending, Confirmed, or Sold out. Do not show success too early.</p></div>
+        <div class="pattern"><h3>6. Give a useful sold-out path</h3><p>Offer a waitlist, similar products, another store, or a notification option. A clear alternative is better than a generic error.</p></div>
+      </div>
+
+      <h3 style="margin-top:30px">5.13 A practical reference architecture</h3>
+      <div class="steps">
+        <div class="step"><div><strong>Catalog path:</strong><p>CDN / cache → Product API → read replica. This path is read-heavy and can scale widely.</p></div></div>
+        <div class="step"><div><strong>Checkout admission:</strong><p>Gateway → rate limit / waiting room → Order API. Only safe traffic enters the critical path.</p></div></div>
+        <div class="step"><div><strong>Inventory allocation:</strong><p>Queue partitioned by SKU → inventory worker → atomic database update / reservation.</p></div></div>
+        <div class="step"><div><strong>Order transaction:</strong><p>Create PENDING order + reservation + outbox event with short local transactions.</p></div></div>
+        <div class="step"><div><strong>Payment:</strong><p>Call external payment outside the database lock. Confirm or compensate later.</p></div></div>
+        <div class="step"><div><strong>Async side effects:</strong><p>Events drive email, analytics, shipping, loyalty points, and other non-critical work.</p></div></div>
+        <div class="step"><div><strong>Observability:</strong><p>Measure queue depth, reserve success rate, DB lock time, p95/p99 latency, DB connections, retry rate, sold-out rate, and payment reconciliation.</p></div></div>
+      </div>
+
+      <div class="note" style="margin-top:18px"><strong>Design rule:</strong> keep the strict consistency area as small as possible. Inventory allocation needs strong control. Product images, descriptions, analytics, email, and many other tasks do not need to block the checkout transaction.</div>
+    </section>
+
+
+    <section id="caching">
+      <div class="section-head">
+        <div><h2>6. Caching layer design for e-commerce systems</h2></div>
+        <p>Caching reduces repeated work and protects slower systems. The main skill is not only “put data in Redis”, but choosing what can be stale, what must be fresh, and what happens when the cache is missing or expires.</p>
+      </div>
+
+      <div class="db-intro">
+        <div class="panel" style="padding:22px">
+          <h3 style="margin-top:0">The main design goal</h3>
+          <p>A <span class="term">cache <span class="vi">(bộ nhớ đệm)</span></span> stores data closer to the user or application so repeated reads can return faster. It should reduce load on databases, search engines, and external services.</p>
+          <div class="note"><strong>Key idea:</strong> cache the data that is expensive to read or calculate, but do not let stale cached data make an unsafe business decision.</div>
+        </div>
+        <div class="scenario">
+          <h3>Example scenario: a hot product</h3>
+          <p>A promotion starts at 20:00. One product page receives millions of views. Product information changes rarely, but price, promotion, cart, order status, and inventory have different update rates. They should not all use the same cache rule.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">6.1 What caching can and cannot solve</h3>
+      <div class="metric-grid">
+        <div class="metric"><strong>Lower latency <span class="vi">(giảm độ trễ)</span></strong><span>Serve common data without waiting for a slower database call.</span></div>
+        <div class="metric"><strong>Higher throughput <span class="vi">(tăng thông lượng)</span></strong><span>More requests can be handled with the same backend capacity.</span></div>
+        <div class="metric"><strong>Database protection <span class="vi">(bảo vệ cơ sở dữ liệu)</span></strong><span>Repeated reads do not reach the primary database every time.</span></div>
+        <div class="metric"><strong>Better resilience <span class="vi">(khả năng chống lỗi tốt hơn)</span></strong><span>Some read paths can still return stale or fallback data during a backend problem.</span></div>
+        <div class="metric"><strong>Not a consistency solution</strong><span>A cache alone does not solve overselling, duplicate payment, or transaction correctness.</span></div>
+        <div class="metric"><strong>Not free memory</strong><span>Cache capacity, eviction, hot keys, invalidation, and failure must be designed.</span></div>
+      </div>
+
+      <h3 style="margin-top:30px">6.2 Common cache layers</h3>
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>Multi-layer cache architecture</h3><p>Use the cheapest and closest layer first. Each layer protects the next one.</p></div><span class="tag green">Common architecture</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 980 330" role="img" aria-label="Multi-layer cache architecture for e-commerce">
+              <defs><marker id="cachearr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+              <g font-family="system-ui" text-anchor="middle">
+                <g fill="#fff" stroke="#94a3b8" stroke-width="2">
+                  <rect x="25" y="115" width="125" height="70" rx="12"/>
+                  <rect x="190" y="115" width="135" height="70" rx="12"/>
+                  <rect x="365" y="115" width="140" height="70" rx="12"/>
+                  <rect x="545" y="115" width="150" height="70" rx="12"/>
+                  <rect x="735" y="115" width="100" height="70" rx="12"/>
+                  <rect x="870" y="115" width="85" height="70" rx="12"/>
+                </g>
+                <text x="87" y="145" font-size="15">Browser</text><text x="87" y="165" font-size="12" fill="#5f6b7c">HTTP cache</text>
+                <text x="257" y="145" font-size="15">CDN / Edge</text><text x="257" y="165" font-size="12" fill="#5f6b7c">global cache</text>
+                <text x="435" y="145" font-size="15">API</text><text x="435" y="165" font-size="12" fill="#5f6b7c">application</text>
+                <text x="620" y="145" font-size="15">Local L1</text><text x="620" y="165" font-size="12" fill="#5f6b7c">in-process cache</text>
+                <text x="785" y="145" font-size="15">L2</text><text x="785" y="165" font-size="12" fill="#5f6b7c">Redis</text>
+                <text x="912" y="145" font-size="15">DB</text><text x="912" y="165" font-size="12" fill="#5f6b7c">source</text>
+              </g>
+              <g stroke="#64748b" stroke-width="2" marker-end="url(#cachearr)">
+                <line x1="150" y1="150" x2="188" y2="150"/><line x1="325" y1="150" x2="363" y2="150"/>
+                <line x1="505" y1="150" x2="543" y2="150"/><line x1="695" y1="150" x2="733" y2="150"/>
+                <line x1="835" y1="150" x2="868" y2="150"/>
+              </g>
+              <g font-family="system-ui" font-size="12" fill="#5f6b7c">
+                <text x="490" y="245" text-anchor="middle">A request should reach the database only after the earlier cache layers miss.</text>
+              </g>
+            </svg>
+          </div>
+          <div class="pattern-grid">
+            <div class="pattern"><h3>Browser / HTTP cache</h3><p>Good for static assets and public GET responses. Use headers such as <span class="kbd">Cache-Control</span>, <span class="kbd">ETag</span>, and <span class="kbd">Last-Modified</span>.</p></div>
+            <div class="pattern"><h3>CDN / edge cache <span class="vi">(cache biên)</span></h3><p>Best for images, JavaScript, CSS, product pages, and public API responses that can be shared between users.</p></div>
+            <div class="pattern"><h3>Local L1 cache <span class="vi">(cache cục bộ trong service)</span></h3><p>Very fast because it stays inside one application process. It is small and can become different between service instances.</p></div>
+            <div class="pattern"><h3>Distributed L2 cache <span class="vi">(cache phân tán)</span></h3><p>Redis or Memcached can be shared by many application instances and can hold larger, common data sets.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">6.3 Main caching patterns</h3>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Pattern</th><th>How it works</th><th>Good for</th><th>Main risk</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Cache-Aside / Lazy Loading</strong><br><span class="vi">Ứng dụng tự đọc/ghi cache</span></td><td>App checks cache. On miss, app reads DB and fills cache.</td><td>Product, category, profile, common read-heavy data</td><td>First miss is slower; stale data until invalidated</td></tr>
+            <tr><td><strong>Read-Through</strong><br><span class="vi">Cache tự tải dữ liệu khi miss</span></td><td>App asks cache; cache layer loads from data source automatically.</td><td>Systems with a cache library/platform that supports loaders</td><td>Cache layer becomes more complex</td></tr>
+            <tr><td><strong>Write-Through</strong><br><span class="vi">Ghi cache và nguồn dữ liệu đồng bộ</span></td><td>Write goes through cache and is also written to the durable store before success.</td><td>Data that is read soon after every write</td><td>Every write has extra latency</td></tr>
+            <tr><td><strong>Write-Behind / Write-Back</strong><br><span class="vi">Ghi cache trước, ghi DB sau</span></td><td>Write succeeds in cache first; DB update happens later in background.</td><td>High write throughput when temporary delay is acceptable</td><td>Data loss or ordering problems if cache fails</td></tr>
+            <tr><td><strong>Write-Around</strong><br><span class="vi">Ghi thẳng DB, không đưa ngay vào cache</span></td><td>Writes go to DB, while cache is filled only on a later read.</td><td>Data written often but not always read again</td><td>Next read can miss</td></tr>
+            <tr><td><strong>Refresh-Ahead</strong><br><span class="vi">Làm mới trước khi hết hạn</span></td><td>Popular keys are refreshed before they expire.</td><td>Hot products, home page, promotion metadata</td><td>Refreshing unused keys wastes work</td></tr>
+            <tr><td><strong>Stale-While-Revalidate</strong><br><span class="vi">Trả dữ liệu cũ trong lúc làm mới</span></td><td>Serve slightly stale data while one background task refreshes the cache.</td><td>Product detail and content where short staleness is safe</td><td>Users may see old data for a short period</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note"><strong>Most common default:</strong> start with <span class="term">Cache-Aside</span>. Add event invalidation, TTL, request coalescing, or refresh-ahead only when the traffic and consistency needs require them.</div>
+
+      <h3 style="margin-top:30px">6.4 What should be cached in an e-commerce system?</h3>
+      <p>A useful rule is to separate data by <span class="term">volatility <span class="vi">(mức độ thay đổi)</span></span>. Data that changes once a day should not use the same TTL as data that changes many times per second.</p>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Data</th><th>Read / write profile</th><th>Cache?</th><th>Recommended design</th><th>Can stale data be used for final business decision?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Product title, description, attributes</strong></td><td>Very high read, rare write</td><td><span class="pill good">Yes</span></td><td>CDN + L2 cache, long TTL, invalidate on ProductUpdated</td><td>Usually yes for display</td></tr>
+            <tr><td><strong>Product images / static files</strong></td><td>Very high read, rare write</td><td><span class="pill good">Strong yes</span></td><td>CDN, versioned URLs, very long TTL</td><td>Yes</td></tr>
+            <tr><td><strong>Category / listing / recommendations</strong></td><td>High read, periodic update</td><td><span class="pill good">Yes</span></td><td>CDN or Redis, short/medium TTL, background refresh</td><td>Usually yes for discovery</td></tr>
+            <tr><td><strong>Price</strong></td><td>High read, business-controlled write</td><td><span class="pill good">Yes, carefully</span></td><td>Separate price key, short/medium TTL + PriceUpdated event</td><td>No at payment; revalidate authoritative price</td></tr>
+            <tr><td><strong>Promotion rule</strong></td><td>Very high read during events, scheduled changes</td><td><span class="pill good">Yes</span></td><td>Prewarm before event, versioned keys, event invalidation</td><td>Revalidate during order calculation if money is affected</td></tr>
+            <tr><td><strong>Shopping cart</strong></td><td>Frequent read and write per user</td><td><span class="pill warn">Depends</span></td><td>Redis often works as a fast working store; use atomic per-cart operations and durable recovery if needed</td><td>No if losing cart data is unacceptable</td></tr>
+            <tr><td><strong>Order summary / order history</strong></td><td>Read after writes, then mostly read</td><td><span class="pill good">Yes</span></td><td>Cache by order/user, invalidate or update after state changes</td><td>Do not use stale state for payment/refund decisions</td></tr>
+            <tr><td><strong>Current order status</strong></td><td>Changes during checkout / fulfillment</td><td><span class="pill warn">Short cache</span></td><td>Short TTL + event update/invalidation; push updates when possible</td><td>No for critical transitions</td></tr>
+            <tr><td><strong>Inventory available count</strong></td><td>Very high read/write on hot SKU</td><td><span class="pill bad">Not as simple truth</span></td><td>Cache approximate display; final reservation uses authoritative atomic logic</td><td><strong>No</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:30px">6.5 Product data: cache by change frequency</h3>
+      <p>One product page contains fields that change at different speeds. Do not put everything into one cache object with one TTL.</p>
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>Split one product page into cache domains</h3><p>Different data gets a different lifetime and invalidation rule.</p></div><span class="tag">Practical pattern</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 900 330" role="img" aria-label="Product page data split by cache lifetime">
+              <g font-family="system-ui" text-anchor="middle">
+                <rect x="30" y="45" width="210" height="230" rx="16" fill="#eef2ff" stroke="#93a4f5"/>
+                <text x="135" y="80" font-size="18" font-weight="700">Product Page</text>
+                <text x="135" y="112" font-size="14">title · images</text><text x="135" y="136" font-size="14">price · promotion</text><text x="135" y="160" font-size="14">inventory hint</text><text x="135" y="184" font-size="14">reviews</text>
+                <g fill="#fff" stroke="#94a3b8" stroke-width="2">
+                  <rect x="320" y="25" width="240" height="60" rx="12"/>
+                  <rect x="320" y="100" width="240" height="60" rx="12"/>
+                  <rect x="320" y="175" width="240" height="60" rx="12"/>
+                  <rect x="320" y="250" width="240" height="60" rx="12"/>
+                </g>
+                <text x="440" y="50" font-size="15">Product core</text><text x="440" y="69" font-size="12" fill="#5f6b7c">long TTL · rare update</text>
+                <text x="440" y="125" font-size="15">Price / Promotion</text><text x="440" y="144" font-size="12" fill="#5f6b7c">shorter TTL · event invalidate</text>
+                <text x="440" y="200" font-size="15">Inventory hint</text><text x="440" y="219" font-size="12" fill="#5f6b7c">very short / approximate only</text>
+                <text x="440" y="275" font-size="15">Review summary</text><text x="440" y="294" font-size="12" fill="#5f6b7c">periodic refresh</text>
+                <rect x="650" y="92" width="210" height="150" rx="16" fill="#eefaf6" stroke="#82cdb7"/>
+                <text x="755" y="125" font-size="16" font-weight="700">Result</text>
+                <text x="755" y="154" font-size="13">Less invalidation</text><text x="755" y="178" font-size="13">Better cache hit rate</text><text x="755" y="202" font-size="13">Safer consistency</text>
+              </g>
+            </svg>
+          </div>
+          <p class="why"><strong>Example:</strong> product name and image may use a 1-hour or longer cache, while price may use minutes, and inventory shown on the page may be only an approximate “In stock / Low stock / Sold out” hint.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">6.6 Shopping cart: frequent reads and writes</h3>
+      <p>A cart is different from a product catalog. It is user-specific and changes often. A shared CDN cache is normally wrong for cart data.</p>
+      <div class="pattern-grid">
+        <div class="pattern">
+          <h3>Option A: Database is truth, Redis is cache</h3>
+          <p>Use when the cart must survive cache loss and the database can handle the write rate.</p>
+          <div class="code">GET cart:user:123
+MISS → SELECT cart FROM DB
+       → SET Redis
+WRITE → DB transaction
+       → DEL/UPDATE Redis</div>
+          <p><span class="pill good">Simple correctness</span> More database writes.</p>
+        </div>
+        <div class="pattern">
+          <h3>Option B: Redis is the working cart store</h3>
+          <p>Use Redis hashes or similar structures for fast add/remove/change operations. Persist or snapshot the cart if business rules require recovery.</p>
+          <div class="code">HINCRBY cart:123 sku:ABC 1
+HSET    cart:123 updated_at ...
+EXPIRE  cart:123 2592000</div>
+          <p><span class="pill warn">Important</span> If Redis is the only copy, it is no longer “just cache”. Persistence, replication, backup, and recovery become part of the design.</p>
+        </div>
+      </div>
+      <div class="success"><strong>Cart UX rule:</strong> use atomic cart operations, return the updated cart immediately, and keep a reasonable expiration such as days or weeks. Do not block each cart click on inventory reservation; validate or reserve stock later during checkout.</div>
+
+      <h3 style="margin-top:30px">6.7 Orders: cache reads, not critical state transitions</h3>
+      <p>Orders are durable business records. The database or event-sourced store should remain authoritative. Cache helps with frequent reads such as “My Orders” or order detail pages.</p>
+      <div class="steps">
+        <div class="step"><div><strong>Create or update order in the database.</strong><p>Commit the business state first, for example PENDING → PAID.</p></div></div>
+        <div class="step"><div><strong>Publish an OrderUpdated event.</strong><p>Use the outbox pattern when reliable event delivery is required.</p></div></div>
+        <div class="step"><div><strong>Invalidate or update cache.</strong><p>Delete <span class="kbd">order:{id}</span> and related <span class="kbd">orders:user:{id}:*</span> keys, or update them from the event.</p></div></div>
+        <div class="step"><div><strong>Use short TTL as a safety net.</strong><p>If an invalidation event is missed, the cache should still repair itself later.</p></div></div>
+      </div>
+      <div class="note"><strong>Read-your-writes:</strong> immediately after a user pays, it is often better to return the new order state from the write response instead of reading a possibly stale cache again.</div>
+
+      <h3 style="margin-top:30px">6.8 Inventory: cache can help reads, but final stock must be controlled</h3>
+      <p>Inventory has high <span class="term">contention <span class="vi">(tranh chấp)</span></span>. A cached value such as <span class="kbd">stock=7</span> can become wrong immediately after another user buys an item.</p>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Use case</th><th>Can cache be used?</th><th>Recommended behavior</th></tr></thead>
+          <tbody>
+            <tr><td>Product page shows “In stock”</td><td>Yes</td><td>Use short-lived or event-updated cache. Treat it as an availability hint.</td></tr>
+            <tr><td>Search result filters out sold-out items</td><td>Yes</td><td>Eventual consistency is usually acceptable.</td></tr>
+            <tr><td>User adds item to cart</td><td>Yes for a soft check</td><td>Tell the user availability may change before checkout.</td></tr>
+            <tr><td>Checkout reserves 2 units</td><td><strong>Not with a normal stale cache</strong></td><td>Use authoritative atomic DB update, serialized worker, or a carefully designed atomic inventory service.</td></tr>
+            <tr><td>Flash sale uses Redis atomic counter</td><td>Possible</td><td>Redis becomes part of the inventory authority. Define durability, replication, idempotency, recovery, reconciliation, and DB synchronization.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="danger"><strong>Unsafe:</strong> GET inventory from cache → see 1 item → create order → later update DB. Under concurrency, many users can read the same cached value and oversell.</div>
+
+      <h3 style="margin-top:30px">6.9 Cache invalidation strategies</h3>
+      <p><span class="term">Cache invalidation <span class="vi">(làm mất hiệu lực dữ liệu cache)</span></span> is the rule that removes or refreshes old data.</p>
+      <div class="pattern-grid">
+        <div class="pattern"><h3>TTL expiration</h3><p>Simple safety limit. Every key expires after a period.</p><ul><li>Easy to operate.</li><li>Data can be stale until TTL ends.</li><li>Same TTL on many keys can cause a large expiry wave.</li></ul></div>
+        <div class="pattern"><h3>Invalidate on write</h3><p>After DB commit, delete the cache key. The next read loads fresh data.</p><ul><li>Good with cache-aside.</li><li>Prefer delete over “update DB then separately update many cache views” when there are many derived keys.</li></ul></div>
+        <div class="pattern"><h3>Event-driven invalidation</h3><p>Publish events such as <span class="kbd">ProductUpdated</span> or <span class="kbd">PriceChanged</span>. Cache consumers delete or refresh related keys.</p><ul><li>Works across many services.</li><li>Needs reliable events and idempotent consumers.</li></ul></div>
+        <div class="pattern"><h3>Versioned cache keys</h3><p>Change the version in the key when content changes.</p><div class="code">product:123:v17
+promotion:summer-sale:v4</div><p>Old keys can expire naturally without blocking the new version.</p></div>
+      </div>
+
+      <h3 style="margin-top:30px">6.10 Peak event: one product gets millions of requests exactly when TTL expires</h3>
+      <p>This is the classic <span class="term">cache stampede <span class="vi">(nhiều request cùng cache miss rồi dồn xuống backend)</span></span>, also called <span class="term">thundering herd <span class="vi">(đám đông request dồn cùng lúc)</span></span> or, for one hot key, <span class="term">cache breakdown <span class="vi">(cache của hot key hết hạn gây quá tải)</span></span>.</p>
+
+      <div class="danger"><strong>Naive TTL failure:</strong> product key expires at 20:00:00 → one million requests see MISS → one million requests query the database → DB connection pool fills → latency grows → retries create more traffic → the whole service can collapse.</div>
+
+      <div class="diagram-card">
+        <div class="diagram-top"><div><h3>Safe hot-key refresh flow</h3><p>Let one worker refresh while other users still receive a safe cached value.</p></div><span class="tag gold">Anti-stampede</span></div>
+        <div class="diagram-body">
+          <div class="svgbox">
+            <svg viewBox="0 0 980 390" role="img" aria-label="Cache stampede protection with stale while revalidate and single flight">
+              <defs><marker id="herdarr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#64748b"/></marker></defs>
+              <g font-family="system-ui" text-anchor="middle">
+                <rect x="25" y="135" width="145" height="75" rx="14" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+                <text x="97" y="164" font-size="16">Millions of</text><text x="97" y="185" font-size="16">requests</text>
+                <rect x="220" y="135" width="155" height="75" rx="14" fill="#eef2ff" stroke="#93a4f5" stroke-width="2"/>
+                <text x="297" y="164" font-size="16">CDN / Edge</text><text x="297" y="185" font-size="12" fill="#5f6b7c">first protection</text>
+                <rect x="425" y="120" width="190" height="105" rx="14" fill="#eefaf6" stroke="#82cdb7" stroke-width="2"/>
+                <text x="520" y="151" font-size="16" font-weight="700">Redis / Cache</text><text x="520" y="176" font-size="12">soft TTL expired</text><text x="520" y="196" font-size="12">hard TTL still valid</text>
+                <rect x="680" y="45" width="245" height="85" rx="14" fill="#fff7e9" stroke="#e8bd77" stroke-width="2"/>
+                <text x="802" y="78" font-size="16">One refresh owner</text><text x="802" y="101" font-size="12" fill="#5f6b7c">singleflight / distributed lock</text>
+                <rect x="680" y="250" width="245" height="85" rx="14" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+                <text x="802" y="283" font-size="16">Database</text><text x="802" y="306" font-size="12" fill="#5f6b7c">only a small refresh load</text>
+                <text x="515" y="285" font-size="13" fill="#08785b">Other requests receive stale-safe product data</text>
+              </g>
+              <g stroke="#64748b" stroke-width="2" marker-end="url(#herdarr)">
+                <line x1="170" y1="172" x2="218" y2="172"/><line x1="375" y1="172" x2="423" y2="172"/>
+                <line x1="615" y1="145" x2="678" y2="95"/><line x1="802" y1="130" x2="802" y2="248"/>
+                <line x1="680" y1="292" x2="605" y2="215"/>
+              </g>
+            </svg>
+          </div>
+          <div class="steps">
+            <div class="step"><div><strong>Prewarm before the promotion.</strong><p>Load known hot products, prices, promotion rules, and public page fragments into CDN and Redis before traffic starts.</p></div></div>
+            <div class="step"><div><strong>Use soft TTL + hard TTL.</strong><p>After soft TTL, data should be refreshed, but it can still be served for a short safe period until hard TTL. This avoids an empty cache window.</p></div></div>
+            <div class="step"><div><strong>Allow only one refresh owner.</strong><p>Use <span class="term">request coalescing / singleflight <span class="vi">(gộp nhiều request miss thành một lần tải)</span></span> or a short distributed lock. One request loads the DB; others do not.</p></div></div>
+            <div class="step"><div><strong>Serve stale-while-revalidate.</strong><p>For product title, image, description, or other safe fields, return the previous cached value while refresh runs.</p></div></div>
+            <div class="step"><div><strong>Add TTL jitter.</strong><p>Do not let thousands of related keys expire at the exact same second. Add a small random difference to each TTL.</p></div></div>
+            <div class="step"><div><strong>Refresh hot keys early.</strong><p>Refresh-ahead or probabilistic early refresh updates very popular keys before normal expiry.</p></div></div>
+            <div class="step"><div><strong>Keep a fallback.</strong><p>If DB refresh fails, continue to serve safe stale content for a limited period and protect the DB with circuit breakers and rate limits.</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code">Example key state for a hot product
+
+value: product:123
+soft_expire_at: 20:00:00
+hard_expire_at: 20:05:00
+
+20:00:01 request A:
+  soft TTL expired
+  acquire refresh lock
+  load DB
+  update cache with TTL + random jitter
+
+20:00:01 requests B ... 1,000,000:
+  do NOT call DB
+  return old safe value, or wait a very short bounded time
+
+20:00:02:
+  new value is available for all requests</div>
+
+      <h3 style="margin-top:30px">6.11 Other cache failure patterns</h3>
+      <div class="compare-small">
+        <table>
+          <thead><tr><th>Problem</th><th>What happens</th><th>Protection</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Cache stampede / breakdown</strong></td><td>A hot key expires and many requests miss together.</td><td>Singleflight, stale-while-revalidate, refresh-ahead, prewarm, lock</td></tr>
+            <tr><td><strong>Cache avalanche</strong><br><span class="vi">nhiều key hết hạn cùng lúc</span></td><td>A large group of keys expires in the same time window.</td><td>TTL jitter, staggered refresh, multi-layer cache, rate limit</td></tr>
+            <tr><td><strong>Cache penetration</strong><br><span class="vi">request dữ liệu không tồn tại xuyên qua cache</span></td><td>Attackers or bugs request missing IDs; every miss reaches DB.</td><td>Negative cache, validation, Bloom filter when useful, rate limit</td></tr>
+            <tr><td><strong>Hot key</strong></td><td>One key receives far more traffic than other keys.</td><td>CDN, L1 local cache, replicas/partition strategy, hot-key replication where safe</td></tr>
+            <tr><td><strong>Stale cache</strong></td><td>User sees old product, price, or order state.</td><td>Event invalidation, version keys, short safety TTL, business revalidation</td></tr>
+            <tr><td><strong>Cache outage</strong></td><td>All requests suddenly fall back to DB.</td><td>Do not allow unlimited fallback; circuit breaker, load shedding, local cache, degraded response</td></tr>
+            <tr><td><strong>Eviction storm</strong></td><td>Memory pressure removes popular keys, creating repeated misses.</td><td>Capacity planning, key size limits, correct eviction policy, separate cache clusters by workload</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:30px">6.12 Negative caching and cache penetration</h3>
+      <p>If a client repeatedly requests <span class="kbd">product:does-not-exist</span>, a normal cache miss causes the database to be queried every time. Store a short “not found” result.</p>
+      <div class="code">GET product:999999
+MISS → DB: not found
+SET product:999999 = NOT_FOUND  TTL 30s
+
+Next requests:
+cache returns NOT_FOUND
+database is protected</div>
+      <p>Use a short TTL because the object may be created later. For very large known ID sets, a <span class="term">Bloom filter <span class="vi">(cấu trúc kiểm tra phần tử có khả năng tồn tại)</span></span> can reject many impossible keys before they reach the database.</p>
+
+      <h3 style="margin-top:30px">6.13 Cache key and TTL design</h3>
+      <div class="pattern-grid">
+        <div class="pattern"><h3>Good key structure</h3><div class="code">product:123:v17
+price:sku-ABC:v8
+cart:user-456
+order:789
+orders:user-456:page-1</div><p>Keys should be easy to understand, version, expire, and monitor.</p></div>
+        <div class="pattern"><h3>Do not use one global TTL</h3><p>Choose TTL from business risk and update frequency.</p><ul><li>Images: hours/days with versioned URL</li><li>Product core: minutes/hours</li><li>Price/promotion: shorter + invalidation</li><li>Inventory hint: seconds or event-driven</li><li>Order status: short + event update</li></ul></div>
+        <div class="pattern"><h3>Add TTL jitter</h3><div class="code">base_ttl = 3600
+jitter = random(0, 300)
+ttl = base_ttl + jitter</div><p>This spreads expiration times and reduces synchronized cache misses.</p></div>
+        <div class="pattern"><h3>Do not cache huge objects blindly</h3><p>Large values increase network cost, memory pressure, serialization time, and eviction. Cache the fields or computed view that the read path really needs.</p></div>
+      </div>
+
+      <h3 style="margin-top:30px">6.14 Practical reference architecture for the e-commerce example</h3>
+      <div class="steps">
+        <div class="step"><div><strong>Product page:</strong><p>Browser → CDN → Product API → L1 → Redis → Product DB. Product core has long TTL. Price/promotion use separate keys and events.</p></div></div>
+        <div class="step"><div><strong>Shopping cart:</strong><p>User-specific request → Cart API → Redis working store or DB + Redis cache. Use atomic operations and a long user-session TTL.</p></div></div>
+        <div class="step"><div><strong>Order read:</strong><p>Order API → short Redis cache → Order DB/read replica. Order write commits to DB first, then invalidates or updates cache through events.</p></div></div>
+        <div class="step"><div><strong>Inventory display:</strong><p>Product page can use cached availability hints. This path may be slightly stale.</p></div></div>
+        <div class="step"><div><strong>Inventory reservation:</strong><p>Bypass normal stale cache. Use atomic DB logic, queue/worker ownership, or a deliberately authoritative atomic inventory service.</p></div></div>
+        <div class="step"><div><strong>Peak promotion:</strong><p>Prewarm hot data, keep CDN edge cache active, use soft/hard TTL, singleflight refresh, TTL jitter, and protect all fallback paths with rate limits.</p></div></div>
+      </div>
+
+      <h3 style="margin-top:30px">6.15 Quick decision guide</h3>
+      <div class="decision">
+        <div class="rule-card"><div class="q">“Data is public, read-heavy, and changes rarely?”</div><div class="a">→ CDN + long cache</div><p>Product content, images, static assets.</p></div>
+        <div class="rule-card"><div class="q">“Data is read-heavy but changes sometimes?”</div><div class="a">→ Cache-Aside + TTL + invalidation</div><p>Product details, category, price, promotion.</p></div>
+        <div class="rule-card"><div class="q">“Data is user-specific and changes often?”</div><div class="a">→ Redis working store or short cache</div><p>Shopping cart, session, temporary user state.</p></div>
+        <div class="rule-card"><div class="q">“Data is a durable business record?”</div><div class="a">→ DB truth + cache reads</div><p>Order, payment, refund.</p></div>
+        <div class="rule-card"><div class="q">“Wrong stale value can oversell or lose money?”</div><div class="a">→ Revalidate authoritative state</div><p>Inventory reservation, payment amount, coupon usage limits.</p></div>
+        <div class="rule-card"><div class="q">“One hot key may receive millions of reads?”</div><div class="a">→ CDN + SWR + singleflight + prewarm</div><p>Never allow all expired-cache requests to fall through to the DB.</p></div>
+      </div>
+
+      <div class="note" style="margin-top:18px"><strong>Design rule:</strong> a cache is a performance tool, not a permission to ignore correctness. Decide for every cached field: <em>How stale may it be? Who is the source of truth? How is it invalidated? What happens on cache miss? What happens if the cache is down?</em></div>
+    </section>
+
+    <section id="glossary">
+      <div class="section-head">
+        <div><h2>7. Technical vocabulary</h2></div>
+        <p>Useful words that appear often in software design discussions.</p>
+      </div>
+      <div class="glossary">
+        <div class="glossary-item"><strong>Cache</strong> — fast temporary or near-compute storage used to avoid repeated expensive work. <span class="vi">Bộ nhớ đệm.</span></div>
+        <div class="glossary-item"><strong>Cache hit</strong> — requested data is found in cache. <span class="vi">Cache có dữ liệu cần tìm.</span></div>
+        <div class="glossary-item"><strong>Cache miss</strong> — requested data is not found in cache. <span class="vi">Cache không có dữ liệu cần tìm.</span></div>
+        <div class="glossary-item"><strong>TTL (Time To Live)</strong> — how long a cache entry can stay valid before expiration. <span class="vi">Thời gian tồn tại của cache.</span></div>
+        <div class="glossary-item"><strong>Eviction</strong> — removing cache entries, often because memory is full. <span class="vi">Loại dữ liệu khỏi cache.</span></div>
+        <div class="glossary-item"><strong>Cache invalidation</strong> — removing or marking old cached data as no longer valid. <span class="vi">Làm mất hiệu lực dữ liệu cache.</span></div>
+        <div class="glossary-item"><strong>Cache-Aside</strong> — the application checks cache, loads the database on miss, then fills the cache. <span class="vi">Ứng dụng tự quản lý đọc/ghi cache.</span></div>
+        <div class="glossary-item"><strong>Write-Through</strong> — update cache and durable storage before the write is reported as successful. <span class="vi">Ghi qua cache đến nguồn dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Write-Behind</strong> — write to cache first and persist to durable storage later. <span class="vi">Ghi cache trước, đồng bộ DB sau.</span></div>
+        <div class="glossary-item"><strong>Refresh-Ahead</strong> — refresh popular cache data before normal expiration. <span class="vi">Làm mới cache trước khi hết hạn.</span></div>
+        <div class="glossary-item"><strong>Stale-While-Revalidate</strong> — serve an older safe value while a fresh value is loaded in the background. <span class="vi">Trả dữ liệu cũ trong lúc làm mới.</span></div>
+        <div class="glossary-item"><strong>Singleflight / Request coalescing</strong> — combine many identical cache misses into one backend request. <span class="vi">Gộp nhiều cache miss thành một lần tải.</span></div>
+        <div class="glossary-item"><strong>TTL jitter</strong> — add small random differences to expiration times. <span class="vi">Làm lệch ngẫu nhiên thời gian hết hạn.</span></div>
+        <div class="glossary-item"><strong>Cache stampede</strong> — many requests miss the same cache entry and hit the backend together. <span class="vi">Nhiều request cache miss dồn xuống backend.</span></div>
+        <div class="glossary-item"><strong>Cache avalanche</strong> — many cache keys expire in the same period and overload the backend. <span class="vi">Nhiều key cache hết hạn cùng lúc.</span></div>
+        <div class="glossary-item"><strong>Cache penetration</strong> — requests for missing data repeatedly pass through cache to the database. <span class="vi">Request dữ liệu không tồn tại xuyên qua cache.</span></div>
+        <div class="glossary-item"><strong>Negative caching</strong> — temporarily cache a “not found” result. <span class="vi">Cache kết quả không tồn tại.</span></div>
+
+        <div class="glossary-item"><strong>Concurrency</strong> — many operations happening at the same time. <span class="vi">Xử lý đồng thời.</span></div>
+        <div class="glossary-item"><strong>Contention</strong> — many operations competing for the same resource. <span class="vi">Tranh chấp tài nguyên.</span></div>
+        <div class="glossary-item"><strong>Race condition</strong> — wrong behavior caused by timing between concurrent operations. <span class="vi">Điều kiện tranh chấp.</span></div>
+        <div class="glossary-item"><strong>Atomic operation</strong> — an operation that acts as one indivisible change. <span class="vi">Thao tác nguyên tử.</span></div>
+        <div class="glossary-item"><strong>Transaction</strong> — a group of database changes that succeed or fail together. <span class="vi">Giao dịch cơ sở dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Isolation</strong> — rules that control how concurrent transactions can see each other. <span class="vi">Mức cô lập giao dịch.</span></div>
+        <div class="glossary-item"><strong>Lock</strong> — a database mechanism that protects data during an operation. <span class="vi">Khóa dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Optimistic locking</strong> — detect a conflict when writing and retry if needed. <span class="vi">Khóa lạc quan.</span></div>
+        <div class="glossary-item"><strong>Pessimistic locking</strong> — lock data before changing it. <span class="vi">Khóa bi quan.</span></div>
+        <div class="glossary-item"><strong>Reservation</strong> — a temporary hold on stock. <span class="vi">Giữ chỗ tồn kho.</span></div>
+        <div class="glossary-item"><strong>Idempotency</strong> — repeating the same request does not create a new side effect. <span class="vi">Tính bất biến khi retry.</span></div>
+        <div class="glossary-item"><strong>Backpressure</strong> — slowing or limiting new work when downstream systems are full. <span class="vi">Kiểm soát áp lực ngược.</span></div>
+        <div class="glossary-item"><strong>Load shedding</strong> — rejecting lower-value or excess work to protect the system. <span class="vi">Loại bớt tải.</span></div>
+        <div class="glossary-item"><strong>Hot key / hot row</strong> — one data key receiving much more traffic than others. <span class="vi">Khóa / dòng dữ liệu nóng.</span></div>
+        <div class="glossary-item"><strong>Partition</strong> — split data or work into smaller independent groups. <span class="vi">Phân vùng.</span></div>
+        <div class="glossary-item"><strong>Shard</strong> — one independent part of a horizontally split database. <span class="vi">Mảnh cơ sở dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Read replica</strong> — a database copy mainly used for reads. <span class="vi">Bản sao đọc.</span></div>
+        <div class="glossary-item"><strong>Replication lag</strong> — delay before a replica receives the latest change. <span class="vi">Độ trễ sao chép.</span></div>
+        <div class="glossary-item"><strong>Saga</strong> — several local transactions with compensation when a later step fails. <span class="vi">Chuỗi giao dịch cục bộ có bước bù.</span></div>
+        <div class="glossary-item"><strong>Transactional Outbox</strong> — store an event with the database transaction, then publish it later. <span class="vi">Mẫu outbox giao dịch.</span></div>
+        <div class="glossary-item"><strong>Reconciliation</strong> — compare systems and repair inconsistent results. <span class="vi">Đối soát và sửa lệch dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Thundering herd</strong> — many clients hit the same resource at once. <span class="vi">Hiện tượng lượng lớn request dồn cùng lúc.</span></div>
+        <div class="glossary-item"><strong>Architecture</strong> — overall system structure. <span class="vi">Kiến trúc.</span></div>
+        <div class="glossary-item"><strong>Component</strong> — a main part of a system. <span class="vi">Thành phần.</span></div>
+        <div class="glossary-item"><strong>Module</strong> — a separated part of code or functionality. <span class="vi">Mô-đun.</span></div>
+        <div class="glossary-item"><strong>Dependency</strong> — when one part needs another part. <span class="vi">Sự phụ thuộc.</span></div>
+        <div class="glossary-item"><strong>Interaction</strong> — communication between parts. <span class="vi">Sự tương tác.</span></div>
+        <div class="glossary-item"><strong>Sequence</strong> — order of actions or messages. <span class="vi">Trình tự.</span></div>
+        <div class="glossary-item"><strong>Workflow</strong> — a series of work steps. <span class="vi">Quy trình công việc.</span></div>
+        <div class="glossary-item"><strong>Branch</strong> — one possible path after a decision. <span class="vi">Nhánh xử lý.</span></div>
+        <div class="glossary-item"><strong>State</strong> — current condition or status of an object. <span class="vi">Trạng thái.</span></div>
+        <div class="glossary-item"><strong>Transition</strong> — movement from one state to another. <span class="vi">Chuyển trạng thái.</span></div>
+        <div class="glossary-item"><strong>Entity</strong> — a main data object, such as User or Order. <span class="vi">Thực thể.</span></div>
+        <div class="glossary-item"><strong>Relationship</strong> — connection between data entities. <span class="vi">Mối quan hệ.</span></div>
+        <div class="glossary-item"><strong>Schema</strong> — formal structure of a database. <span class="vi">Lược đồ.</span></div>
+        <div class="glossary-item"><strong>Data lineage</strong> — history of where data comes from and where it goes. <span class="vi">Dòng nguồn gốc dữ liệu.</span></div>
+        <div class="glossary-item"><strong>Deployment</strong> — putting software into an environment where it can run. <span class="vi">Triển khai.</span></div>
+        <div class="glossary-item"><strong>Infrastructure</strong> — servers, networks, cloud resources, and related technology. <span class="vi">Hạ tầng.</span></div>
+        <div class="glossary-item"><strong>Runtime</strong> — the environment while software is running. <span class="vi">Môi trường chạy.</span></div>
+        <div class="glossary-item"><strong>Event</strong> — a fact that something happened, such as OrderCreated. <span class="vi">Sự kiện.</span></div>
+        <div class="glossary-item"><strong>Publish / Consume</strong> — send an event / receive and process an event. <span class="vi">Phát / nhận sự kiện.</span></div>
+        <div class="glossary-item"><strong>Message broker</strong> — software that moves messages between services. <span class="vi">Bộ trung gian thông điệp.</span></div>
+        <div class="glossary-item"><strong>Authentication</strong> — proving who a user is. <span class="vi">Xác thực.</span></div>
+        <div class="glossary-item"><strong>Authorization</strong> — checking what a user can do. <span class="vi">Phân quyền.</span></div>
+        <div class="glossary-item"><strong>Trust boundary</strong> — a line between areas with different security trust levels. <span class="vi">Ranh giới tin cậy.</span></div>
+        <div class="glossary-item"><strong>Threat model</strong> — a model of possible security risks and attacks. <span class="vi">Mô hình mối đe dọa.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel" style="padding:24px">
+        <h2 style="margin-top:0">Recommended learning order</h2>
+        <p>If you are a software engineer, learn these first:</p>
+        <p><span class="kbd">1</span> Architecture → <span class="kbd">2</span> C4 → <span class="kbd">3</span> Sequence → <span class="kbd">4</span> Flowchart / Activity → <span class="kbd">5</span> State → <span class="kbd">6</span> ERD → <span class="kbd">7</span> Deployment → <span class="kbd">8</span> Event Flow → <span class="kbd">9</span> Class Diagram.</p>
+        <p class="small">If you understand these nine well, you can explain most software designs clearly in technical discussions, code reviews, design reviews, and interviews.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">Software Design Diagrams — Practical English/Vietnamese learning page.</footer>
+</body>
+</html>

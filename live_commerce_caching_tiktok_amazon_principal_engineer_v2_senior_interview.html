@@ -1,0 +1,1460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Commerce Caching at Massive Scale</title>
+<style>
+:root{--bg:#071018;--panel:#0d1924;--panel2:#122537;--text:#eff7ff;--muted:#a9bbcb;--line:#29465f;--blue:#73b9ff;--cyan:#6fe0d1;--green:#8de3aa;--yellow:#ffd476;--red:#ff9494;--orange:#ffb36b;--code:#050b10}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:radial-gradient(circle at 8% 0%,rgba(115,185,255,.12),transparent 28%),radial-gradient(circle at 92% 12%,rgba(111,224,209,.08),transparent 25%),var(--bg);font:16px/1.72 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:var(--blue)}strong{color:#fff}.wrap{max-width:1280px;margin:auto;padding:0 24px 90px}header{padding:64px 0 34px;border-bottom:1px solid var(--line)}.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--cyan);font-weight:900}
+h1{font-size:clamp(2.35rem,5vw,5rem);line-height:1.02;margin:.3rem 0 1rem;max-width:1180px}h2{font-size:clamp(1.7rem,3vw,2.7rem);line-height:1.15;margin:0 0 12px}h3{font-size:1.3rem;margin:30px 0 8px}p,li{color:#dce8f4}.lead{font-size:1.18rem;max-width:1070px;color:var(--muted)}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,16,24,.94);backdrop-filter:blur(13px);border-bottom:1px solid var(--line);overflow:auto}nav .in{max-width:1280px;margin:auto;padding:10px 24px;display:flex;gap:8px;white-space:nowrap}nav a{text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.79rem}
+section{padding:50px 0 4px;scroll-margin-top:72px}.callout{padding:18px 20px;border:1px solid #355d84;background:rgba(115,185,255,.075);border-radius:15px;margin:22px 0}.callout.warn{border-color:#725b32;background:rgba(255,212,118,.07)}.callout.red{border-color:#713a3a;background:rgba(255,148,148,.06)}.callout.green{border-color:#37684a;background:rgba(141,227,170,.06)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:20px 0}.card{grid-column:span 4;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:17px;padding:19px}.card.wide{grid-column:span 6}.card h3{margin:0 0 7px}.card p{margin:0;color:var(--muted)}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:.72rem;font-weight:900;margin-bottom:9px}.byte{color:var(--cyan)}.amazon{color:var(--orange)}.pattern{color:var(--yellow)}
+.diagram{background:linear-gradient(180deg,#091725,#07111c);border:1px solid var(--line);border-radius:18px;padding:20px;overflow:auto;margin:22px 0}.flow{display:flex;align-items:center;gap:9px;min-width:1140px}.node{flex:0 0 auto;min-width:132px;padding:13px;border-radius:12px;background:#122a40;border:1px solid #38648d;text-align:center;font-weight:900}.node small{display:block;font-weight:500;color:var(--muted);line-height:1.3;margin-top:4px}.arrow{color:var(--blue);font-size:1.45rem;font-weight:900}.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-width:950px}.lane{padding:15px;border:1px dashed #35536e;border-radius:14px;background:rgba(255,255,255,.018)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:17px;overflow:auto;color:#dcecff;line-height:1.55}code{font-family:SFMono-Regular,Consolas,"Liberation Mono",monospace}
+table{width:100%;border-collapse:collapse;background:var(--panel);margin:18px 0 28px;font-size:.94rem}th,td{border:1px solid var(--line);padding:12px 13px;text-align:left;vertical-align:top}th{background:#142b42;color:#fff}.good{color:var(--green);font-weight:850}.bad{color:var(--red);font-weight:850}.mid{color:var(--yellow);font-weight:850}
+.term{color:var(--cyan);font-weight:850}.small{font-size:.88rem;color:var(--muted)}details{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:10px 0;padding:13px 15px}summary{cursor:pointer;font-weight:900;color:#fff}
+.interview{border:1px solid #426e97;background:linear-gradient(180deg,rgba(115,185,255,.08),rgba(13,25,36,.96));padding:22px;border-radius:18px}.quote{border-left:4px solid var(--cyan);padding-left:15px;font-size:1.08rem;font-weight:850;color:white}footer{margin-top:58px;border-top:1px solid var(--line);padding-top:22px;color:var(--muted)}
+@media(max-width:900px){.card,.card.wide{grid-column:span 12}.lanes{grid-template-columns:1fr;min-width:0}header{padding-top:42px}}
+</style>
+</head>
+<body>
+<nav><div class="in">
+<a href="#facts">Facts</a><a href="#planes">Three Planes</a><a href="#live">2M Live Viewers</a><a href="#product">Product Click</a><a href="#ttl">TTL Expiry</a><a href="#stampede">Anti-Stampede</a><a href="#admin">Admin Update</a><a href="#race">Invalidation Race</a><a href="#amazon">Amazon Lessons</a><a href="#failure">Failure</a><a href="#interview">Interview</a><a href="#senior">Senior Walkthrough</a><a href="#glossary">Glossary</a><a href="#sources">Sources</a>
+</div></nav>
+
+<div class="wrap">
+<header>
+<div class="eyebrow">Principal Engineer Deep Dive · Live Commerce Caching</div>
+<h1>How Can 2 Million Live Viewers Click the Same Product Without Killing the Database?</h1>
+<p class="lead">This page explains caching for a TikTok-like live commerce event. We study three hard problems: millions of users watching one stream, a huge click burst on one product when its cache expires, and an admin updating the product while users are reading it. English is kept around IELTS 5.5–6.5, and technical terms are translated into Vietnamese.</p>
+<div class="callout"><strong>Main rule:</strong> 2 million viewers must never mean 2 million database reads. Large systems collapse repeated work through CDN, multi-level caches, request coalescing, prewarming, version-aware invalidation, and protected origin/database paths.</div>
+</header>
+
+<section id="facts">
+<h2>0. Public Facts vs Design Inference</h2>
+<div class="grid">
+<div class="card"><span class="tag byte">BYTEPLUS / BYTEDANCE PUBLIC</span><h3>Multilevel CDN</h3><p>BytePlus, which says it is born from ByteDance technology, publicly documents edge cache nodes and regional cache nodes. This reduces origin load and serves content near users.</p></div>
+<div class="card"><span class="tag byte">BYTEPLUS / BYTEDANCE PUBLIC</span><h3>Live GOP cache</h3><p>BytePlus MediaLive documents a short GOP cache on edge servers for live pull streams. The cache uses FIFO and trades latency against resilience.</p></div>
+<div class="card"><span class="tag byte">BYTEPLUS / BYTEDANCE PUBLIC</span><h3>Purge + prefetch</h3><p>BytePlus publicly documents cache purge/refresh and content prefetch/warm-up for updated content and high-traffic events.</p></div>
+<div class="card"><span class="tag amazon">AMAZON PUBLIC</span><h3>Request coalescing</h3><p>Amazon Builders' Library explicitly recommends request coalescing so a thundering herd does not create many downstream requests for one uncached item.</p></div>
+<div class="card"><span class="tag amazon">AMAZON PUBLIC</span><h3>Soft + hard TTL</h3><p>Amazon describes refreshing after a soft TTL while keeping the last good value usable until a hard TTL when dependencies are impaired.</p></div>
+<div class="card"><span class="tag pattern">DESIGN PATTERN</span><h3>TikTok product metadata</h3><p>The exact TikTok Live product-cache architecture is private. The product design below is a strong architecture built from public ByteDance/BytePlus and Amazon caching lessons.</p></div>
+</div>
+<div class="callout warn"><strong>Careful:</strong> BytePlus exposes technology born from ByteDance engineering, but a public BytePlus feature is not proof that TikTok internally uses the exact same component or configuration.</div>
+</section>
+
+<section id="planes">
+<h2>1. Separate the System Into Three Planes</h2>
+<div class="grid">
+<div class="card"><h3>Media Plane</h3><p>Video/audio. Host → ingest → transcode → CDN → viewers. It should not touch a relational database for every frame or viewer.</p></div>
+<div class="card"><h3>Product/Data Plane</h3><p>Product title, image, display price, seller, promotion, product status. This is a read-heavy metadata workload.</p></div>
+<div class="card"><h3>Realtime Interaction Plane</h3><p>Chat, likes, gifts, reactions, viewer count. These fit stream/pub-sub and sharded counters better than one hot database row.</p></div>
+</div>
+<div class="diagram"><div class="lanes">
+<div class="lane"><strong>MEDIA</strong><p>Host → Ingest → Transcode → Regional CDN → Edge → Player</p></div>
+<div class="lane"><strong>PRODUCT</strong><p>Product API → L1 → Regional L2 → Read Model → DB</p></div>
+<div class="lane"><strong>INTERACTION</strong><p>WebSocket/RTC → Stream Bus → Sharded Counters → Aggregation</p></div>
+</div></div>
+<div class="callout green"><strong>Principal-level insight:</strong> these traffic classes need separate capacity, caches, failure domains, and backpressure rules.</div>
+</section>
+
+<section id="live">
+<h2>2. Case 1 — 2 Million Users Watch One Live Stream</h2>
+<h3>2.1 Wrong model</h3>
+<pre><code>2,000,000 viewers
+      |
+      v
+one application/origin
+      |
+      v
+read the same video 2,000,000 times
+
+This cannot scale.</code></pre>
+
+<h3>2.2 Correct pattern: hierarchical fan-out</h3>
+<div class="diagram"><div class="flow">
+<div class="node">KOL Phone</div><div class="arrow">→</div><div class="node">Ingest POP</div><div class="arrow">→</div><div class="node">Transcode / Mix</div><div class="arrow">→</div><div class="node">Origin Stream</div><div class="arrow">→</div><div class="node">Regional CDN</div><div class="arrow">→</div><div class="node">Edge POPs</div><div class="arrow">→</div><div class="node">2M Viewers</div>
+</div></div>
+
+<p>The video stream is distributed by CDN. Edge nodes keep recent chunks/GOPs (<span class="term">GOP — Group of Pictures / nhóm khung hình</span>) and serve many nearby viewers from one local stream copy.</p>
+
+<h3>2.3 BytePlus public live behavior</h3>
+<p>BytePlus MediaLive documents a server-side GOP cache at the edge for FLV/RTMP pull streaming. The cache is measured in seconds and uses <span class="term">FIFO — First-In, First-Out / vào trước ra trước</span>. A larger cache improves protection against network fluctuation but adds more playback latency.</p>
+
+<h3>2.4 Origin pull</h3>
+<p><span class="term">Origin pull — kéo dữ liệu từ máy chủ gốc</span> means the CDN obtains the stream from the source and fans it out. BytePlus documents both viewer-triggered on-demand pull and scheduled pull. Scheduled pull can keep the path already warm before a big event.</p>
+
+<h3>2.5 Illustrative traffic math</h3>
+<p class="small">Example only, not TikTok production numbers.</p>
+<pre><code>2,000,000 viewers
+spread across 500 edge groups.
+
+Without CDN:
+  upstream/origin demand ~ viewer count
+
+With hierarchy:
+  viewers -> edge
+  edge -> regional distribution
+  regional -> origin/source
+
+The expensive upstream fan-out is closer to
+the number of distribution paths,
+not the number of viewers.</code></pre>
+
+<h3>2.6 Viewer count should not be one hot DB row</h3>
+<pre><code>join / leave events
+      |
+      v
+partitioned stream
+   /  |  \
+counter shards
+   \  |  /
+  aggregation
+      |
+cached approximate count
+      |
+      v
+     UI</code></pre>
+<p>For display, the viewer number can usually be approximate. Strong consistency for every join/leave would create unnecessary contention.</p>
+</section>
+
+<section id="product">
+<h2>3. Case 2 — The KOL Pins One Product and Everybody Clicks It</h2>
+
+<div class="diagram"><div class="flow">
+<div class="node">Viewer Click</div><div class="arrow">→</div><div class="node">API Edge</div><div class="arrow">→</div><div class="node">Product API</div><div class="arrow">→</div><div class="node">L1 Cache<small>process memory</small></div><div class="arrow">→</div><div class="node">L2 Regional Cache<small>Redis-like</small></div><div class="arrow">→</div><div class="node">Product Read Model</div><div class="arrow">→</div><div class="node">Authoritative DB</div>
+</div></div>
+
+<h3>3.1 L1 in-process cache</h3>
+<pre><code>Product API memory:
+
+product:889:v42 -> compact JSON
+
+No network
+No Redis call
+No DB call</code></pre>
+
+<h3>3.2 L2 regional cache</h3>
+<p>When L1 misses, a regional distributed cache serves the product. BytePlus publicly offers Redis-compatible sharded cache with primary/secondary replication; this is evidence of ByteDance-related cache technology, not proof TikTok product metadata uses that exact product.</p>
+
+<h3>3.3 Product images belong on CDN</h3>
+<pre><code>BAD:
+.../product/889/main.jpg
+
+BETTER:
+.../product/889/main-v43.jpg
+or
+.../product/889/sha256-abcd.jpg</code></pre>
+<p>Use immutable/versioned URLs. When the image changes, publish a new URL instead of trying to overwrite every cached copy worldwide.</p>
+</section>
+
+<section id="ttl">
+<h2>4. The Dangerous Moment — Product TTL Expires During the Live</h2>
+<p><span class="term">Cache stampede / thundering herd — hiệu ứng bầy đàn dồn xuống DB</span>.</p>
+
+<h3>4.1 Broken expiration</h3>
+<pre><code>product:889 expires at 20:00:00
+
+20:00:00.001
+100,000 requests arrive
+
+every request:
+  cache MISS
+      |
+      v
+      DB
+
+100,000 DB queries
+for one product.</code></pre>
+
+<div class="callout red"><strong>Never design TTL as:</strong> “delete the only usable value and let everyone rebuild it.” Under viral traffic, expiration must be controlled.</div>
+
+<h3>4.2 Soft TTL + hard TTL</h3>
+<p>Amazon publicly describes this technique.</p>
+<pre><code>product v42
+
+soft_expire = 20:00:00
+hard_expire = 20:05:00
+
+At 20:00:01:
+
+one caller:
+  refreshes
+
+all other callers:
+  still get stale-but-safe v42
+
+when refresh completes:
+  cache becomes v43</code></pre>
+
+<p><span class="term">Soft TTL — hết hạn mềm</span>: the value should be refreshed. <span class="term">Hard TTL — hết hạn cứng</span>: after this point the value should not be served.</p>
+
+<h3>4.3 Why stale can be better than error</h3>
+<p>For title, description, seller name, or a non-critical badge, a value that is a few seconds old is often better than a 500 error. Final price, product status, and inventory are revalidated at checkout.</p>
+</section>
+
+<section id="stampede">
+<h2>5. Anti-Stampede Techniques — Make 100,000 Misses Become ~1 Refresh</h2>
+
+<h3>5.1 Request coalescing</h3>
+<p><span class="term">Request coalescing — gộp các request trùng nhau</span>. Amazon explicitly recommends it.</p>
+<pre><code>100,000 requests for product:889
+          |
+          v
+refresh already in progress?
+      /            \
+    yes             no
+     |               |
+serve stale/wait   one caller
+                    |
+                    v
+                 downstream</code></pre>
+
+<h3>5.2 Singleflight inside one app process</h3>
+<p><span class="term">Singleflight — một request đại diện làm công việc dùng chung</span>.</p>
+<pre><code>refresh_in_flight["product:889"] = Future
+
+first caller:
+  creates Future
+  calls L2/read model
+
+later callers:
+  share the Future
+  or receive stale value</code></pre>
+
+<h3>5.3 Distributed refresh lease</h3>
+<p>Local singleflight is not enough when thousands of application servers exist.</p>
+<pre><code>SET refresh:product:889 owner-id
+NX
+PX 3000
+
+winner:
+  refresh
+
+losers:
+  serve stale
+  or wait with a small deadline</code></pre>
+
+<p><span class="term">Lease — quyền làm mới tạm thời</span>. The lease needs an expiry. Version/fencing logic should prevent a very slow old refresher from overwriting newer data.</p>
+
+<h3>5.4 TTL jitter</h3>
+<p><span class="term">Jitter — độ lệch ngẫu nhiên</span>.</p>
+<pre><code>Instead of:
+TTL = 300 for everything
+
+Use:
+TTL = 300 + random(-30,+30)
+
+Examples:
+273, 286, 302, 319, 329...</code></pre>
+<p>AWS documentation provides examples of adding jitter so expiration is spread instead of synchronized.</p>
+
+<h3>5.5 Refresh-ahead</h3>
+<p><span class="term">Refresh-ahead — làm mới trước khi hết hạn</span>.</p>
+<pre><code>if product.qps > HOT_THRESHOLD
+and ttl_remaining < REFRESH_WINDOW:
+    refresh asynchronously</code></pre>
+
+<h3>5.6 Probabilistic early refresh</h3>
+<p><span class="term">Probabilistic early refresh — làm mới sớm theo xác suất</span>. The closer the key gets to expiry, the more likely one request refreshes it early. This is a strong industry pattern; exact TikTok use is not public.</p>
+
+<h3>5.7 Event prewarming</h3>
+<p><span class="term">Prewarm / warm-up — làm nóng cache trước sự kiện</span>.</p>
+<pre><code>T - 10 minutes:
+KOL campaign says product 889 will be pinned
+
+control plane:
+  load product v42
+  warm APAC L2
+  warm US L2
+  warm EU L2
+  prefetch images to CDN
+
+T = product pin:
+first viewers already HIT cache</code></pre>
+<p>BytePlus publicly documents CDN/VOD prefetch and warm-up for large events and releases to reduce origin load and improve first access.</p>
+
+<h3>5.8 Negative cache</h3>
+<p><span class="term">Negative cache — cache kết quả không tồn tại/lỗi</span>.</p>
+<pre><code>product:BAD -> NOT_FOUND
+TTL = short
+
+Repeated invalid requests
+do not keep hitting the DB.</code></pre>
+<p>Amazon's Builders' Library explicitly discusses negative caching using a different TTL from positive values.</p>
+</section>
+
+<section id="admin">
+<h2>6. Case 3 — Admin Updates the Product While the Live Is Running</h2>
+
+<h3>6.1 “Always latest” must be defined</h3>
+<table>
+<tr><th>Data</th><th>Browse freshness</th><th>Checkout rule</th></tr>
+<tr><td>Title/description</td><td>Seconds of bounded staleness can be acceptable</td><td>Order keeps its snapshot if needed</td></tr>
+<tr><td>Image</td><td>Versioned immutable CDN URL</td><td>No checkout correctness dependency</td></tr>
+<tr><td>Display price</td><td>Fast event invalidation</td><td>Revalidate version/quote</td></tr>
+<tr><td>ACTIVE/BLOCKED</td><td>Very short stale window</td><td>Check authority before commitment</td></tr>
+<tr><td>Inventory</td><td>Approximate display</td><td>Authoritative reservation</td></tr>
+</table>
+
+<h3>6.2 Recommended update pipeline</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Admin</div><div class="arrow">→</div><div class="node">Command API</div><div class="arrow">→</div><div class="node">Source DB<small>commit v43</small></div><div class="arrow">→</div><div class="node">Outbox / CDC</div><div class="arrow">→</div><div class="node">Change Stream</div><div class="arrow">→</div><div class="node">Cache Invalidation</div><div class="arrow">→</div><div class="node">Regions / Search / CDN</div>
+</div></div>
+
+<p><span class="term">CDC — Change Data Capture / bắt thay đổi dữ liệu</span> turns DB changes into events.</p>
+<pre><code>ProductUpdated {
+  product_id: 889,
+  version: 43,
+  changed_fields: ["price","image"]
+}</code></pre>
+
+<h3>6.3 Version-aware consumer</h3>
+<pre><code>cache version = 42
+event version = 43
+
+43 > 42:
+  invalidate or replace
+
+later delayed event v41:
+41 < 43:
+  ignore</code></pre>
+
+<h3>6.4 CDN purge + prefetch</h3>
+<p>BytePlus CDN publicly supports cache purge so an updated object is removed/expired before normal TTL. It also recommends prefetch after purge if you want the first request to stay accelerated. For images, a new versioned URL is usually cleaner.</p>
+</section>
+
+<section id="race">
+<h2>7. Hidden Race — “Update DB Then Delete Cache” Is Not Enough</h2>
+
+<h3>7.1 Stale resurrection</h3>
+<pre><code>Initial:
+DB = v42
+Cache = v42
+
+Request A:
+  misses cache
+  reads DB v42
+  pauses before SET
+
+Admin:
+  DB -> v43
+  DELETE cache
+
+Request A resumes:
+  SET cache = v42
+
+Final:
+DB = v43
+Cache = v42
+
+Old data is alive again.</code></pre>
+
+<div class="callout red">This race is why simple cache deletion is not a full consistency strategy.</div>
+
+<h3>7.2 Versioned cache keys</h3>
+<pre><code>product:889:v42
+product:889:v43
+
+latest_version:889 = 43</code></pre>
+<p>A delayed request can still write v42, but new readers ask for v43.</p>
+
+<h3>7.3 Version-aware CAS</h3>
+<p><span class="term">CAS — Compare-And-Set / so sánh rồi cập nhật nguyên tử</span>.</p>
+<pre><code>if incoming.version >= cached.version:
+    SET incoming
+else:
+    IGNORE</code></pre>
+
+<h3>7.4 CDC + version protects event ordering</h3>
+<pre><code>event v43 -> apply
+late event v41 -> ignore
+late stale fill v42 -> CAS reject</code></pre>
+
+<h3>7.5 Hard TTL is a safety net</h3>
+<p>Even with events, keep a bounded hard TTL so one lost invalidation message cannot leave data stale forever.</p>
+
+<h3>7.6 Checkout revalidation is the final correctness wall</h3>
+<p>Browse cache is never the final authority for final price, inventory, product blocked status, or promotion eligibility.</p>
+</section>
+
+<section>
+<h2>8. Full Cache Hierarchy for a Viral Product</h2>
+<div class="diagram"><div class="flow">
+<div class="node">Client Cache</div><div class="arrow">→</div><div class="node">CDN Edge<small>images/static</small></div><div class="arrow">→</div><div class="node">API L1<small>in-process</small></div><div class="arrow">→</div><div class="node">Regional L2<small>Redis/Memcache</small></div><div class="arrow">→</div><div class="node">Read Model<small>replica/KV</small></div><div class="arrow">→</div><div class="node">Source DB</div>
+</div></div>
+
+<h3>8.1 Different TTL by data type</h3>
+<table>
+<tr><th>Data</th><th>Design</th><th>Why</th></tr>
+<tr><td>Images</td><td>Immutable URL + long CDN TTL</td><td>Old and new files can coexist safely</td></tr>
+<tr><td>Title/description</td><td>Longer soft TTL + event invalidation</td><td>High reuse, low risk</td></tr>
+<tr><td>Display price</td><td>Short soft TTL + push invalidation</td><td>Freshness matters</td></tr>
+<tr><td>Promotion</td><td>Version + effective time</td><td>Campaign changes must be deterministic</td></tr>
+<tr><td>Stock badge</td><td>Approximate short TTL</td><td>Checkout reservation is authoritative</td></tr>
+<tr><td>Blocked status</td><td>Push invalidation + very short hard TTL</td><td>Safety/compliance sensitive</td></tr>
+</table>
+
+<h3>8.2 Hot-key protection</h3>
+<p><span class="term">Hot key — khóa nóng</span> means one key gets a huge share of traffic. One Redis shard can become the bottleneck even when the DB is protected.</p>
+<pre><code>viral product:889
+
+protect L2 by:
+  L1 near-cache on app servers
+  read replicas
+  precomputed compact JSON
+  separate hot-key capacity
+  replication/fan-out within region</code></pre>
+
+<h3>8.3 Cache patterns</h3>
+<table>
+<tr><th>Pattern</th><th>Vietnamese</th><th>Use</th></tr>
+<tr><td>Cache-aside</td><td>Ứng dụng tự đọc cache rồi DB khi miss</td><td>Flexible, but invalidation is app responsibility</td></tr>
+<tr><td>Read-through</td><td>Cache tự tải dữ liệu khi miss</td><td>Cache layer owns loading</td></tr>
+<tr><td>Write-through</td><td>Ghi qua cache tới nguồn dữ liệu</td><td>Fresh cache but tighter write coupling</td></tr>
+<tr><td>Write-behind</td><td>Ghi cache trước, DB sau</td><td>Fast but risky for important commerce state</td></tr>
+</table>
+</section>
+
+<section id="amazon">
+<h2>9. Amazon Public Caching Lessons</h2>
+
+<h3>9.1 Request coalescing</h3>
+<p>Amazon says thundering-herd miss traffic should be coalesced so only one downstream request is pending for the uncached resource.</p>
+
+<h3>9.2 Soft/hard TTL with backpressure</h3>
+<p><span class="term">Backpressure — tín hiệu giảm tải ngược</span>. Amazon describes keeping last-good cached data usable until hard TTL when the dependency is under pressure.</p>
+
+<h3>9.3 Brownout</h3>
+<p><span class="term">Brownout — hệ thống còn sống nhưng suy giảm</span>. During brownout, upstream may stop refreshing non-critical keys and serve safe stale values to let the dependency recover.</p>
+
+<h3>9.4 DynamoDB cache bimodality lesson</h3>
+<p>Amazon Science described a historical DynamoDB design where a very effective cache meant a metadata table saw only a tiny share of normal traffic. If cache behavior changed, the table could suddenly face nearly all traffic. Amazon redesigned the metadata serving layer so the fallback path was continuously exercised and horizontally scalable.</p>
+
+<div class="callout"><strong>Lesson:</strong> never size the product DB for “Redis will always work.” Load-test cache-off and cold-cache paths, cap downstream QPS, and avoid a system where cache-hit mode is safe but cache-miss mode is catastrophic.</div>
+
+<h3>9.5 Bimodal behavior</h3>
+<pre><code>Danger:
+
+cache healthy:
+DB = 1,000 QPS
+
+cache failure:
+DB = 1,000,000 QPS
+
+Better:
+request coalescing
+stale serving
+protected read model
+bounded DB concurrency
+load shedding
+prewarm recovery</code></pre>
+</section>
+
+<section>
+<h2>10. Detailed Timeline — 500,000 Product Clicks</h2>
+<p class="small">Illustrative only.</p>
+<pre><code>19:59:50
+product:889 v42
+soft TTL has 10 sec
+hard TTL has 5 min
+
+19:59:55
+traffic detector:
+product becomes HOT
+refresh-ahead starts
+
+19:59:56
+one worker refreshes v42
+soft TTL renewed
+
+20:00:00
+KOL pins product
+500k click burst
+
+L1 hits
+L2 hits
+DB almost untouched
+
+20:03:00
+Admin changes price
+DB v42 -> v43
+
+Outbox/CDC emits ProductUpdated(v43)
+
+20:03:00.xxx
+regional cache consumers:
+invalidate/replace v42
+
+20:03:01
+most reads are v43
+
+a delayed process tries to SET v42
+version CAS rejects it
+
+Checkout:
+revalidates current price/status/inventory.</code></pre>
+</section>
+
+<section id="failure">
+<h2>11. Failure During the Live</h2>
+
+<h3>11.1 L2/Redis failure</h3>
+<pre><code>Redis DOWN
+   |
+   +--> L1 last-good
+   +--> stale-if-error
+   +--> request coalescing
+   +--> bounded DB concurrency
+   +--> load shedding
+   +--> fallback read model</code></pre>
+
+<h3>11.2 Product DB brownout</h3>
+<pre><code>safe metadata:
+serve stale until hard TTL
+
+critical checkout state:
+cannot verify
+=> fail safe / ask retry</code></pre>
+
+<h3>11.3 Cold-cache recovery</h3>
+<pre><code>new cache fleet
+
+1. prewarm pinned products
+2. send 1% traffic
+3. observe hit rate + DB QPS
+4. 10% -> 25% -> 50% -> 100%</code></pre>
+
+<h3>11.4 Circuit breaker</h3>
+<p><span class="term">Circuit breaker — cầu dao ngắt mạch</span>.</p>
+<pre><code>CLOSED -> normal
+
+failures rise
+   |
+   v
+OPEN
+do not call unhealthy dependency
+serve stale / fail fast
+
+cooldown
+   |
+   v
+HALF-OPEN
+small probes
+
+healthy -> CLOSED</code></pre>
+</section>
+
+<section>
+<h2>12. Capacity Math — Why Cache Layers Change Everything</h2>
+<p class="small">Example only.</p>
+<pre><code>Product traffic:
+500,000 requests/sec
+
+L1 hit = 95%
+=> 25,000 req/sec reach L2
+
+L2 hit = 99.9%
+=> 25 raw misses/sec
+
+Request coalescing:
+same product misses collapse
+
+Read Model / DB:
+perhaps only a few refreshes/sec
+for this product,
+not 500,000 reads/sec.</code></pre>
+
+<p>The key effect is multiplicity reduction:</p>
+<pre><code>500k users
+   ↓
+app fleet
+   ↓
+regional cache
+   ↓
+refresh owner
+   ↓
+few source reads</code></pre>
+</section>
+
+<section>
+<h2>13. Metrics for a Viral Live Event</h2>
+<pre><code>Media:
+  edge_hit_ratio
+  regional_hit_ratio
+  origin_pull_bandwidth
+  first_frame_time
+  playback_buffer_seconds
+
+Product cache:
+  l1_hit_ratio
+  l2_hit_ratio
+  cache_miss_qps
+  refresh_qps
+  coalesced_request_count
+  stale_served_qps
+  hot_key_qps
+
+DB/read model:
+  db_qps
+  db_p99
+  active_connections
+  throttled_queries
+  replica_lag
+
+Freshness:
+  product_version_lag
+  invalidation_event_lag
+  stale_version_rejected
+  admin_update_to_cache_p99
+
+Protection:
+  load_shed_count
+  circuit_breaker_open
+  backpressure_active
+  refresh_lease_contention</code></pre>
+
+<div class="callout warn"><strong>Do not monitor hit ratio alone.</strong> At 1,000,000 requests/sec, even a 99.9% hit ratio still creates 1,000 misses/sec. Always measure cache misses and downstream QPS together.</div>
+</section>
+
+<section id="interview">
+<h2>14. Principal Engineer Interview Answer</h2>
+<div class="interview">
+<p class="quote">“I would separate live media delivery from product metadata. Two million viewers are served through hierarchical CDN fan-out, so the video origin is not contacted once per viewer. For the pinned product I use L1 plus regional distributed caches, prewarm the product before the live event, and use soft/hard TTL plus request coalescing so expiration cannot create a database stampede. Admin writes commit to the source of truth first, then publish a versioned change event. Cache updates are version-aware, so an old in-flight read cannot resurrect stale data. Checkout revalidates price, product status, and inventory using stronger authority.”</p>
+
+<pre><code>LIVE MEDIA
+Host -> Ingest -> Transcode -> Origin
+                           |
+                      Regional CDN
+                       /   |   \
+                    Edge Edge Edge
+                      |    |    |
+                   viewers...
+
+PRODUCT
+Viewer -> API -> L1 -> Regional L2
+                       |
+        soft/hard TTL + coalescing
+                       |
+                   Read Model
+                       |
+                       DB
+
+ADMIN
+Admin -> Command API -> DB COMMIT v43
+                         |
+                      Outbox/CDC
+                         |
+                     Change Stream
+                    /      |       \
+                Cache    Search     CDN
+                version  update   purge/prefetch
+
+CHECKOUT
+always validates current
+price/status/inventory authority.</code></pre>
+</div>
+</section>
+
+
+<section id="senior">
+<h2>15. Deep Senior Interview Walkthrough — How to Answer Convincingly</h2>
+<p>
+A strong Senior or Principal Engineer should not start with “I will use Redis”.
+Start with the workload, business requirement, failure model, and consistency requirement.
+Then explain why each cache layer exists.
+</p>
+
+<div class="callout green">
+<strong>Strong opening sentence:</strong><br>
+“I would first separate media delivery, product metadata, and realtime interactions because they have very different traffic patterns. Two million viewers should not create two million database reads. The main design goal is to reduce repeated work at every layer and keep the database outside the normal hot read path.”
+</div>
+
+<h3>15.1 Interviewer: “Two million users are watching one live. What happens behind the scenes?”</h3>
+<p>I would answer:</p>
+<p class="quote">
+“The video path should not be a database problem. I would ingest one stream from the creator, transcode it into several qualities, then distribute it through regional CDN and edge nodes. The edge keeps recent video chunks or GOPs and fans one upstream stream out to many viewers. Therefore two million viewers mostly create edge bandwidth, not two million origin or database reads.”
+</p>
+
+<pre><code>KOL Phone
+   |
+   v
+Live Ingest
+   |
+   v
+Transcoder
+   |
+   +-- 1080p
+   +-- 720p
+   +-- 480p
+   |
+   v
+Stream Origin
+   |
+   +----------------+----------------+
+   |                |                |
+   v                v                v
+APAC CDN          EU CDN           US CDN
+   |                |                |
+ Edge             Edge             Edge
+ / | \            / | \            / | \
+viewers...       viewers...       viewers...</code></pre>
+
+<p>
+<span class="term">Fan-out — phân phối một nguồn thành nhiều nhánh</span> is the key idea.
+One edge may pull one recent stream path and serve thousands of viewers.
+BytePlus publicly documents edge/regional CDN concepts and short GOP caching for live media; exact TikTok internal topology is private.
+</p>
+
+<h3>15.2 Interviewer: “What about the live viewer count? Two million users are joining and leaving.”</h3>
+<p>I would not put every join on one database row:</p>
+<pre><code>BAD:
+UPDATE live_room
+SET viewer_count = viewer_count + 1
+WHERE room_id = 123;
+
+One room becomes one hot row.</code></pre>
+
+<p>A better design:</p>
+<pre><code>Join / Leave Events
+       |
+       v
+Partitioned Stream
+   /   |   |   \
+  v    v   v    v
+ S1   S2  S3   S4       <- sharded counters
+  \    |   |   /
+       v
+Aggregation Service
+       |
+       v
+Approximate Count
+       |
+       v
+Regional Cache -> UI</code></pre>
+
+<p>
+For a display like <code>1.9M viewers</code>, exact millisecond-level consistency is usually unnecessary.
+This is a deliberate trade-off: lower coordination cost, higher scalability, and better latency.
+</p>
+
+<h3>15.3 Interviewer: “Now the KOL pins product P123 and 500,000 users click it.”</h3>
+<p>
+I would move to the product-data plane. The request path should reduce multiplicity at every layer:
+</p>
+
+<pre><code>500,000 users/sec
+       |
+       v
+Product API Fleet
+       |
+       | L1 hit 95%   (illustrative)
+       v
+25,000 req/sec reach L2
+       |
+       | L2 hit 99.9%
+       v
+25 raw misses/sec
+       |
+       | request coalescing
+       v
+~1 refresh per hot key / refresh domain
+       |
+       v
+Product Read Model / DB</code></pre>
+
+<p class="small">The percentages are examples for reasoning, not TikTok production numbers.</p>
+
+<p>
+The important interview statement is:
+</p>
+<p class="quote">
+“Caching is not only about storing data. It is about reducing request multiplicity. I want 500,000 identical reads to become a small number of cache lookups and approximately one source refresh for the hot key.”
+</p>
+
+<h3>15.4 Why L1 cache matters even when L2 Redis exists</h3>
+<p>
+Suppose Product Service has 2,000 instances and everybody asks for the same product.
+If every request calls Redis, the database is safe but Redis can become the new bottleneck.
+</p>
+
+<pre><code>Without L1:
+500k API requests/sec
+       |
+       v
+one regional distributed cache fleet
+
+With L1:
+500k requests/sec
+       |
+       v
+local process memory
+       |
+only L1 misses reach L2</code></pre>
+
+<p>
+<span class="term">L1 cache — cache trong bộ nhớ của process</span> removes network calls.
+For a viral hot key, this is important because one L2 shard can otherwise receive an extreme read rate.
+</p>
+
+<h3>15.5 Interviewer: “What happens exactly when TTL expires?”</h3>
+<p>
+This is where a weak answer often fails. A naive cache-aside implementation can create a database stampede:
+</p>
+
+<pre><code>20:00:00
+product:P123 expires
+
+20:00:00.001
+100,000 requests arrive
+
+All see MISS
+All call source
+
+100,000 identical source reads</code></pre>
+
+<p>I would explicitly say:</p>
+<p class="quote">
+“A cache miss is normal. A hundred thousand identical misses reaching the origin is an architecture bug.”
+</p>
+
+<h3>15.6 Layer 1 protection: local singleflight</h3>
+<p>
+<span class="term">Singleflight — một request đại diện làm công việc dùng chung</span> means one application process keeps one in-flight refresh per key.
+</p>
+
+<pre><code>Process A receives 1,000 requests for P123
+
+refresh_in_flight[P123] exists?
+
+No:
+  request #1 starts refresh
+  store Future
+
+Yes:
+  request #2..#1000
+  reuse same Future
+  or receive stale value</code></pre>
+
+<p>
+This can convert 1,000 local misses into one L2/source request.
+But it does not solve fleet-wide coordination.
+</p>
+
+<h3>15.7 Layer 2 protection: distributed refresh lease</h3>
+<p>
+If 2,000 Product Service instances all miss together, each process can still become its own local winner.
+Therefore a hot key may need a short distributed refresh lease:
+</p>
+
+<pre><code>SET refresh:P123 owner-991 NX PX 3000
+
+Winner:
+  refreshes from source
+
+Losers:
+  serve stale
+  or wait a small bounded time
+  then retry cache</code></pre>
+
+<p>
+<span class="term">Lease — quyền sở hữu tạm thời</span> is better than an unlimited lock because it expires automatically if the owner crashes.
+But a lease creates another subtle race.
+</p>
+
+<h3>15.8 The slow-owner problem and fencing token</h3>
+<pre><code>A gets lease token 100
+A starts reading old data
+A pauses for 5 seconds
+
+lease expires
+
+B gets token 101
+B reads product v44
+B writes cache v44
+
+A wakes up
+A tries to write old v43</code></pre>
+
+<p>
+Without protection, A can overwrite v44 with v43.
+Use a version or
+<span class="term">fencing token — mã thứ tự để chặn owner cũ</span>:
+</p>
+
+<pre><code>cache currently accepts token 101
+
+A writes token 100
+100 &lt; 101
+=> reject
+
+B writes token 101
+=> valid</code></pre>
+
+<p>
+This is why “just use a distributed lock” is not a complete Senior-level answer.
+</p>
+
+<h3>15.9 Soft TTL + hard TTL instead of destructive expiry</h3>
+<pre><code>product P123 = v43
+
+soft_expiry = 20:00:00
+hard_expiry = 20:05:00</code></pre>
+
+<p>At 20:00:01:</p>
+<pre><code>Request A:
+  sees soft-expired
+  wins refresh ownership
+  refreshes in background
+
+Requests B..100,000:
+  keep receiving v43
+  instead of waiting or hitting DB
+
+Refresh returns v44
+Cache becomes v44</code></pre>
+
+<p>
+<span class="term">Stale-while-revalidate — phục vụ dữ liệu cũ trong lúc làm mới</span>
+keeps latency stable during refresh.
+Amazon Builders' Library publicly discusses a soft/hard TTL model for similar resilience goals.
+</p>
+
+<h3>15.10 Why hard TTL is still necessary</h3>
+<p>
+If the dependency stays unhealthy forever, stale data cannot be served forever.
+The hard TTL defines the final safety boundary.
+</p>
+
+<pre><code>0 - 30 sec:
+normal fresh value
+
+30 sec - 5 min:
+soft expired
+serve stale if safe + attempt refresh
+
+&gt; 5 min:
+hard expired
+must fail, use stronger source,
+or apply a business-specific fallback</code></pre>
+
+<h3>15.11 TTL jitter prevents synchronized expiration</h3>
+<p>
+<span class="term">TTL jitter — thêm độ lệch ngẫu nhiên vào thời gian hết hạn</span> prevents a whole fleet from refreshing at the same second.
+</p>
+
+<pre><code>BAD:
+10 million keys
+TTL = exactly 300 sec
+
+At t+300:
+large expiration wave
+
+BETTER:
+TTL = 300 + random(-30,+30)
+
+271, 284, 301, 316, 329...</code></pre>
+
+<h3>15.12 Viral products should be prewarmed</h3>
+<p>
+A live-commerce platform often knows the product list before the host pins it.
+A Senior Engineer should exploit predictable traffic.
+</p>
+
+<pre><code>19:50
+Live campaign metadata:
+P123, P456, P789
+
+19:55
+Control plane:
+  warm APAC L2
+  warm US L2
+  warm EU L2
+  preload compact product JSON
+  prefetch product images to CDN
+
+20:10
+KOL pins P123
+
+First user:
+CACHE HIT</code></pre>
+
+<p>
+<span class="term">Prewarming — làm nóng cache trước khi traffic đến</span> removes the cold-start spike.
+BytePlus publicly documents refresh/warm-up and prefetch features for CDN/VOD scenarios.
+</p>
+
+<h3>15.13 Interviewer: “Admin changes price while users are reading product P123.”</h3>
+<p>
+Do not promise “every cache in the world changes at the exact same microsecond”.
+Define a freshness SLO
+(<span class="term">bounded freshness — độ trễ dữ liệu mới có giới hạn</span>) and make checkout authoritative.
+</p>
+
+<pre><code>Browse SLO example:
+99% of caches observe new price within 1 second
+
+Checkout rule:
+final price/status must be revalidated</code></pre>
+
+<h3>15.14 Correct admin write path</h3>
+<pre><code>Admin
+  |
+  v
+Product Command Service
+  |
+  v
+DB transaction
+  |
+  | COMMIT product v43
+  v
+Transactional Outbox / CDC
+  |
+  v
+Change Stream
+  |
+  +--> APAC cache consumer
+  +--> EU cache consumer
+  +--> US cache consumer
+  +--> Search index updater
+  +--> CDN purge/prefetch when needed</code></pre>
+
+<p>
+<span class="term">CDC — Change Data Capture / bắt thay đổi dữ liệu</span> publishes a durable versioned change after the source-of-truth commit.
+</p>
+
+<pre><code>ProductUpdated {
+  product_id: P123,
+  version: 43,
+  changed_fields: ["price"]
+}</code></pre>
+
+<h3>15.15 Why “update DB then delete Redis” still has a race</h3>
+<pre><code>Initial:
+DB = v42
+Cache empty
+
+Request A:
+  reads DB v42
+  pauses before cache SET
+
+Admin:
+  updates DB -> v43
+  deletes cache
+
+Request A resumes:
+  SET cache = v42
+
+Final:
+DB = v43
+Cache = v42</code></pre>
+
+<p>
+This is
+<span class="term">stale resurrection — dữ liệu cũ sống lại sau invalidation</span>.
+It is a very good Senior interview edge case.
+</p>
+
+<h3>15.16 Solution: version-aware CAS</h3>
+<pre><code>incoming.version = 42
+cached/latest.version = 43
+
+if incoming.version >= current.version:
+    write
+else:
+    reject</code></pre>
+
+<p>
+<span class="term">CAS — Compare-And-Set / so sánh rồi cập nhật nguyên tử</span> stops a slow old fill from replacing newer data.
+</p>
+
+<h3>15.17 Alternative: immutable versioned cache keys</h3>
+<pre><code>product:P123:v42
+product:P123:v43
+
+latest:P123 = 43</code></pre>
+
+<p>
+A delayed request may still fill <code>product:P123:v42</code>, but readers that need the latest object follow version 43.
+Old and new values do not overwrite each other.
+</p>
+
+<h3>15.18 Product images should be immutable assets</h3>
+<p>
+<span class="term">Immutable asset — tài nguyên bất biến</span> means the content behind a URL never changes.
+</p>
+
+<pre><code>BAD:
+/product/P123/main.jpg
+
+GOOD:
+/product/P123/main-v43.jpg
+or
+/product/P123/hash-a81f2.jpg</code></pre>
+
+<p>
+Admin publishes a new URL for a new image. Old CDN copies can live until natural expiry without creating freshness bugs.
+</p>
+
+<h3>15.19 Checkout is the final correctness wall</h3>
+<p>
+The browse cache may be slightly stale. The checkout path must revalidate critical fields.
+</p>
+
+<pre><code>User saw:
+price = $10
+product_version = 42
+
+Admin changed:
+price = $12
+version = 43
+
+Checkout request:
+product_id = P123
+expected_version = 42
+shown_price = $10
+
+Pricing authority:
+current_version = 43
+current_price = $12
+
+Business decision:
+A) PRICE_CHANGED -> ask user to confirm
+or
+B) honor a still-valid server-issued price quote</code></pre>
+
+<p>
+The important principle is that cache freshness should not accidentally decide how much money the customer pays.
+</p>
+
+<h3>15.20 Inventory cache is never the final authority</h3>
+<pre><code>Browse cache:
+"In stock"
+
+Checkout:
+atomic inventory reservation
+
+UPDATE inventory
+SET available = available - 1
+WHERE sku_id = :sku
+  AND available >= 1;</code></pre>
+
+<p>
+The product page can be temporarily stale. The authoritative reservation decides the real winner.
+</p>
+
+<h3>15.21 Hot-key problem: Redis can become the new database bottleneck</h3>
+<p>
+Suppose product P123 receives 70% of all reads.
+Consistent hashing sends one key to one shard, so normal sharding alone does not spread that hot key.
+</p>
+
+<pre><code>product:P123
+    |
+    v
+cache shard 19
+    |
+1,000,000 GET/sec
+
+Other shards:
+mostly idle</code></pre>
+
+<p>Protect the hot key with:</p>
+<ul>
+<li>L1 near-cache on Product API servers.</li>
+<li>Read replicas or replicated hot-value copies inside the region.</li>
+<li>A compact precomputed product document.</li>
+<li>Separate hot-key capacity or cache pool.</li>
+<li>Refresh coalescing so hot reads do not become hot refreshes.</li>
+</ul>
+
+<h3>15.22 Interviewer: “What if Redis fails during the live?”</h3>
+<p>A weak design:</p>
+<pre><code>Redis DOWN
+    |
+500k req/sec
+    |
+    v
+Database
+    |
+Database DOWN</code></pre>
+
+<p>A stronger degradation path:</p>
+<pre><code>L2 cache fails
+    |
+    +--> use L1 last-good values
+    +--> stale-if-error for safe fields
+    +--> request coalescing
+    +--> bounded origin concurrency
+    +--> circuit breaker
+    +--> load shedding
+    +--> protected read model
+    +--> progressive cache recovery</code></pre>
+
+<p>
+<span class="term">Bounded concurrency — giới hạn số request chạy đồng thời</span> is important.
+If the database can safely handle 5,000 concurrent product reads, do not allow 500,000 callers to queue against it.
+</p>
+
+<h3>15.23 Semaphore-style database protection</h3>
+<pre><code>DB read permits = 5,000
+
+Request wants DB read:
+  acquire permit?
+
+Yes:
+  call DB
+
+No:
+  serve safe stale value
+  or shed low-priority request
+  or return bounded retry response</code></pre>
+
+<p>
+<span class="term">Semaphore — cơ chế giới hạn số tác vụ đồng thời</span> protects the dependency from an uncontrolled fallback wave.
+</p>
+
+<h3>15.24 Circuit breaker means users do not “test the DB” 500,000 times</h3>
+<pre><code>CLOSED
+normal calls
+
+error rate rises
+   |
+   v
+OPEN
+stop non-critical origin refresh
+serve stale / fail fast
+
+cooldown
+   |
+   v
+HALF-OPEN
+allow a very small number of probes
+
+healthy -> CLOSED</code></pre>
+
+<p>
+<span class="term">Circuit breaker — cầu dao ngắt mạch</span> stops every user request from becoming a health probe for a broken dependency.
+</p>
+
+<h3>15.25 Backpressure and load shedding</h3>
+<p>
+If Product Read Model or DB is overloaded, upstream should reduce work instead of retrying harder.
+</p>
+
+<pre><code>Dependency says OVERLOADED
+        |
+        v
+Upstream actions:
+  stop refreshing cold keys
+  serve safe stale hot keys
+  reduce concurrency
+  reject low-priority requests
+  protect checkout/critical flows</code></pre>
+
+<p>
+<span class="term">Backpressure — giảm tải ngược</span> communicates pressure upstream.
+<span class="term">Load shedding — chủ động bỏ bớt tải</span> keeps the whole system alive by sacrificing lower-priority work.
+</p>
+
+<h3>15.26 Amazon's bimodal-cache lesson</h3>
+<p>
+A dangerous system has two completely different modes:
+</p>
+
+<pre><code>Normal:
+1,000,000 requests/sec
+99.9% cache hit
+DB sees only 1,000 req/sec
+
+Cache failure:
+DB suddenly sees close to 1,000,000 req/sec
+
+The DB collapses.</code></pre>
+
+<p>
+<span class="term">Bimodal behavior — hành vi hai chế độ</span> means the system is healthy in cache-hit mode but catastrophic in cache-miss mode.
+Amazon Science has publicly described a related DynamoDB metadata-cache lesson.
+</p>
+
+<p class="quote">
+“I would explicitly load-test the cache-off and cold-cache path. I do not size the database only from normal cache-miss traffic. The fallback path must have admission control, stale serving, coalescing, and bounded downstream concurrency.”
+</p>
+
+<h3>15.27 Full end-to-end architecture to draw in the interview</h3>
+<pre><code>                         LIVE MEDIA
+
+KOL
+ |
+ v
+Ingest -> Transcode -> Stream Origin
+                         |
+              +----------+----------+
+              |          |          |
+            APAC         EU         US
+          Regional     Regional   Regional
+            CDN          CDN        CDN
+           / | \        / | \      / | \
+        Edge Edge     Edge Edge   Edge Edge
+          |   |         |   |       |   |
+        viewers       viewers     viewers
+
+
+                         PRODUCT READ
+
+Viewer Click
+    |
+    v
+API Edge
+    |
+    v
+Product Service Fleet
+    |
+    +--> L1 local cache
+    |
+    +--> Regional L2 cache
+    |       |
+    |       +-- soft TTL / hard TTL
+    |       +-- singleflight
+    |       +-- request coalescing
+    |       +-- refresh lease
+    |       +-- fencing/version guard
+    |       +-- TTL jitter
+    |       +-- refresh-ahead
+    |       +-- hot-key replication
+    |
+    +--> Product Read Model
+    |
+    +--> Authoritative DB
+
+
+                         ADMIN WRITE
+
+Admin
+  |
+  v
+Product Command API
+  |
+  v
+DB COMMIT v43
+  |
+  v
+Outbox / CDC
+  |
+  v
+Change Stream
+ /       |        \
+Cache   Search    CDN
+version update    purge/prefetch
+
+
+                         CHECKOUT
+
+Checkout
+  |
+  +--> authoritative product status
+  +--> authoritative price / valid quote
+  +--> atomic inventory reservation
+  +--> order/payment workflow
+
+Browse cache is fast.
+Commit path is correct.</code></pre>
+
+<h3>15.28 A polished two-minute interview answer</h3>
+<div class="interview">
+<p class="quote">
+“I would first separate the media plane from the product-data plane. Two million viewers are served through hierarchical CDN fan-out, so the video origin is not contacted once per viewer. For the pinned product, I use an L1 in-process cache plus regional distributed L2 cache, and I prewarm products that are scheduled for the live event.
+<br><br>
+The dangerous case is cache expiration. I would not hard-delete a hot key and allow every caller to rebuild it. I use a soft TTL and hard TTL. After soft expiry, one caller gets refresh ownership while other callers receive the last safe value. Within a process I use singleflight; across the fleet I can use request coalescing or a short refresh lease. Version or fencing-token checks stop a slow old refresher from overwriting newer cache data. TTL jitter and refresh-ahead reduce synchronized expiration further.
+<br><br>
+For admin changes, the source database commits first. Then an outbox or CDC pipeline publishes a versioned ProductUpdated event. Regional caches apply only newer versions, so delayed events and old in-flight reads cannot resurrect stale values. Product images use immutable versioned URLs. I define a bounded freshness SLO for browsing instead of pretending every cache updates in the same microsecond.
+<br><br>
+Finally, the browse cache is never the authority for money or inventory. Checkout revalidates current price, sellability, and inventory using stronger services. I also design the cache-loss path explicitly: stale-if-error, request coalescing, bounded DB concurrency, circuit breakers, backpressure, load shedding, and progressive cache warm-up. This prevents a Redis failure from becoming a database failure.”
+</p>
+</div>
+
+<h3>15.29 What makes this answer Senior/Principal level?</h3>
+<table>
+<tr><th>Junior-level answer</th><th>Senior/Principal-level answer</th></tr>
+<tr><td>“Use Redis.”</td><td>Explains L1, L2, CDN, source-of-truth and why each layer exists.</td></tr>
+<tr><td>“Set TTL to 5 minutes.”</td><td>Explains soft/hard TTL, jitter, refresh-ahead and stampede prevention.</td></tr>
+<tr><td>“Delete cache after DB update.”</td><td>Finds stale-resurrection race and uses versions/CAS/immutable keys.</td></tr>
+<tr><td>“Use a distributed lock.”</td><td>Explains lease expiry, old-owner race and fencing/version protection.</td></tr>
+<tr><td>“If Redis fails, use DB.”</td><td>Protects DB using stale serving, bounded concurrency, breaker and shedding.</td></tr>
+<tr><td>“Inventory can be cached.”</td><td>Separates approximate browse state from authoritative checkout reservation.</td></tr>
+<tr><td>“Monitor cache hit ratio.”</td><td>Also measures miss QPS, origin QPS, freshness lag, hot keys, p99 and fallback capacity.</td></tr>
+</table>
+</section>
+
+<section id="glossary">
+<h2>16. Technical Glossary — English → Vietnamese</h2>
+<table>
+<tr><th>English</th><th>Vietnamese</th><th>Meaning</th></tr>
+<tr><td>Cache hit</td><td>Cache trúng</td><td>Dữ liệu có sẵn trong cache.</td></tr>
+<tr><td>Cache miss</td><td>Cache trượt</td><td>Cache không có dữ liệu.</td></tr>
+<tr><td>TTL</td><td>Thời gian sống</td><td>Khoảng thời gian dữ liệu cache còn hợp lệ.</td></tr>
+<tr><td>Soft TTL</td><td>Hết hạn mềm</td><td>Nên refresh nhưng có thể tiếp tục serve dữ liệu cũ.</td></tr>
+<tr><td>Hard TTL</td><td>Hết hạn cứng</td><td>Không serve sau mốc này.</td></tr>
+<tr><td>Stale data</td><td>Dữ liệu cũ</td><td>Không phải version mới nhất.</td></tr>
+<tr><td>Stale-while-revalidate</td><td>Serve dữ liệu cũ trong lúc refresh</td><td>User không phải chờ refresh.</td></tr>
+<tr><td>Request coalescing</td><td>Gộp request</td><td>Nhiều miss cùng key chỉ tạo một downstream call.</td></tr>
+<tr><td>Singleflight</td><td>Một request đại diện</td><td>Một process chỉ làm cùng việc một lần.</td></tr>
+<tr><td>Cache stampede</td><td>Dồn tải cache</td><td>Nhiều miss cùng lúc đánh xuống DB.</td></tr>
+<tr><td>Thundering herd</td><td>Hiệu ứng bầy đàn</td><td>Nhiều request đồng loạt làm một việc.</td></tr>
+<tr><td>Jitter</td><td>Độ lệch ngẫu nhiên</td><td>Rải thời điểm TTL/retry.</td></tr>
+<tr><td>Refresh-ahead</td><td>Làm mới trước hạn</td><td>Refresh trước khi TTL hết.</td></tr>
+<tr><td>Prewarm</td><td>Làm nóng cache</td><td>Nạp dữ liệu trước traffic.</td></tr>
+<tr><td>Negative cache</td><td>Cache kết quả âm/lỗi</td><td>Cache NOT_FOUND/error ngắn hạn.</td></tr>
+<tr><td>Hot key</td><td>Khóa nóng</td><td>Một key có request cực lớn.</td></tr>
+<tr><td>Origin</td><td>Máy chủ nguồn</td><td>Nơi cache/CDN lấy dữ liệu thật.</td></tr>
+<tr><td>Origin pull</td><td>Kéo từ nguồn</td><td>CDN lấy stream/content từ origin.</td></tr>
+<tr><td>Edge node</td><td>Nút biên</td><td>Máy chủ gần user.</td></tr>
+<tr><td>Regional cache</td><td>Cache theo vùng</td><td>Lớp cache giữa edge và origin.</td></tr>
+<tr><td>Fan-out</td><td>Phân phối một thành nhiều</td><td>Một nguồn phục vụ nhiều nhánh.</td></tr>
+<tr><td>GOP</td><td>Nhóm khung hình</td><td>Nhóm frame trong video nén.</td></tr>
+<tr><td>FIFO</td><td>Vào trước ra trước</td><td>Dữ liệu cũ nhất bị loại trước.</td></tr>
+<tr><td>Cache invalidation</td><td>Vô hiệu hóa cache</td><td>Xóa/expire cache cũ.</td></tr>
+<tr><td>Cache purge</td><td>Xóa cache cưỡng bức</td><td>Loại nội dung trước TTL.</td></tr>
+<tr><td>CDC</td><td>Bắt thay đổi dữ liệu</td><td>Biến DB changes thành event.</td></tr>
+<tr><td>CAS</td><td>So sánh rồi cập nhật</td><td>Chỉ ghi nếu version/điều kiện đúng.</td></tr>
+<tr><td>Backpressure</td><td>Giảm tải ngược</td><td>Dependency yêu cầu upstream giảm request.</td></tr>
+<tr><td>Brownout</td><td>Suy giảm dịch vụ</td><td>Service còn sống nhưng đang quá tải/lỗi nhiều.</td></tr>
+<tr><td>Circuit breaker</td><td>Cầu dao ngắt mạch</td><td>Tạm ngừng gọi dependency lỗi.</td></tr>
+<tr><td>Load shedding</td><td>Cắt bớt tải</td><td>Từ chối một phần traffic để bảo vệ hệ thống.</td></tr>
+<tr><td>Fencing token</td><td>Mã thứ tự chặn owner cũ</td><td>Token tăng dần để một worker/lock owner cũ không thể ghi đè kết quả mới.</td></tr>
+<tr><td>Stale resurrection</td><td>Dữ liệu cũ sống lại</td><td>Request cũ ghi cache sau khi invalidation làm dữ liệu cũ xuất hiện trở lại.</td></tr>
+<tr><td>Bounded freshness</td><td>Độ mới có giới hạn</td><td>Cam kết dữ liệu sẽ cập nhật trong một khoảng thời gian xác định, không phải ngay cùng microsecond.</td></tr>
+<tr><td>Immutable asset</td><td>Tài nguyên bất biến</td><td>Nội dung dưới một URL không thay đổi; version mới dùng URL mới.</td></tr>
+<tr><td>Bounded concurrency</td><td>Giới hạn xử lý đồng thời</td><td>Chỉ cho phép tối đa một số request cùng gọi dependency.</td></tr>
+<tr><td>Semaphore</td><td>Cơ chế giới hạn tác vụ đồng thời</td><td>Mỗi request phải lấy permit trước khi dùng tài nguyên giới hạn.</td></tr>
+<tr><td>Bimodal behavior</td><td>Hành vi hai chế độ</td><td>Cache hit rất nhẹ nhưng cache miss cực nặng.</td></tr>
+</table>
+</section>
+
+<section id="sources">
+<h2>17. Primary / Official Sources</h2>
+<p class="small">The exact TikTok internal architecture is private. BytePlus says its solutions are born from ByteDance technology. These sources ground the public facts used here.</p>
+<ol>
+<li><a href="https://www.byteplus.com/en/about-us">BytePlus — About us: born from ByteDance technology</a></li>
+<li><a href="https://docs.byteplus.com/en/docs/byteplus-cdn/docs-overview-of-byteplus-cdn">BytePlus CDN — multilevel cache organization and origin fetching</a></li>
+<li><a href="https://docs.byteplus.com/api/docs/byteplus-cdn/docs-basic-concepts">BytePlus CDN — edge nodes, regional nodes, cache hit/miss and TTL</a></li>
+<li><a href="https://docs.byteplus.com/api/docs/byteplus-media-live/latency-control">BytePlus MediaLive — edge GOP cache and FIFO</a></li>
+<li><a href="https://docs.byteplus.com/api/docs/byteplus-media-live/docs-configuring-origin-pull-settings">BytePlus MediaLive — on-demand and scheduled origin pull</a></li>
+<li><a href="https://docs.byteplus.com/api/docs/byteplus-cdn/docs-purge">BytePlus CDN — cache purge</a></li>
+<li><a href="https://docs.byteplus.com/api/docs/byteplus-vod/docs-refresh-and-warm-up">BytePlus VOD — refresh and warm-up / event prewarming</a></li>
+<li><a href="https://docs.byteplus.com/en/docs/redis/about-redis">BytePlus Cache for Redis — sharding and primary/secondary replication</a></li>
+<li><a href="https://aws.amazon.com/builders-library/caching-challenges-and-strategies/">Amazon Builders' Library — request coalescing, soft/hard TTL, backpressure and negative caching</a></li>
+<li><a href="https://www.amazon.science/blog/lessons-learned-from-10-years-of-dynamodb">Amazon Science — DynamoDB cache bimodality and MemDS lesson</a></li>
+<li><a href="https://www.amazon.science/blog/more-efficient-caching-for-product-retrieval">Amazon Science — product retrieval caching and locality-sensitive hashing</a></li>
+<li><a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/semantic-caching-best-practices.html">AWS ElastiCache — TTL jitter and invalidation examples</a></li>
+</ol>
+</section>
+
+<footer>Live-commerce caching deep dive · Standalone HTML · Simple English with Vietnamese technical translations.</footer>
+</div>
+</body>
+</html>

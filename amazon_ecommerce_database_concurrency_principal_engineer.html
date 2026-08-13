@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amazon-Scale E-commerce Concurrency — Inventory, Orders, Catalog and Database Correctness</title>
+<style>
+:root{
+  --bg:#071018;--panel:#0d1924;--panel2:#122536;--text:#eef7ff;--muted:#a9bacb;--line:#29445d;
+  --blue:#72b7ff;--cyan:#70e0d1;--green:#8ce3a8;--yellow:#ffd375;--red:#ff9494;--purple:#c1a3ff;
+  --orange:#ffb36b;--code:#050b10;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(114,183,255,.12),transparent 28%),
+    radial-gradient(circle at 90% 12%,rgba(112,224,209,.08),transparent 24%),
+    var(--bg);
+  font:16px/1.72 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+a{color:var(--blue)} strong{color:white}.wrap{max-width:1260px;margin:auto;padding:0 24px 90px}
+header{padding:64px 0 34px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--cyan);font-weight:900}
+h1{font-size:clamp(2.35rem,5vw,5rem);line-height:1.02;margin:.3rem 0 1rem;max-width:1160px}
+h2{font-size:clamp(1.7rem,3vw,2.7rem);line-height:1.15;margin:0 0 12px}
+h3{font-size:1.3rem;margin:30px 0 8px} h4{font-size:1.07rem;margin:22px 0 7px}
+p,li{color:#dce8f3}.lead{font-size:1.17rem;max-width:1040px;color:var(--muted)}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,16,24,.94);backdrop-filter:blur(13px);border-bottom:1px solid var(--line);overflow:auto}
+nav .in{max-width:1260px;margin:auto;padding:10px 24px;display:flex;gap:8px;white-space:nowrap}
+nav a{text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.8rem}
+nav a:hover{color:#fff;border-color:var(--blue)}
+section{padding:50px 0 4px;scroll-margin-top:72px}
+.callout{padding:18px 20px;border:1px solid #355c82;background:rgba(114,183,255,.075);border-radius:15px;margin:22px 0}
+.callout.warn{border-color:#725b33;background:rgba(255,211,117,.07)}
+.callout.red{border-color:#703838;background:rgba(255,148,148,.06)}
+.callout.green{border-color:#376746;background:rgba(140,227,168,.06)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:20px 0}
+.card{grid-column:span 4;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:17px;padding:19px}
+.card.wide{grid-column:span 6}.card.full{grid-column:span 12}.card h3{margin:0 0 7px}.card p{margin:0;color:var(--muted)}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:.72rem;font-weight:900;margin-bottom:9px}
+.public{color:var(--green)}.aws{color:var(--blue)}.design{color:var(--yellow)}.risk{color:var(--red)}
+.diagram{background:linear-gradient(180deg,#091725,#07111c);border:1px solid var(--line);border-radius:18px;padding:20px;overflow:auto;margin:22px 0}
+.flow{display:flex;align-items:center;gap:9px;min-width:1120px}
+.node{flex:0 0 auto;min-width:130px;padding:13px;border-radius:12px;background:#122a40;border:1px solid #38648d;text-align:center;font-weight:900}
+.node small{display:block;font-weight:500;color:var(--muted);line-height:1.3;margin-top:4px}
+.arrow{color:var(--blue);font-size:1.45rem;font-weight:900}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-width:950px}
+.lane{padding:15px;border:1px dashed #35536e;border-radius:14px;background:rgba(255,255,255,.018)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:17px;overflow:auto;color:#dcecff;line-height:1.55}
+code{font-family:SFMono-Regular,Consolas,"Liberation Mono",monospace}
+table{width:100%;border-collapse:collapse;background:var(--panel);margin:18px 0 28px;font-size:.94rem}
+th,td{border:1px solid var(--line);padding:12px 13px;text-align:left;vertical-align:top}
+th{background:#142b42;color:white}.good{color:var(--green);font-weight:850}.bad{color:var(--red);font-weight:850}.mid{color:var(--yellow);font-weight:850}
+.step{display:grid;grid-template-columns:52px 1fr;gap:13px;margin:19px 0}.num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--blue);background:rgba(114,183,255,.09);font-weight:900}
+.step h3{margin:0 0 5px}.step p{margin:0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:10px 0;padding:13px 15px}
+summary{cursor:pointer;font-weight:900;color:#fff}
+.quote{border-left:4px solid var(--cyan);padding-left:15px;font-size:1.08rem;font-weight:850;color:white}
+.interview{border:1px solid #426d96;background:linear-gradient(180deg,rgba(114,183,255,.08),rgba(13,25,36,.96));padding:22px;border-radius:18px}
+.state{display:inline-block;border:1px solid var(--line);border-radius:8px;padding:5px 9px;margin:3px;font-weight:800}
+.source-note{font-size:.88rem;color:var(--muted)}
+footer{margin-top:58px;border-top:1px solid var(--line);padding-top:22px;color:var(--muted)}
+@media(max-width:900px){.card,.card.wide{grid-column:span 12}.lanes{grid-template-columns:1fr;min-width:0}header{padding-top:42px}}
+</style>
+</head>
+<body>
+<nav><div class="in">
+<a href="#facts">Facts vs Design</a>
+<a href="#invariants">Invariants</a>
+<a href="#architecture">Architecture</a>
+<a href="#inventory">Inventory</a>
+<a href="#reservation">Reservation</a>
+<a href="#admin">Admin Update</a>
+<a href="#hot">Flash Sale</a>
+<a href="#idempotency">Idempotency</a>
+<a href="#saga">Saga</a>
+<a href="#cache">Cache</a>
+<a href="#multi-region">Multi-Region</a>
+<a href="#cases">Concurrency Cases</a>
+<a href="#ux">UX</a>
+<a href="#interview">Interview</a>
+<a href="#sources">Sources</a>
+</div></nav>
+
+<div class="wrap">
+<header>
+<div class="eyebrow">Principal Engineer Deep Dive · Database Concurrency for E-commerce</div>
+<h1>Amazon-Scale E-commerce: How Inventory Stays Correct Under Massive Concurrency</h1>
+<p class="lead">
+What happens when one item has only 1 unit left and 50,000 customers press Buy at the same time?
+What if an admin changes price while thousands of users are viewing and ordering the product?
+What if payment succeeds but the network times out?
+This page explains how to design an Amazon-like commerce system that keeps the customer experience fast while the commit path remains correct.
+</p>
+<div class="callout">
+<strong>The key idea:</strong> browsing can be fast and slightly stale; <strong>committing money, inventory, and order state cannot be casual</strong>.
+We separate the high-volume read path from the authoritative reservation/checkout path.
+</div>
+</header>
+
+<section id="facts">
+<h2>0. Amazon Public Facts vs Amazon-like Design</h2>
+<div class="grid">
+<div class="card"><span class="tag public">AMAZON PUBLIC HISTORY</span><h3>Dynamo + shopping cart</h3><p>Amazon's 2007 Dynamo paper says the Shopping Cart Service was designed to stay readable and writable during failures. It accepted weaker consistency and resolved conflicts for a better customer experience.</p></div>
+<div class="card"><span class="tag public">AMAZON PUBLIC HISTORY</span><h3>99.9th percentile focus</h3><p>The Dynamo paper explains that Amazon measured service SLAs at the 99.9th percentile instead of optimizing only for averages.</p></div>
+<div class="card"><span class="tag aws">AWS OFFICIAL PRIMITIVE</span><h3>DynamoDB conditional writes</h3><p>A single UpdateItem is atomic and can include a condition such as “quantity must be at least requested quantity”. This is a direct primitive for preventing an inventory counter from going below zero.</p></div>
+<div class="card"><span class="tag aws">AWS OFFICIAL PRIMITIVE</span><h3>DynamoDB transactions</h3><p>DynamoDB supports ACID transactional reads/writes and serializable isolation for transactional operations with individual reads/writes.</p></div>
+<div class="card"><span class="tag design">DESIGN INFERENCE</span><h3>Amazon.com inventory internals</h3><p>Amazon does not publish the exact current implementation of Amazon.com inventory checkout. The architecture below combines Amazon public lessons with AWS-supported concurrency patterns.</p></div>
+<div class="card"><span class="tag design">DESIGN INFERENCE</span><h3>Price quote + reservation model</h3><p>Versioned price quotes, short inventory reservations, escrow-style regional quotas, and the exact state machine below are recommended designs, not claims about private Amazon retail code.</p></div>
+</div>
+<div class="callout warn">
+<strong>Do not make this interview mistake:</strong> Amazon used eventual consistency for shopping carts because losing cart availability is a bad experience.
+That does <em>not</em> mean inventory can be eventually decremented with no protection.
+Different business data needs different consistency.
+</div>
+</section>
+
+<section id="invariants">
+<h2>1. Start With Business Invariants, Not With Database Products</h2>
+<p>A Principal Engineer should first write the rules that must never be broken.</p>
+<table>
+<tr><th>Invariant</th><th>Why it matters</th><th>Can stale reads be allowed?</th></tr>
+<tr><td><strong>Inventory available must never become negative</strong></td><td>Otherwise we oversell more units than we can promise.</td><td class="bad">No on commit path</td></tr>
+<tr><td><strong>One checkout request must not create two orders</strong></td><td>Double click, timeout, and retry are normal distributed-system events.</td><td class="bad">No</td></tr>
+<tr><td><strong>A payment must not be captured twice</strong></td><td>Money side effects need idempotency.</td><td class="bad">No</td></tr>
+<tr><td><strong>Order must keep the agreed product/price snapshot</strong></td><td>Later admin changes must not rewrite history.</td><td class="bad">No</td></tr>
+<tr><td><strong>Product detail page should be fast</strong></td><td>Browsing traffic is much larger than checkout traffic.</td><td class="good">Yes, bounded staleness is often acceptable</td></tr>
+<tr><td><strong>Displayed “Only 3 left” may be approximate</strong></td><td>It is UX information, not the final inventory authority.</td><td class="mid">Usually yes</td></tr>
+</table>
+
+<div class="callout green">
+<strong>Design rule:</strong> Never make the product page's cached inventory number the source of truth for checkout.
+The customer can see “1 left”, but the real winner is decided by an atomic reservation/write at checkout.
+</div>
+</section>
+
+<section id="architecture">
+<h2>2. High-Level Architecture: Separate Browse Path and Commit Path</h2>
+<div class="diagram"><div class="flow">
+<div class="node">Customer</div><div class="arrow">→</div>
+<div class="node">CDN / API Edge</div><div class="arrow">→</div>
+<div class="node">Product API</div><div class="arrow">→</div>
+<div class="node">Catalog Cache<small>fast, may be slightly stale</small></div><div class="arrow">→</div>
+<div class="node">Catalog Store</div>
+</div></div>
+
+<div class="diagram"><div class="flow">
+<div class="node">Checkout</div><div class="arrow">→</div>
+<div class="node">Checkout Orchestrator</div><div class="arrow">→</div>
+<div class="node">Price Authority<small>version / quote</small></div><div class="arrow">→</div>
+<div class="node">Inventory Authority<small>atomic reservation</small></div><div class="arrow">→</div>
+<div class="node">Order Store<small>idempotent create</small></div><div class="arrow">→</div>
+<div class="node">Payment</div><div class="arrow">→</div>
+<div class="node">Confirm / Compensate</div>
+</div></div>
+
+<h3>2.1 Read model and write model do different jobs</h3>
+<div class="grid">
+<div class="card wide">
+<h3>Browse / search</h3>
+<p>Use CDN, search index, caches, replicas, denormalized views. It is okay if a price or stock label is milliseconds/seconds old, as long as checkout revalidates important fields.</p>
+</div>
+<div class="card wide">
+<h3>Checkout / commit</h3>
+<p>Use authoritative product status, price rule, inventory reservation, idempotency, transaction or saga. This path is lower QPS than browse but has much stronger correctness requirements.</p>
+</div>
+</div>
+
+<h3>2.2 One useful service boundary</h3>
+<pre><code>Catalog Service
+  product description
+  image references
+  attributes
+  category
+  display metadata
+
+Pricing Service
+  current price
+  promotion
+  price version
+  effective_at
+  quote token
+
+Inventory Service
+  stock by SKU/location
+  reservations
+  available-to-promise
+  inventory adjustments
+
+Order Service
+  immutable order snapshot
+  order state machine
+  idempotency marker
+
+Payment Service
+  authorization/capture/refund
+  payment idempotency
+
+Fulfillment Service
+  allocation
+  warehouse
+  pick/pack/ship</code></pre>
+</section>
+
+<section id="inventory">
+<h2>3. The Core Inventory Race: 1 Item, Thousands of Buyers</h2>
+
+<h3>3.1 The broken read-then-write design</h3>
+<pre><code>inventory = 1
+
+Request A: READ inventory -> 1
+Request B: READ inventory -> 1
+
+A: inventory = 1 - 1 -> 0
+B: inventory = 1 - 1 -> 0
+
+Both customers think they bought it.
+Actual stock = 1.
+Orders = 2.
+
+OVERSOLD.</code></pre>
+
+<p>The bug is not the speed of the database. The bug is the application performs a non-atomic read-modify-write sequence.</p>
+
+<h3>3.2 Correct relational database pattern: one atomic statement</h3>
+<pre><code>UPDATE inventory
+SET
+  available = available - :qty,
+  reserved  = reserved  + :qty,
+  version   = version + 1
+WHERE sku_id = :sku
+  AND available >= :qty;
+
+if affected_rows == 1:
+    reservation succeeded
+else:
+    out of stock</code></pre>
+
+<p>The database serializes the conflicting row update internally. Only a request that still satisfies <code>available >= qty</code> wins.</p>
+
+<h3>3.3 DynamoDB equivalent</h3>
+<pre><code>UpdateItem(
+  Key = { sku_id },
+  UpdateExpression =
+      "SET available = available - :qty,
+           reserved  = reserved + :qty",
+  ConditionExpression =
+      "available >= :qty"
+)</code></pre>
+
+<p>AWS documentation states that individual <code>UpdateItem</code> operations are atomic and operate on the most recent version of an item. Conditional updates only succeed when the condition is true. This gives a natural “winner” under concurrency.</p>
+
+<h3>3.4 Timeline with one item left</h3>
+<pre><code>available = 1
+
+t0  A -> conditional decrement
+t0  B -> conditional decrement
+t0  C -> conditional decrement
+
+Database order:
+
+A: condition 1 >= 1 -> TRUE
+   update available = 0
+   SUCCESS
+
+B: condition 0 >= 1 -> FALSE
+   OUT_OF_STOCK
+
+C: condition 0 >= 1 -> FALSE
+   OUT_OF_STOCK
+
+Exactly one reservation wins.</code></pre>
+
+<div class="callout">
+<strong>Most important inventory principle:</strong> never do “read stock, calculate in application, then write absolute new value” for a contested item.
+Move the constraint into the atomic database write.
+</div>
+</section>
+
+<section id="reservation">
+<h2>4. Do Not Model Inventory as One Number</h2>
+<p>A real commerce system usually needs several states.</p>
+
+<div>
+<span class="state">ON_HAND</span>
+<span class="state">RESERVED</span>
+<span class="state">AVAILABLE_TO_PROMISE</span>
+<span class="state">ALLOCATED</span>
+<span class="state">SHIPPED</span>
+</div>
+
+<h3>4.1 Example model</h3>
+<pre><code>inventory_by_location
+
+sku_id
+location_id
+
+on_hand       = 100
+reserved      = 7
+safety_stock  = 3
+
+available_to_promise
+  = on_hand - reserved - safety_stock
+  = 90</code></pre>
+
+<p>Why separate them? Because an admin receiving 20 physical units and a customer reserving 2 units are different business events.</p>
+
+<h3>4.2 Reservation state machine</h3>
+<pre><code>              +-------------+
+              |   CREATED   |
+              +------+------+
+                     |
+                     v
+              +-------------+
+              |  RESERVED   |
+              +---+-----+---+
+                  |     |
+        payment OK|     |timeout / payment fail
+                  |     |
+                  v     v
+          +-----------+ +-----------+
+          | COMMITTED | | RELEASED  |
+          +-----------+ +-----------+
+                |
+                v
+          fulfillment</code></pre>
+
+<h3>4.3 Reservation record</h3>
+<pre><code>reservation_id
+order_id
+sku_id
+location_id
+quantity
+status = RESERVED
+expires_at
+idempotency_key
+created_at</code></pre>
+
+<h3>4.4 Why reserve before final payment?</h3>
+<p>Because you do not want to successfully charge the customer and then discover that inventory disappeared. A common design is:</p>
+<pre><code>1. validate product/price
+2. reserve inventory for a short window
+3. authorize payment
+4. commit order
+5. finalize reservation
+
+if payment fails:
+  release reservation</code></pre>
+
+<h3>4.5 But reservation creates another problem: hoarding</h3>
+<p>An attacker can reserve all scarce stock and never pay. Therefore a reservation needs:</p>
+<ul>
+<li>Short expiry.</li>
+<li>Per-user/account/device limits.</li>
+<li>Bot and abuse checks before scarce-stock reservation.</li>
+<li>Reliable release/reconciliation if a workflow dies.</li>
+</ul>
+
+<div class="callout warn">
+<strong>Do not depend only on database TTL deletion for exact reservation expiry.</strong>
+Expiration is a business event. A sweeper/scheduler or explicit expiry index should release inventory predictably; native storage TTL can be too delayed for scarce inventory.
+</div>
+</section>
+
+<section id="admin">
+<h2>5. Admin Updates Product While Thousands of Users Are Buying</h2>
+<p>This is not one problem. Price, content, product status, and inventory need different rules.</p>
+
+<h3>5.1 Product versioning</h3>
+<pre><code>product:
+  product_id = P100
+  title      = "Laptop"
+  price      = 1000
+  status     = ACTIVE
+  version    = 42</code></pre>
+
+<p>User loads the page and sees version 42. An admin changes the price:</p>
+<pre><code>price   = 1100
+version = 43</code></pre>
+
+<p>The old product page may still show version 42 from cache for a short period. That can be acceptable for browsing. Checkout must decide the business rule.</p>
+
+<h3>5.2 Strategy A — always use the newest price at checkout</h3>
+<pre><code>client checkout request:
+  product_id = P100
+  seen_version = 42
+  seen_price = 1000
+
+checkout reads authority:
+  current_version = 43
+  current_price = 1100
+
+42 != 43
+
+return:
+  PRICE_CHANGED
+  new_price = 1100</code></pre>
+
+<p>UX: show “Price changed from $1000 to $1100. Please review before placing your order.”</p>
+
+<h3>5.3 Strategy B — short price guarantee / quote</h3>
+<p>For a better experience, Pricing Service can issue a short-lived quote:</p>
+<pre><code>price_quote:
+  quote_id
+  product_id
+  unit_price = 1000
+  currency
+  quantity_limit
+  expires_at = now + 10 minutes
+  pricing_version = 42
+  signature / server record</code></pre>
+
+<p>Then an admin can update the public price to $1100, but a valid quote can still honor $1000 until expiry. This is a business decision, not a database accident.</p>
+
+<h3>5.4 Product disable during checkout</h3>
+<p>If an admin changes:</p>
+<pre><code>status: ACTIVE -> BLOCKED
+version: 42 -> 43</code></pre>
+
+<p>checkout should revalidate the sellability state before commitment. Do not trust the old cached product page.</p>
+
+<h3>5.5 Admin inventory adjustment: never overwrite blindly</h3>
+<p>Dangerous:</p>
+<pre><code>Admin sees available = 100
+
+Meanwhile:
+customer reserves 2
+available becomes 98
+
+Admin writes:
+SET available = 120
+
+The reservation can be lost in the calculation.</code></pre>
+
+<p>Better: update the physical quantity as a delta or use a version check:</p>
+<pre><code>receive shipment:
+  on_hand += 20
+
+customer reservation:
+  reserved += 2
+
+available_to_promise =
+  on_hand - reserved - safety_stock</code></pre>
+
+<p>For a physical stock count correction, use optimistic version control or a short transaction so the reconciliation cannot silently overwrite concurrent reservations.</p>
+</section>
+
+<section>
+<h2>6. Optimistic Locking vs Pessimistic Locking vs Atomic Condition</h2>
+
+<table>
+<tr><th>Technique</th><th>How it works</th><th>Good for</th><th>Bad under</th></tr>
+<tr><td><strong>Atomic conditional update</strong></td><td>One write says “decrement only if enough remains”.</td><td class="good">Hot single inventory counter</td><td>One item still has finite write capacity.</td></tr>
+<tr><td><strong>Optimistic locking</strong></td><td>Read version 10, write only if version is still 10.</td><td class="good">Product/admin edits, lower contention</td><td class="bad">Very hot counters can enter retry storms.</td></tr>
+<tr><td><strong>Pessimistic lock</strong></td><td><code>SELECT ... FOR UPDATE</code> or distributed lock.</td><td>Short critical sections with predictable contention</td><td class="bad">Long locks, deadlocks, queueing, failover complexity.</td></tr>
+<tr><td><strong>Database transaction</strong></td><td>Several conditions/writes succeed or fail as one unit.</td><td class="good">Order + marker + inventory changes</td><td>More cost and conflict overhead.</td></tr>
+<tr><td><strong>Saga</strong></td><td>Several service-local transactions plus compensation.</td><td class="good">Order + inventory + payment across services</td><td>Temporary intermediate states; harder operations.</td></tr>
+</table>
+
+<h3>6.1 Why optimistic locking can collapse under extreme contention</h3>
+<pre><code>1000 writers:
+
+read version 50
+read version 50
+read version 50
+...
+
+one writes version 51
+
+999 fail
+999 re-read
+999 retry
+
+one writes version 52
+
+998 fail again
+...</code></pre>
+
+<p>AWS's official resource-counter guidance warns that this read-modify-retry loop can become self-destructive at high concurrency. For a hot inventory counter, prefer a single atomic conditional decrement or redesign the ownership model instead of creating an OCC retry storm.</p>
+</section>
+
+<section id="hot">
+<h2>7. Flash Sale: One SKU Receives Millions of Requests</h2>
+
+<div class="callout red">
+<strong>Critical insight:</strong> If there are only 100 items, you do not want one million successful writes to the inventory database.
+You want at most roughly 100 successful reservations and to reject/shed the rest as cheaply as possible.
+</div>
+
+<h3>7.1 Layered protection</h3>
+<div class="diagram"><div class="flow">
+<div class="node">1,000,000 Buy Requests</div><div class="arrow">→</div>
+<div class="node">Edge Rate Limit</div><div class="arrow">→</div>
+<div class="node">Bot / Eligibility</div><div class="arrow">→</div>
+<div class="node">Admission Gate</div><div class="arrow">→</div>
+<div class="node">Inventory Reservation</div><div class="arrow">→</div>
+<div class="node">100 Winners</div>
+</div></div>
+
+<h3>7.2 “Sold out” fast flag</h3>
+<p>When authoritative inventory reaches zero, publish a fast regional/cache signal:</p>
+<pre><code>sku:P100:likely_sold_out = true</code></pre>
+
+<p>This flag is only an optimization. It can reject obvious losers before the database, but the authoritative conditional write remains the correctness guard.</p>
+
+<h3>7.3 Single hot key has a physical throughput limit</h3>
+<p>A single exact inventory item cannot scale infinitely because conflicting mutations must be ordered somehow. DynamoDB documentation also explains that a single hot partition/item has finite write throughput even with adaptive capacity.</p>
+
+<h3>7.4 Scale by dividing ownership, not by duplicating one counter</h3>
+<p>For extremely hot inventory, pre-allocate disjoint stock budgets:</p>
+<pre><code>Total stock = 1,000
+
+Bucket 0 -> 50
+Bucket 1 -> 50
+...
+Bucket 19 -> 50
+
+sum(all bucket budgets) = 1,000</code></pre>
+
+<p>Requests hash across buckets. Each bucket uses its own atomic conditional decrement. Because the inventory tokens are disjoint, global oversell is still impossible.</p>
+
+<h3>7.5 This is an escrow / token ownership model</h3>
+<pre><code>Global stock
+   |
+   +-- APAC quota: 300
+   +-- US quota:   400
+   +-- EU quota:   300
+
+Each region can sell only its owned quota.
+
+No region can spend another region's tokens
+without a quota-transfer operation.</code></pre>
+
+<p>This removes a global write on every purchase. The trade-off is that one region can temporarily show sold out while another still owns unused quota. A background/control-plane process can rebalance quotas.</p>
+
+<h3>7.6 Alternative: one token per unit</h3>
+<pre><code>stock-token-0001 FREE
+stock-token-0002 FREE
+...
+stock-token-1000 FREE
+
+reservation:
+conditional claim one FREE token
+
+FREE -> RESERVED -> SOLD
+             \
+              -> FREE on release</code></pre>
+
+<p>This makes the invariant very explicit: one physical sellable unit corresponds to one claimable token. It costs more storage and token-selection logic, but it avoids a single global counter hotspot.</p>
+
+<h3>7.7 Should we serialize all orders with a queue?</h3>
+<p>Usually no.</p>
+<pre><code>per-SKU FIFO queue:
+  request 1
+  request 2
+  request 3
+  ...
+</code></pre>
+
+<p>A queue gives easy ordering but introduces waiting and creates a hot queue partition for a hot SKU. It can be useful for limited launches, lotteries, background reconciliation, or as an admission system, but a normal checkout path is often better with direct conditional writes.</p>
+</section>
+
+<section id="idempotency">
+<h2>8. Double Click, Timeout and Retry: Idempotency Is Mandatory</h2>
+
+<h3>8.1 The ambiguous timeout problem</h3>
+<pre><code>User clicks Buy
+
+Client -> Order Service
+           |
+           | creates order O123
+           | reserves stock
+           v
+
+Response is LOST.
+
+Client sees timeout.
+
+Question:
+Did the order happen?</code></pre>
+
+<p>If the client retries with a new identity, we may create order O124 and reserve again.</p>
+
+<h3>8.2 Idempotency key</h3>
+<pre><code>POST /checkout
+
+Idempotency-Key:
+  9ca5c0bf-...
+
+same user intention
+=
+same key on every retry</code></pre>
+
+<p>The server stores:</p>
+<pre><code>idempotency_key -> order_id -> final/result state</code></pre>
+
+<p>Retry:</p>
+<pre><code>same key found
+    |
+    +-- request still processing -> return processing/reconcile
+    |
+    +-- completed -> return same order/result
+    |
+    +-- conflicting payload -> reject</code></pre>
+
+<p>Amazon's Builders' Library explicitly describes idempotent API design as a way to make retries safe and avoid duplicate side effects.</p>
+
+<h3>8.3 Transactional idempotency marker</h3>
+<pre><code>TRANSACTION:
+
+1. condition:
+   idempotency marker does not exist
+
+2. reserve inventory
+
+3. create order
+
+4. create marker:
+   key -> order_id
+
+COMMIT ALL OR NOTHING</code></pre>
+
+<p>AWS's DynamoDB counter guidance describes this marker pattern and DynamoDB transactions also support client request tokens for idempotent transactional requests.</p>
+</section>
+
+<section id="saga">
+<h2>9. Inventory + Order + Payment Cannot Be One Simple Database Transaction</h2>
+<p>Payment is an external distributed side effect. Holding a database lock while waiting on a payment provider is a bad design.</p>
+
+<h3>9.1 Saga orchestration</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Checkout Saga</div><div class="arrow">→</div>
+<div class="node">Create Order<small>PENDING</small></div><div class="arrow">→</div>
+<div class="node">Reserve Inventory</div><div class="arrow">→</div>
+<div class="node">Authorize Payment</div><div class="arrow">→</div>
+<div class="node">Confirm Order</div><div class="arrow">→</div>
+<div class="node">Commit Reservation</div>
+</div></div>
+
+<h3>9.2 If payment fails</h3>
+<pre><code>Order PENDING
+   ↓
+Inventory RESERVED
+   ↓
+Payment FAILED
+   ↓
+Compensating actions:
+
+release inventory
+mark order PAYMENT_FAILED</code></pre>
+
+<h3>9.3 If payment succeeds but Order Service crashes</h3>
+<pre><code>payment authorization = SUCCESS
+
+order still = PENDING
+
+reconciliation worker:
+  query workflow state
+  query payment by idempotency key
+  discover authorization succeeded
+  continue forward recovery
+  confirm order</code></pre>
+
+<h3>9.4 Never assume exactly-once message delivery</h3>
+<p>Consumers should be idempotent:</p>
+<pre><code>event_id E100 received
+
+processed_events contains E100?
+  yes -> ignore duplicate
+  no  -> perform state transition
+         record E100</code></pre>
+
+<h3>9.5 Transactional outbox: avoid the dual-write bug</h3>
+<p>Broken:</p>
+<pre><code>1. update order DB -> SUCCESS
+2. publish OrderConfirmed event -> FAIL
+
+Shipping never hears about the order.</code></pre>
+
+<p>Better:</p>
+<pre><code>ONE LOCAL DB TRANSACTION:
+  update order
+  insert outbox event
+
+COMMIT
+
+background publisher:
+  outbox -> queue/event bus
+
+consumer:
+  idempotent processing</code></pre>
+
+<p>AWS Prescriptive Guidance documents the transactional outbox pattern specifically to solve this database-write + message-publish consistency problem.</p>
+</section>
+
+<section id="cache">
+<h2>10. Cache Strategy: Fast Browse, Correct Checkout</h2>
+
+<table>
+<tr><th>Data</th><th>Browse path</th><th>Checkout path</th></tr>
+<tr><td>Description/images/specifications</td><td class="good">Cache heavily</td><td>Snapshot if needed</td></tr>
+<tr><td>Price display</td><td class="good">Cache with version/TTL</td><td class="mid">Revalidate or use valid price quote</td></tr>
+<tr><td>“In stock” badge</td><td class="good">Cache/approximate</td><td class="bad">Never trust for reservation</td></tr>
+<tr><td>Exact inventory reservation</td><td>Not needed</td><td class="bad">Authoritative conditional write</td></tr>
+<tr><td>Product ACTIVE/BLOCKED state</td><td>Short cache okay</td><td class="bad">Revalidate before commit</td></tr>
+</table>
+
+<h3>10.1 Cache invalidation on admin update</h3>
+<pre><code>Admin updates Product v43
+        |
+        v
+Source of Truth COMMIT
+        |
+        +----> change event / CDC
+                   |
+             +-----+------+
+             |            |
+          cache evict   search index update
+             |
+          regional nodes</code></pre>
+
+<p>There is always a propagation window. Therefore correctness cannot depend on every cache being updated immediately.</p>
+
+<h3>10.2 Versioned cached objects</h3>
+<pre><code>cache key:
+product:P100:v43
+
+or cached value:
+{
+  product_id: P100,
+  version: 43,
+  ...
+}</code></pre>
+
+<p>Version information lets checkout detect that the user is acting on old data.</p>
+
+<h3>10.3 DAX lesson</h3>
+<p>AWS documents that DAX cached reads are eventually consistent. Strongly consistent reads are passed through to DynamoDB instead of being served from cache. This is exactly the kind of distinction a checkout design should understand: cache for speed, source-of-truth read/write for strong decisions.</p>
+
+<h3>10.4 Cache outage protection</h3>
+<p>Amazon's Builders' Library warns that blindly falling back from a failed cache to a dependency can overload the dependency and cause a brownout. Protect the authoritative database with:</p>
+<ul>
+<li>Rate limits.</li>
+<li>Request coalescing.</li>
+<li>Load shedding.</li>
+<li>Bounded concurrency.</li>
+<li>Warm/cold-cache recovery plans.</li>
+</ul>
+</section>
+
+<section id="multi-region">
+<h2>11. Multi-Region Inventory: The Hardest Version of the Problem</h2>
+
+<h3>11.1 Dangerous design</h3>
+<pre><code>stock = 1
+
+US region sees 1
+APAC region sees 1
+
+US sells 1
+APAC sells 1
+
+eventual replication later merges state
+
+too late:
+2 customers were promised
+1 unit.</code></pre>
+
+<p>For exact inventory, multi-active eventual consistency on one shared counter is dangerous.</p>
+
+<h3>11.2 Option A — single write authority per inventory pool</h3>
+<pre><code>SKU + warehouse
+      |
+      v
+home write region
+      |
+      +---- replicas for read</code></pre>
+
+<p>All reservations for that inventory pool go to one authoritative region. Correct and simpler, but users far from the authority pay WAN latency.</p>
+
+<h3>11.3 Option B — multi-region strong consistency</h3>
+<p>DynamoDB now documents a multi-Region strong consistency mode for global tables, where writes are synchronously replicated before returning and strong reads can see the latest version. The trade-off is higher cross-region coordination cost/latency and stricter region topology constraints.</p>
+
+<h3>11.4 Option C — escrow quotas by region</h3>
+<pre><code>Total sellable = 100
+
+US   owns 40 tokens
+APAC owns 35 tokens
+EU   owns 25 tokens
+
+Each region makes local exact reservations.
+
+40 + 35 + 25 = 100
+=> global oversell impossible.</code></pre>
+
+<p>This is often the most scalable conceptual model for scarce globally sold resources. Rebalancing tokens is much less frequent than customer purchases.</p>
+
+<div class="callout warn">
+<strong>Consistency lesson:</strong> “global active-active database” is not automatically correct for inventory.
+You need to know the database's conflict model and decide who owns the right to spend each unit.
+</div>
+</section>
+
+<section>
+<h2>12. Inventory Ledger: Make Every Change Explainable</h2>
+<p>A single current counter is useful, but a ledger makes reconciliation possible.</p>
+
+<pre><code>inventory_events
+
+event_id    sku   location   type        qty    reference
+E1          A     WH1        RECEIVE     +100   shipment-10
+E2          A     WH1        RESERVE       -2   order-501
+E3          A     WH1        RELEASE       +2   order-501
+E4          A     WH1        RESERVE       -1   order-502
+E5          A     WH1        SHIP           0   order-502
+E6          A     WH1        ADJUST        -3   cycle-count</code></pre>
+
+<p>The exact sign semantics depend on whether the ledger represents available, on-hand, reserved, or several dimensions. The key value is auditability:</p>
+<ul>
+<li>Why did stock change?</li>
+<li>Which order owns a reservation?</li>
+<li>Was an event processed twice?</li>
+<li>Can current counters be rebuilt/reconciled?</li>
+</ul>
+
+<h3>12.1 Counter + ledger hybrid</h3>
+<pre><code>Fast path:
+  update current inventory counters atomically
+
+Same transaction / durable event:
+  write inventory event
+
+Async:
+  analytics
+  audit
+  reconciliation
+  warehouse projections</code></pre>
+
+<p>AWS's resource-counter guidance describes item-collection/event-sourcing approaches as an alternative for accurate, idempotent counter changes, with the trade-off that reads become more expensive if the value must be summed.</p>
+</section>
+
+<section id="cases">
+<h2>13. Concurrency Cases You Should Be Ready to Explain</h2>
+
+<details open><summary>Case 1 — Two users buy the last item</summary>
+<p>Use one atomic conditional reservation. One succeeds; the later condition sees zero and fails. Never separate check and decrement.</p>
+</details>
+
+<details><summary>Case 2 — 100,000 users buy 100 flash-sale units</summary>
+<p>Use edge admission, bot protection, rate limiting, a fast sold-out hint, and an authoritative reservation. If a single inventory key cannot handle the mutation rate, pre-partition ownership into disjoint inventory token buckets.</p>
+</details>
+
+<details><summary>Case 3 — User double-clicks “Place Order”</summary>
+<p>Both requests carry the same idempotency key. Order creation + inventory reservation + marker are designed so only one logical order can be created.</p>
+</details>
+
+<details><summary>Case 4 — Server committed order but response timed out</summary>
+<p>The retry uses the same idempotency key. The server returns the existing order rather than making a second reservation.</p>
+</details>
+
+<details><summary>Case 5 — Inventory reserved, payment declines</summary>
+<p>Saga compensates: release reservation and mark order failed. Release must itself be idempotent.</p>
+</details>
+
+<details><summary>Case 6 — Payment authorized, Order Service crashes</summary>
+<p>Recovery process queries durable workflow/payment state using stable request IDs, then either continues confirmation or voids/refunds depending on the business state machine.</p>
+</details>
+
+<details><summary>Case 7 — Admin changes price while user is on checkout page</summary>
+<p>Checkout compares product/price version or validates a price-quote token. Business rule either asks the customer to accept the new price or honors the old quote until expiry.</p>
+</details>
+
+<details><summary>Case 8 — Admin blocks product while thousands are ordering</summary>
+<p>Browse caches may briefly stay stale. Commit path checks authoritative sellability/version and rejects new commitments after the effective boundary.</p>
+</details>
+
+<details><summary>Case 9 — Warehouse receives 500 units while orders reserve stock</summary>
+<p>Use additive on-hand adjustment, not an absolute overwrite of available inventory. Keep on-hand and reserved dimensions separate.</p>
+</details>
+
+<details><summary>Case 10 — Physical stock count discovers 10 missing units</summary>
+<p>Record a versioned adjustment event. If reserved exceeds new physical availability, set available-to-promise to zero and start shortage reconciliation according to business priority; do not erase confirmed reservations silently.</p>
+</details>
+
+<details><summary>Case 11 — Customer cancels while fulfillment allocates the item</summary>
+<p>Use an order/fulfillment state machine with conditional transitions. For example, cancellation can move RESERVED → RELEASED, but cannot overwrite SHIPPED. State transition must include expected current state/version.</p>
+</details>
+
+<details><summary>Case 12 — Same event is delivered twice from the queue</summary>
+<p>Use event ID / inbox marker. Consumer checks if it has processed the event before applying side effects.</p>
+</details>
+
+<details><summary>Case 13 — Cache still shows stock after product is sold out</summary>
+<p>This is acceptable only for the browse label. Checkout's conditional reservation rejects the purchase and UI immediately refreshes the product state.</p>
+</details>
+
+<details><summary>Case 14 — One region loses network access</summary>
+<p>If inventory has a home region, fail closed for new reservations that cannot reach authority, or switch only after controlled authority transfer. If regional quotas are used, each healthy region can keep selling only its locally owned tokens.</p>
+</details>
+
+<details><summary>Case 15 — Retry storm after a database slowdown</summary>
+<p>Use bounded retries, exponential backoff with jitter, idempotency, admission control, and load shedding. Never let every client retry immediately and multiply the original overload.</p>
+</details>
+
+<details><summary>Case 16 — Hot optimistic-lock row causes endless conflicts</summary>
+<p>Stop using a read-version-write retry loop for the hot path. Use atomic condition, serialize a bounded subset, or split inventory ownership into disjoint buckets.</p>
+</details>
+
+<details><summary>Case 17 — Promotion starts at exactly midnight during active carts</summary>
+<p>Store promotion/version/effective_at. Browsing can update asynchronously; checkout resolves the price according to server time and the quote/promotion policy, not client clock.</p>
+</details>
+
+<details><summary>Case 18 — Return arrives while a replacement order is being created</summary>
+<p>Return is a distinct inventory event. Decide when the returned unit becomes sellable—received, inspected, or restocked—rather than immediately adding it when the refund begins.</p>
+</details>
+</section>
+
+<section id="ux">
+<h2>14. Correctness Is Not Enough — Design the Customer Experience</h2>
+
+<table>
+<tr><th>System event</th><th>Bad UX</th><th>Better UX</th></tr>
+<tr><td>Inventory conflict</td><td>500 Internal Server Error</td><td>“Sorry, this item just sold out.” Refresh alternatives immediately.</td></tr>
+<tr><td>Price changed</td><td>Silently charge the new value</td><td>Show old and new price and require confirmation, or honor a valid quote.</td></tr>
+<tr><td>Checkout timeout</td><td>“Try again” and maybe duplicate order</td><td>Show “We are confirming your order…” and reconcile by idempotency key.</td></tr>
+<tr><td>Payment slow</td><td>Hold HTTP request indefinitely</td><td>Use bounded wait, durable workflow, then show pending status if necessary.</td></tr>
+<tr><td>Flash sale overload</td><td>Everyone reaches the database</td><td>Admission gate, queue/lottery if business allows, transparent wait/status.</td></tr>
+<tr><td>Cache stale</td><td>Act as if cache is authoritative</td><td>Revalidate during checkout and explain the change clearly.</td></tr>
+</table>
+
+<h3>14.1 “Pending” is sometimes better than lying</h3>
+<p>If the system cannot safely decide within the synchronous latency budget:</p>
+<pre><code>Order status:
+  CONFIRMING
+
+UI:
+  "We received your request.
+   Do not place another order.
+   We are confirming payment and inventory."</code></pre>
+
+<p>This is safer than returning an error that encourages the customer to retry an operation that may already have succeeded.</p>
+</section>
+
+<section>
+<h2>15. Observability for Concurrency Problems</h2>
+<p>Concurrency bugs often look normal in a unit test and appear only under production contention.</p>
+
+<h3>Metrics to track</h3>
+<pre><code>inventory.conditional_success_rate
+inventory.conditional_conflict_rate
+inventory.reservation_expired
+inventory.release_failure
+inventory.negative_available   # should always be zero
+
+order.idempotency_hit_rate
+order.duplicate_prevented
+order.pending_age_p99
+
+db.transaction_conflict_rate
+db.throttled_requests
+db.hot_partition_rate
+
+payment.ambiguous_timeout
+payment.reconciliation_backlog
+
+cache.product.hit_rate
+cache.inventory_staleness_age
+
+checkout.p50
+checkout.p95
+checkout.p99
+checkout.sold_out_rate</code></pre>
+
+<h3>Chaos/load tests</h3>
+<ul>
+<li>10,000 concurrent buyers for 10 units.</li>
+<li>Kill checkout worker after inventory reservation but before response.</li>
+<li>Duplicate every event.</li>
+<li>Delay payment response for 30 seconds.</li>
+<li>Admin changes price every second during load test.</li>
+<li>Remove one database replica / Availability Zone.</li>
+<li>Disable cache and verify the source-of-truth database does not brown out.</li>
+</ul>
+</section>
+
+<section>
+<h2>16. What Amazon's Dynamo Shopping-Cart Story Teaches Us</h2>
+<p>
+Amazon's Dynamo paper is useful because it shows that <strong>consistency is a business decision</strong>.
+The shopping cart had a strong “always writeable” requirement: customers should still add/remove items during failures.
+Dynamo therefore used partitioning, replication, object versioning, quorum-like techniques, and application conflict resolution.
+The cart application could merge conflicting versions instead of rejecting customer actions.
+</p>
+
+<div class="callout">
+<strong>But inventory is different.</strong>
+If two replicas independently promise the same last physical unit, “merge later” cannot undo the customer promise.
+Therefore a modern Amazon-like design should give inventory reservation a stronger invariant than cart editing.
+</div>
+
+<h3>16.1 Different consistency by domain</h3>
+<table>
+<tr><th>Domain</th><th>Preferred behavior</th></tr>
+<tr><td>Shopping cart edits</td><td>High availability; merging/reconciliation can be acceptable.</td></tr>
+<tr><td>Product descriptions</td><td>Eventually consistent cache is usually fine.</td></tr>
+<tr><td>Search index</td><td>Eventually consistent.</td></tr>
+<tr><td>Displayed stock badge</td><td>Approximate/bounded stale.</td></tr>
+<tr><td>Inventory reservation</td><td>Strong atomic ownership/threshold rule.</td></tr>
+<tr><td>Order creation</td><td>Idempotent durable state transition.</td></tr>
+<tr><td>Payment capture</td><td>Strong idempotency and reconciliation.</td></tr>
+</table>
+</section>
+
+<section id="interview">
+<h2>17. Principal Engineer Interview Answer</h2>
+<div class="interview">
+<p class="quote">
+“I would not make the entire e-commerce system strongly consistent.
+I would separate the browse/read model from the order commitment model.
+Catalog and search can be cached and eventually consistent.
+Checkout must revalidate price/product status and use an atomic inventory reservation.
+The inventory invariant is enforced in the database condition, not in an application read-modify-write.
+Every mutating workflow is idempotent.
+Order, inventory, and payment are coordinated with local transactions plus a saga, with durable reconciliation for ambiguous failures.”
+</p>
+
+<h3>Then draw this</h3>
+<pre><code>                    BROWSE PATH
+User
+ |
+ v
+CDN / Product API
+ |
+ +--> Cache / Search / Read Model
+             |
+             +--> Catalog Store
+             |
+        fast, scalable,
+        bounded stale
+
+
+                    CHECKOUT PATH
+User
+ |
+ v
+Checkout API
+ |
+ +--> Idempotency Gate
+ |
+ +--> Price/Product Authority
+ |       version / quote / status
+ |
+ +--> Inventory Authority
+ |       atomic condition
+ |       reserve only if available >= qty
+ |
+ +--> Order Transaction
+ |       order + marker + outbox
+ |
+ +--> Payment
+ |       stable payment id
+ |
+ +--> Saga / State Machine
+         |
+         +--> confirm
+         |
+         +--> compensate / release
+
+Async:
+outbox / stream
+  -> fulfillment
+  -> notification
+  -> analytics
+  -> cache/search invalidation</code></pre>
+
+<h3>Questions to volunteer</h3>
+<ol>
+<li>What is the exact invariant for oversell?</li>
+<li>What data can be stale and for how long?</li>
+<li>How do we handle the last item under 100k concurrent requests?</li>
+<li>What happens after a timeout where the write may already have committed?</li>
+<li>How does admin update interact with active carts and checkout?</li>
+<li>How are inventory reservations expired and released?</li>
+<li>What happens when payment and inventory disagree?</li>
+<li>How do we scale a single hot SKU across regions?</li>
+<li>How do we prevent cache outage from overloading the database?</li>
+<li>Which metrics prove we never oversell?</li>
+</ol>
+</div>
+</section>
+
+<section>
+<h2>18. Decision Table: Which Technique Should I Use?</h2>
+<table>
+<tr><th>Problem</th><th>Preferred technique</th><th>Why</th></tr>
+<tr><td>Last-unit race</td><td>Atomic conditional update</td><td>One database decision, no read/write race.</td></tr>
+<tr><td>Admin product edit</td><td>Optimistic version</td><td>Conflicts are relatively rare and retries are cheap.</td></tr>
+<tr><td>Order + idempotency marker</td><td>ACID transaction</td><td>All-or-nothing local state.</td></tr>
+<tr><td>Order + inventory + payment services</td><td>Saga + compensation</td><td>Cannot safely hold one DB transaction across remote services.</td></tr>
+<tr><td>Duplicate request</td><td>Idempotency key</td><td>Retry can return the same logical result.</td></tr>
+<tr><td>DB update + event publish</td><td>Transactional outbox / CDC</td><td>Avoid dual-write inconsistency.</td></tr>
+<tr><td>Very hot SKU</td><td>Admission control + inventory tokens/buckets</td><td>Avoid one counter handling all loser traffic.</td></tr>
+<tr><td>Global sales</td><td>Single authority, strong global consistency, or regional escrow quotas</td><td>Explicitly define who owns the right to sell each unit.</td></tr>
+<tr><td>Fast product page</td><td>Cache + read model</td><td>High hit rate and bounded staleness are acceptable.</td></tr>
+<tr><td>Retry storm</td><td>Backoff + jitter + load shedding</td><td>Do not amplify overload.</td></tr>
+</table>
+</section>
+
+<section id="sources">
+<h2>19. Primary Amazon / AWS Sources</h2>
+<p class="source-note">
+The exact Amazon.com inventory implementation is private. These sources are used to ground Amazon's published engineering principles and AWS database concurrency primitives.
+</p>
+<ol>
+<li><a href="https://www.amazon.science/publications/dynamo-amazons-highly-available-key-value-store">Amazon Science — Dynamo: Amazon's Highly Available Key-value Store</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/BestPractices_ImplementingVersionControl.html">AWS DynamoDB — Best practices for handling concurrent updates</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/BestPractices_OptimisticLocking.html">AWS DynamoDB — Optimistic locking with version numbers</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html">AWS DynamoDB — Condition expressions / conditional updates</a></li>
+<li><a href="https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_dynamodb_Scenario_AtomicCounterOperations_section.html">AWS SDK Examples — Atomic counters and safe decrement</a></li>
+<li><a href="https://aws.amazon.com/blogs/database/implement-resource-counters-with-amazon-dynamodb/">AWS Database Blog — Implement resource counters with DynamoDB</a></li>
+<li><a href="https://aws.amazon.com/blogs/database/handle-conditional-write-errors-in-high-concurrency-scenarios-with-amazon-dynamodb/">AWS Database Blog — Conditional writes under high concurrency</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transactions.html">AWS DynamoDB — ACID transactions</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html">AWS DynamoDB — Transaction isolation and conflicts</a></li>
+<li><a href="https://www.amazon.science/publications/distributed-transactions-at-scale-in-amazon-dynamodb">Amazon Science — Distributed transactions at scale in DynamoDB</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html">AWS DynamoDB — Eventual vs strongly consistent reads</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.consistency.html">AWS DynamoDB — DAX consistency models</a></li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/burst-adaptive-capacity.html">AWS DynamoDB — Burst and adaptive capacity / hot partitions</a></li>
+<li><a href="https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/">Amazon Builders' Library — Making retries safe with idempotent APIs</a></li>
+<li><a href="https://aws.amazon.com/builders-library/caching-challenges-and-strategies/">Amazon Builders' Library — Caching challenges and strategies</a></li>
+<li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga.html">AWS Prescriptive Guidance — Saga pattern</a></li>
+<li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html">AWS Prescriptive Guidance — Transactional outbox</a></li>
+<li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/retry-backoff.html">AWS Prescriptive Guidance — Retry with backoff</a></li>
+<li><a href="https://aws.amazon.com/builders-library/static-stability-using-availability-zones/">Amazon Builders' Library — Static stability using Availability Zones</a></li>
+</ol>
+</section>
+
+<footer>
+Amazon-scale e-commerce concurrency deep dive · New standalone page · Designed for Principal Engineer system-design study.
+</footer>
+</div>
+</body>
+</html>

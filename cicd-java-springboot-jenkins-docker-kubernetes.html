@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>End-to-End CI/CD for Java Spring Boot Microservices</title>
+<style>
+:root {
+  --bg:#f4f7fb; --surface:#ffffff; --surface2:#eef3f9; --text:#172033;
+  --muted:#5f6c80; --border:#d9e2ef; --accent:#2257d6; --accent2:#0a8871;
+  --danger:#b42318; --warning:#a15c00; --shadow:0 14px 36px rgba(25,39,71,.09);
+  --code:#101827; --codeText:#e8eef9;
+}
+body.dark {
+  --bg:#0d1421; --surface:#141e2f; --surface2:#1a263a; --text:#e8eef9;
+  --muted:#aebbd0; --border:#2a3a53; --accent:#7ea4ff; --accent2:#59d6bd;
+  --danger:#ff8a80; --warning:#ffc56e; --shadow:0 14px 36px rgba(0,0,0,.35);
+  --code:#080d16; --codeText:#dce8ff;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); line-height:1.7; }
+a { color:var(--accent); }
+header { background:linear-gradient(135deg,#102a66,#2257d6 58%,#0a8871); color:white; padding:72px 24px 58px; }
+.hero { max-width:1180px; margin:auto; }
+.hero .tag { display:inline-block; padding:6px 12px; border:1px solid rgba(255,255,255,.35); border-radius:999px; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+h1 { font-size:clamp(34px,5vw,64px); line-height:1.05; max-width:920px; margin:18px 0; }
+.subtitle { max-width:820px; font-size:19px; opacity:.9; }
+.hero-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
+.btn { border:0; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; text-decoration:none; }
+.btn.light { background:white; color:#17316d; }
+.btn.glass { background:rgba(255,255,255,.12); color:white; border:1px solid rgba(255,255,255,.28); }
+.layout { max-width:1420px; margin:0 auto; display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; padding:28px; }
+aside { position:sticky; top:18px; align-self:start; max-height:calc(100vh - 36px); overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); }
+aside h3 { margin:4px 8px 10px; font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+#search { width:100%; border:1px solid var(--border); background:var(--surface2); color:var(--text); padding:10px 12px; border-radius:9px; margin-bottom:10px; }
+nav a { display:block; padding:7px 9px; border-radius:8px; text-decoration:none; color:var(--muted); font-size:14px; }
+nav a:hover { background:var(--surface2); color:var(--accent); }
+main { min-width:0; }
+section { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:clamp(22px,4vw,44px); margin-bottom:26px; box-shadow:var(--shadow); }
+section.hidden { display:none; }
+h2 { font-size:clamp(26px,3vw,38px); line-height:1.2; margin:0 0 18px; }
+h3 { margin-top:28px; line-height:1.3; }
+.eyebrow { color:var(--accent); font-size:12px; font-weight:800; letter-spacing:.12em; margin-bottom:8px; }
+p { margin:10px 0; }
+code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
+p code, li code, td code { background:var(--surface2); border:1px solid var(--border); padding:2px 5px; border-radius:5px; font-size:.9em; }
+pre { position:relative; background:var(--code); color:var(--codeText); border-radius:13px; overflow:auto; padding:20px; line-height:1.55; font-size:13px; border:1px solid #26344c; }
+pre code { white-space:pre; }
+.copy-btn { position:absolute; right:9px; top:9px; border:1px solid #41516b; background:#1d2a40; color:#dce8ff; border-radius:7px; padding:5px 9px; cursor:pointer; font-size:12px; }
+.copy-btn:hover { background:#2c3b55; }
+.pipeline-flow { display:flex; gap:12px; align-items:stretch; overflow:auto; padding:14px 2px 24px; }
+.pipeline-flow div { min-width:150px; flex:1; background:var(--surface2); border:1px solid var(--border); padding:16px; border-radius:12px; }
+.pipeline-flow span { display:block; color:var(--muted); font-size:13px; margin-top:4px; }
+.pipeline-flow i { align-self:center; color:var(--accent); font-size:24px; }
+.pipeline-flow.compact div { min-width:120px; }
+.six-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:20px 0; }
+.six-grid article { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; }
+.six-grid article p { color:var(--muted); margin-bottom:0; }
+.callout { margin:22px 0; padding:15px 18px; border-radius:11px; border-left:4px solid var(--accent); background:var(--surface2); }
+.callout strong { display:block; margin-bottom:5px; }
+.callout.warning { border-left-color:var(--warning); }
+.callout.danger { border-left-color:var(--danger); }
+.callout.info { border-left-color:var(--accent); }
+table { border-collapse:collapse; width:100%; min-width:720px; }
+.comparison, section > table { overflow-x:auto; display:block; }
+th, td { border:1px solid var(--border); padding:12px; vertical-align:top; text-align:left; }
+th { background:var(--surface2); }
+.checklist { list-style:none; padding:0; }
+.checklist li { border-bottom:1px solid var(--border); padding:10px 0; }
+.checklist input { width:18px; height:18px; margin-right:9px; vertical-align:-3px; }
+.checklist.large li { font-size:16px; }
+.scenario, .qa { border:1px solid var(--border); background:var(--surface2); border-radius:14px; padding:18px; margin:16px 0; }
+.scenario h3, .qa h3 { margin-top:0; }
+.tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.tabs > div { min-width:0; }
+.roadmap li { padding:8px 0; }
+.sources li { margin:7px 0; }
+footer { text-align:center; color:var(--muted); padding:20px 24px 48px; }
+.topbar { position:fixed; right:18px; bottom:18px; z-index:20; display:flex; gap:8px; }
+.floating { border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:10px 14px; box-shadow:var(--shadow); cursor:pointer; }
+@media (max-width:1050px) {
+  .layout { grid-template-columns:1fr; padding:18px; }
+  aside { position:relative; top:0; max-height:none; }
+  nav { columns:2; }
+  .six-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .tabs { grid-template-columns:1fr; }
+}
+@media (max-width:650px) {
+  header { padding:54px 18px 42px; }
+  .layout { padding:12px; }
+  section { border-radius:13px; padding:21px 17px; }
+  nav { columns:1; }
+  .six-grid { grid-template-columns:1fr; }
+  .pipeline-flow i { display:none; }
+  .pipeline-flow { display:grid; grid-template-columns:1fr; }
+  .pipeline-flow div { min-width:0; }
+}
+@media print {
+  aside,.topbar,.copy-btn,.hero-actions { display:none !important; }
+  body { background:white; color:black; }
+  .layout { display:block; padding:0; }
+  section { box-shadow:none; page-break-inside:avoid; border:1px solid #ccc; }
+  header { background:white; color:black; padding:20px 0; }
+  a { color:black; text-decoration:none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <span class="tag">Senior Java / DevOps Tutorial</span>
+    <h1>End-to-End CI/CD for Java Spring Boot Microservices</h1>
+    <p class="subtitle">Jenkins, Docker, Kubernetes, Linux commands, production practices, rollback, troubleshooting, and a complete working starter project.</p>
+    <div class="hero-actions">
+      <a class="btn light" href="#overview">Start tutorial</a>
+      <a class="btn glass" href="#jenkinsfile">Open Jenkinsfile</a>
+      <a class="btn glass" href="#command-cheatsheet">Command cheat sheet</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h3>Contents</h3>
+    <input id="search" type="search" placeholder="Filter sections...">
+    <nav><a href="#overview">Architecture</a>
+<a href="#concepts">Responsibilities</a>
+<a href="#prerequisites">Prerequisites</a>
+<a href="#linux-basics">Linux commands</a>
+<a href="#install-java">Java and Maven</a>
+<a href="#spring-app">Spring Boot app</a>
+<a href="#docker-install">Install Docker</a>
+<a href="#dockerfile">Dockerfile</a>
+<a href="#jenkins-install">Install Jenkins</a>
+<a href="#jenkins-agent">Jenkins agent</a>
+<a href="#kubectl-minikube">kubectl and Minikube</a>
+<a href="#k8s-objects">Kubernetes objects</a>
+<a href="#k8s-manifests">Kubernetes YAML</a>
+<a href="#manual-deploy">Manual deployment</a>
+<a href="#credentials">Credentials</a>
+<a href="#jenkinsfile">Jenkinsfile</a>
+<a href="#create-job">Create pipeline</a>
+<a href="#quality-security">Quality gates</a>
+<a href="#deployment-strategies">Release strategies</a>
+<a href="#observability">Observability</a>
+<a href="#troubleshooting">Troubleshooting</a>
+<a href="#security">Hardening</a>
+<a href="#rollback">Rollback</a>
+<a href="#multi-env">Environment promotion</a>
+<a href="#production-evolution">Enterprise evolution</a>
+<a href="#command-cheatsheet">Command cheat sheet</a>
+<a href="#interview">Interview Q&amp;A</a>
+<a href="#checklist">Completion checklist</a>
+<a href="#sources">References</a></nav>
+  </aside>
+  <main>
+    <section id="overview" data-search="1. ci/cd architecture for a spring boot microservice"><div class="eyebrow">FOUNDATION</div><h2>1. CI/CD Architecture for a Spring Boot Microservice</h2>
+<p>This tutorial builds one complete path from a Git commit to a verified Kubernetes rollout. The example uses <b>Java 21</b>, <b>Spring Boot 3.5.16</b>, <b>Maven</b>, <b>Jenkins Pipeline</b>, <b>Docker</b>, and <b>Kubernetes</b>.</p>
+
+<div class="pipeline-flow">
+  <div><b>1. Git Push</b><span>Developer commits code</span></div>
+  <i>→</i>
+  <div><b>2. Jenkins</b><span>Build, test, scan</span></div>
+  <i>→</i>
+  <div><b>3. Registry</b><span>Store immutable image</span></div>
+  <i>→</i>
+  <div><b>4. Kubernetes</b><span>Rolling deployment</span></div>
+  <i>→</i>
+  <div><b>5. Verify</b><span>Probe, smoke test, metrics</span></div>
+</div>
+
+<div class="six-grid">
+  <article><b>What</b><p>CI/CD automates integration, validation, packaging, release, deployment, and verification.</p></article>
+  <article><b>Why</b><p>Manual deployment is slow, inconsistent, difficult to audit, and easy to break.</p></article>
+  <article><b>When</b><p>Use it when a service is released repeatedly, has multiple environments, or needs reliable rollback.</p></article>
+  <article><b>How</b><p>Store pipeline and deployment configuration as code, then promote immutable artifacts.</p></article>
+  <article><b>Impact</b><p>Faster feedback, smaller releases, repeatable environments, and lower recovery time.</p></article>
+  <article><b>Real case</b><p>A bad image fails its readiness probe, the rollout stops, and Jenkins triggers rollback.</p></article>
+</div>
+<div class="callout info"><strong>Baseline choice</strong><div>Spring Boot 4.x is the newest major line, but this tutorial uses Spring Boot 3.5.x because it remains a practical migration-friendly baseline for many enterprise systems. Keep your exact versions pinned and upgrade them deliberately.</div></div>
+</section><section id="concepts" data-search="2. jenkins, docker, and kubernetes: responsibilities"><div class="eyebrow">FOUNDATION</div><h2>2. Jenkins, Docker, and Kubernetes: Responsibilities</h2>
+<div class="comparison">
+<table>
+<thead><tr><th>Component</th><th>Main responsibility</th><th>It should not do</th><th>Failure impact</th></tr></thead>
+<tbody>
+<tr><td><b>Jenkins</b></td><td>Orchestrate pipeline stages, credentials, approvals, reports, and deployment commands.</td><td>Store business data or become a manually configured snowflake.</td><td>No new release can be built or promoted.</td></tr>
+<tr><td><b>Docker</b></td><td>Package the application and runtime dependencies into an immutable image.</td><td>Manage a production cluster or application replicas.</td><td>Images cannot be built, pulled, or started.</td></tr>
+<tr><td><b>Registry</b></td><td>Store versioned images such as <code>order-service:a1b2c3d4</code>.</td><td>Decide whether an image is safe to deploy.</td><td>Cluster image pulls fail.</td></tr>
+<tr><td><b>Kubernetes</b></td><td>Schedule containers, maintain replicas, expose networking, probe health, scale, and roll out changes.</td><td>Compile source code or replace application-level resilience.</td><td>Service availability or rollout is affected.</td></tr>
+</tbody>
+</table>
+</div>
+<h3>CI versus CD</h3>
+<p><b>Continuous Integration</b> validates every change: compile, unit test, integration test, static analysis, and package. <b>Continuous Delivery</b> keeps a releasable artifact ready and usually requires approval for production. <b>Continuous Deployment</b> automatically releases every change that passes all controls.</p>
+</section><section id="prerequisites" data-search="3. prerequisites and recommended environment"><div class="eyebrow">SETUP</div><h2>3. Prerequisites and Recommended Environment</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> Ubuntu 22.04, 24.04, or a compatible Linux host</label></li>
+<li><label><input type="checkbox"> Git repository containing the service</label></li>
+<li><label><input type="checkbox"> Java 21 and Maven 3.6.3+</label></li>
+<li><label><input type="checkbox"> Jenkins controller and at least one build agent</label></li>
+<li><label><input type="checkbox"> Docker Engine or another OCI-compatible image builder</label></li>
+<li><label><input type="checkbox"> Image registry account</label></li>
+<li><label><input type="checkbox"> Kubernetes cluster and a compatible kubectl client</label></li>
+</ul>
+<h3>Lab versus production</h3>
+<table>
+<thead><tr><th>Area</th><th>Learning lab</th><th>Production recommendation</th></tr></thead>
+<tbody>
+<tr><td>Cluster</td><td>Minikube or kind</td><td>EKS, AKS, GKE, OpenShift, or an operated cluster</td></tr>
+<tr><td>Jenkins execution</td><td>Single VM with Docker and kubectl</td><td>Dedicated ephemeral agents; controller does not build</td></tr>
+<tr><td>Secrets</td><td>Jenkins credentials and example Kubernetes Secret</td><td>Vault, cloud secret manager, External Secrets, or Sealed Secrets</td></tr>
+<tr><td>Deployment config</td><td>Plain YAML</td><td>Helm/Kustomize plus GitOps for larger platforms</td></tr>
+<tr><td>Registry</td><td>Docker Hub</td><td>Private ECR, ACR, GAR, Harbor, or enterprise registry</td></tr>
+</tbody>
+</table>
+</section><section id="linux-basics" data-search="4. linux commands you will use"><div class="eyebrow">LINUX</div><h2>4. Linux Commands You Will Use</h2>
+<h3>System and resource inspection</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">uname -a
+cat /etc/os-release
+whoami
+id
+hostnamectl
+
+free -h
+df -h
+du -sh /var/lib/jenkins /var/lib/docker
+top
+ps aux --sort=-%mem | head
+ss -lntp</code></pre>
+<h3>Files, permissions, logs, and networking</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">ls -lah
+find . -maxdepth 3 -type f | sort
+chmod +x scripts/deploy.sh
+chown -R jenkins:jenkins /opt/build-workspace
+
+tail -f /var/log/syslog
+journalctl -u jenkins -f
+journalctl -u docker -n 200 --no-pager
+
+curl -i http://localhost:8080/actuator/health
+curl --fail --silent http://localhost:8080/api/orders/ping | jq
+nc -vz registry.example.com 443
+dig registry.example.com
+openssl s_client -connect registry.example.com:443 -servername registry.example.com</code></pre>
+<h3>Text processing useful during incidents</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">grep -Rni &quot;exception&quot; logs/
+grep -E &quot;ERROR|WARN&quot; application.log | tail -100
+awk &#x27;{print $1}&#x27; access.log | sort | uniq -c | sort -nr | head
+sed -n &#x27;120,180p&#x27; application.log
+xargs -n1 echo &lt; image-list.txt</code></pre>
+<div class="callout warning"><strong>Senior practice</strong><div>Do not solve every permission problem with <code>chmod 777</code>. Identify the service user, group ownership, and minimum required access.</div></div>
+</section><section id="install-java" data-search="5. install java, maven, and git"><div class="eyebrow">SETUP</div><h2>5. Install Java, Maven, and Git</h2>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo apt update
+sudo apt install -y openjdk-21-jdk maven git curl jq unzip ca-certificates
+
+java -version
+javac -version
+mvn -version
+git --version</code></pre>
+<p>For repeatable builds, commit the Maven Wrapper (<code>mvnw</code>, <code>.mvn/wrapper</code>) to the repository. It avoids relying on a different Maven version on every agent.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">mvn wrapper:wrapper
+chmod +x mvnw
+./mvnw -version</code></pre>
+</section><section id="spring-app" data-search="6. prepare the spring boot microservice"><div class="eyebrow">APPLICATION</div><h2>6. Prepare the Spring Boot Microservice</h2>
+<p>The downloadable starter contains a small order service, Actuator health endpoints, a unit/integration-style controller test, graceful shutdown, and Prometheus metrics.</p>
+<h3>Key application settings</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">spring:
+  application:
+    name: order-service
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true</code></pre>
+<h3>Build and run locally</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">cd cicd-microservice-starter
+mvn clean verify
+java -jar target/order-service-0.0.1-SNAPSHOT.jar
+
+curl http://localhost:8080/api/orders/ping
+curl http://localhost:8080/actuator/health/liveness
+curl http://localhost:8080/actuator/health/readiness</code></pre>
+<h3>Why probes must be different</h3>
+<ul>
+<li><b>Startup probe:</b> gives a slow-starting JVM enough time before liveness checks begin.</li>
+<li><b>Liveness probe:</b> answers whether the process is irrecoverably unhealthy and should be restarted.</li>
+<li><b>Readiness probe:</b> answers whether the Pod should receive traffic now.</li>
+</ul>
+<div class="callout warning"><strong>Common production mistake</strong><div>Do not put every external dependency into liveness. A temporary database outage should normally make the Pod unready, not create an endless restart loop.</div></div>
+</section><section id="docker-install" data-search="7. install docker engine on ubuntu"><div class="eyebrow">DOCKER</div><h2>7. Install Docker Engine on Ubuntu</h2>
+<p>Use Docker's official APT repository rather than an unofficial distribution package.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash"># Remove conflicting packages if they exist.
+for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
+  sudo apt-get remove -y &quot;$pkg&quot; 2&gt;/dev/null || true
+done
+
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg   -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+. /etc/os-release
+echo   &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc]   https://download.docker.com/linux/ubuntu ${UBUNTU_CODENAME:-$VERSION_CODENAME} stable&quot; |
+  sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+
+sudo apt-get update
+sudo apt-get install -y   docker-ce docker-ce-cli containerd.io   docker-buildx-plugin docker-compose-plugin
+
+sudo systemctl enable --now docker
+sudo docker run --rm hello-world</code></pre>
+<h3>Allow a non-root build agent to use Docker</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+
+# Log out/in before testing an interactive user.
+docker version
+docker info</code></pre>
+<div class="callout danger"><strong>Security impact</strong><div>Membership in the <code>docker</code> group is effectively root-level access to the host. It is acceptable for a controlled lab, but production should prefer isolated agents, rootless builders, BuildKit, Kaniko, or another hardened build model.</div></div>
+</section><section id="dockerfile" data-search="8. create a production-oriented dockerfile"><div class="eyebrow">DOCKER</div><h2>8. Create a Production-Oriented Dockerfile</h2>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="dockerfile"># syntax=docker/dockerfile:1.7
+
+FROM maven:3.9.11-eclipse-temurin-21 AS builder
+WORKDIR /workspace
+
+COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2     mvn -B -q dependency:go-offline
+
+COPY src src
+RUN --mount=type=cache,target=/root/.m2     mvn -B clean verify
+
+FROM eclipse-temurin:21-jre-jammy AS runtime
+WORKDIR /app
+
+RUN groupadd --system --gid 10001 appgroup     &amp;&amp; useradd --system --uid 10001 --gid appgroup --create-home appuser
+
+COPY --from=builder /workspace/target/*.jar /app/app.jar
+
+USER 10001:10001
+EXPOSE 8080
+
+ENV JAVA_TOOL_OPTIONS=&quot;-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError&quot;
+
+ENTRYPOINT [&quot;java&quot;, &quot;-jar&quot;, &quot;/app/app.jar&quot;]</code></pre>
+<div class="six-grid">
+  <article><b>Multi-stage build</b><p>Maven and source files stay out of the runtime image.</p></article>
+  <article><b>Non-root user</b><p>Limits the impact of container compromise.</p></article>
+  <article><b>Immutable artifact</b><p>The same image is promoted between environments.</p></article>
+  <article><b>Resource awareness</b><p>JVM heap is sized relative to the container memory limit.</p></article>
+  <article><b>Cached dependencies</b><p>BuildKit cache reduces repeated Maven downloads.</p></article>
+  <article><b>Graceful shutdown</b><p>Kubernetes can drain traffic before terminating the JVM.</p></article>
+</div>
+<h3>Build, inspect, run, and clean up</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">DOCKER_BUILDKIT=1 docker build -t order-service:local .
+
+docker image ls order-service
+docker history order-service:local
+docker inspect order-service:local
+
+docker run --name order-service --rm   -p 8080:8080   --memory=512m   --cpus=1   order-service:local
+
+docker logs -f order-service
+docker exec -it order-service sh
+docker stats order-service
+docker stop order-service
+
+docker image prune -f
+docker builder prune -f</code></pre>
+<h3>Tag and push with an immutable version</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">REGISTRY=docker.io
+NAMESPACE=your-dockerhub-user
+APP=order-service
+TAG=$(git rev-parse --short=12 HEAD)
+IMAGE=$REGISTRY/$NAMESPACE/$APP:$TAG
+
+docker tag order-service:local &quot;$IMAGE&quot;
+echo &quot;$REGISTRY_PASSWORD&quot; |
+  docker login &quot;$REGISTRY&quot; -u &quot;$REGISTRY_USER&quot; --password-stdin
+docker push &quot;$IMAGE&quot;
+docker logout &quot;$REGISTRY&quot;</code></pre>
+<div class="callout info"><strong>Tag strategy</strong><div>Deploy the Git SHA or image digest. Avoid relying only on <code>latest</code>; it is mutable, difficult to audit, and unsafe for rollback.</div></div>
+</section><section id="jenkins-install" data-search="9. install jenkins on ubuntu"><div class="eyebrow">JENKINS</div><h2>9. Install Jenkins on Ubuntu</h2>
+<p>Current Jenkins Linux guidance requires a supported Java runtime; this tutorial installs Java 21 before Jenkins.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo apt update
+sudo apt install -y fontconfig openjdk-21-jre
+
+sudo mkdir -p /etc/apt/keyrings
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc   https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+echo &quot;deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/&quot; |
+  sudo tee /etc/apt/sources.list.d/jenkins.list &gt; /dev/null
+
+sudo apt update
+sudo apt install -y jenkins
+sudo systemctl enable --now jenkins
+
+systemctl status jenkins --no-pager
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword</code></pre>
+<p>Open <code>http://JENKINS_HOST:8080</code>, unlock Jenkins, install suggested plugins, and create an administrator account.</p>
+<h3>Useful Jenkins service commands</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo systemctl status jenkins
+sudo systemctl restart jenkins
+sudo journalctl -u jenkins -f
+sudo ss -lntp | grep 8080
+
+sudo -u jenkins java -version
+sudo -u jenkins docker version
+sudo -u jenkins kubectl version --client</code></pre>
+<h3>Recommended plugins</h3>
+<ul>
+<li>Pipeline and Pipeline: Stage View</li>
+<li>Git</li>
+<li>Credentials Binding</li>
+<li>JUnit</li>
+<li>Workspace Cleanup</li>
+<li>Docker Pipeline when using Jenkins' Docker DSL</li>
+<li>Kubernetes plugin when creating ephemeral Jenkins agents in Kubernetes</li>
+</ul>
+</section><section id="jenkins-agent" data-search="10. configure the jenkins build agent"><div class="eyebrow">JENKINS</div><h2>10. Configure the Jenkins Build Agent</h2>
+<p>A Jenkins controller should coordinate work, not compile source or build container images. Assign the label <code>docker-kubectl</code> to a dedicated agent that has Git, Java/Maven, Docker CLI, kubectl, curl, and jq.</p>
+<h3>Agent validation</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo -u jenkins bash -lc &#x27;
+  set -e
+  git --version
+  java -version
+  mvn -version
+  docker version
+  kubectl version --client
+  curl --version
+  jq --version
+&#x27;</code></pre>
+<h3>Permissions to verify</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">id jenkins
+getent group docker
+ls -l /var/run/docker.sock
+namei -l /var/lib/jenkins/workspace</code></pre>
+<div class="callout warning"><strong>Real issue: works in SSH but fails in Jenkins</strong><div>The interactive user and Jenkins service user have different PATH, HOME, group membership, credentials, and shell initialization. Reproduce commands with <code>sudo -u jenkins bash -lc '...'</code>.</div></div>
+</section><section id="kubectl-minikube" data-search="11. install kubectl and create a local kubernetes cluster"><div class="eyebrow">KUBERNETES</div><h2>11. Install kubectl and Create a Local Kubernetes Cluster</h2>
+<h3>Install kubectl</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">ARCH=amd64
+KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+
+curl -LO   &quot;https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl&quot;
+curl -LO   &quot;https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256&quot;
+
+echo &quot;$(cat kubectl.sha256)  kubectl&quot; | sha256sum --check
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+kubectl version --client</code></pre>
+<p>The kubectl client should remain within one minor version of the Kubernetes control plane.</p>
+<h3>Install and start Minikube for the lab</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">curl -LO   https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+minikube start --driver=docker --cpus=4 --memory=8192
+minikube addons enable metrics-server
+kubectl cluster-info
+kubectl get nodes -o wide
+minikube status</code></pre>
+<h3>Production note</h3>
+<p>For a managed cluster, obtain kubeconfig from the cloud platform or cluster team. Do not copy an administrator kubeconfig into Jenkins. Create a dedicated deployment identity with namespace-scoped RBAC.</p>
+</section><section id="k8s-objects" data-search="12. kubernetes objects used by the service"><div class="eyebrow">KUBERNETES</div><h2>12. Kubernetes Objects Used by the Service</h2>
+<table>
+<thead><tr><th>Object</th><th>What it does</th><th>Important impact</th></tr></thead>
+<tbody>
+<tr><td>Namespace</td><td>Logical isolation for dev, staging, and production.</td><td>Enables scoped RBAC, quota, and naming boundaries.</td></tr>
+<tr><td>Deployment</td><td>Maintains replicas and performs rolling updates.</td><td>Controls availability during release.</td></tr>
+<tr><td>Pod</td><td>Runtime unit containing the service container.</td><td>Ephemeral; never store durable state locally.</td></tr>
+<tr><td>Service</td><td>Stable virtual IP and DNS over changing Pods.</td><td>Decouples callers from Pod addresses.</td></tr>
+<tr><td>ConfigMap</td><td>Non-confidential external configuration.</td><td>Allows the same image across environments.</td></tr>
+<tr><td>Secret</td><td>Sensitive configuration reference.</td><td>Base64 is not encryption; use encryption and secret managers.</td></tr>
+<tr><td>HPA</td><td>Scales replicas based on metrics.</td><td>Needs correct resource requests and a metrics pipeline.</td></tr>
+<tr><td>PDB</td><td>Limits voluntary disruption.</td><td>Reduces simultaneous Pod loss during maintenance.</td></tr>
+<tr><td>Ingress</td><td>HTTP routing into cluster services.</td><td>Requires an ingress controller and TLS configuration.</td></tr>
+</tbody>
+</table>
+</section><section id="k8s-manifests" data-search="13. kubernetes manifest walkthrough"><div class="eyebrow">KUBERNETES</div><h2>13. Kubernetes Manifest Walkthrough</h2>
+<h3>Deployment</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  labels:
+    app.kubernetes.io/name: order-service
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 300
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: order-service
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: order-service
+          image: docker.io/your-dockerhub-user/order-service:bootstrap
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: order-service-config
+            - secretRef:
+                name: order-service-secret
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: &quot;1&quot;
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: [&quot;sh&quot;, &quot;-c&quot;, &quot;sleep 5&quot;]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [&quot;ALL&quot;]</code></pre>
+<h3>Service</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  labels:
+    app.kubernetes.io/name: order-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: order-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http</code></pre>
+<h3>ConfigMap and Secret</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  labels:
+    app.kubernetes.io/name: order-service
+data:
+  SPRING_PROFILES_ACTIVE: k8s
+  SERVER_PORT: &quot;8080&quot;
+  JAVA_TOOL_OPTIONS: &gt;-
+    -XX:MaxRAMPercentage=75.0
+    -XX:+ExitOnOutOfMemoryError
+    -Djava.security.egd=file:/dev/./urandom</code></pre>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml"># Training example only.
+# In production, use External Secrets, Sealed Secrets, Vault, or a cloud secret manager.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-service-secret
+type: Opaque
+stringData:
+  DB_USERNAME: replace-me
+  DB_PASSWORD: replace-me</code></pre>
+<h3>HPA and PodDisruptionBudget</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-service
+  minReplicas: 2
+  maxReplicas: 6
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70</code></pre>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="yaml">apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: order-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order-service</code></pre>
+<div class="callout danger"><strong>Do not commit real secrets</strong><div>The example Secret contains placeholders only. A real production repository must not contain database passwords, registry tokens, private keys, or kubeconfig files.</div></div>
+</section><section id="manual-deploy" data-search="14. deploy manually before automating"><div class="eyebrow">DEPLOYMENT</div><h2>14. Deploy Manually Before Automating</h2>
+<p>Always prove the application and manifests work manually before putting them in Jenkins. Otherwise, pipeline debugging hides application and cluster errors behind another abstraction.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">cd cicd-microservice-starter
+
+# Replace the registry namespace first.
+grep -Rni &quot;your-dockerhub-user\|replace-me&quot; .
+
+kubectl apply -f k8s/namespace.yaml
+
+# Lab value only. Production secrets should come from a secret manager.
+kubectl -n dev create secret generic order-service-secret   --from-literal=DB_USERNAME=demo   --from-literal=DB_PASSWORD=change-me   --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -n dev   -f k8s/configmap.yaml   -f k8s/service.yaml   -f k8s/deployment.yaml   -f k8s/hpa.yaml   -f k8s/pdb.yaml
+
+kubectl -n dev set image   deployment/order-service   order-service=docker.io/your-dockerhub-user/order-service:GIT_SHA
+
+kubectl -n dev rollout status deployment/order-service --timeout=5m
+kubectl -n dev get all
+kubectl -n dev get pods -o wide</code></pre>
+<h3>Test through port-forward</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev port-forward service/order-service 18080:80
+
+curl http://127.0.0.1:18080/api/orders/ping
+curl http://127.0.0.1:18080/actuator/health/readiness</code></pre>
+<h3>Inspect rollout and rollback</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev rollout history deployment/order-service
+kubectl -n dev rollout undo deployment/order-service
+kubectl -n dev rollout status deployment/order-service</code></pre>
+</section><section id="credentials" data-search="15. configure jenkins credentials safely"><div class="eyebrow">SECURITY</div><h2>15. Configure Jenkins Credentials Safely</h2>
+<p>Create these credentials under <b>Manage Jenkins → Credentials</b>:</p>
+<table>
+<thead><tr><th>Credential ID</th><th>Type</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>docker-registry</code></td><td>Username with password/token</td><td>Push images to the registry.</td></tr>
+<tr><td><code>kubeconfig-dev</code></td><td>Secret file</td><td>Deploy only to the dev namespace.</td></tr>
+<tr><td><code>kubeconfig-staging</code></td><td>Secret file</td><td>Deploy only to the staging namespace.</td></tr>
+<tr><td><code>git-credentials</code></td><td>SSH key or token</td><td>Read a private source repository when SCM integration needs it.</td></tr>
+</tbody>
+</table>
+<h3>Credential rules</h3>
+<ul>
+<li>Never place passwords directly in a Jenkinsfile.</li>
+<li>Use separate credentials and permissions per environment.</li><li>Provision application runtime secrets separately; the pipeline must not apply <code>secret.example.yaml</code>.</li>
+<li>Mask output and disable shell tracing around secrets.</li>
+<li>Rotate tokens and remove unused credentials.</li>
+<li>Prefer workload identity or short-lived credentials over long-lived static keys.</li>
+<li>Limit who can edit Jenkinsfiles because pipeline code can attempt to access credentials.</li>
+</ul>
+</section><section id="jenkinsfile" data-search="16. complete jenkinsfile"><div class="eyebrow">PIPELINE</div><h2>16. Complete Jenkinsfile</h2>
+<p>The included declarative pipeline performs checkout, test, image build, registry push, Kubernetes apply, rolling update, automatic rollback on rollout failure, and smoke testing.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="groovy">pipeline {
+    agent { label &#x27;docker-kubectl&#x27; }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: &#x27;30&#x27;))
+        timeout(time: 30, unit: &#x27;MINUTES&#x27;)
+    }
+
+    parameters {
+        choice(
+            name: &#x27;DEPLOY_ENV&#x27;,
+            choices: [&#x27;dev&#x27;, &#x27;staging&#x27;],
+            description: &#x27;Kubernetes environment to deploy&#x27;
+        )
+    }
+
+    environment {
+        APP_NAME = &#x27;order-service&#x27;
+        REGISTRY = &#x27;docker.io&#x27;
+        REGISTRY_NAMESPACE = &#x27;your-dockerhub-user&#x27;
+        K8S_NAMESPACE = &quot;${params.DEPLOY_ENV}&quot;
+        IMAGE_REPOSITORY = &quot;${REGISTRY}/${REGISTRY_NAMESPACE}/${APP_NAME}&quot;
+    }
+
+    stages {
+        stage(&#x27;Checkout&#x27;) {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_SHA = sh(
+                        script: &#x27;git rev-parse --short=12 HEAD&#x27;,
+                        returnStdout: true
+                    ).trim()
+                    env.IMAGE = &quot;${env.IMAGE_REPOSITORY}:${env.GIT_SHA}&quot;
+                }
+            }
+        }
+
+        stage(&#x27;Build and Test&#x27;) {
+            steps {
+                sh &#x27;chmod +x mvnw || true&#x27;
+                sh &#x27;&#x27;&#x27;
+                    if [ -x &quot;./mvnw&quot; ]; then
+                      ./mvnw -B clean verify
+                    else
+                      mvn -B clean verify
+                    fi
+                &#x27;&#x27;&#x27;
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: &#x27;**/target/surefire-reports/*.xml&#x27;
+                }
+            }
+        }
+
+        stage(&#x27;Build Image&#x27;) {
+            steps {
+                sh &#x27;&#x27;&#x27;
+                    docker build                       --label org.opencontainers.image.revision=&quot;${GIT_SHA}&quot;                       --label org.opencontainers.image.source=&quot;${BUILD_URL}&quot;                       -t &quot;${IMAGE}&quot; .
+                &#x27;&#x27;&#x27;
+            }
+        }
+
+        stage(&#x27;Push Image&#x27;) {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: &#x27;docker-registry&#x27;,
+                        usernameVariable: &#x27;REGISTRY_USER&#x27;,
+                        passwordVariable: &#x27;REGISTRY_PASSWORD&#x27;
+                    )
+                ]) {
+                    sh &#x27;&#x27;&#x27;
+                        set +x
+                        echo &quot;${REGISTRY_PASSWORD}&quot; |
+                          docker login &quot;${REGISTRY}&quot;                           --username &quot;${REGISTRY_USER}&quot;                           --password-stdin
+                        set -x
+
+                        docker push &quot;${IMAGE}&quot;
+                        docker logout &quot;${REGISTRY}&quot;
+                    &#x27;&#x27;&#x27;
+                }
+            }
+        }
+
+        stage(&#x27;Deploy to Kubernetes&#x27;) {
+            steps {
+                withCredentials([
+                    file(credentialsId: &quot;kubeconfig-${DEPLOY_ENV}&quot;, variable: &#x27;KUBECONFIG&#x27;)
+                ]) {
+                    sh &#x27;&#x27;&#x27;
+                        set -euo pipefail
+
+                        kubectl apply -f k8s/namespace.yaml
+                        kubectl apply -n &quot;${K8S_NAMESPACE}&quot;                           -f k8s/configmap.yaml                                                   -f k8s/service.yaml                           -f k8s/deployment.yaml                           -f k8s/hpa.yaml                           -f k8s/pdb.yaml
+
+                        kubectl -n &quot;${K8S_NAMESPACE}&quot; set image                           deployment/&quot;${APP_NAME}&quot;                           &quot;${APP_NAME}&quot;=&quot;${IMAGE}&quot;
+
+                        if ! kubectl -n &quot;${K8S_NAMESPACE}&quot; rollout status                           deployment/&quot;${APP_NAME}&quot; --timeout=5m; then
+                          echo &quot;Rollout failed. Rolling back...&quot;
+                          kubectl -n &quot;${K8S_NAMESPACE}&quot; rollout undo                             deployment/&quot;${APP_NAME}&quot;
+                          kubectl -n &quot;${K8S_NAMESPACE}&quot; rollout status                             deployment/&quot;${APP_NAME}&quot; --timeout=5m
+                          exit 1
+                        fi
+                    &#x27;&#x27;&#x27;
+                }
+            }
+        }
+
+        stage(&#x27;Smoke Test&#x27;) {
+            steps {
+                withCredentials([
+                    file(credentialsId: &quot;kubeconfig-${DEPLOY_ENV}&quot;, variable: &#x27;KUBECONFIG&#x27;)
+                ]) {
+                    sh &#x27;&#x27;&#x27;
+                        set -euo pipefail
+
+                        kubectl -n &quot;${K8S_NAMESPACE}&quot; port-forward                           service/&quot;${APP_NAME}&quot; 18080:80                           &gt; port-forward.log 2&gt;&amp;1 &amp;
+                        PF_PID=$!
+                        trap &#x27;kill ${PF_PID} || true&#x27; EXIT
+
+                        for i in $(seq 1 20); do
+                          if curl --fail --silent                             http://127.0.0.1:18080/actuator/health/readiness; then
+                            exit 0
+                          fi
+                          sleep 3
+                        done
+
+                        cat port-forward.log
+                        exit 1
+                    &#x27;&#x27;&#x27;
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh &#x27;docker image rm &quot;${IMAGE}&quot; 2&gt;/dev/null || true&#x27;
+            cleanWs()
+        }
+        success {
+            echo &quot;Successfully deployed ${IMAGE} to ${params.DEPLOY_ENV}&quot;
+        }
+        failure {
+            echo &#x27;Pipeline failed. Check the failed stage and Kubernetes events.&#x27;
+        }
+    }
+}</code></pre>
+<h3>Stage-by-stage reasoning</h3>
+<ol>
+<li><b>Checkout:</b> obtains source and derives an immutable Git SHA tag.</li>
+<li><b>Build and Test:</b> prevents broken code from becoming a container image.</li>
+<li><b>Build Image:</b> packages the tested source and records traceability labels.</li>
+<li><b>Push Image:</b> publishes an artifact that Kubernetes nodes can pull.</li>
+<li><b>Deploy:</b> updates only the target Deployment container image.</li>
+<li><b>Rollout Status:</b> blocks until the new ReplicaSet is healthy or times out.</li>
+<li><b>Smoke Test:</b> verifies behavior through the Kubernetes Service.</li>
+<li><b>Cleanup:</b> reduces disk pressure on long-running agents.</li>
+</ol>
+<div class="callout info"><strong>Why disable concurrent builds?</strong><div>Two builds deploying the same environment can race: an older build may finish after a newer build and overwrite it. A better large-scale design also adds environment-level locks or GitOps reconciliation.</div></div>
+</section><section id="create-job" data-search="17. create and trigger the jenkins pipeline"><div class="eyebrow">PIPELINE</div><h2>17. Create and Trigger the Jenkins Pipeline</h2>
+<h3>Create a Multibranch Pipeline</h3>
+<ol>
+<li>Create <b>New Item → Multibranch Pipeline</b>.</li>
+<li>Configure the Git repository and credentials.</li>
+<li>Set the script path to <code>Jenkinsfile</code>.</li>
+<li>Scan branches and run the desired branch.</li>
+<li>Configure the Git provider webhook to notify Jenkins after pushes and pull requests.</li>
+</ol>
+<h3>Test the trigger manually</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash"># Example Jenkins API trigger. Use an API token, not an account password.
+curl -X POST   &quot;https://jenkins.example.com/job/order-service/build&quot;   --user &quot;$JENKINS_USER:$JENKINS_API_TOKEN&quot;</code></pre>
+<h3>Expected artifacts and evidence</h3>
+<ul>
+<li>JUnit test report in Jenkins.</li>
+<li>Image in the registry tagged by Git SHA.</li>
+<li>Kubernetes Deployment revision with the new image.</li>
+<li>Successful rollout and smoke-test logs.</li>
+<li>Traceability from commit → build number → image → deployment.</li>
+</ul>
+</section><section id="quality-security" data-search="18. add quality and security gates"><div class="eyebrow">QUALITY</div><h2>18. Add Quality and Security Gates</h2>
+<table>
+<thead><tr><th>Gate</th><th>Example tool</th><th>Fail the pipeline when</th></tr></thead>
+<tbody>
+<tr><td>Unit/integration tests</td><td>JUnit, Testcontainers</td><td>Tests fail or coverage drops below an agreed policy.</td></tr>
+<tr><td>Static analysis</td><td>SonarQube, SpotBugs, Checkstyle</td><td>New critical issues or quality gate failure.</td></tr>
+<tr><td>Dependency scan</td><td>OWASP Dependency-Check, Snyk, Trivy</td><td>Fixable critical/high vulnerabilities exceed policy.</td></tr>
+<tr><td>Image scan</td><td>Trivy, Grype, Docker Scout</td><td>Runtime image contains unacceptable vulnerabilities.</td></tr>
+<tr><td>Secret scan</td><td>Gitleaks</td><td>Credential-like material appears in the commit.</td></tr>
+<tr><td>Manifest policy</td><td>Conftest/OPA, Kyverno, admission policy</td><td>Privileged containers, missing limits, mutable tags, or unsafe capabilities exist.</td></tr>
+</tbody>
+</table>
+<h3>Example optional stages</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="groovy">stage(&#x27;Static Analysis&#x27;) {
+    steps {
+        sh &#x27;./mvnw -B verify sonar:sonar&#x27;
+    }
+}
+
+stage(&#x27;Image Scan&#x27;) {
+    steps {
+        sh &#x27;trivy image --exit-code 1 --severity HIGH,CRITICAL &quot;$IMAGE&quot;&#x27;
+    }
+}</code></pre>
+<div class="callout warning"><strong>Policy balance</strong><div>A scanner finding is not automatically exploitable, but ignoring every finding is also unsafe. Define severity, exploitability, fix availability, exception ownership, and expiry rules.</div></div>
+</section><section id="deployment-strategies" data-search="19. deployment strategies and their impact"><div class="eyebrow">RELEASE</div><h2>19. Deployment Strategies and Their Impact</h2>
+<table>
+<thead><tr><th>Strategy</th><th>How</th><th>When</th><th>Impact / trade-off</th></tr></thead>
+<tbody>
+<tr><td>Recreate</td><td>Stop old version, then start new version.</td><td>Non-production or singleton workloads that cannot run concurrently.</td><td>Simple but causes downtime.</td></tr>
+<tr><td>Rolling update</td><td>Gradually replace old Pods.</td><td>Default stateless microservice deployment.</td><td>Low operational complexity; both versions coexist temporarily.</td></tr>
+<tr><td>Blue-green</td><td>Run complete old and new environments, then switch traffic.</td><td>Fast switch and fast rollback are required.</td><td>Higher infrastructure cost; database compatibility remains critical.</td></tr>
+<tr><td>Canary</td><td>Send a small traffic percentage to the new version.</td><td>Risky changes and strong observability are available.</td><td>Lower blast radius but needs traffic control and automated analysis.</td></tr>
+<tr><td>Feature flag</td><td>Deploy code disabled, enable behavior separately.</td><td>Product rollout must be separated from technical deployment.</td><td>Fast control but creates flag lifecycle and testing complexity.</td></tr>
+</tbody>
+</table>
+<h3>Database compatibility rule</h3>
+<p>During a rolling update, version N and version N+1 can run simultaneously. Use the <b>expand-and-contract</b> approach: add backward-compatible schema first, deploy application changes, migrate data, then remove the old schema only after all old instances are gone.</p>
+</section><section id="observability" data-search="20. verification and observability after deployment"><div class="eyebrow">OPERATIONS</div><h2>20. Verification and Observability After Deployment</h2>
+<h3>Immediate checks</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev get deployment order-service
+kubectl -n dev get replicasets
+kubectl -n dev get pods -l app.kubernetes.io/name=order-service -o wide
+kubectl -n dev describe deployment order-service
+kubectl -n dev get events --sort-by=.metadata.creationTimestamp | tail -40
+
+kubectl -n dev logs deployment/order-service --tail=200
+kubectl -n dev logs deployment/order-service --previous --tail=200
+kubectl -n dev top pods</code></pre>
+<h3>Metrics and alerts to watch</h3>
+<ul>
+<li>HTTP request rate, error rate, and latency percentiles.</li>
+<li>Pod restart count, readiness failures, and CrashLoopBackOff.</li>
+<li>CPU throttling, memory working set, OOMKilled, and JVM heap/GC pause.</li>
+<li>Thread pools, connection pools, database latency, Kafka lag, and downstream errors.</li>
+<li>Deployment frequency, change failure rate, lead time, and mean time to restore.</li>
+</ul>
+<h3>Release verification decision</h3>
+<p>A green Kubernetes rollout only proves Pods became ready. It does not prove the business flow is correct. Add a smoke test for a safe critical path and compare service-level metrics against the previous release.</p>
+</section><section id="troubleshooting" data-search="21. real deployment problems and solutions"><div class="eyebrow">INCIDENTS</div><h2>21. Real Deployment Problems and Solutions</h2>
+<div class="scenario">
+<h3>1. ImagePullBackOff</h3>
+<p><b>What:</b> Node cannot pull the image. <b>Impact:</b> New Pods never start.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev describe pod POD_NAME
+kubectl -n dev get events --sort-by=.lastTimestamp
+docker pull docker.io/your-user/order-service:TAG</code></pre>
+<p><b>Typical causes:</b> wrong image/tag, private registry authentication, DNS/TLS problem, architecture mismatch, or registry rate limit. Verify the exact image outside Kubernetes, then configure <code>imagePullSecrets</code> or workload identity.</p>
+</div>
+
+<div class="scenario">
+<h3>2. CrashLoopBackOff</h3>
+<p><b>What:</b> Container starts and repeatedly exits. <b>Impact:</b> Replica never becomes available.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev logs POD_NAME --previous
+kubectl -n dev describe pod POD_NAME
+kubectl -n dev get pod POD_NAME   -o jsonpath=&#x27;{.status.containerStatuses[*].lastState.terminated.reason}&#x27;</code></pre>
+<p><b>Typical causes:</b> missing configuration, bad JVM option, port conflict, migration failure, or OOMKilled. Read the previous container logs and termination reason before changing probes.</p>
+</div>
+
+<div class="scenario">
+<h3>3. Readiness probe fails but application looks alive</h3>
+<p><b>Impact:</b> Pod runs but receives no Service traffic.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev exec POD_NAME --   sh -c &#x27;wget -qO- http://127.0.0.1:8080/actuator/health/readiness&#x27;
+kubectl -n dev port-forward POD_NAME 18080:8080
+curl -i http://127.0.0.1:18080/actuator/health/readiness</code></pre>
+<p>Check the path, port name, Actuator exposure, security filter rules, startup time, and whether readiness includes an unavailable dependency.</p>
+</div>
+
+<div class="scenario">
+<h3>4. Jenkins can build but cannot push</h3>
+<p><b>Impact:</b> No deployable image is published.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">sudo -u jenkins docker version
+sudo -u jenkins bash -lc &#x27;
+  echo &quot;$REGISTRY_PASSWORD&quot; |
+  docker login docker.io -u &quot;$REGISTRY_USER&quot; --password-stdin
+&#x27;
+df -h
+docker system df</code></pre>
+<p>Check Docker socket permission, token scope, registry hostname, disk space, and whether the secret contains an accidental newline.</p>
+</div>
+
+<div class="scenario">
+<h3>5. kubectl works for an admin but Jenkins gets Forbidden</h3>
+<p><b>Impact:</b> Deployment stage fails although the cluster is reachable.</p>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">KUBECONFIG=/path/to/jenkins-kubeconfig   kubectl auth can-i patch deployment -n dev
+
+KUBECONFIG=/path/to/jenkins-kubeconfig   kubectl auth can-i --list -n dev</code></pre>
+<p>This is usually correct RBAC enforcement. Grant only the verbs and resource types needed by the pipeline; do not solve it by giving Jenkins cluster-admin.</p>
+</div>
+
+<div class="scenario">
+<h3>6. Rolling update is stuck</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev rollout status deployment/order-service --timeout=2m
+kubectl -n dev describe deployment order-service
+kubectl -n dev get pods
+kubectl -n dev get events --sort-by=.metadata.creationTimestamp
+kubectl -n dev rollout undo deployment/order-service</code></pre>
+<p>Common causes include insufficient cluster resources, an impossible PodDisruptionBudget, failed probes, image pull errors, quota limits, and scheduling constraints.</p>
+</div>
+
+<div class="scenario">
+<h3>7. Node disk is full</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">df -h
+du -xh /var/lib/docker | sort -h | tail
+docker system df
+docker image prune -af
+docker builder prune -af
+journalctl --disk-usage</code></pre>
+<p>Use scheduled cleanup, ephemeral agents, build retention, registry retention, and log rotation. Avoid uncontrolled pruning on shared production hosts.</p>
+</div>
+
+<div class="scenario">
+<h3>8. New release breaks database compatibility</h3>
+<p><b>Impact:</b> New and old Pods fail differently during the rolling window.</p>
+<p>Rollback may not be enough if the schema is destructive. Use backward-compatible migrations, separate migration execution, pre-deployment backups where appropriate, and an explicit restore or forward-fix plan.</p>
+</div>
+</section><section id="security" data-search="22. security and production hardening"><div class="eyebrow">SECURITY</div><h2>22. Security and Production Hardening</h2>
+<div class="six-grid">
+  <article><b>Least privilege</b><p>Namespace-scoped Kubernetes RBAC and minimal registry permissions.</p></article>
+  <article><b>Immutable images</b><p>Deploy a digest or Git SHA and prevent tag overwrite.</p></article>
+  <article><b>Non-root runtime</b><p>Drop Linux capabilities and disable privilege escalation.</p></article>
+  <article><b>Secret isolation</b><p>External secret manager, rotation, audit, and no plaintext Git secrets.</p></article>
+  <article><b>Supply chain</b><p>Scan, sign, generate SBOMs, and verify provenance.</p></article>
+  <article><b>Network controls</b><p>TLS, ingress policy, NetworkPolicy, and controlled egress.</p></article>
+</div>
+<h3>Jenkins-specific hardening</h3>
+<ul>
+<li>Use SSO, authorization matrix, CSRF protection, and audited administrative access.</li>
+<li>Update Jenkins core and plugins regularly; remove unused plugins.</li>
+<li>Back up <code>JENKINS_HOME</code> and test restore procedures.</li>
+<li>Do not expose the controller directly to the internet without a hardened reverse proxy and access controls.</li>
+<li>Use ephemeral build agents so workspace data and credentials do not persist.</li>
+<li>Review pull-request trust boundaries before allowing untrusted Jenkinsfiles to run with secrets.</li>
+</ul>
+</section><section id="rollback" data-search="23. rollback and recovery runbook"><div class="eyebrow">OPERATIONS</div><h2>23. Rollback and Recovery Runbook</h2>
+<h3>Application rollback</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">NAMESPACE=dev
+APP=order-service
+
+kubectl -n &quot;$NAMESPACE&quot; rollout history deployment/&quot;$APP&quot;
+kubectl -n &quot;$NAMESPACE&quot; rollout undo deployment/&quot;$APP&quot;
+kubectl -n &quot;$NAMESPACE&quot; rollout status deployment/&quot;$APP&quot; --timeout=5m
+kubectl -n &quot;$NAMESPACE&quot; get pods</code></pre>
+<h3>Rollback to a specific revision</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl -n dev rollout history deployment/order-service --revision=3
+kubectl -n dev rollout undo deployment/order-service --to-revision=3</code></pre>
+<h3>Recovery decision tree</h3>
+<ol>
+<li>Stop promotion and preserve logs, events, image tag, commit, and deployment revision.</li>
+<li>Decide whether the fault is application, configuration, infrastructure, or dependency related.</li>
+<li>Rollback only when the previous version remains compatible with current data and schema.</li>
+<li>When rollback is unsafe, disable the feature, reduce traffic, or forward-fix.</li>
+<li>Verify health, business flow, metrics, and data consistency after recovery.</li>
+<li>Document root cause and add a pipeline or platform control that prevents recurrence.</li>
+</ol>
+<div class="callout danger"><strong>Database warning</strong><div>Kubernetes rollback changes the container image, not the database. Destructive schema or data changes require a separate recovery plan.</div></div>
+</section><section id="multi-env" data-search="24. dev, staging, and production promotion"><div class="eyebrow">RELEASE</div><h2>24. Dev, Staging, and Production Promotion</h2>
+<p>Build the image once, then promote the same image digest. Rebuilding for each environment can produce different dependencies or base-image contents even from the same commit.</p>
+<div class="pipeline-flow compact">
+  <div><b>Build once</b><span>SHA/digest</span></div><i>→</i>
+  <div><b>Dev</b><span>Automated test</span></div><i>→</i>
+  <div><b>Staging</b><span>Regression/load</span></div><i>→</i>
+  <div><b>Approval</b><span>Change control</span></div><i>→</i>
+  <div><b>Production</b><span>Canary/rolling</span></div>
+</div>
+<table>
+<thead><tr><th>Concern</th><th>Keep identical</th><th>Externalize per environment</th></tr></thead>
+<tbody>
+<tr><td>Artifact</td><td>Container image digest</td><td>Nothing</td></tr>
+<tr><td>Runtime config</td><td>Configuration keys and validation</td><td>URLs, limits, feature flags, log levels</td></tr>
+<tr><td>Secrets</td><td>Secret names/contracts</td><td>Actual values and identities</td></tr>
+<tr><td>Capacity</td><td>Resource model</td><td>Replicas, HPA boundaries, quota</td></tr>
+<tr><td>Exposure</td><td>Service ports</td><td>Hosts, TLS certificates, ingress rules</td></tr>
+</tbody>
+</table>
+</section><section id="production-evolution" data-search="25. from tutorial to enterprise platform"><div class="eyebrow">EVOLUTION</div><h2>25. From Tutorial to Enterprise Platform</h2>
+<ol class="roadmap">
+<li><b>Start:</b> Jenkinsfile + Dockerfile + plain Kubernetes YAML.</li>
+<li><b>Standardize:</b> Shared Jenkins libraries, reusable pipeline templates, base images, and policy checks.</li>
+<li><b>Package:</b> Helm chart or Kustomize overlays for environment differences.</li>
+<li><b>Separate deployment:</b> Jenkins builds and signs images; GitOps updates desired state; Argo CD or Flux reconciles the cluster.</li>
+<li><b>Progressive delivery:</b> Canary analysis, automated metric checks, and controlled traffic shifting.</li>
+<li><b>Platform engineering:</b> Self-service templates, golden paths, workload identity, centralized observability, and cost controls.</li>
+</ol>
+<p>Jenkins can execute <code>kubectl</code> directly, but GitOps is often safer at scale because the CI system does not need broad live-cluster credentials and every desired-state change is reviewed in Git.</p>
+</section><section id="command-cheatsheet" data-search="26. command cheat sheet"><div class="eyebrow">REFERENCE</div><h2>26. Command Cheat Sheet</h2>
+<div class="tabs">
+<div>
+<h3>Docker</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">docker build -t app:tag .
+docker run --rm -p 8080:8080 app:tag
+docker ps -a
+docker logs -f CONTAINER
+docker exec -it CONTAINER sh
+docker inspect IMAGE_OR_CONTAINER
+docker stats
+docker image ls
+docker system df
+docker image prune -f</code></pre>
+</div>
+<div>
+<h3>Kubernetes</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">kubectl config current-context
+kubectl config get-contexts
+kubectl get pods -A
+kubectl -n dev get all
+kubectl -n dev describe pod POD
+kubectl -n dev logs POD --previous
+kubectl -n dev exec -it POD -- sh
+kubectl -n dev get events --sort-by=.metadata.creationTimestamp
+kubectl -n dev rollout status deployment/order-service
+kubectl -n dev rollout undo deployment/order-service
+kubectl -n dev port-forward service/order-service 18080:80
+kubectl auth can-i patch deployments -n dev</code></pre>
+</div>
+<div>
+<h3>Jenkins host</h3>
+<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code data-lang="bash">systemctl status jenkins
+journalctl -u jenkins -f
+sudo -u jenkins env
+sudo -u jenkins docker version
+sudo -u jenkins kubectl version --client
+df -h
+du -sh /var/lib/jenkins</code></pre>
+</div>
+</div>
+</section><section id="interview" data-search="27. senior-level interview questions and answers"><div class="eyebrow">INTERVIEW</div><h2>27. Senior-Level Interview Questions and Answers</h2>
+<div class="qa"><h3>Why should CI build an image only after tests pass?</h3><p>Because an image is a release candidate. Publishing known-broken artifacts wastes registry space, risks accidental deployment, and weakens trust in the artifact repository. I still keep test evidence and may build earlier only when the image itself is required to run integration tests.</p></div>
+<div class="qa"><h3>Why is <code>latest</code> a poor production deployment tag?</h3><p>It is mutable and does not identify a specific source revision. Rollback, audit, cache behavior, and incident correlation become ambiguous. I deploy a Git SHA or immutable digest and add human-readable release metadata separately.</p></div>
+<div class="qa"><h3>What is the difference between liveness and readiness?</h3><p>Liveness decides whether Kubernetes should restart the container. Readiness decides whether the Pod should receive traffic. Mixing them can turn a temporary dependency outage into a restart storm.</p></div>
+<div class="qa"><h3>How do you achieve zero-downtime deployment?</h3><p>I use at least two replicas, readiness probes, rolling update settings such as maxUnavailable zero, graceful shutdown, compatible API and database changes, enough spare capacity, and verification after rollout. It is not guaranteed by Kubernetes alone.</p></div>
+<div class="qa"><h3>How do you make rollback reliable?</h3><p>I preserve immutable images, Deployment history, backward-compatible schema, externalized versioned configuration, and a tested runbook. I also recognize when rollback is unsafe and use feature disablement or forward-fix instead.</p></div>
+<div class="qa"><h3>Should Jenkins have cluster-admin?</h3><p>No. Jenkins should use a dedicated identity limited to the target namespace and required resources. At larger scale I prefer GitOps so CI publishes artifacts and desired-state changes, while a cluster-local reconciler performs deployment.</p></div>
+</section><section id="checklist" data-search="28. end-to-end completion checklist"><div class="eyebrow">CHECKLIST</div><h2>28. End-to-End Completion Checklist</h2>
+<ul class="checklist large">
+<li><label><input type="checkbox"> Application builds and tests locally.</label></li>
+<li><label><input type="checkbox"> Actuator liveness and readiness endpoints work.</label></li>
+<li><label><input type="checkbox"> Docker image runs as a non-root user.</label></li>
+<li><label><input type="checkbox"> Image is tagged by Git SHA and pushed to a registry.</label></li>
+<li><label><input type="checkbox"> Kubernetes manifests apply manually.</label></li>
+<li><label><input type="checkbox"> Probes, requests, limits, rolling strategy, HPA, and PDB are configured.</label></li>
+<li><label><input type="checkbox"> Jenkins agent can run Java, Maven, Docker, and kubectl.</label></li>
+<li><label><input type="checkbox"> Registry and kubeconfig credentials are stored in Jenkins.</label></li>
+<li><label><input type="checkbox"> Jenkins pipeline publishes JUnit results.</label></li>
+<li><label><input type="checkbox"> Failed rollout triggers a controlled rollback.</label></li>
+<li><label><input type="checkbox"> Smoke test runs after deployment.</label></li>
+<li><label><input type="checkbox"> Logs, metrics, alerts, and incident commands are documented.</label></li>
+<li><label><input type="checkbox"> Real secrets are excluded from Git.</label></li>
+<li><label><input type="checkbox"> Database migration and rollback compatibility are reviewed.</label></li>
+</ul>
+</section><section id="sources" data-search="29. official references"><div class="eyebrow">REFERENCES</div><h2>29. Official References</h2>
+<ul class="sources">
+<li><a href="https://www.jenkins.io/doc/book/pipeline/jenkinsfile/" target="_blank">Jenkins: Using a Jenkinsfile</a></li>
+<li><a href="https://www.jenkins.io/doc/book/pipeline/syntax/" target="_blank">Jenkins: Pipeline Syntax</a></li>
+<li><a href="https://www.jenkins.io/doc/book/pipeline/docker/" target="_blank">Jenkins: Using Docker with Pipeline</a></li>
+<li><a href="https://www.jenkins.io/doc/book/installing/linux/" target="_blank">Jenkins: Linux Installation</a></li>
+<li><a href="https://docs.docker.com/engine/install/ubuntu/" target="_blank">Docker: Install Engine on Ubuntu</a></li>
+<li><a href="https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/" target="_blank">Docker: Multi-stage Builds</a></li>
+<li><a href="https://docs.docker.com/guides/java/containerize/" target="_blank">Docker: Containerize a Java Application</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/" target="_blank">Kubernetes: Install kubectl on Linux</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" target="_blank">Kubernetes: Configure Probes</a></li>
+<li><a href="https://kubernetes.io/docs/concepts/configuration/configmap/" target="_blank">Kubernetes: ConfigMaps</a></li>
+<li><a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/kubectl_rollout_history/" target="_blank">Kubernetes: Rollout History</a></li>
+<li><a href="https://docs.spring.io/spring-boot/reference/actuator/index.html" target="_blank">Spring Boot: Production-ready Features</a></li>
+<li><a href="https://docs.spring.io/spring-boot/how-to/deployment/cloud.html" target="_blank">Spring Boot: Kubernetes Deployment Guidance</a></li>
+</ul>
+</section>
+  </main>
+</div>
+
+<div class="topbar">
+  <button class="floating" onclick="toggleTheme()">Theme</button>
+  <button class="floating" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+</div>
+
+<footer>
+  Generated as an offline tutorial. Validate organization-specific security, network, cloud, and compliance requirements before production use.
+</footer>
+
+<script>
+function copyCode(button) {
+  const text = button.nextElementSibling.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const old = button.innerText;
+    button.innerText = 'Copied';
+    setTimeout(() => button.innerText = old, 1200);
+  });
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('cicd-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+if (localStorage.getItem('cicd-theme') === 'dark') document.body.classList.add('dark');
+
+const search = document.getElementById('search');
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  document.querySelectorAll('main section').forEach(s => {
+    const text = (s.innerText + ' ' + s.dataset.search).toLowerCase();
+    s.classList.toggle('hidden', q && !text.includes(q));
+  });
+});
+document.querySelectorAll('.checklist input').forEach((box, index) => {
+  const key = 'cicd-check-' + index;
+  box.checked = localStorage.getItem(key) === '1';
+  box.addEventListener('change', () => localStorage.setItem(key, box.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

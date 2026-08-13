@@ -1,0 +1,3884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Java 8–26 features, Optional, Stream API, Collections, HashMap internals, try-with-resources and senior interview questions." />
+  <title>Java 8–26 Features, Stream & Collections — Senior Interview Deep Dive</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --surface: #ffffff;
+      --surface-2: #eef3fb;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --primary: #2257d7;
+      --primary-2: #173b92;
+      --accent: #0f9d79;
+      --warning: #b46900;
+      --danger: #b42318;
+      --border: #dce3ef;
+      --code-bg: #111827;
+      --code-text: #e5edf9;
+      --shadow: 0 14px 34px rgba(28, 46, 88, 0.10);
+      --radius: 16px;
+    }
+
+    body.dark {
+      --bg: #0c1220;
+      --surface: #121a2b;
+      --surface-2: #1a2539;
+      --text: #e8edf8;
+      --muted: #a8b3c7;
+      --primary: #83a8ff;
+      --primary-2: #b9ccff;
+      --accent: #58d6b2;
+      --warning: #ffc064;
+      --danger: #ff8b83;
+      --border: #2b3851;
+      --code-bg: #080d17;
+      --code-text: #e8edf8;
+      --shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.68;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, input { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar .brand {
+      font-weight: 800;
+      white-space: nowrap;
+      color: var(--primary);
+    }
+
+    .search {
+      flex: 1;
+      max-width: 680px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search:focus { border-color: var(--primary); }
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0;
+      background: var(--primary);
+      z-index: 200;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 285px minmax(0, 1fr);
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    aside {
+      position: sticky;
+      top: 62px;
+      align-self: start;
+      height: calc(100vh - 62px);
+      overflow: auto;
+      padding: 22px 16px 40px;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    aside h3 {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    aside a {
+      display: block;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.93rem;
+    }
+
+    aside a:hover, aside a.active {
+      background: var(--surface-2);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    main { padding: 34px 34px 80px; min-width: 0; }
+
+    .hero {
+      padding: 34px;
+      border-radius: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at 88% 16%, rgba(255,255,255,.18), transparent 22%),
+        linear-gradient(135deg, #173b92, #2257d7 55%, #0f9d79);
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.1;
+    }
+
+    .hero p { max-width: 950px; font-size: 1.05rem; opacity: .95; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .badge {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      font-size: .86rem;
+      font-weight: 700;
+    }
+
+    section {
+      scroll-margin-top: 82px;
+      margin: 28px 0;
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin-top: 0;
+      font-size: 1.75rem;
+      line-height: 1.25;
+      color: var(--primary);
+    }
+
+    h3 { margin-top: 28px; line-height: 1.35; }
+    h4 { margin-bottom: 6px; }
+    .lead { font-size: 1.08rem; color: var(--muted); }
+    .muted { color: var(--muted); }
+    .highlight {
+      padding: 14px 16px;
+      border-left: 4px solid var(--primary);
+      border-radius: 10px;
+      background: var(--surface-2);
+      margin: 16px 0;
+    }
+
+    .warning { border-left-color: var(--warning); }
+    .danger { border-left-color: var(--danger); }
+    .success { border-left-color: var(--accent); }
+
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: var(--surface);
+    }
+
+    .card h3, .card h4 { margin-top: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface-2);
+      color: var(--primary);
+    }
+
+    pre {
+      position: relative;
+      overflow-x: auto;
+      padding: 18px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      line-height: 1.55;
+      tab-size: 4;
+      margin: 16px 0;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .93em;
+    }
+
+    :not(pre) > code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--primary-2);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: 1px solid #4b5563;
+      background: #1f2937;
+      color: white;
+      border-radius: 7px;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-size: .78rem;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 12px 0;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 15px 17px;
+      font-weight: 760;
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid var(--border);
+      color: var(--primary);
+    }
+
+    .answer { padding: 16px 18px; }
+    .answer p:first-child { margin-top: 0; }
+
+    .interview {
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      margin: 12px 0;
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      border-radius: 8px;
+    }
+
+    .interview strong { color: var(--accent); }
+    ul.compact li { margin: 4px 0; }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 2px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: .82rem;
+    }
+
+    .compare-good { color: var(--accent); font-weight: 700; }
+    .compare-warn { color: var(--warning); font-weight: 700; }
+    .compare-bad { color: var(--danger); font-weight: 700; }
+
+    .checklist label {
+      display: block;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .checklist input { margin-right: 8px; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px 0 0;
+      font-size: .9rem;
+    }
+
+    .hidden-by-search { display: none !important; }
+
+
+    .version-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .version-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--surface);
+      position: relative;
+    }
+
+    .version-card h3 {
+      margin: 0 0 8px;
+      color: var(--primary);
+    }
+
+    .version-card p { margin: 7px 0; }
+    .version-card ul { padding-left: 20px; margin-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: .76rem;
+      font-weight: 800;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    .lts { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
+    .ga { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); color: var(--primary); }
+    .preview { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); color: var(--warning); }
+    .incubator { background: color-mix(in srgb, #8b5cf6 16%, var(--surface)); color: #7c3aed; }
+    body.dark .incubator { color: #c4b5fd; }
+
+    .feature-table td:first-child { font-weight: 760; color: var(--primary); }
+    .feature-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 14px;
+    }
+
+    .feature-meta span {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--surface-2);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .decision {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 12px 0;
+      background: var(--surface-2);
+    }
+
+    .decision h4 { margin-top: 0; color: var(--primary); }
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .pros, .cons {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px;
+      background: var(--surface);
+    }
+
+    .pros h4 { color: var(--accent); margin-top: 0; }
+    .cons h4 { color: var(--warning); margin-top: 0; }
+
+    .version-details > summary {
+      font-size: 1.05rem;
+    }
+
+    .question-level {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      margin-right: 6px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--primary);
+    }
+
+    .source-list li { margin: 8px 0; }
+
+    @media (max-width: 760px) {
+      .pros-cons { grid-template-columns: 1fr; }
+    }
+
+
+    .comparison-label {
+      display: inline-block;
+      margin-bottom: 6px;
+      font-size: .8rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    #feature-comparisons details {
+      scroll-margin-top: 86px;
+    }
+
+    #feature-comparisons .decision {
+      border-left: 4px solid var(--accent);
+    }
+
+    #feature-comparisons table {
+      white-space: normal;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: none; }
+      main { padding: 22px 16px 60px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero { padding: 26px 20px; }
+      section { padding: 20px 16px; }
+      .topbar .brand { display: none; }
+    }
+
+    @media print {
+      .topbar, aside, .copy-btn, .progress { display: none !important; }
+      .layout { display: block; }
+      main { padding: 0; }
+      section { box-shadow: none; break-inside: avoid; }
+      details { break-inside: avoid; }
+      details > * { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="topbar">
+  <div class="brand">Java 8–26 Senior Guide</div>
+  <input id="searchInput" class="search" placeholder="Search Optional, Virtual Threads, Records, HashMap, Java 21..." />
+  <button class="icon-btn" id="expandBtn">Open Q&amp;A</button>
+  <button class="icon-btn" id="themeBtn">🌙</button>
+</header>
+
+<div class="layout">
+
+  <aside>
+    <h3>Contents</h3>
+    <a href="#overview">1. Overview</a>
+    <a href="#version-roadmap">2. Java 8–26 roadmap</a>
+    <a href="#optional-deep-dive">3. Optional deep dive</a>
+    <a href="#version-features">4. Features by version</a>
+    <a href="#feature-comparisons">5. Feature comparisons</a>
+    <a href="#feature-interviews">6. Feature interview Q&amp;A</a>
+    <a href="#migration">7. Migration strategy</a>
+    <a href="#stream">8. Stream API</a>
+    <a href="#loop">9. Stream vs loops</a>
+    <a href="#complexity">10. Stream complexity</a>
+    <a href="#hashmap">11. HashMap internals</a>
+    <a href="#collection-complexity">12. Collection complexity</a>
+    <a href="#resources">13. Try-with-resources</a>
+    <a href="#collections">14. Project collections</a>
+    <a href="#java8">15. Java 8 deep dive</a>
+    <a href="#concurrent">16. Concurrent collections</a>
+    <a href="#practical">17. Practical cases</a>
+    <a href="#interview">18. Collections Q&amp;A</a>
+    <a href="#mistakes">19. Common mistakes</a>
+    <a href="#checklist">20. Checklist</a>
+    <a href="#sources">21. Official sources</a>
+  </aside>
+
+  <main>
+
+    <div class="hero">
+      <h1>Java 8–26, Stream API &amp; Collections</h1>
+      <p>
+        A detailed Senior Java Backend interview and project guide: Java features by version,
+        Optional and null handling, modern-versus-traditional comparisons, Stream internals, HashMap, collection selection,
+        concurrency, migration strategy, trade-offs, pitfalls, and real production examples.
+      </p>
+      <div class="badges">
+        <span class="badge">Java 8–26</span>
+        <span class="badge">Optional Deep Dive</span>
+        <span class="badge">Modern vs Traditional</span>
+        <span class="badge">Stream API</span>
+        <span class="badge">HashMap Internals</span>
+        <span class="badge">Virtual Threads</span>
+        <span class="badge">Senior Interview</span>
+      </div>
+    </div>
+
+
+    <section id="overview">
+      <h2>1. Overall Learning Model</h2>
+      <p class="lead">
+        A Senior Java engineer should explain a feature beyond syntax: why it exists,
+        how it works, where it fits in an architecture, its runtime and memory costs,
+        failure modes, trade-offs, and how it behaves under production load.
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Language</h3>
+          <p>Lambdas, records, sealed types, pattern matching, switch expressions, text blocks, and type inference.</p>
+        </div>
+        <div class="card">
+          <h3>Libraries</h3>
+          <p>Streams, Optional, HTTP Client, CompletableFuture, Sequenced Collections, Gatherers, and FFM.</p>
+        </div>
+        <div class="card">
+          <h3>Runtime</h3>
+          <p>Garbage collectors, virtual threads, class-data sharing, AOT improvements, diagnostics, and strong encapsulation.</p>
+        </div>
+      </div>
+
+      <div class="highlight success">
+        <strong>Senior learning formula:</strong>
+        Definition → Motivation → Internal behavior → Complexity → Real use case →
+        Advantages → Disadvantages → Failure modes → Production decision.
+      </div>
+    </section>
+
+
+
+    <section id="version-roadmap">
+      <h2>2. Java 8–26 Version Roadmap</h2>
+      <p class="lead">
+        This roadmap focuses on developer-visible and interview-relevant features.
+        It is intentionally not a list of every JEP. A Senior engineer should distinguish
+        permanent features from preview and incubator features, and should understand that
+        library, JVM, tooling, and language changes are different categories.
+      </p>
+
+      <div class="highlight">
+        <strong>Current context:</strong> Java 26 is the latest feature release in this guide.
+        Java 25 is the latest LTS release. Java 21, 17, 11, and 8 are also commonly treated as
+        LTS releases by major vendors. Production support terms still depend on the chosen JDK vendor.
+      </div>
+
+      <table class="feature-table">
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th>Major interview-relevant features</th>
+            <th>What a Senior should understand</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Java 8 <span class="status lts">LTS</span></td><td>Lambdas, Stream API, Optional, default methods, CompletableFuture, java.time</td><td>Functional style, lazy processing, null modeling, asynchronous composition, compatibility.</td></tr>
+          <tr><td>Java 9</td><td>Module System, JShell, collection factory methods, private interface methods, Flow API</td><td>Strong encapsulation, classpath vs module path, immutable factory collections.</td></tr>
+          <tr><td>Java 10</td><td><code>var</code>, application CDS, G1 improvements</td><td>Type inference is local only; readability and API contracts still require explicit types.</td></tr>
+          <tr><td>Java 11 <span class="status lts">LTS</span></td><td>Standard HTTP Client, lambda <code>var</code>, single-file execution, String/Files APIs, Java EE module removal</td><td>Migration dependencies, HTTP/2 and async calls, runtime packaging changes.</td></tr>
+          <tr><td>Java 12</td><td>Switch expressions preview, JVM constants API, GC improvements</td><td>Expression-oriented control flow and preview-feature discipline.</td></tr>
+          <tr><td>Java 13</td><td>Text blocks preview, dynamic CDS, socket API reimplementation</td><td>Multiline data readability and preview evolution.</td></tr>
+          <tr><td>Java 14</td><td>Switch expressions final, records preview, pattern matching preview, helpful NPEs</td><td>Data carriers, reduced casting, diagnostics, limits of generated members.</td></tr>
+          <tr><td>Java 15</td><td>Text blocks final, sealed classes preview, hidden classes</td><td>Closed hierarchies, framework-generated classes, multiline SQL/JSON.</td></tr>
+          <tr><td>Java 16</td><td>Records final, pattern matching for <code>instanceof</code> final, <code>Stream.toList</code>, <code>mapMulti</code></td><td>Shallow immutability, value semantics, collector differences.</td></tr>
+          <tr><td>Java 17 <span class="status lts">LTS</span></td><td>Sealed classes final, enhanced random generators, strong JDK encapsulation</td><td>Domain modeling, exhaustive reasoning, reflective-access migration.</td></tr>
+          <tr><td>Java 18</td><td>UTF-8 by default, simple web server, Javadoc snippets, finalization deprecated</td><td>Encoding consistency, lightweight tooling, resource cleanup.</td></tr>
+          <tr><td>Java 19</td><td>Virtual threads preview, structured concurrency incubator, record patterns preview</td><td>Thread-per-request scalability, pinning, cancellation and observability.</td></tr>
+          <tr><td>Java 20</td><td>Scoped values incubator, virtual threads second preview, structured concurrency incubator</td><td>Context propagation without mutable ThreadLocal state.</td></tr>
+          <tr><td>Java 21 <span class="status lts">LTS</span></td><td>Virtual threads final, record patterns final, pattern matching switch final, sequenced collections, generational ZGC</td><td>Modern concurrency, algebraic-style domain handling, collection encounter order.</td></tr>
+          <tr><td>Java 22</td><td>Foreign Function &amp; Memory API final, unnamed variables preview, Stream Gatherers preview, Class-File API preview</td><td>Native interoperability, explicit lifetimes, custom stream intermediates.</td></tr>
+          <tr><td>Java 23</td><td>Markdown documentation comments, primitive patterns preview, module imports preview, generational ZGC default</td><td>Preview boundaries, documentation tooling, GC operational changes.</td></tr>
+          <tr><td>Java 24</td><td>Stream Gatherers final, Class-File API final, Security Manager permanently disabled, AOT class loading/linking</td><td>Custom pipelines, bytecode tooling, security architecture migration.</td></tr>
+          <tr><td>Java 25 <span class="status lts">LTS</span></td><td>Scoped Values final, module import declarations final, compact source files, flexible constructor bodies, compact object headers</td><td>Context propagation, beginner-friendly source model, constructor validation, memory footprint.</td></tr>
+          <tr><td>Java 26</td><td>HTTP/3 client support, AOT object caching, Applet API removal, lazy constants preview, structured concurrency preview</td><td>Network evolution, startup optimization, removed legacy APIs, preview risk.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How to talk about Java versions in an interview</h3>
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “I separate language features, standard-library APIs, JVM/runtime improvements, and tooling.
+        I also check whether a feature is final, preview, or incubating. For production adoption,
+        I evaluate framework support, build plugins, observability, container behavior, vendor support,
+        rollback strategy, and the operational benefit—not only whether the syntax is attractive.”
+      </div>
+    </section>
+
+    <section id="optional-deep-dive">
+      <h2>3. Optional Deep Dive</h2>
+      <p class="lead">
+        <code>Optional&lt;T&gt;</code> represents a result that may intentionally contain no value.
+        It does not make all code null-safe, and it is not a universal replacement for <code>null</code>.
+      </p>
+
+      <h3>3.1 What problem does Optional solve?</h3>
+      <p>
+        A method returning <code>User</code> does not tell the caller whether absence is expected.
+        It may return a user, return null, or throw an exception. Returning
+        <code>Optional&lt;User&gt;</code> makes expected absence part of the method contract.
+      </p>
+
+      <pre><code>public Optional&lt;User&gt; findByEmail(String email) {
+    return userRepository.findByEmail(email);
+}
+
+User user = userService.findByEmail(email)
+    .orElseThrow(() -> new UserNotFoundException(email));</code></pre>
+
+      <div class="decision">
+        <h4>Good use</h4>
+        <p>
+          A lookup may validly produce no result and the caller should choose the next action:
+          use a default, return 404, create a new resource, skip processing, or throw a domain exception.
+        </p>
+      </div>
+
+      <div class="decision">
+        <h4>Poor use</h4>
+        <p>
+          The value is mandatory and absence is a programming/data-integrity error.
+          In that case, validate early and return the actual type or throw a meaningful exception.
+        </p>
+      </div>
+
+      <h3>3.2 Common operations</h3>
+      <pre><code>Optional&lt;User&gt; optional = userRepository.findById(id);
+
+// Transform only when present
+Optional&lt;String&gt; email =
+    optional.map(User::getEmail);
+
+// Continue with another Optional-returning operation
+Optional&lt;Address&gt; address =
+    optional.flatMap(user -> addressRepository.findPrimaryByUserId(user.getId()));
+
+// Keep the value only when it matches
+Optional&lt;User&gt; active =
+    optional.filter(User::isActive);
+
+// Lazy fallback
+User result =
+    optional.orElseGet(() -> createGuestUser(id));
+
+// Explicit failure
+User required =
+    optional.orElseThrow(() -> new UserNotFoundException(id));</code></pre>
+
+      <h3>3.3 map versus flatMap</h3>
+      <pre><code>// map would create Optional&lt;Optional&lt;Address&gt;&gt;
+Optional&lt;Optional&lt;Address&gt;&gt; nested =
+    userOptional.map(user -> addressRepository.findByUserId(user.getId()));
+
+// flatMap keeps one Optional layer
+Optional&lt;Address&gt; flattened =
+    userOptional.flatMap(user -> addressRepository.findByUserId(user.getId()));</code></pre>
+
+      <h3>3.4 orElse versus orElseGet</h3>
+      <pre><code>// loadFallback() executes even when optional contains a value
+User a = optional.orElse(loadFallback());
+
+// loadFallback() executes only when optional is empty
+User b = optional.orElseGet(this::loadFallback);</code></pre>
+
+      <div class="highlight warning">
+        Use <code>orElseGet</code> when the fallback performs I/O, object construction,
+        logging, metrics, database work, or any non-trivial computation.
+      </div>
+
+      <h3>3.5 When should Optional be used in a real project?</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Repository lookup</h4>
+          <p><code>findById</code>, <code>findByEmail</code>, or configuration lookup where no row is a normal result.</p>
+        </div>
+        <div class="card">
+          <h4>Parsing</h4>
+          <p>A non-critical conversion can fail without throwing, such as parsing an optional header or query value.</p>
+        </div>
+        <div class="card">
+          <h4>Cache lookup</h4>
+          <p>Useful at the API boundary, but avoid caching an Optional blindly unless negative caching is intentional.</p>
+        </div>
+        <div class="card">
+          <h4>Composable navigation</h4>
+          <p>Navigate nullable nested objects without repeated temporary variables, provided the chain remains readable.</p>
+        </div>
+      </div>
+
+      <h3>3.6 When should Optional usually not be used?</h3>
+      <ul>
+        <li><strong>Entity fields:</strong> ORM mapping and proxy behavior become awkward; use nullable fields plus domain validation.</li>
+        <li><strong>DTO fields:</strong> JSON serialization contracts become less clear; model required/nullable fields explicitly.</li>
+        <li><strong>Method parameters:</strong> it forces callers to wrap values. Use overloads, a parameter object, or nullable annotation when justified.</li>
+        <li><strong>Collections:</strong> return an empty collection instead of <code>Optional&lt;List&lt;T&gt;&gt;</code> in most cases.</li>
+        <li><strong>Primitive values:</strong> prefer <code>OptionalInt</code>, <code>OptionalLong</code>, or <code>OptionalDouble</code> when boxing matters.</li>
+        <li><strong>Internal fields for every nullable value:</strong> this adds allocations and complexity without improving the API contract.</li>
+      </ul>
+
+      <h3>3.7 Does Optional prevent NullPointerException?</h3>
+      <p>
+        It can reduce accidental null handling at a method boundary, but it does not guarantee
+        NPE-free code. These examples can still fail:
+      </p>
+      <pre><code>// Never return null instead of Optional.empty()
+public Optional&lt;User&gt; findUser() {
+    return null;
+}
+
+// of() rejects null
+Optional&lt;String&gt; value = Optional.of(possiblyNull);
+
+// map function itself may dereference null state inside the object
+String city = userOptional
+    .map(User::getAddress)
+    .map(Address::getCity)
+    .orElse("UNKNOWN");</code></pre>
+
+      <h3>3.8 Can we avoid null exceptions without Optional?</h3>
+      <p>Yes. Optional is one tool. Other approaches are often better depending on the domain.</p>
+
+      <table>
+        <thead><tr><th>Approach</th><th>Best use</th><th>Trade-off</th></tr></thead>
+        <tbody>
+          <tr><td>Guard clauses</td><td>Validate required inputs at boundaries.</td><td>Simple and explicit, but repetitive for deep object graphs.</td></tr>
+          <tr><td>Empty collection</td><td>Zero-or-more results.</td><td>Removes null checks; cannot distinguish “not loaded” from “loaded and empty” without another state.</td></tr>
+          <tr><td>Null Object pattern</td><td>A safe behavior exists for absence.</td><td>Can hide missing-data errors if the null object is used too broadly.</td></tr>
+          <tr><td>Domain exception</td><td>Absence violates a required invariant.</td><td>Clear failure, but exceptions should not model ordinary control flow.</td></tr>
+          <tr><td>Validation annotations</td><td>API/request DTO contracts.</td><td>Works at validated boundaries, not automatically inside the entire object graph.</td></tr>
+          <tr><td>Database constraints</td><td>Data integrity.</td><td>Essential, but errors are detected at persistence time.</td></tr>
+          <tr><td>Static nullness analysis</td><td>Large codebases that enforce nullable/non-null contracts.</td><td>Requires tooling and team discipline.</td></tr>
+          <tr><td>Result/Either type</td><td>Need success or typed failure details.</td><td>More expressive than Optional but not built into standard Java.</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code>// Guard clause for a mandatory value
+public Money calculatePrice(Order order) {
+    Objects.requireNonNull(order, "order must not be null");
+    Objects.requireNonNull(order.getCurrency(), "currency must not be null");
+    return pricingService.calculate(order);
+}
+
+// Empty collection for zero-or-more result
+public List&lt;Order&gt; findOrders(long customerId) {
+    List&lt;Order&gt; orders = repository.findByCustomerId(customerId);
+    return orders == null ? Collections.emptyList() : orders;
+}</code></pre>
+
+      <h3>3.9 Optional in Spring applications</h3>
+      <pre><code>@GetMapping("/users/{id}")
+public ResponseEntity&lt;UserResponse&gt; getUser(@PathVariable long id) {
+    return userService.findById(id)
+        .map(userMapper::toResponse)
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+}</code></pre>
+
+      <p>
+        A service may convert the Optional into a domain exception instead, allowing a global
+        exception handler to produce a consistent error response.
+      </p>
+
+      <pre><code>@Transactional(readOnly = true)
+public User getRequiredUser(long id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+}</code></pre>
+
+      <h3>3.10 Optional performance and design concerns</h3>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Advantages</h4>
+          <ul>
+            <li>Absence becomes visible in the return type.</li>
+            <li>Encourages explicit fallback or failure handling.</li>
+            <li>Supports map/filter/flatMap composition.</li>
+            <li>Reduces repeated null-check boilerplate at boundaries.</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Disadvantages</h4>
+          <ul>
+            <li>Can create unreadable chains.</li>
+            <li>Object Optional adds wrapper allocation conceptually, though JIT may optimize some cases.</li>
+            <li>Poor fit for JPA fields and many serialization contracts.</li>
+            <li>Misuse can hide bugs or replace a simple conditional with ceremony.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>3.11 Deep Optional interview questions</h3>
+
+      <details>
+        <summary><span class="question-level">Deep</span>Why is Optional mainly recommended as a return type?</summary>
+        <div class="answer">
+          <p>
+            A return type communicates that absence is an expected outcome controlled by the callee.
+            As a parameter, Optional makes callers manufacture a wrapper and usually indicates that
+            the method has two modes. Overloads or a request object are often clearer. As a field,
+            Optional complicates persistence, serialization, frameworks, and object invariants.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Deep</span>Optional or exception: how do you choose?</summary>
+        <div class="answer">
+          <p>
+            Use Optional when absence is a normal domain outcome and the caller owns the decision.
+            Throw an exception when an invariant is violated or the operation cannot continue.
+            For example, <code>searchCustomer</code> may return Optional, while
+            <code>loadCustomerForPayment</code> should normally fail with a domain exception.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Deep</span>Why is Optional&lt;List&lt;T&gt;&gt; often a smell?</summary>
+        <div class="answer">
+          <p>
+            It introduces two empty states: Optional.empty and an empty List. Unless those states
+            have different domain meanings, return an empty immutable collection. If they do have
+            different meanings, model the states explicitly with a domain result type.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Advanced</span>Can Optional itself be null?</summary>
+        <div class="answer">
+          <p>
+            Technically a reference of type Optional can be null, but returning null violates the API
+            convention and defeats the purpose. A method declaring Optional must return either
+            <code>Optional.of(value)</code> or <code>Optional.empty()</code>.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Advanced</span>Why should Optional.get() usually be avoided?</summary>
+        <div class="answer">
+          <p>
+            It moves the failure to a generic <code>NoSuchElementException</code> and does not express
+            the intended behavior. Prefer <code>orElseThrow</code> with a meaningful exception,
+            or use <code>map</code>, <code>flatMap</code>, and fallback methods.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <section id="version-features">
+      <h2>4. Features by Java Version</h2>
+      <p class="lead">
+        Open each version for explanation, usage, advantages, disadvantages, project scenarios,
+        and questions an interviewer can use to test real understanding.
+      </p>
+
+      <details class="version-details">
+        <summary>Java 8 <span class="status lts">LTS</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Lambdas</span><span>Streams</span><span>Optional</span><span>CompletableFuture</span><span>java.time</span></div>
+          
+      <h3>Why Java 8 changed application development</h3>
+      <p>
+        Java 8 introduced function-like values through lambdas and method references.
+        The main architectural effect was not shorter syntax; it enabled APIs that accept behavior,
+        including Stream pipelines, asynchronous stages, event handlers, retry policies, and custom predicates.
+      </p>
+      <pre><code>Predicate&lt;Order&gt; payable =
+    order -> order.isConfirmed() &amp;&amp; order.getOutstanding().signum() &gt; 0;
+
+List&lt;Order&gt; result = orders.stream()
+    .filter(payable)
+    .collect(Collectors.toList());</code></pre>
+      <div class="pros-cons">
+        <div class="pros"><h4>Advantages</h4><ul><li>Composable behavior.</li><li>Less mutable iteration code.</li><li>Better asynchronous composition.</li><li>Modern date/time model.</li></ul></div>
+        <div class="cons"><h4>Risks</h4><ul><li>Long lambda chains reduce readability.</li><li>Streams can hide expensive work.</li><li>Common ForkJoinPool is easy to misuse.</li><li>Optional can be overused.</li></ul></div>
+      </div>
+      <div class="interview"><strong>Ask deeper:</strong> How are captured variables represented? Why must local captured variables be effectively final? What makes a reduction safe for parallel execution? Why can CompletableFuture without an explicit executor be risky in a server?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 9 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>JPMS</span><span>JShell</span><span>Factory Collections</span><span>Flow API</span></div>
+          
+      <h3>Java Platform Module System</h3>
+      <p>
+        JPMS adds named modules, explicit dependencies, and strong encapsulation above packages.
+        It can prevent accidental access to internal APIs and enables smaller runtime images with <code>jlink</code>.
+      </p>
+      <pre><code>// module-info.java
+module com.example.billing {
+    requires java.sql;
+    requires java.net.http;
+    exports com.example.billing.api;
+}</code></pre>
+      <p><strong>Use it when:</strong> building modular platforms, SDKs, desktop distributions, or systems that need strong dependency boundaries.</p>
+      <p><strong>Do not force it blindly:</strong> many Spring applications still run successfully on the classpath. Migration can be difficult when dependencies use reflection or split packages.</p>
+
+      <h3>Collection factory methods</h3>
+      <pre><code>List&lt;String&gt; roles = List.of("ADMIN", "SUPPORT");
+Set&lt;String&gt; countries = Set.of("VN", "JP");
+Map&lt;String, Integer&gt; limits = Map.of("OTP", 5, "LOGIN", 10);</code></pre>
+      <p>These collections are unmodifiable and reject null elements. They are not the same as wrapping a mutable backing collection with <code>Collections.unmodifiableList</code>.</p>
+
+      <h3>Private interface methods</h3>
+      <p>They allow default methods to share implementation details without exposing helper methods as public API.</p>
+      <div class="interview"><strong>Ask deeper:</strong> What is the unnamed module? What is an automatic module? Why do split packages cause problems? How does <code>--add-opens</code> differ from <code>--add-exports</code>?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 10 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Local var inference</span><span>CDS</span><span>G1</span></div>
+          
+      <h3>Local-variable type inference with var</h3>
+      <pre><code>var customer = customerService.load(customerId);
+var orders = new ArrayList&lt;Order&gt;();
+var total = BigDecimal.ZERO;</code></pre>
+      <p>
+        <code>var</code> does not make Java dynamically typed. The compiler infers a fixed static type.
+        It works only for local variables with an initializer, loop variables, and later lambda parameters.
+      </p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Advantages</h4><ul><li>Reduces repeated generic type declarations.</li><li>Useful when the initializer makes the type obvious.</li><li>Improves readability for long implementation types.</li></ul></div>
+        <div class="cons"><h4>Disadvantages</h4><ul><li>Can hide important domain types.</li><li>Bad variable names become more harmful.</li><li>May infer an implementation type more specific than intended.</li></ul></div>
+      </div>
+      <pre><code>// Less readable: the return type is not obvious
+var data = service.execute(request);
+
+// More readable
+PaymentAuthorization authorization = service.execute(request);</code></pre>
+      <div class="interview"><strong>Ask deeper:</strong> Can var be used for fields or method parameters? What type is inferred for an anonymous class? Why can <code>var number = 1</code> matter when a long is expected?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 11 <span class="status lts">LTS</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>HTTP Client</span><span>Single-file source</span><span>String APIs</span><span>Java EE modules removed</span></div>
+          
+      <h3>Standard HTTP Client</h3>
+      <pre><code>HttpClient client = HttpClient.newBuilder()
+    .connectTimeout(Duration.ofSeconds(3))
+    .version(HttpClient.Version.HTTP_2)
+    .build();
+
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/users/42"))
+    .timeout(Duration.ofSeconds(5))
+    .GET()
+    .build();
+
+HttpResponse&lt;String&gt; response =
+    client.send(request, HttpResponse.BodyHandlers.ofString());</code></pre>
+      <p>
+        It supports synchronous and asynchronous calls, HTTP/2, WebSocket, and configurable redirects.
+        In a production microservice, it still needs timeout policy, retry policy, connection behavior,
+        tracing, metrics, authentication, and bulkhead controls.
+      </p>
+      <pre><code>CompletableFuture&lt;HttpResponse&lt;String&gt;&gt; future =
+    client.sendAsync(request, HttpResponse.BodyHandlers.ofString());</code></pre>
+
+      <h3>Useful APIs</h3>
+      <pre><code>"  ".isBlank();
+" a\n b ".lines();
+"abc".repeat(3);
+Files.readString(path);
+Files.writeString(path, content);</code></pre>
+
+      <h3>Migration issue: removed Java EE/CORBA modules</h3>
+      <p>
+        JAXB, JAX-WS, activation, annotations, and CORBA modules were removed from the JDK.
+        Applications must declare appropriate external dependencies rather than relying on the runtime.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> How do HTTP request timeouts differ from connection timeouts? Is sendAsync non-blocking end-to-end? What happened to JAXB after Java 8?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 12 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Switch expression preview</span><span>JMH suite</span><span>G1 improvements</span></div>
+          
+      <h3>Switch expressions began preview</h3>
+      <pre><code>int priority = switch (status) {
+    case CRITICAL -> 1;
+    case HIGH -> 2;
+    case NORMAL -> 3;
+};</code></pre>
+      <p>
+        The key shift is that switch can produce a value and avoids accidental fall-through.
+        Because it was preview in Java 12, production use required preview flags and a matching runtime.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why must a switch expression be exhaustive? How do arrow labels differ from colon labels? What are the risks of shipping preview bytecode?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 13 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Text blocks preview</span><span>Dynamic CDS</span><span>Socket reimplementation</span></div>
+          
+      <h3>Text blocks entered preview</h3>
+      <pre><code>String query = """
+    SELECT id, email
+    FROM users
+    WHERE status = 'ACTIVE'
+    ORDER BY created_at DESC
+    """;</code></pre>
+      <p>
+        Text blocks reduce escaping for SQL, JSON, XML, HTML, and test fixtures.
+        They are still ordinary Strings; they do not protect against SQL injection or validate JSON.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> How is incidental indentation determined? When should parameters still be bound instead of interpolated into a SQL text block?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 14 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Switch final</span><span>Records preview</span><span>Pattern instanceof preview</span><span>Helpful NPE</span></div>
+          
+      <h3>Records as transparent data carriers</h3>
+      <pre><code>public record CustomerSummary(
+    long id,
+    String name,
+    BigDecimal balance
+) {
+    public CustomerSummary {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(balance);
+    }
+}</code></pre>
+      <p>
+        A record provides final component fields, accessors, a canonical constructor,
+        and generated <code>equals</code>, <code>hashCode</code>, and <code>toString</code>.
+        It is shallowly immutable: a component may still reference a mutable object.
+      </p>
+
+      <h3>Pattern matching for instanceof</h3>
+      <pre><code>if (value instanceof String text &amp;&amp; !text.isBlank()) {
+    process(text);
+}</code></pre>
+
+      <h3>Helpful NullPointerExceptions</h3>
+      <p>
+        The JVM can identify which expression was null in a chained dereference,
+        significantly improving diagnosis. It is a diagnostic improvement, not a substitute for invariant design.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Can a record extend another class? Can it implement interfaces? Why are record component references not deeply immutable? How does flow scoping work for a pattern variable?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 15 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Text blocks final</span><span>Sealed preview</span><span>Hidden classes</span></div>
+          
+      <h3>Text blocks became permanent</h3>
+      <pre><code>String payload = """
+    {
+      "customerId": "%s",
+      "status": "ACTIVE"
+    }
+    """.formatted(customerId);</code></pre>
+      <p>
+        Use text blocks for readable embedded text, but use serializers and prepared statements for structured data and SQL parameters.
+      </p>
+
+      <h3>Sealed classes entered preview</h3>
+      <pre><code>public sealed interface PaymentResult
+    permits PaymentApproved, PaymentDeclined, PaymentError {}
+
+public record PaymentApproved(String transactionId)
+    implements PaymentResult {}
+
+public record PaymentDeclined(String reason)
+    implements PaymentResult {}
+
+public final class PaymentError implements PaymentResult {
+    // ...
+}</code></pre>
+      <p>
+        Sealed hierarchies define a controlled set of subtypes. They are useful for domain results,
+        commands, states, AST nodes, and exhaustive pattern matching.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> How do sealed, non-sealed, and final interact? What package/module restrictions apply to permitted subclasses?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 16 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Records final</span><span>instanceof patterns final</span><span>Stream.toList</span><span>mapMulti</span></div>
+          
+      <h3>Records and pattern matching became permanent</h3>
+      <p>
+        Records work well for API response models, immutable commands, events, projections, and keys.
+        They may be less suitable for mutable JPA entities, framework proxies, or models requiring inheritance.
+      </p>
+
+      <h3>Stream.toList()</h3>
+      <pre><code>List&lt;String&gt; emails = users.stream()
+    .map(User::getEmail)
+    .filter(Objects::nonNull)
+    .toList();</code></pre>
+      <p>
+        The returned List is unmodifiable. Do not assume it has the same mutability or exact implementation
+        as <code>Collectors.toList()</code>, whose concrete type is not guaranteed.
+      </p>
+
+      <h3>mapMulti</h3>
+      <pre><code>List&lt;String&gt; permissions = users.stream()
+    .&lt;String&gt;mapMulti((user, downstream) -> {
+        for (Role role : user.getRoles()) {
+            downstream.accept(role.getPermission());
+        }
+    })
+    .distinct()
+    .toList();</code></pre>
+      <p>
+        <code>mapMulti</code> can avoid creating a small temporary Stream for every source element,
+        which may be useful compared with <code>flatMap</code>.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Is Stream.toList mutable? How is it different from Collectors.toUnmodifiableList? When is mapMulti preferable to flatMap?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 17 <span class="status lts">LTS</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Sealed classes final</span><span>RandomGenerator</span><span>Strong encapsulation</span></div>
+          
+      <h3>Sealed classes became permanent</h3>
+      <pre><code>public sealed interface VerificationResult
+    permits Verified, Rejected, RetryableFailure {}
+
+public record Verified(String userId) implements VerificationResult {}
+public record Rejected(String code) implements VerificationResult {}
+public record RetryableFailure(Duration retryAfter) implements VerificationResult {}</code></pre>
+      <p>
+        The compiler and readers can understand the complete subtype set.
+        This is stronger than relying on comments or package-private constructors.
+      </p>
+
+      <h3>Strong encapsulation of JDK internals</h3>
+      <p>
+        Libraries depending on internal JDK APIs may fail without migration.
+        Senior migration work includes dependency upgrades, reflective-access testing,
+        and avoiding permanent reliance on <code>--add-opens</code>.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> How do sealed hierarchies improve exhaustive switch handling? Why can reflection-based frameworks fail when moving from Java 8 to 17?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 18 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>UTF-8 default</span><span>Simple Web Server</span><span>Javadoc snippets</span><span>Finalization deprecated</span></div>
+          
+      <h3>UTF-8 became the default charset</h3>
+      <p>
+        This reduces environment-dependent behavior across developer machines, containers, and servers.
+        Code that relies on a platform-specific charset should still specify the charset explicitly.
+      </p>
+      <pre><code>String content = Files.readString(path, StandardCharsets.UTF_8);</code></pre>
+
+      <h3>Simple Web Server</h3>
+      <pre><code>jwebserver -p 8080 -d ./public</code></pre>
+      <p>Useful for local demos and static files, not a production application server.</p>
+
+      <h3>Finalization deprecated for removal</h3>
+      <p>
+        Use try-with-resources, explicit lifecycle management, cleaners only when appropriate,
+        and ownership rules. Finalizers are unpredictable and can create security and performance issues.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why is relying on the default charset risky even after UTF-8 became default? Why are finalizers fundamentally unsafe for resource management?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 19 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Virtual Threads preview</span><span>Structured Concurrency incubator</span><span>Record Patterns preview</span></div>
+          
+      <h3>Virtual threads entered preview</h3>
+      <pre><code>try (ExecutorService executor =
+         Executors.newVirtualThreadPerTaskExecutor()) {
+    Future&lt;Customer&gt; customer =
+        executor.submit(() -> customerClient.load(id));
+    Future&lt;List&lt;Order&gt;&gt; orders =
+        executor.submit(() -> orderClient.loadByCustomer(id));
+
+    return new CustomerView(customer.get(), orders.get());
+}</code></pre>
+      <p>
+        Virtual threads make thread-per-task practical for large numbers of blocking operations.
+        They do not make CPU work faster and do not remove downstream connection limits.
+      </p>
+      <p>
+        A platform thread may be pinned when a virtual thread blocks inside certain synchronized/native regions.
+        Profiling and framework compatibility matter.
+      </p>
+
+      <h3>Structured concurrency</h3>
+      <p>
+        It treats related concurrent tasks as one unit, improving cancellation, error propagation,
+        lifetime management, and observability.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> What is a carrier thread? What is pinning? Why should a JDBC connection pool not be sized to the number of virtual threads?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 20 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Scoped Values incubator</span><span>Virtual Threads preview</span><span>Structured Concurrency incubator</span></div>
+          
+      <h3>Scoped Values entered incubation</h3>
+      <p>
+        Scoped values provide immutable, bounded context propagation that works naturally with
+        virtual threads and structured tasks. They target use cases often implemented with ThreadLocal,
+        such as request identity, trace context, or tenant information.
+      </p>
+      <pre><code>// Conceptual syntax evolved across previews
+private static final ScopedValue&lt;RequestContext&gt; CONTEXT =
+    ScopedValue.newInstance();
+
+ScopedValue.where(CONTEXT, requestContext)
+    .run(() -> service.process());</code></pre>
+      <p>
+        Unlike a mutable ThreadLocal, a scoped value is bound for a delimited execution scope
+        and cannot be arbitrarily changed by deeper code.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why is ThreadLocal problematic with thread pools? How do scoped values improve reasoning about context lifetime?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 21 <span class="status lts">LTS</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Virtual Threads final</span><span>Record Patterns final</span><span>Pattern Switch final</span><span>Sequenced Collections</span></div>
+          
+      <h3>Virtual threads became permanent</h3>
+      <pre><code>try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    List&lt;Future&lt;Response&gt;&gt; futures = requests.stream()
+        .map(request -> executor.submit(() -> client.call(request)))
+        .toList();
+
+    for (Future&lt;Response&gt; future : futures) {
+        consume(future.get());
+    }
+}</code></pre>
+      <p>
+        Use virtual threads for high-concurrency workloads dominated by blocking I/O.
+        Keep semaphore, rate-limit, connection-pool, and downstream-capacity controls.
+        Avoid pooling virtual threads merely to limit concurrency; use explicit concurrency limits.
+      </p>
+
+      <h3>Pattern matching for switch and record patterns</h3>
+      <pre><code>String message = switch (result) {
+    case PaymentApproved(var transactionId) ->
+        "Approved: " + transactionId;
+    case PaymentDeclined(var reason) ->
+        "Declined: " + reason;
+    case PaymentError error ->
+        "Technical error: " + error.getCode();
+};</code></pre>
+      <p>
+        This supports concise and exhaustive handling of closed domain hierarchies.
+        Guarded patterns should remain readable; complex business decisions may still belong in polymorphic methods.
+      </p>
+
+      <h3>Sequenced collections</h3>
+      <pre><code>SequencedCollection&lt;String&gt; steps =
+    new ArrayList&lt;&gt;(List.of("VALIDATE", "AUTHORIZE", "CAPTURE"));
+
+String first = steps.getFirst();
+String last = steps.getLast();
+SequencedCollection&lt;String&gt; reversed = steps.reversed();</code></pre>
+      <p>
+        Sequenced interfaces unify first/last/reversed operations for collections with encounter order.
+      </p>
+
+      <div class="interview"><strong>Ask deeper:</strong> How do virtual threads interact with synchronized blocks? Is ThreadLocal supported? How does exhaustiveness work for sealed types and enums? Is reversed() necessarily a copy?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 22 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>FFM API final</span><span>Unnamed variables preview</span><span>Gatherers preview</span><span>Class-File API preview</span></div>
+          
+      <h3>Foreign Function &amp; Memory API became permanent</h3>
+      <p>
+        FFM provides safer, more structured access to native code and off-heap memory than JNI
+        for many use cases. Memory segments have explicit bounds and lifetimes.
+      </p>
+      <pre><code>try (Arena arena = Arena.ofConfined()) {
+    MemorySegment segment = arena.allocate(100);
+    segment.set(ValueLayout.JAVA_INT, 0, 42);
+    int value = segment.get(ValueLayout.JAVA_INT, 0);
+}</code></pre>
+      <p>
+        The API still requires careful ownership, native ABI knowledge, and security review.
+        It does not make native libraries memory-safe internally.
+      </p>
+
+      <h3>Unnamed variables and patterns preview</h3>
+      <pre><code>try {
+    execute();
+} catch (IOException _) {
+    metrics.increment("io.failure");
+}</code></pre>
+      <p>The underscore communicates that a mandatory declaration is intentionally unused.</p>
+
+      <h3>Stream Gatherers preview</h3>
+      <p>
+        Gatherers allow custom intermediate operations such as fixed windows, stateful transforms,
+        or incremental aggregation without abusing collectors.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> How does Arena control memory lifetime? Why can a confined arena be safer? How is a Gatherer different from a Collector?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 23 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Markdown Javadoc</span><span>Primitive patterns preview</span><span>Module imports preview</span><span>Generational ZGC default</span></div>
+          
+      <h3>Markdown documentation comments</h3>
+      <pre><code>/// Loads a customer.
+///
+/// - Returns a cached value when available.
+/// - Throws `CustomerNotFoundException` when the ID is unknown.
+public Customer load(long id) { ... }</code></pre>
+      <p>
+        This can make documentation easier to write and review, but public API documentation
+        still needs examples, contracts, thread-safety notes, failure modes, and versioning discipline.
+      </p>
+
+      <h3>Primitive types in patterns preview</h3>
+      <p>
+        Pattern matching started expanding beyond reference types. Because it remained preview,
+        teams should not present it as a stable Java 23 production feature.
+      </p>
+
+      <h3>Generational ZGC became default mode</h3>
+      <p>
+        Operational impact includes updated JVM flags, capacity testing, pause/throughput observation,
+        and verifying assumptions from non-generational ZGC configurations.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why can a GC default change affect production even without code changes? How should preview language features be handled in a multi-module build?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 24 </summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Gatherers final</span><span>Class-File API final</span><span>Security Manager disabled</span><span>AOT loading/linking</span></div>
+          
+      <h3>Stream Gatherers became permanent</h3>
+      <p>
+        Gatherers generalize custom intermediate operations. Use them when a reusable operation
+        cannot be expressed cleanly as map/filter/flatMap and should remain inside a Stream pipeline.
+      </p>
+      <pre><code>// Conceptual: sliding/fixed windows supplied by a gatherer implementation
+List&lt;List&lt;Event&gt;&gt; windows = events.stream()
+    .gather(windowFixed(100))
+    .toList();</code></pre>
+      <p>
+        A custom gatherer is more complex than a loop. It must be justified by reuse,
+        composability, parallel semantics, and testability.
+      </p>
+
+      <h3>Class-File API became permanent</h3>
+      <p>
+        It provides a standard API to parse, generate, and transform class files.
+        It is relevant to agents, instrumentation, compilers, bytecode tools, and frameworks,
+        not normal CRUD application code.
+      </p>
+
+      <h3>Security Manager permanently disabled</h3>
+      <p>
+        Applications that relied on in-process sandboxing must move to process/container isolation,
+        OS permissions, least privilege, module boundaries, network controls, and application authorization.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why is a Gatherer not automatically faster than a loop? What replaces the Security Manager for modern service isolation?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 25 <span class="status lts">LTS</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>Scoped Values final</span><span>Module imports final</span><span>Compact source files</span><span>Flexible constructors</span><span>Compact headers</span></div>
+          
+      <h3>Scoped Values became permanent</h3>
+      <pre><code>private static final ScopedValue&lt;RequestContext&gt; REQUEST =
+    ScopedValue.newInstance();
+
+ScopedValue.where(REQUEST, context)
+    .run(() -> orderService.process(orderId));</code></pre>
+      <p>
+        Good use cases include immutable request context, security subject, trace identifiers,
+        and tenant metadata. Avoid treating scoped values as a global service locator.
+      </p>
+
+      <h3>Module import declarations</h3>
+      <pre><code>import module java.base;</code></pre>
+      <p>
+        They can simplify imports in educational, scripting, or compact programs.
+        In large applications, explicit imports may still communicate dependencies more precisely.
+      </p>
+
+      <h3>Compact source files and instance main methods</h3>
+      <pre><code>void main() {
+    IO.println("Hello, Java");
+}</code></pre>
+      <p>
+        The feature reduces ceremony for small programs and learning.
+        Enterprise applications still need ordinary structure, dependency injection,
+        package boundaries, testing, and deployment conventions.
+      </p>
+
+      <h3>Flexible constructor bodies</h3>
+      <pre><code>public PremiumAccount(String owner, BigDecimal limit) {
+    Objects.requireNonNull(owner);
+    if (limit.signum() &lt;= 0) {
+        throw new IllegalArgumentException("limit must be positive");
+    }
+    super(owner);
+    this.limit = limit;
+}</code></pre>
+      <p>
+        This permits validation or computation before an explicit constructor invocation,
+        while preserving rules that prevent using the uninitialized instance unsafely.
+      </p>
+
+      <h3>Compact object headers</h3>
+      <p>
+        Reducing object-header size can lower heap footprint and improve cache density.
+        The real impact depends on workload, object distribution, compressed references,
+        GC, and deployment architecture; benchmark the application rather than assuming a fixed gain.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> ScopedValue vs ThreadLocal? Can a scoped value be rebound in a nested scope? Why can smaller headers improve CPU cache behavior? What constructor operations remain illegal before super?</div>
+    
+        </div>
+      </details>
+
+
+      <details class="version-details">
+        <summary>Java 26 <span class="status ga">Latest feature release</span></summary>
+        <div class="answer">
+          <div class="feature-meta"><span>HTTP/3</span><span>AOT object caching</span><span>Applet removal</span><span>Lazy constants preview</span><span>Structured concurrency preview</span></div>
+          
+      <h3>HTTP/3 support in the HTTP Client API</h3>
+      <p>
+        HTTP/3 uses QUIC over UDP and can reduce some transport-level head-of-line blocking
+        and improve connection behavior on changing networks. Adoption still depends on server,
+        proxy, firewall, observability, and infrastructure support.
+      </p>
+      <p>
+        A Senior engineer should not assume that changing the protocol version automatically
+        improves application latency. Measure DNS, TLS/QUIC handshake behavior, payload size,
+        server processing, packet loss, and fallback behavior.
+      </p>
+
+      <h3>Ahead-of-Time object caching</h3>
+      <p>
+        AOT object caching extends startup and warm-up optimization by allowing suitable object graphs
+        to be restored rather than recreated during every startup. This is relevant to command-line tools,
+        serverless workloads, short-lived containers, and large frameworks.
+      </p>
+
+      <h3>Applet API removed</h3>
+      <p>
+        This completes removal of a legacy browser deployment model. Migration means replacing applets
+        with modern web applications, desktop packaging, or service-based architectures.
+      </p>
+
+      <h3>Preview features remain preview</h3>
+      <p>
+        Lazy constants and structured concurrency are preview features in Java 26.
+        They require preview flags and may change in later releases.
+      </p>
+      <div class="interview"><strong>Ask deeper:</strong> Why can HTTP/3 be blocked by enterprise infrastructure? What is the difference between AOT class loading, method profiling, and object caching? Why should a team avoid exposing preview APIs in a public library?</div>
+    
+        </div>
+      </details>
+
+    </section>
+
+
+    <section id="feature-comparisons">
+      <h2>5. Modern Features versus Traditional Approaches</h2>
+      <p class="lead">
+        Knowing new syntax is not enough. In a Senior interview, explain what the feature replaces,
+        what problem it solves, where the traditional approach is still better, and how the decision
+        affects production code. The comparisons below cover the major interview-relevant features.
+      </p>
+
+      <div class="highlight">
+        <strong>Decision framework:</strong>
+        Traditional approach → Pain point → Modern feature → Real-project use →
+        Advantages → Limitations → Migration risk → Interview follow-up.
+      </div>
+
+      <h3>Java 8 comparisons</h3>
+
+      <details open>
+        <summary><span class="question-level">Java 8</span>Lambda versus anonymous class</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional</h4>
+              <pre><code>button.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        auditService.record(event);
+    }
+});</code></pre>
+            </div>
+            <div class="card">
+              <h4>Modern</h4>
+              <pre><code>button.addActionListener(
+    event -> auditService.record(event)
+);</code></pre>
+            </div>
+          </div>
+
+          <p><strong>What improves:</strong> less ceremony, behavior can be passed and composed, and APIs such as Stream become practical.</p>
+          <p><strong>What does not improve:</strong> a long lambda is still complex code. A lambda is not a replacement for a well-named class when behavior has state, lifecycle, several methods, or a meaningful domain identity.</p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use lambdas for predicates, mapping strategies, event callbacks, retry conditions,
+              sorting rules, and small dependency-injection customizations. Use a named class for a
+              complex payment rule containing configuration, dependencies, metrics, and several decision methods.
+            </p>
+          </div>
+
+          <p><strong>Deep interview question:</strong> How does <code>this</code> behave differently in a lambda and an anonymous class?</p>
+          <p>
+            A lambda does not introduce a new <code>this</code>; it uses the enclosing instance.
+            An anonymous class creates its own instance and its own <code>this</code>.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>Stream versus loop</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional loop</h4>
+              <pre><code>List&lt;String&gt; result = new ArrayList&lt;&gt;();
+for (User user : users) {
+    if (user.isActive()) {
+        result.add(user.getEmail());
+    }
+}</code></pre>
+            </div>
+            <div class="card">
+              <h4>Stream pipeline</h4>
+              <pre><code>List&lt;String&gt; result = users.stream()
+    .filter(User::isActive)
+    .map(User::getEmail)
+    .collect(Collectors.toList());</code></pre>
+            </div>
+          </div>
+
+          <p><strong>Use Stream:</strong> data transformation, grouping, aggregation, and mostly stateless processing.</p>
+          <p><strong>Use loop:</strong> index manipulation, break/continue, state machines, ordered side effects, retries, or detailed exception recovery.</p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use a Stream to transform database entities into response DTOs. Use a loop when importing
+              a batch file because each row may require validation, error accumulation, line-number tracking,
+              partial recovery, and a maximum-error threshold that stops processing early.
+            </p>
+          </div>
+
+          <p><strong>Senior conclusion:</strong> Stream improves expression of a pipeline; it is not automatically faster or more maintainable.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>Optional versus null, exception, and empty collection</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Method contract</th><th>Recommended model</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Zero or one result; absence is normal</td><td>Optional</td><td>Find customer by optional referral code.</td></tr>
+              <tr><td>Value is mandatory</td><td>Return value or throw domain exception</td><td>Load account required for money transfer.</td></tr>
+              <tr><td>Zero or many results</td><td>Empty collection</td><td>Find orders for a customer.</td></tr>
+              <tr><td>Need typed failure information</td><td>Domain result / Either-style type</td><td>Payment can fail with retryable and non-retryable causes.</td></tr>
+              <tr><td>Safe default behavior exists</td><td>Null Object</td><td>No-discount pricing policy.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <pre><code>public Optional&lt;Coupon&gt; findApplicableCoupon(
+        Customer customer,
+        Campaign campaign) {
+    // no coupon is a normal outcome
+}
+
+// A payment cannot continue without an account
+public Account loadAccountForPayment(long accountId) {
+    return accountRepository.findById(accountId)
+        .orElseThrow(
+            () -> new AccountNotFoundException(accountId)
+        );
+}</code></pre>
+          </div>
+
+          <p><strong>Traditional code may be clearer:</strong></p>
+          <pre><code>Address address = user.getAddress();
+if (address == null) {
+    return "UNKNOWN";
+}
+return address.getCity();</code></pre>
+          <p>
+            Do not replace every simple conditional with a long Optional chain. Optional is an API-contract tool,
+            not a ban on <code>if</code>.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>java.time versus Date and Calendar</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Traditional problem</th><th>java.time improvement</th></tr></thead>
+            <tbody>
+              <tr><td>Date is mutable and poorly models different time concepts.</td><td>Immutable types with clear meanings.</td></tr>
+              <tr><td>Calendar APIs are verbose and error-prone.</td><td>Fluent arithmetic and explicit fields.</td></tr>
+              <tr><td>SimpleDateFormat is not thread-safe.</td><td>DateTimeFormatter is immutable and thread-safe.</td></tr>
+              <tr><td>Timezone handling is often implicit.</td><td>Instant, OffsetDateTime, and ZonedDateTime make it explicit.</td></tr>
+            </tbody>
+          </table>
+
+          <pre><code>// Traditional
+Calendar calendar = Calendar.getInstance();
+calendar.add(Calendar.DAY_OF_MONTH, 7);
+Date expiresAt = calendar.getTime();
+
+// Modern
+Instant expiresAt =
+    Instant.now().plus(Duration.ofDays(7));</code></pre>
+
+          <div class="decision">
+            <h4>Real-project cases</h4>
+            <ul>
+              <li><code>Instant</code>: token issue/expiry timestamp and audit events.</li>
+              <li><code>LocalDate</code>: birthday, billing date, settlement business date.</li>
+              <li><code>ZonedDateTime</code>: flight schedule or market event tied to regional timezone rules.</li>
+              <li><code>OffsetDateTime</code>: API timestamp that carries an explicit UTC offset.</li>
+            </ul>
+          </div>
+
+          <p><strong>Deep interview question:</strong> Why is storing <code>LocalDateTime</code> dangerous for a global event?</p>
+          <p>It has no zone or offset, so the same value can represent different instants in different regions.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>CompletableFuture versus Future and manual ExecutorService</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Future</h4>
+              <pre><code>Future&lt;Customer&gt; future =
+    executor.submit(() -> loadCustomer(id));
+
+Customer customer = future.get();</code></pre>
+              <p>Mainly supports waiting and cancellation. Composition is manual.</p>
+            </div>
+            <div class="card">
+              <h4>CompletableFuture</h4>
+              <pre><code>CompletableFuture&lt;View&gt; view =
+    customerFuture.thenCombine(
+        ordersFuture,
+        View::new
+    );</code></pre>
+              <p>Supports chaining, combination, asynchronous stages, and error recovery.</p>
+            </div>
+          </div>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              A customer-summary API independently loads profile, subscriptions, and recent orders.
+              CompletableFuture can combine them concurrently. However, define a dedicated I/O executor,
+              client timeouts, cancellation behavior, partial-failure policy, tracing propagation, and a maximum concurrency limit.
+            </p>
+          </div>
+
+          <p><strong>Use traditional sequential code when:</strong> calls are dependent, traffic is low, complexity outweighs latency benefit, or transaction context cannot safely cross threads.</p>
+          <p><strong>Deep question:</strong> Why is <code>join()</code> not non-blocking? It blocks the caller while waiting, although the stages may run asynchronously.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>Default interface methods versus abstract base classes</summary>
+        <div class="answer">
+          <p>
+            Default methods support interface evolution and behavior composition without requiring
+            all implementations to change. An abstract class can hold instance state, protected members,
+            constructors, and stronger implementation sharing.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project choice</h4>
+            <p>
+              Put a small reusable API behavior such as <code>isEmpty()</code> or normalization in a default method.
+              Use composition or an abstract class when implementations share state, injected dependencies,
+              lifecycle logic, or a template algorithm.
+            </p>
+          </div>
+
+          <p><strong>Risk:</strong> too much logic in interfaces creates hidden coupling and difficult diamond conflicts.</p>
+        </div>
+      </details>
+
+      <h3>Java 9–11 comparisons</h3>
+
+      <details>
+        <summary><span class="question-level">Java 9</span>Module path versus classpath</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Classpath</th><th>Module path</th></tr></thead>
+            <tbody>
+              <tr><td>Dependencies are largely implicit.</td><td>Modules declare required modules.</td></tr>
+              <tr><td>Public type is broadly accessible.</td><td>Only exported packages are accessible.</td></tr>
+              <tr><td>Reflection commonly reaches internals.</td><td>Strong encapsulation can reject reflective access.</td></tr>
+              <tr><td>Split packages are possible.</td><td>Named modules reject split packages.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              JPMS is useful for an SDK platform with public API modules and internal implementation modules,
+              or for a desktop product that creates a small runtime image with <code>jlink</code>.
+              A normal Spring Boot microservice may remain on the classpath when modularization cost produces little operational benefit.
+            </p>
+          </div>
+
+          <p><strong>Senior decision:</strong> architectural modularity is valuable even without JPMS. Do not force JPMS only to say the project is modular.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 9</span>List.of versus Collections.unmodifiableList</summary>
+        <div class="answer">
+          <pre><code>// Read-only view over a mutable list
+List&lt;String&gt; source = new ArrayList&lt;&gt;();
+List&lt;String&gt; view =
+    Collections.unmodifiableList(source);
+source.add("ADMIN"); // view now contains ADMIN
+
+// Independent unmodifiable collection
+List&lt;String&gt; roles =
+    List.of("ADMIN", "SUPPORT");</code></pre>
+
+          <p>
+            Factory collections reject null and cannot be modified. An unmodifiable wrapper prevents
+            modification through that reference but may still reflect backing-list changes.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use <code>List.of</code> for fixed configuration constants and test inputs.
+              Use <code>List.copyOf</code> for defensive copies received from callers.
+              Use a mutable ArrayList when the workflow intentionally builds or updates the list.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 9</span>JShell versus temporary main method or unit test</summary>
+        <div class="answer">
+          <p>
+            JShell is faster for experimenting with APIs, regular expressions, date calculations,
+            collection behavior, and small algorithms. A unit test is better when the experiment
+            should become repeatable regression coverage.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use JShell to confirm a DateTimeFormatter pattern during investigation.
+              Once the expected behavior matters to the application, create a proper automated test.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 10</span>var versus explicit local type</summary>
+        <div class="answer">
+          <pre><code>// Helpful: initializer clearly communicates the type
+var orderById = new HashMap&lt;Long, Order&gt;();
+
+// Harmful: the type and meaning are hidden
+var result = processor.execute(input);
+
+// Better domain communication
+PaymentAuthorization authorization =
+    processor.execute(input);</code></pre>
+
+          <p>
+            <code>var</code> reduces repetition but does not reduce the need for meaningful variable names
+            or explicit domain contracts. It is compile-time static type inference, not dynamic typing.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project rule</h4>
+            <p>
+              Use <code>var</code> when the initializer makes the type obvious and the variable has narrow scope.
+              Keep explicit types for public-domain concepts, surprising return types, numeric precision,
+              and code-review readability.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 11</span>HttpClient versus HttpURLConnection and framework clients</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Client</th><th>Strength</th><th>Limitation</th></tr></thead>
+            <tbody>
+              <tr><td>HttpURLConnection</td><td>Available in older JDKs.</td><td>Verbose API and weaker modern HTTP ergonomics.</td></tr>
+              <tr><td>Java HttpClient</td><td>Standard API, HTTP/2, async API, WebSocket.</td><td>Resilience and framework integration remain your responsibility.</td></tr>
+              <tr><td>Spring WebClient / declarative client</td><td>Codecs, observability, filters, reactive support, ecosystem integration.</td><td>Framework dependency and additional abstraction.</td></tr>
+              <tr><td>Apache/OkHttp</td><td>Mature controls and broad ecosystem.</td><td>External dependency and separate conventions.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project choice</h4>
+            <p>
+              Use standard HttpClient for a lightweight library or service with straightforward HTTP needs.
+              Use the organization's framework client when tracing, authentication, connection management,
+              service discovery, retries, codecs, and platform standards are already integrated.
+            </p>
+          </div>
+
+          <p><strong>Important:</strong> no HTTP client automatically makes retry safe. Retry only idempotent operations or use an idempotency key and a clear provider contract.</p>
+        </div>
+      </details>
+
+      <h3>Java 12–17 language-modeling comparisons</h3>
+
+      <details>
+        <summary><span class="question-level">Java 14</span>Switch expression versus traditional switch statement</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional</h4>
+              <pre><code>int priority;
+switch (status) {
+    case CRITICAL:
+        priority = 1;
+        break;
+    case HIGH:
+        priority = 2;
+        break;
+    default:
+        priority = 3;
+}</code></pre>
+            </div>
+            <div class="card">
+              <h4>Expression</h4>
+              <pre><code>int priority = switch (status) {
+    case CRITICAL -> 1;
+    case HIGH -> 2;
+    default -> 3;
+};</code></pre>
+            </div>
+          </div>
+
+          <p>
+            Switch expressions avoid accidental fall-through, assign a result directly,
+            and encourage exhaustiveness. Traditional switch remains useful for rare intentional
+            fall-through, although that should be documented carefully.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Map order status to SLA, API response code, or processing strategy.
+              If the logic becomes large or varies by subtype, move behavior into polymorphic classes or a strategy map.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 14</span>Helpful NPE versus manual null tracing</summary>
+        <div class="answer">
+          <p>
+            Traditional NPE messages often identified only the failing line. Helpful NPE messages identify
+            the specific null expression in a dereference chain. This reduces investigation time but does not
+            replace input validation, invariants, nullness analysis, or proper domain modeling.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              In a production stack trace for <code>order.getCustomer().getAddress().getCity()</code>,
+              the JVM can identify whether customer or address was null. The permanent fix is still to
+              determine why invalid state entered the service.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 15</span>Text block versus escaped multiline String</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional</h4>
+              <pre><code>String json =
+    "{\n" +
+    "  \"status\": \"ACTIVE\",\n" +
+    "  \"limit\": 10\n" +
+    "}";</code></pre>
+            </div>
+            <div class="card">
+              <h4>Text block</h4>
+              <pre><code>String json = """
+    {
+      "status": "ACTIVE",
+      "limit": 10
+    }
+    """;</code></pre>
+            </div>
+          </div>
+
+          <p>
+            Text blocks improve readability for SQL, JSON, XML, HTML, and fixtures.
+            They do not validate structured data, escape user input, or prevent SQL injection.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project choice</h4>
+            <p>
+              Use a text block for a stable integration-test payload or readable SQL template.
+              Use an object serializer for dynamic JSON and prepared statements or query APIs for SQL parameters.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 16</span>Record versus traditional POJO and Lombok</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional POJO</h4>
+              <pre><code>public final class UserSummary {
+    private final long id;
+    private final String name;
+
+    // constructor, accessors,
+    // equals, hashCode, toString
+}</code></pre>
+            </div>
+            <div class="card">
+              <h4>Record</h4>
+              <pre><code>public record UserSummary(
+    long id,
+    String name
+) {}</code></pre>
+            </div>
+          </div>
+
+          <table>
+            <thead><tr><th>Option</th><th>Best fit</th><th>Trade-off</th></tr></thead>
+            <tbody>
+              <tr><td>Record</td><td>Transparent data carrier, event, DTO, projection, value key.</td><td>Fixed state model, final class, shallow immutability.</td></tr>
+              <tr><td>Handwritten class</td><td>Strong invariants, hidden representation, complex lifecycle, framework requirements.</td><td>More boilerplate.</td></tr>
+              <tr><td>Lombok class</td><td>Reduce boilerplate while retaining class flexibility.</td><td>Annotation processing, generated behavior, tooling/team dependency.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use a record for a Kafka event or REST response whose components define the public data contract.
+              Use a normal class for a mutable JPA aggregate or a security-sensitive type that must hide its internal representation.
+            </p>
+          </div>
+
+          <p><strong>Deep question:</strong> Is a record deeply immutable? No. Create defensive copies of mutable components.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 16</span>Pattern matching instanceof versus manual cast</summary>
+        <div class="answer">
+          <pre><code>// Traditional
+if (value instanceof PaymentError) {
+    PaymentError error = (PaymentError) value;
+    log(error.getCode());
+}
+
+// Pattern
+if (value instanceof PaymentError error) {
+    log(error.getCode());
+}</code></pre>
+
+          <p>
+            Pattern matching removes repeated type tests and casts and uses flow scoping.
+            It does not justify long type-dispatch chains when polymorphism would be a cleaner domain design.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 17</span>Sealed hierarchy versus open inheritance and enum</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Model</th><th>Use when</th></tr></thead>
+            <tbody>
+              <tr><td>Open interface/class</td><td>Third parties or future modules must freely add implementations.</td></tr>
+              <tr><td>Sealed hierarchy</td><td>The domain has a controlled set of variants with variant-specific data.</td></tr>
+              <tr><td>Enum</td><td>The domain has fixed singleton constants with mostly uniform state.</td></tr>
+            </tbody>
+          </table>
+
+          <pre><code>sealed interface PaymentResult
+    permits Approved, Declined, TechnicalFailure {}
+
+record Approved(String transactionId)
+    implements PaymentResult {}
+
+record Declined(String reason)
+    implements PaymentResult {}
+
+record TechnicalFailure(String code, boolean retryable)
+    implements PaymentResult {}</code></pre>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Model an authentication challenge result, payment result, order state transition result,
+              or command outcome. Pattern switch can then require exhaustive handling.
+            </p>
+          </div>
+
+          <p><strong>Do not seal:</strong> plugin SPIs intended for external implementations.</p>
+        </div>
+      </details>
+
+      <h3>Java 18–21 runtime and concurrency comparisons</h3>
+
+      <details>
+        <summary><span class="question-level">Java 18</span>UTF-8 default versus platform-default encoding</summary>
+        <div class="answer">
+          <p>
+            Platform-default encoding made file behavior differ between developer machines, Linux containers,
+            and legacy Windows environments. UTF-8 by default improves consistency.
+          </p>
+
+          <pre><code>// Still best when the external contract requires a charset
+String content =
+    Files.readString(path, StandardCharsets.UTF_8);</code></pre>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Importing a Japanese CSV supplied in Shift_JIS must still specify Shift_JIS.
+              The JDK default cannot replace an explicit external-file contract.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 21</span>Virtual threads versus fixed platform-thread pool</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Fixed platform pool</th><th>Virtual thread per task</th></tr></thead>
+            <tbody>
+              <tr><td>Concurrency limited partly by expensive OS threads.</td><td>Very large numbers of lightweight Java threads are practical.</td></tr>
+              <tr><td>Queueing is commonly used to protect thread count.</td><td>Do not pool virtual threads merely to save threads; use explicit semaphores for resource limits.</td></tr>
+              <tr><td>ThreadLocal memory multiplied by pool size.</td><td>ThreadLocal usage across huge task counts can still create memory pressure.</td></tr>
+              <tr><td>Blocking consumes an OS thread.</td><td>Many blocking operations unmount the virtual thread from its carrier.</td></tr>
+            </tbody>
+          </table>
+
+          <pre><code>try (ExecutorService executor =
+         Executors.newVirtualThreadPerTaskExecutor()) {
+    Future&lt;Customer&gt; customer =
+        executor.submit(() -> customerClient.load(id));
+
+    Future&lt;List&lt;Order&gt;&gt; orders =
+        executor.submit(() -> orderClient.load(id));
+
+    return new CustomerView(
+        customer.get(),
+        orders.get()
+    );
+}</code></pre>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              A Spring MVC aggregation service performs several blocking HTTP/JDBC operations per request.
+              Virtual threads can preserve simple imperative code while supporting high concurrency.
+              The JDBC pool, provider rate limit, CPU, locks, and memory remain bounded resources.
+            </p>
+          </div>
+
+          <p><strong>Use a traditional bounded platform pool when:</strong> running CPU-bound work, integrating with incompatible native code, or operating on an older supported JDK.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 21</span>Virtual threads versus reactive programming</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Virtual-thread imperative model</th><th>Reactive model</th></tr></thead>
+            <tbody>
+              <tr><td>Familiar sequential control flow.</td><td>Explicit asynchronous pipeline.</td></tr>
+              <tr><td>Excellent for blocking APIs.</td><td>Excellent for non-blocking streaming stacks.</td></tr>
+              <tr><td>Backpressure must be designed separately.</td><td>Backpressure is part of Reactive Streams.</td></tr>
+              <tr><td>Stack traces and debugging are often intuitive.</td><td>Requires reactive debugging and operator knowledge.</td></tr>
+              <tr><td>May integrate naturally with JDBC.</td><td>Requires reactive drivers for end-to-end non-blocking behavior.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project decision</h4>
+            <p>
+              For request/response APIs using blocking SDKs and JDBC, virtual threads can simplify the architecture.
+              For high-volume event streams, WebSocket feeds, or systems requiring end-to-end backpressure,
+              Reactor/WebFlux may still be a better model.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Loom</span>Structured concurrency versus manually managed CompletableFuture</summary>
+        <div class="answer">
+          <p>
+            Manual futures can outlive the request that created them, and cancellation/error propagation must be wired carefully.
+            Structured concurrency groups child tasks under a lexical parent scope so that their lifetime,
+            cancellation, and failure policy can be managed as one operation.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              A customer-view endpoint launches profile, billing, and order calls. If billing fails,
+              the scope can cancel sibling work and fail the whole request. If the business permits partial data,
+              choose a policy that explicitly captures partial failures rather than silently swallowing them.
+            </p>
+          </div>
+
+          <div class="highlight warning">
+            Structured concurrency has evolved through incubator/preview releases.
+            Verify the exact target JDK API and do not expose preview APIs in stable public libraries.
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 25</span>ScopedValue versus ThreadLocal</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>ThreadLocal</th><th>ScopedValue</th></tr></thead>
+            <tbody>
+              <tr><td>Mutable per-thread storage.</td><td>Immutable binding for a bounded execution scope.</td></tr>
+              <tr><td>Cleanup is easy to forget in thread pools.</td><td>Binding ends automatically with the scope.</td></tr>
+              <tr><td>Any deep code can mutate the value.</td><td>Deep code reads the value but cannot mutate the binding.</td></tr>
+              <tr><td>Designed around thread identity.</td><td>Designed for structured task/context propagation.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Propagate immutable tenant ID, authenticated subject, request ID, or trace metadata
+              through service calls running on virtual threads. Do not use it to hide service dependencies
+              or create an implicit global service locator.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 21</span>Pattern switch versus Visitor and polymorphism</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Approach</th><th>Best fit</th></tr></thead>
+            <tbody>
+              <tr><td>Pattern switch</td><td>External operation over a closed sealed hierarchy.</td></tr>
+              <tr><td>Polymorphic method</td><td>Behavior naturally belongs to each subtype.</td></tr>
+              <tr><td>Visitor</td><td>Many operations must be added without modifying stable node types, especially in compiler/AST models.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Use pattern switch to map a closed payment result into an HTTP response.
+              Put calculation behavior inside domain subtypes when every service repeatedly switches on the same type.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 21</span>Sequenced collections versus manual first, last, and reverse code</summary>
+        <div class="answer">
+          <pre><code>// Older style depends on concrete collection type
+String first = list.get(0);
+String last = list.get(list.size() - 1);
+
+// Sequenced API
+String first = sequence.getFirst();
+String last = sequence.getLast();
+SequencedCollection&lt;String&gt; reverseView =
+    sequence.reversed();</code></pre>
+
+          <p>
+            Sequenced interfaces provide one contract for collections with encounter order.
+            <code>reversed()</code> is generally a view, so understand whether changes are reflected
+            and whether the underlying collection is mutable.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>Workflow steps, audit history, ordered rules, navigation breadcrumbs, and ordered cache entries.</p>
+          </div>
+        </div>
+      </details>
+
+      <h3>Java 22–26 platform comparisons</h3>
+
+      <details>
+        <summary><span class="question-level">Java 22</span>Foreign Function &amp; Memory API versus JNI, Unsafe, and direct ByteBuffer</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Approach</th><th>Strength</th><th>Risk</th></tr></thead>
+            <tbody>
+              <tr><td>JNI</td><td>Mature native interoperability.</td><td>High ceremony, native glue code, difficult debugging.</td></tr>
+              <tr><td>Unsafe</td><td>Low-level capabilities.</td><td>Internal/unsafe API, weak safety and portability.</td></tr>
+              <tr><td>Direct ByteBuffer</td><td>Off-heap buffer and channel integration.</td><td>Limited structured native-call model and lifecycle ergonomics.</td></tr>
+              <tr><td>FFM API</td><td>Standard layouts, memory segments, arenas, and method handles.</td><td>Native code remains inherently risky; ABI expertise is required.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Integrate a high-performance encryption, image-processing, or device library without writing
+              a large JNI wrapper. Keep the native boundary small, validate memory lifetimes,
+              isolate crashes where necessary, and test every supported operating system/architecture.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 22</span>Unnamed variable versus dummy variable name</summary>
+        <div class="answer">
+          <pre><code>// Traditional
+catch (IOException ignored) {
+    metrics.increment("io.failure");
+}
+
+// Unnamed variable
+catch (IOException _) {
+    metrics.increment("io.failure");
+}</code></pre>
+
+          <p>
+            The underscore explicitly states that the variable is intentionally unused.
+            Do not discard a value when it contains important diagnostic or cleanup information.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 24</span>Stream Gatherer versus loop, flatMap, and Collector</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Loop</td><td>Simple one-off stateful algorithm with maximum control.</td></tr>
+              <tr><td>flatMap / mapMulti</td><td>One input may emit zero or more output elements.</td></tr>
+              <tr><td>Collector</td><td>Terminal mutable reduction into a final result.</td></tr>
+              <tr><td>Gatherer</td><td>Reusable custom intermediate operation that can emit a stream of results.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Create reusable fixed-size windows for telemetry events, a stateful distinct-by-key operation,
+              or a domain-specific scan. Prefer a loop when the behavior is not reused or the Gatherer
+              would make parallel semantics difficult to explain.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 24</span>Class-File API versus ASM or Byte Buddy</summary>
+        <div class="answer">
+          <p>
+            The Class-File API is a standard JDK API for class-file parsing, generation, and transformation.
+            ASM and Byte Buddy remain mature ecosystems with higher-level abstractions and broad existing integrations.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project choice</h4>
+            <p>
+              A low-level instrumentation agent may adopt the standard API to align with new class-file versions.
+              A framework that needs proxy generation and convenient method interception may still prefer Byte Buddy.
+              Normal business applications should not introduce bytecode generation without a strong reason.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 24</span>Security Manager versus modern isolation</summary>
+        <div class="answer">
+          <p>
+            The Security Manager attempted in-process sandboxing. Modern service security relies more on:
+          </p>
+          <ul>
+            <li>Separate process/container or VM boundary.</li>
+            <li>OS user and filesystem permissions.</li>
+            <li>Network policy and egress controls.</li>
+            <li>Cloud IAM and short-lived credentials.</li>
+            <li>Application authentication and authorization.</li>
+            <li>Module/API boundaries and dependency governance.</li>
+          </ul>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Run untrusted conversion or plugin code in a separately constrained process rather than assuming
+              the JVM can safely sandbox arbitrary code in the same application.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 25</span>Compact source file versus classic public static void main</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Classic</h4>
+              <pre><code>public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}</code></pre>
+            </div>
+            <div class="card">
+              <h4>Compact source</h4>
+              <pre><code>void main() {
+    IO.println("Hello");
+}</code></pre>
+            </div>
+          </div>
+
+          <p>
+            Compact source files reduce ceremony for learning, scripts, demonstrations, and small tools.
+            They do not replace packages, modules, testing structure, dependency injection,
+            or clear architecture in enterprise applications.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 25</span>Flexible constructor body versus factory validation</summary>
+        <div class="answer">
+          <p>
+            Traditionally, an explicit <code>super(...)</code> or <code>this(...)</code> invocation had to be the first statement.
+            Flexible constructor bodies allow safe validation or computation before that invocation.
+          </p>
+
+          <pre><code>public PremiumAccount(
+        String owner,
+        BigDecimal limit) {
+    Objects.requireNonNull(owner);
+
+    if (limit.signum() &lt;= 0) {
+        throw new IllegalArgumentException(
+            "limit must be positive"
+        );
+    }
+
+    super(owner);
+    this.limit = limit;
+}</code></pre>
+
+          <div class="decision">
+            <h4>Traditional alternative</h4>
+            <p>
+              A static factory can still be better when construction selects different implementations,
+              uses caching, has a meaningful name, or must hide constructor complexity.
+              Flexible constructors solve ordering restrictions; they do not make factories obsolete.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 25</span>Compact object headers versus traditional object layout</summary>
+        <div class="answer">
+          <p>
+            This is primarily a runtime optimization rather than a source-code pattern.
+            Smaller object headers can reduce heap footprint and improve cache density in object-heavy workloads.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              A service holding millions of small nodes, cache entries, or domain objects may see meaningful
+              memory improvement. A service dominated by byte arrays or large payloads may see little benefit.
+              Validate heap histograms, RSS, GC behavior, and throughput before making capacity claims.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 26</span>HTTP/3 versus HTTP/2</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>HTTP/2</th><th>HTTP/3</th></tr></thead>
+            <tbody>
+              <tr><td>Runs over TCP.</td><td>Runs over QUIC/UDP.</td></tr>
+              <tr><td>TCP-level packet loss can affect multiplexed streams.</td><td>QUIC provides independent stream behavior at the transport level.</td></tr>
+              <tr><td>Mature enterprise proxy/firewall support.</td><td>Infrastructure support and UDP policy must be verified.</td></tr>
+              <tr><td>Connection migration is limited by TCP connection identity.</td><td>QUIC is designed to handle network changes more gracefully.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Mobile clients on changing networks may benefit, but a backend-to-backend service behind a corporate
+              proxy may gain nothing or may fall back. Measure handshake, packet loss, server processing,
+              proxy support, observability, and protocol negotiation.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 26</span>AOT object caching versus normal startup initialization</summary>
+        <div class="answer">
+          <p>
+            Traditional startup loads classes, links code, scans metadata, and creates framework object graphs
+            on every process start. AOT mechanisms move suitable work earlier and restore reusable state.
+          </p>
+
+          <div class="decision">
+            <h4>Real-project case</h4>
+            <p>
+              Serverless functions, command-line tools, autoscaled containers, and large frameworks may benefit
+              from lower startup and warm-up time. Long-running services with rare restarts may prioritize
+              peak throughput and operational simplicity instead.
+            </p>
+          </div>
+
+          <p><strong>Senior caution:</strong> AOT optimization requires a representative training/build process,
+          reproducibility, compatibility testing, and measurement of startup, image size, memory, and steady-state performance.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Preview</span>Preview feature versus permanent feature</summary>
+        <div class="answer">
+          <table>
+            <thead><tr><th>Permanent</th><th>Preview / incubator</th></tr></thead>
+            <tbody>
+              <tr><td>Standardized API/language behavior.</td><td>May change or be removed in a later release.</td></tr>
+              <tr><td>No preview flag required.</td><td>Often requires compile-time and runtime flags.</td></tr>
+              <tr><td>Reasonable for public library contracts.</td><td>Avoid exposing in stable public APIs.</td></tr>
+              <tr><td>Broader tooling/framework support.</td><td>Tooling and ecosystem support may be incomplete.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision">
+            <h4>Real-project policy</h4>
+            <p>
+              Allow preview features in isolated experiments or internal prototypes only with explicit risk acceptance.
+              Do not make a core production library depend on preview bytecode unless the organization accepts
+              mandatory JDK lockstep upgrades and potential source changes.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <h3>Cross-feature real-project decisions</h3>
+
+      <details>
+        <summary><span class="question-level">Architecture</span>Record + sealed interface + pattern switch versus traditional DTO with type code</summary>
+        <div class="answer">
+          <div class="grid-2">
+            <div class="card">
+              <h4>Traditional type code</h4>
+              <pre><code>class PaymentResultDto {
+    String type;
+    String transactionId;
+    String reason;
+    String errorCode;
+}</code></pre>
+              <p>Many fields are invalid for a given type and runtime validation is required.</p>
+            </div>
+            <div class="card">
+              <h4>Closed typed model</h4>
+              <pre><code>sealed interface PaymentResult
+    permits Approved, Declined, Failed {}
+
+record Approved(String transactionId)
+    implements PaymentResult {}
+
+record Declined(String reason)
+    implements PaymentResult {}
+
+record Failed(String code)
+    implements PaymentResult {}</code></pre>
+              <p>Each variant carries only valid data and switch handling can be exhaustive.</p>
+            </div>
+          </div>
+
+          <div class="decision">
+            <h4>Real-project benefit</h4>
+            <p>
+              Fewer invalid states, clearer API inside the application, safer refactoring,
+              and compile-time reminders when a new result type is added.
+              External JSON polymorphism and backward compatibility still need explicit design.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Concurrency</span>Virtual threads + ScopedValue versus thread pool + ThreadLocal</summary>
+        <div class="answer">
+          <p>
+            The modern combination supports a thread-per-task programming model with immutable,
+            bounded request context. The traditional combination can remain appropriate on older JDKs
+            or when a mature platform has already standardized bounded executors and cleanup filters.
+          </p>
+
+          <div class="decision">
+            <h4>Migration case</h4>
+            <ol>
+              <li>Run the existing application on the target JDK.</li>
+              <li>Measure thread counts, blocking, pinning, connection pools, and ThreadLocal use.</li>
+              <li>Move selected request executors to virtual threads.</li>
+              <li>Replace context ThreadLocals only where ScopedValue improves lifetime and safety.</li>
+              <li>Canary deploy and compare latency, memory, downstream load, and error behavior.</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">API design</span>Modern feature does not always mean modern architecture</summary>
+        <div class="answer">
+          <p>
+            A codebase can use records, pattern matching, and Streams while still having poor boundaries,
+            shared database ownership, non-idempotent retries, weak observability, and incorrect transactions.
+            Java features improve expression and runtime capabilities; architecture still requires domain,
+            consistency, security, reliability, and operational design.
+          </p>
+        </div>
+      </details>
+    </section>
+
+
+    <section id="feature-interviews">
+      <h2>6. Deep Feature Interview Questions</h2>
+      <p class="lead">
+        These questions are designed to distinguish syntax knowledge from production experience.
+      </p>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>Why must a reduction function be associative for parallel streams?</summary>
+        <div class="answer">
+          <p>
+            A parallel stream partitions data and combines partial results in an order that may differ
+            from sequential encounter order. If the operation is not associative, regrouping changes the result.
+            Subtraction and floating-point accumulation are common examples where order matters.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 8</span>How can CompletableFuture cause thread starvation?</summary>
+        <div class="answer">
+          <p>
+            Async methods without an explicit executor commonly use the common ForkJoinPool.
+            Blocking database or network calls occupy workers intended for fork/join computation.
+            In a server, use an appropriately sized executor or a non-blocking client, and define timeout,
+            cancellation, rejection, metrics, and context propagation.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 9</span>Classpath versus module path: what changes?</summary>
+        <div class="answer">
+          <p>
+            The classpath places code largely in an unnamed module with traditional package visibility.
+            The module path resolves named modules with explicit readability and exports.
+            Reflection into non-open packages can fail even when classes are public.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 10</span>Can var change overload resolution or runtime behavior?</summary>
+        <div class="answer">
+          <p>
+            <code>var</code> is compile-time syntax. However, the inferred static type can affect which methods
+            are accessible and later overload resolution. It can also infer a concrete implementation or
+            intersection type that is not obvious to readers.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Java 11</span>When would you not use the standard HttpClient?</summary>
+        <div class="answer">
+          <p>
+            A framework client may provide stronger integration for connection pooling, service discovery,
+            observability, declarative APIs, resilience, codecs, or reactive backpressure.
+            The choice depends on platform standards and operational requirements, not only API simplicity.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Records</span>Are records immutable?</summary>
+        <div class="answer">
+          <p>
+            Record component fields are final and component references cannot be reassigned,
+            but referenced objects can still be mutable. A record containing a mutable List is only
+            shallowly immutable unless it creates a defensive copy.
+          </p>
+          <pre><code>public record Team(List&lt;String&gt; members) {
+    public Team {
+        members = List.copyOf(members);
+    }
+}</code></pre>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Records</span>Should records be used as JPA entities?</summary>
+        <div class="answer">
+          <p>
+            Usually not as normal mutable entities. JPA traditionally expects entity identity,
+            lifecycle mutation, a no-argument constructor, and sometimes proxies. Records work better
+            as DTOs, projections, events, keys, and immutable domain values. Framework/version support must be verified.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Sealed</span>Sealed hierarchy versus enum: how do you choose?</summary>
+        <div class="answer">
+          <p>
+            An enum has a fixed set of instances of one type and is ideal for simple named constants.
+            A sealed hierarchy has a fixed set of subtypes, each with different state and behavior.
+            Use sealed types for richer variant-specific data.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Pattern matching</span>Can pattern switch replace polymorphism?</summary>
+        <div class="answer">
+          <p>
+            Sometimes. Pattern switch is excellent for external operations over a closed hierarchy.
+            Polymorphism is often better when behavior belongs naturally inside each subtype.
+            Excessive switching across many services may indicate an anemic model.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Virtual threads</span>Do virtual threads remove the need for reactive programming?</summary>
+        <div class="answer">
+          <p>
+            No. Virtual threads make imperative blocking code scale much better for many I/O workloads.
+            Reactive systems still provide explicit backpressure, streaming composition, event-loop integration,
+            and mature reactive libraries. The best model depends on workload, team skill, latency, and ecosystem.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Virtual threads</span>Why can the database still become the bottleneck?</summary>
+        <div class="answer">
+          <p>
+            Virtual threads increase the number of waiting tasks but do not increase database connections,
+            transaction throughput, locks, CPU, IOPS, or downstream quotas. A bounded connection pool and
+            explicit admission control are still necessary.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Virtual threads</span>What is pinning?</summary>
+        <div class="answer">
+          <p>
+            A virtual thread is normally unmounted from its carrier when blocking.
+            In some operations, especially blocking while holding certain monitor/native states,
+            it can remain attached to the carrier. Excessive pinning reduces scalability.
+            Use JFR and diagnostics instead of guessing.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Scoped values</span>Why not keep using ThreadLocal?</summary>
+        <div class="answer">
+          <p>
+            ThreadLocal is mutable, can leak across pooled threads if cleanup is missed, and makes lifetime
+            difficult to reason about. Scoped values are immutable bindings limited to a lexical/dynamic scope,
+            which better matches structured concurrency and virtual-thread task lifetimes.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">FFM</span>Does FFM make native calls safe?</summary>
+        <div class="answer">
+          <p>
+            It improves Java-side safety with typed layouts, bounds checks, and controlled lifetimes.
+            Native functions can still corrupt memory, violate ABI expectations, block indefinitely,
+            or expose security vulnerabilities. Native integration still needs isolation and testing.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Gatherers</span>When is a loop better than a Gatherer?</summary>
+        <div class="answer">
+          <p>
+            A one-off stateful algorithm is often clearer as a loop. A Gatherer is justified when the operation
+            is reusable, composes naturally with Streams, and its sequential/parallel behavior is well tested.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Migration</span>How do you upgrade Java 8 to 17 or 21 safely?</summary>
+        <div class="answer">
+          <p>
+            Inventory runtime and dependencies, update build tools, run tests on the target JDK,
+            replace removed modules, inspect illegal reflective access, update containers and observability agents,
+            benchmark GC/startup/latency, canary deploy, and retain rollback. Compile target and runtime target
+            should be controlled independently when gradual rollout is needed.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">Preview</span>Would you use a preview feature in production?</summary>
+        <div class="answer">
+          <p>
+            Usually avoid it for core production or public libraries because source and binary behavior may change,
+            preview flags are required at compile and runtime, and ecosystem tooling may lag. It can be reasonable
+            for controlled experiments with explicit risk acceptance and no public compatibility commitment.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="question-level">JVM</span>Why can a newer JDK improve performance without code changes?</summary>
+        <div class="answer">
+          <p>
+            Newer JDKs include JIT, GC, class-data sharing, allocation, startup, intrinsic, and platform improvements.
+            Results are workload-specific. A Senior validates throughput, p95/p99 latency, memory, startup,
+            CPU, GC pauses, and container behavior before claiming improvement.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <section id="migration">
+      <h2>7. Production Migration Strategy</h2>
+      <p class="lead">
+        Upgrading Java is a platform change, not merely changing the compiler number.
+      </p>
+
+      <h3>6.1 Recommended sequence</h3>
+      <ol>
+        <li><strong>Inventory:</strong> JDK vendor, runtime flags, frameworks, agents, native libraries, build plugins, reflection, removed Java EE APIs.</li>
+        <li><strong>Upgrade build chain:</strong> Maven/Gradle, compiler, test plugins, coverage, static analysis, annotation processors.</li>
+        <li><strong>Upgrade dependencies:</strong> especially Spring, Hibernate, bytecode libraries, logging, mocking, application servers, JDBC drivers.</li>
+        <li><strong>Run on the target JDK before using new syntax:</strong> separate runtime migration from language-feature adoption when possible.</li>
+        <li><strong>Test behavior:</strong> unit, integration, contract, security, serialization, timezone, charset, reflection, TLS, and native integration.</li>
+        <li><strong>Benchmark:</strong> throughput, p95/p99 latency, startup, RSS/heap, allocation, GC, CPU, thread counts, and connection pools.</li>
+        <li><strong>Canary and rollback:</strong> deploy a small percentage, compare telemetry, retain the previous image and database compatibility.</li>
+      </ol>
+
+      <h3>6.2 Framework compatibility example</h3>
+      <pre><code>// Maven compiler target using release avoids accidentally compiling
+// against APIs newer than the selected target.
+&lt;plugin&gt;
+  &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+  &lt;configuration&gt;
+    &lt;release&gt;21&lt;/release&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+
+      <h3>6.3 Senior migration answer</h3>
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “I first make the application run unchanged on the target JDK, then adopt features.
+        That separates compatibility risk from refactoring risk. I verify dependencies and agents,
+        removed modules, illegal reflection, GC flags, container limits, TLS, serialization,
+        and performance. I use canary deployment with measurable rollback criteria.”
+      </div>
+    </section>
+    <section id="stream">
+      <h2>8. What Is the Stream API?</h2>
+      <p class="lead">
+        A Stream is a one-use pipeline for processing a sequence of elements.
+        It does not store data. Its source is usually a Collection, array, generator, or I/O source.
+      </p>
+
+      <h3>7.1 Pipeline structure</h3>
+      <pre><code>Source → Intermediate Operations → Terminal Operation
+
+List&lt;String&gt; emails = employees.stream()
+    .filter(Employee::isActive)
+    .map(Employee::getEmail)
+    .filter(Objects::nonNull)
+    .map(email -> email.toLowerCase(Locale.ROOT))
+    .distinct()
+    .sorted()
+    .collect(Collectors.toList()); // Java 8</code></pre>
+
+      <ul>
+        <li><strong>Source:</strong> supplies elements.</li>
+        <li><strong>Intermediate operation:</strong> returns another Stream and is normally lazy.</li>
+        <li><strong>Terminal operation:</strong> triggers execution and produces a result or side effect.</li>
+      </ul>
+
+      <h3>7.2 Why Streams are useful</h3>
+      <div class="grid-2">
+        <div class="card"><h4>Declarative processing</h4><p>Express the transformation rather than manually managing indexes, temporary variables, and loop state.</p></div>
+        <div class="card"><h4>Composition</h4><p>Reusable predicates, functions, comparators, and collectors can be combined into readable business pipelines.</p></div>
+        <div class="card"><h4>Lazy execution</h4><p>Work is performed only when a terminal operation needs it, enabling fusion and short-circuiting.</p></div>
+        <div class="card"><h4>Parallel capability</h4><p>The API can partition work, but safe and useful parallelism requires the correct workload and stateless operations.</p></div>
+      </div>
+
+      <h3>7.3 Lazy evaluation</h3>
+      <pre><code>Optional&lt;String&gt; first = names.stream()
+    .filter(name -> {
+        System.out.println("filter " + name);
+        return name.length() &gt; 3;
+    })
+    .map(name -> {
+        System.out.println("map " + name);
+        return name.toUpperCase(Locale.ROOT);
+    })
+    .findFirst();</code></pre>
+      <p>
+        The pipeline processes only enough elements to satisfy <code>findFirst</code>.
+        It does not necessarily filter the entire input and then map a second complete list.
+      </p>
+
+      <h3>7.4 Streams are one-use</h3>
+      <pre><code>Stream&lt;String&gt; stream = names.stream();
+long count = stream.count();
+
+// IllegalStateException: the stream has already been consumed
+List&lt;String&gt; values = stream.collect(Collectors.toList());</code></pre>
+
+      <h3>7.5 Stateless and stateful operations</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Examples</th><th>Implication</th></tr></thead>
+        <tbody>
+          <tr><td>Stateless</td><td>map, filter, peek</td><td>Each element can normally be processed independently.</td></tr>
+          <tr><td>Stateful</td><td>sorted, distinct, limit in ordered parallel processing</td><td>May buffer data or coordinate across elements.</td></tr>
+          <tr><td>Short-circuiting</td><td>findFirst, anyMatch, limit</td><td>May stop without consuming the full source.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.6 Side effects</h3>
+      <pre><code>// Unsafe with a parallel stream
+List&lt;String&gt; result = new ArrayList&lt;&gt;();
+names.parallelStream().forEach(result::add);
+
+// Correct reduction
+List&lt;String&gt; result = names.parallelStream()
+    .collect(Collectors.toList());</code></pre>
+      <p>
+        Side effects make the pipeline harder to reason about, test, retry, and parallelize.
+        Prefer returning values and using collectors.
+      </p>
+
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “Streams are most valuable when the problem is a data-transformation pipeline.
+        They reduce mutable state and support lazy composition. I avoid them when the algorithm
+        needs complex state transitions, indexes, early control flow, checked-exception-heavy logic,
+        or business side effects.”
+      </div>
+    </section>
+
+    <section id="loop">
+      <h2>9. Stream versus for, enhanced for, and while</h2>
+
+      <table>
+        <thead><tr><th>Concern</th><th>Stream</th><th>for / enhanced for</th><th>while</th></tr></thead>
+        <tbody>
+          <tr><td>Style</td><td>Declarative</td><td>Imperative</td><td>Imperative</td></tr>
+          <tr><td>Index control</td><td>Indirect</td><td>Strong</td><td>Strongest</td></tr>
+          <tr><td>break / continue</td><td>No direct equivalent</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Lazy processing</td><td>Yes</td><td>No built-in pipeline</td><td>No built-in pipeline</td></tr>
+          <tr><td>Mutable state</td><td>Should be minimized</td><td>Natural</td><td>Natural</td></tr>
+          <tr><td>Parallel API</td><td>Built in</td><td>Manual</td><td>Manual</td></tr>
+          <tr><td>Debugging</td><td>Can be harder</td><td>Usually straightforward</td><td>Usually straightforward</td></tr>
+          <tr><td>Overhead</td><td>Pipeline/lambda/boxing may add cost</td><td>Usually low</td><td>Usually low</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.1 The same business operation</h3>
+      <pre><code>// Loop
+Set&lt;String&gt; emails = new HashSet&lt;&gt;();
+for (User user : users) {
+    if (user.isActive() &amp;&amp; user.getEmail() != null) {
+        emails.add(user.getEmail().toLowerCase(Locale.ROOT));
+    }
+}
+
+// Stream
+Set&lt;String&gt; emails = users.stream()
+    .filter(User::isActive)
+    .map(User::getEmail)
+    .filter(Objects::nonNull)
+    .map(email -> email.toLowerCase(Locale.ROOT))
+    .collect(Collectors.toSet());</code></pre>
+
+      <h3>8.2 Prefer a Stream when</h3>
+      <ul>
+        <li>The operation is naturally filter → transform → group/reduce.</li>
+        <li>Each stage is mostly stateless and side-effect free.</li>
+        <li>The pipeline communicates the business rule more clearly than loop mechanics.</li>
+        <li>You need collectors such as grouping, partitioning, joining, or summarizing.</li>
+      </ul>
+
+      <h3>8.3 Prefer a loop when</h3>
+      <ul>
+        <li>You need break, continue, mutation, retry, or index manipulation.</li>
+        <li>The logic has several state transitions or dependent branches.</li>
+        <li>You must perform ordered side effects with explicit error handling.</li>
+        <li>The code is a measured hot path and allocation/boxing overhead matters.</li>
+      </ul>
+
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “I choose based on clarity and behavior, not fashion. A Stream is not automatically
+        more efficient, and a loop is not automatically less maintainable. The better choice
+        is the one that exposes the algorithm and failure handling most clearly.”
+      </div>
+    </section>
+
+    <section id="complexity">
+      <h2>10. Is a Stream Always O(n)?</h2>
+      <p class="lead">No. Complexity is determined by the operations and how much of the source must be consumed.</p>
+
+      <table>
+        <thead><tr><th>Operation</th><th>Typical complexity</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>filter / map</td><td>O(n)</td><td>One pass through consumed elements.</td></tr>
+          <tr><td>findFirst / anyMatch</td><td>Best O(1), worst O(n)</td><td>Short-circuits when possible.</td></tr>
+          <tr><td>limit(k)</td><td>Approximately O(k)</td><td>Unless an earlier stateful operation requires more work.</td></tr>
+          <tr><td>distinct</td><td>Average O(n)</td><td>Normally uses hash-based state and O(n) additional memory.</td></tr>
+          <tr><td>sorted</td><td>O(n log n)</td><td>Usually needs all elements before emitting sorted output.</td></tr>
+          <tr><td>groupingBy</td><td>Average O(n)</td><td>Depends on map operations and downstream collectors.</td></tr>
+          <tr><td>nested search</td><td>Often O(n × m)</td><td>A Stream does not remove nested-algorithm complexity.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>9.1 Big-O is not the full performance story</h3>
+      <p>
+        Two O(n) implementations can have very different throughput because of allocation,
+        boxing, branch prediction, cache locality, JIT optimization, GC pressure, and data shape.
+      </p>
+
+      <pre><code>// Boxing occurs
+int sum = numbers.stream()
+    .map(number -> number * 2)
+    .reduce(0, Integer::sum);
+
+// Primitive specialization avoids Integer boxing
+int sum = numbers.stream()
+    .mapToInt(Integer::intValue)
+    .map(number -> number * 2)
+    .sum();</code></pre>
+
+      <h3>9.2 Do not guess—benchmark correctly</h3>
+      <p>
+        Use JMH for microbenchmarks. Include warm-up, multiple forks, realistic data,
+        dead-code prevention, and avoid treating a microbenchmark as a production load test.
+      </p>
+    </section>
+
+    <section id="hashmap">
+      <h2>11. How HashMap Works Internally</h2>
+      <p class="lead">
+        HashMap uses an array of buckets. A bucket can be empty, a linked list of nodes,
+        or a red-black tree when collisions become heavy and the table is large enough.
+      </p>
+
+      <pre><code>transient Node&lt;K,V&gt;[] table;
+
+static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+    final int hash;
+    final K key;
+    V value;
+    Node&lt;K,V&gt; next;
+}</code></pre>
+
+      <h3>10.1 put(key, value)</h3>
+      <ol>
+        <li>Obtain the key's hash code; null uses hash zero.</li>
+        <li>Spread higher bits into lower bits.</li>
+        <li>Calculate the bucket index using <code>(capacity - 1) &amp; hash</code>.</li>
+        <li>If the bucket is empty, insert a new node.</li>
+        <li>Otherwise compare hash and then <code>equals</code>.</li>
+        <li>Update an existing key or append/insert a collision node.</li>
+        <li>Treeify a heavily collided bucket when thresholds permit.</li>
+        <li>Resize when size exceeds the threshold.</li>
+      </ol>
+
+      <pre><code>int spread = hashCode ^ (hashCode >>> 16);
+int index = (capacity - 1) &amp; spread;</code></pre>
+
+      <h3>10.2 Why power-of-two capacity?</h3>
+      <p>
+        It allows a fast bit mask instead of modulo and supports an efficient resize:
+        an entry often stays at its old index or moves to <code>oldIndex + oldCapacity</code>.
+      </p>
+
+      <h3>10.3 Load factor and resize</h3>
+      <pre><code>threshold = capacity * loadFactor</code></pre>
+      <p>
+        The common load factor is 0.75, balancing memory and collision probability.
+        A resize is O(n), but insertion is O(1) amortized because resize does not occur for every put.
+      </p>
+
+      <h3>10.4 Treeification thresholds in Java 8</h3>
+      <ul>
+        <li><code>TREEIFY_THRESHOLD = 8</code></li>
+        <li><code>UNTREEIFY_THRESHOLD = 6</code></li>
+        <li><code>MIN_TREEIFY_CAPACITY = 64</code></li>
+      </ul>
+      <p>
+        When the table is still small, resizing is preferred over treeification because a larger
+        table may distribute the colliding entries into separate buckets.
+      </p>
+
+      <h3>10.5 Complexity</h3>
+      <table>
+        <thead><tr><th>Operation</th><th>Average</th><th>Important qualification</th></tr></thead>
+        <tbody>
+          <tr><td>get</td><td>O(1)</td><td>Depends on hash distribution; a treeified bucket is typically O(log n).</td></tr>
+          <tr><td>put</td><td>O(1) amortized</td><td>An individual resize costs O(n).</td></tr>
+          <tr><td>remove</td><td>O(1) average</td><td>Collision structure affects bucket work.</td></tr>
+          <tr><td>containsKey</td><td>O(1) average</td><td>Uses the key index.</td></tr>
+          <tr><td>containsValue</td><td>O(n)</td><td>No index exists for values.</td></tr>
+          <tr><td>iteration</td><td>O(capacity + size)</td><td>An oversized sparse table can make iteration more expensive.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>10.6 equals and hashCode contract</h3>
+      <ul>
+        <li>If two objects are equal, they must have the same hash code.</li>
+        <li>The same hash code does not imply equality.</li>
+        <li>Fields used by equals/hashCode should not change while the object is a map key.</li>
+      </ul>
+
+      <pre><code>EmployeeKey key = new EmployeeKey(1001, "VN");
+map.put(key, employee);
+
+// Dangerous when country participates in equals/hashCode
+key.setCountry("JP");
+
+// Lookup can now fail because the node remains in the old bucket
+Employee value = map.get(key);</code></pre>
+
+      <h3>10.7 Nulls and thread safety</h3>
+      <p>
+        HashMap permits one null key and multiple null values. It is not thread-safe.
+        For shared concurrent mutation, use a concurrent design such as ConcurrentHashMap,
+        immutability, confinement, or explicit locking.
+      </p>
+
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “HashMap is O(1) on average, not guaranteed. Its behavior depends on hash quality,
+        capacity, load factor, resize, collisions, and key immutability. In Java 8,
+        heavily collided buckets can become red-black trees to improve lookup behavior.”
+      </div>
+    </section>
+
+    <section id="collection-complexity">
+      <h2>12. Collection Time Complexity</h2>
+      <table>
+        <thead><tr><th>Collection</th><th>Read / peek</th><th>Add</th><th>Remove</th><th>Contains</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td>ArrayList</td><td>get O(1)</td><td>End O(1) amortized</td><td>Middle O(n)</td><td>O(n)</td><td>Default List.</td></tr>
+          <tr><td>LinkedList</td><td>get O(n)</td><td>Ends O(1)</td><td>Ends O(1), search O(n)</td><td>O(n)</td><td>Rarely the best default.</td></tr>
+          <tr><td>HashSet</td><td>—</td><td>O(1) average</td><td>O(1) average</td><td>O(1) average</td><td>Uniqueness and membership.</td></tr>
+          <tr><td>LinkedHashSet</td><td>—</td><td>O(1) average</td><td>O(1) average</td><td>O(1) average</td><td>Uniqueness plus insertion order.</td></tr>
+          <tr><td>TreeSet</td><td>—</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted unique data and range operations.</td></tr>
+          <tr><td>HashMap</td><td>get O(1) average</td><td>O(1) amortized</td><td>O(1) average</td><td>Key O(1) average</td><td>Key-based lookup.</td></tr>
+          <tr><td>LinkedHashMap</td><td>O(1) average</td><td>O(1) average</td><td>O(1) average</td><td>O(1) average</td><td>Ordered map or simple LRU.</td></tr>
+          <tr><td>TreeMap</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>Sorted keys and range queries.</td></tr>
+          <tr><td>PriorityQueue</td><td>peek O(1)</td><td>O(log n)</td><td>poll O(log n)</td><td>O(n)</td><td>Top priority, scheduling, top K.</td></tr>
+          <tr><td>ArrayDeque</td><td>peek O(1)</td><td>O(1) amortized</td><td>O(1) at ends</td><td>O(n)</td><td>Stack, queue, deque.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="highlight warning">
+        Big-O is a model, not a complete benchmark. ArrayList often outperforms LinkedList
+        because of contiguous memory, fewer allocations, and better CPU cache locality.
+      </div>
+    </section>
+
+    <section id="resources">
+      <h2>13. How to Use Try-with-resources</h2>
+      <p class="lead">
+        Try-with-resources deterministically closes objects implementing
+        <code>AutoCloseable</code> or <code>Closeable</code>.
+      </p>
+
+      <h3>12.1 File example</h3>
+      <pre><code>try (BufferedReader reader =
+         Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+    return reader.readLine();
+}</code></pre>
+
+      <h3>12.2 JDBC example</h3>
+      <pre><code>try (
+    Connection connection = dataSource.getConnection();
+    PreparedStatement statement =
+        connection.prepareStatement(
+            "SELECT id, email FROM users WHERE status = ?"
+        )
+) {
+    statement.setString(1, "ACTIVE");
+
+    try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+            process(resultSet);
+        }
+    }
+}</code></pre>
+
+      <p>Resources close in reverse declaration order.</p>
+
+      <h3>12.3 Suppressed exceptions</h3>
+      <p>
+        If the business body throws and <code>close()</code> also throws, the body exception remains
+        primary and close failures are available through <code>getSuppressed()</code>.
+      </p>
+
+      <pre><code>catch (Exception exception) {
+    log.error("Primary failure", exception);
+    for (Throwable suppressed : exception.getSuppressed()) {
+        log.error("Resource close failure", suppressed);
+    }
+}</code></pre>
+
+      <h3>12.4 Custom resource</h3>
+      <pre><code>public final class AuditSession implements AutoCloseable {
+    private boolean closed;
+
+    public void write(String event) {
+        if (closed) {
+            throw new IllegalStateException("Session is closed");
+        }
+        // write event
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+    }
+}
+
+try (AuditSession session = new AuditSession()) {
+    session.write("USER_LOGIN");
+}</code></pre>
+
+      <div class="interview">
+        <strong>Senior answer:</strong>
+        “The benefit is not only shorter code. It gives deterministic lifecycle management,
+        reverse-order closing, and correct preservation of close failures as suppressed exceptions.”
+      </div>
+    </section>
+
+    <section id="collections">
+      <h2>14. Collections Commonly Used in Real Projects</h2>
+
+      <h3>13.1 ArrayList: the default List</h3>
+      <p>Use for query results, DTO lists, batches, validation errors, and ordered iteration.</p>
+      <pre><code>List&lt;OrderResponse&gt; responses = new ArrayList&lt;&gt;(orders.size());</code></pre>
+
+      <h3>13.2 HashMap: request-scoped lookup and in-memory join</h3>
+      <pre><code>Map&lt;Long, Customer&gt; customerById = customers.stream()
+    .collect(Collectors.toMap(
+        Customer::getId,
+        Function.identity()
+    ));</code></pre>
+
+      <h3>13.3 HashSet: deduplication and membership</h3>
+      <pre><code>Set&lt;String&gt; seenEmails = new HashSet&lt;&gt;();
+if (!seenEmails.add(normalizedEmail)) {
+    errors.add("Duplicate email: " + normalizedEmail);
+}</code></pre>
+
+      <h3>13.4 LinkedHashMap: stable encounter order</h3>
+      <pre><code>Map&lt;String, Object&gt; response = new LinkedHashMap&lt;&gt;();
+response.put("requestId", requestId);
+response.put("status", "SUCCESS");
+response.put("data", payload);</code></pre>
+
+      <h3>13.5 TreeMap: sorted keys and range operations</h3>
+      <pre><code>NavigableMap&lt;Instant, Job&gt; jobs = new TreeMap&lt;&gt;();
+Map.Entry&lt;Instant, Job&gt; next = jobs.ceilingEntry(Instant.now());</code></pre>
+
+      <h3>13.6 ArrayDeque: stack and queue</h3>
+      <pre><code>Deque&lt;Task&gt; queue = new ArrayDeque&lt;&gt;();
+queue.offerLast(task);
+Task next = queue.pollFirst();</code></pre>
+      <p>Prefer ArrayDeque over legacy Stack and often over LinkedList for queue/deque behavior.</p>
+
+      <h3>13.7 PriorityQueue: scheduling and top K</h3>
+      <pre><code>PriorityQueue&lt;RetryTask&gt; retries =
+    new PriorityQueue&lt;&gt;(
+        Comparator.comparing(RetryTask::getNextRetryAt)
+    );</code></pre>
+
+      <h3>13.8 EnumMap and EnumSet</h3>
+      <pre><code>EnumMap&lt;OrderStatus, Integer&gt; counts =
+    new EnumMap&lt;&gt;(OrderStatus.class);
+
+EnumSet&lt;Role&gt; allowed =
+    EnumSet.of(Role.ADMIN, Role.SUPPORT);</code></pre>
+      <p>They are compact, type-safe, and optimized when the domain is an enum.</p>
+
+      <h3>13.9 Selection checklist</h3>
+      <table>
+        <thead><tr><th>Question</th><th>Likely choice</th></tr></thead>
+        <tbody>
+          <tr><td>Need indexed ordered data?</td><td>ArrayList</td></tr>
+          <tr><td>Need unique membership?</td><td>HashSet</td></tr>
+          <tr><td>Need key lookup?</td><td>HashMap</td></tr>
+          <tr><td>Need insertion/access order?</td><td>LinkedHashMap / LinkedHashSet</td></tr>
+          <tr><td>Need sorted/range operations?</td><td>TreeMap / TreeSet</td></tr>
+          <tr><td>Need stack/queue?</td><td>ArrayDeque</td></tr>
+          <tr><td>Need highest/lowest priority?</td><td>PriorityQueue</td></tr>
+          <tr><td>Need shared concurrent access?</td><td>Concurrent collection or redesign ownership</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="java8">
+      <h2>15. Java 8 Deep Dive</h2>
+
+      <h3>14.1 Functional interfaces</h3>
+      <table>
+        <thead><tr><th>Interface</th><th>Input</th><th>Output</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td>Predicate&lt;T&gt;</td><td>T</td><td>boolean</td><td>Filtering and validation.</td></tr>
+          <tr><td>Function&lt;T,R&gt;</td><td>T</td><td>R</td><td>Transformation.</td></tr>
+          <tr><td>Consumer&lt;T&gt;</td><td>T</td><td>void</td><td>Side effect.</td></tr>
+          <tr><td>Supplier&lt;T&gt;</td><td>None</td><td>T</td><td>Lazy creation.</td></tr>
+          <tr><td>UnaryOperator&lt;T&gt;</td><td>T</td><td>T</td><td>Same-type transformation.</td></tr>
+          <tr><td>BinaryOperator&lt;T&gt;</td><td>T, T</td><td>T</td><td>Reduction.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>14.2 Effectively final variables</h3>
+      <pre><code>int minimumScore = 80;
+
+List&lt;Candidate&gt; selected = candidates.stream()
+    .filter(candidate -> candidate.getScore() &gt;= minimumScore)
+    .collect(Collectors.toList());
+
+// minimumScore = 90; // would make it not effectively final</code></pre>
+      <p>
+        Local captured variables must be effectively final because lambda execution may outlive
+        the stack frame and because mutable local capture would create confusing concurrency semantics.
+      </p>
+
+      <h3>14.3 Default methods</h3>
+      <pre><code>public interface Auditable {
+    default Instant normalizeCreatedAt(Instant value) {
+        return value == null ? Instant.now() : value;
+    }
+}</code></pre>
+      <p>They allow API evolution but can create diamond-conflict rules that the implementing class must resolve.</p>
+
+      <h3>14.4 Date and Time API</h3>
+      <pre><code>Instant expiresAt = Instant.now().plus(Duration.ofMinutes(15));
+LocalDate billingDate = LocalDate.now();
+ZonedDateTime vietnamTime =
+    ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));</code></pre>
+      <ul>
+        <li>Use <code>Instant</code> for machine timestamps.</li>
+        <li>Use <code>LocalDate</code> for date-only business concepts.</li>
+        <li>Use <code>ZonedDateTime</code> when timezone rules are part of the value.</li>
+        <li>Do not store a local date-time when the business requires an absolute moment.</li>
+      </ul>
+
+      <h3>14.5 CompletableFuture</h3>
+      <pre><code>CompletableFuture&lt;Customer&gt; customerFuture =
+    CompletableFuture.supplyAsync(
+        () -> customerClient.load(customerId),
+        ioExecutor
+    );
+
+CompletableFuture&lt;List&lt;Order&gt;&gt; orderFuture =
+    CompletableFuture.supplyAsync(
+        () -> orderClient.load(customerId),
+        ioExecutor
+    );
+
+CustomerSummary summary = customerFuture
+    .thenCombine(orderFuture, CustomerSummary::new)
+    .orTimeout(3, TimeUnit.SECONDS) // available in later Java
+    .exceptionally(error -> fallback(customerId))
+    .join();</code></pre>
+      <div class="highlight warning">
+        In pure Java 8, <code>orTimeout</code> is not available. Timeout must be implemented
+        through the client, scheduler, Future APIs, or a resilience library.
+      </div>
+
+      <h3>14.6 Important collectors</h3>
+      <pre><code>Map&lt;OrderStatus, List&lt;Order&gt;&gt; byStatus =
+    orders.stream()
+        .collect(Collectors.groupingBy(Order::getStatus));
+
+Map&lt;OrderStatus, Long&gt; countByStatus =
+    orders.stream()
+        .collect(Collectors.groupingBy(
+            Order::getStatus,
+            Collectors.counting()
+        ));
+
+String joined = names.stream()
+    .collect(Collectors.joining(", "));</code></pre>
+
+      <h3>14.7 Duplicate keys in toMap</h3>
+      <pre><code>Map&lt;String, User&gt; byEmail = users.stream()
+    .collect(Collectors.toMap(
+        User::getEmail,
+        Function.identity(),
+        (existing, replacement) -> existing
+    ));</code></pre>
+      <p>
+        Without a merge function, duplicate keys cause <code>IllegalStateException</code>.
+        The correct merge rule is a business decision, not only a technical fix.
+      </p>
+    </section>
+
+    <section id="concurrent">
+      <h2>16. Concurrent Collections</h2>
+
+      <h3>15.1 ConcurrentHashMap</h3>
+      <pre><code>ConcurrentMap&lt;String, Session&gt; sessions =
+    new ConcurrentHashMap&lt;&gt;();
+
+Session session = sessions.computeIfAbsent(
+    token,
+    this::loadSession
+);</code></pre>
+      <p>
+        Java 8 ConcurrentHashMap combines lock-free/CAS techniques with synchronization at
+        a finer granularity when needed. Reads are designed for high concurrency.
+      </p>
+      <div class="highlight warning">
+        A <code>computeIfAbsent</code> mapping function should be short and should avoid
+        slow blocking work or recursive updates to the same map.
+      </div>
+
+      <h3>15.2 CopyOnWriteArrayList</h3>
+      <p>
+        Excellent for small lists with many reads, very few writes, and snapshot iteration.
+        Every write copies the backing array, making write cost O(n).
+      </p>
+
+      <h3>15.3 BlockingQueue</h3>
+      <pre><code>BlockingQueue&lt;Task&gt; queue =
+    new ArrayBlockingQueue&lt;&gt;(1_000);
+
+queue.put(task);      // producer
+Task next = queue.take(); // consumer</code></pre>
+      <p>
+        A bounded queue provides basic backpressure. Capacity, producer behavior,
+        consumer count, shutdown, poison messages, and retry policy still need design.
+      </p>
+
+      <h3>15.4 Synchronized wrappers</h3>
+      <pre><code>List&lt;String&gt; values =
+    Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+synchronized (values) {
+    for (String value : values) {
+        process(value);
+    }
+}</code></pre>
+      <p>Iteration requires external synchronization on the wrapper.</p>
+
+      <h3>15.5 Concurrent collection does not make the workflow atomic</h3>
+      <pre><code>// Check-then-act race, even if the map methods are thread-safe
+if (!sessions.containsKey(token)) {
+    sessions.put(token, loadSession(token));
+}
+
+// Atomic map operation
+sessions.computeIfAbsent(token, this::loadSession);</code></pre>
+    </section>
+
+    <section id="practical">
+      <h2>17. Real Project Cases</h2>
+
+      <h3>16.1 Replace O(n × m) lookup with O(n + m)</h3>
+      <pre><code>// Expensive nested search
+for (Order order : orders) {
+    Customer customer = customers.stream()
+        .filter(c -> c.getId().equals(order.getCustomerId()))
+        .findFirst()
+        .orElse(null);
+}
+
+// Build an index once
+Map&lt;Long, Customer&gt; customerById = customers.stream()
+    .collect(Collectors.toMap(
+        Customer::getId,
+        Function.identity()
+    ));
+
+for (Order order : orders) {
+    Customer customer = customerById.get(order.getCustomerId());
+}</code></pre>
+
+      <h3>16.2 Batch deduplication</h3>
+      <pre><code>Set&lt;String&gt; seen = new HashSet&lt;&gt;();
+List&lt;ValidationError&gt; errors = new ArrayList&lt;&gt;();
+
+for (ImportRow row : rows) {
+    String email = normalize(row.getEmail());
+    if (!seen.add(email)) {
+        errors.add(new ValidationError(
+            row.getLineNumber(),
+            "DUPLICATE_EMAIL"
+        ));
+    }
+}</code></pre>
+
+      <h3>16.3 Grouping and aggregation</h3>
+      <pre><code>Map&lt;String, BigDecimal&gt; amountByMerchant =
+    transactions.stream()
+        .filter(Transaction::isSuccessful)
+        .collect(Collectors.groupingBy(
+            Transaction::getMerchantId,
+            Collectors.reducing(
+                BigDecimal.ZERO,
+                Transaction::getAmount,
+                BigDecimal::add
+            )
+        ));</code></pre>
+
+      <h3>16.4 Do not use parallelStream as an API-call concurrency policy</h3>
+      <pre><code>// Risky server code
+List&lt;Profile&gt; profiles = users.parallelStream()
+    .map(user -> remoteClient.loadProfile(user.getId()))
+    .collect(Collectors.toList());</code></pre>
+      <ul>
+        <li>Uses the common ForkJoinPool by default.</li>
+        <li>Blocking I/O consumes workers.</li>
+        <li>Concurrency is not aligned with rate limits or connection pools.</li>
+        <li>Timeout, tracing, cancellation, and partial failure are harder to control.</li>
+      </ul>
+
+      <h3>16.5 Avoid persistence side effects hidden in Stream stages</h3>
+      <pre><code>// Misleading and difficult to recover
+orders.stream()
+    .peek(orderRepository::save)
+    .forEach(notificationService::send);
+
+// More explicit
+for (Order order : orders) {
+    orderRepository.save(order);
+    notificationService.send(order);
+}</code></pre>
+      <p>
+        For database plus messaging, also consider transaction boundaries,
+        idempotency, retry, and an outbox pattern.
+      </p>
+    </section>
+
+    <section id="interview">
+      <h2>18. Java 8 & Collections Interview Q&amp;A</h2>
+
+      <details open>
+        <summary>1. Stream versus Collection?</summary>
+        <div class="answer"><p>A Collection stores reusable data. A Stream is a one-use, usually lazy processing pipeline over a source.</p></div>
+      </details>
+
+      <details>
+        <summary>2. map versus flatMap?</summary>
+        <div class="answer">
+          <p><code>map</code> transforms one element into one result. <code>flatMap</code> transforms an element into a Stream-like container and flattens nested results.</p>
+          <pre><code>Stream&lt;String&gt; tags =
+    posts.stream()
+        .flatMap(post -> post.getTags().stream());</code></pre>
+        </div>
+      </details>
+
+      <details>
+        <summary>3. reduce versus collect?</summary>
+        <div class="answer"><p><code>reduce</code> is suitable for immutable combination into a value; <code>collect</code> is designed for mutable reduction into containers such as List, Map, or StringBuilder.</p></div>
+      </details>
+
+      <details>
+        <summary>4. Why should parallel reduction be associative?</summary>
+        <div class="answer"><p>Parallel partitions may be combined in different groupings. Non-associative operations can produce different results depending on partitioning and order.</p></div>
+      </details>
+
+      <details>
+        <summary>5. When is parallelStream useful?</summary>
+        <div class="answer"><p>For sufficiently large, CPU-bound, splittable, stateless work with associative reductions. It is usually a poor default for blocking I/O or request-sized data.</p></div>
+      </details>
+
+      <details>
+        <summary>6. Why is peek not a business side-effect API?</summary>
+        <div class="answer"><p>It is mainly for observation/debugging. Lazy execution and short-circuiting mean it may not run for every source element.</p></div>
+      </details>
+
+      <details>
+        <summary>7. How does HashSet work internally?</summary>
+        <div class="answer"><p>It is backed by a HashMap: the set element is stored as the key and a shared dummy object is stored as the value.</p></div>
+      </details>
+
+      <details>
+        <summary>8. Why is a mutable HashMap key dangerous?</summary>
+        <div class="answer"><p>Changing fields used by equals/hashCode changes the logical bucket while the node remains in the original bucket, so lookup and removal can fail.</p></div>
+      </details>
+
+      <details>
+        <summary>9. ArrayList versus LinkedList?</summary>
+        <div class="answer"><p>ArrayList is normally the default because of O(1) random access, low per-element overhead, and good locality. LinkedList's O(1) insertion applies only when the node position is already known.</p></div>
+      </details>
+
+      <details>
+        <summary>10. Why can LinkedList be slow despite O(1) insertion?</summary>
+        <div class="answer"><p>Finding the position is usually O(n), and each node adds allocation, pointers, and poor CPU cache locality.</p></div>
+      </details>
+
+      <details>
+        <summary>11. TreeMap versus HashMap?</summary>
+        <div class="answer"><p>TreeMap maintains sorted keys with O(log n) operations and range/navigation APIs. HashMap provides average O(1) key access without sorted order.</p></div>
+      </details>
+
+      <details>
+        <summary>12. Comparable versus Comparator?</summary>
+        <div class="answer"><p>Comparable defines one natural ordering in the type. Comparator defines external, reusable orderings and supports multiple sort strategies.</p></div>
+      </details>
+
+      <details>
+        <summary>13. What is a fail-fast iterator?</summary>
+        <div class="answer"><p>It detects certain structural modifications and may throw ConcurrentModificationException. It is best-effort bug detection, not a thread-safety guarantee.</p></div>
+      </details>
+
+      <details>
+        <summary>14. How do you remove during iteration?</summary>
+        <div class="answer">
+          <pre><code>Iterator&lt;Order&gt; iterator = orders.iterator();
+while (iterator.hasNext()) {
+    if (iterator.next().isExpired()) {
+        iterator.remove();
+    }
+}</code></pre>
+          <p>For simple predicates, <code>orders.removeIf(Order::isExpired)</code> is clearer.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>15. Unmodifiable view versus immutable copy?</summary>
+        <div class="answer"><p>An unmodifiable view may reflect changes to its mutable backing collection. A defensive immutable copy is independent of later source mutation.</p></div>
+      </details>
+
+      <details>
+        <summary>16. Why does ConcurrentHashMap reject null?</summary>
+        <div class="answer"><p>In concurrent lookup, null would be ambiguous between “no mapping” and “a mapping whose value is null,” making atomic APIs harder to define safely.</p></div>
+      </details>
+
+      <details>
+        <summary>17. How do you pre-size a HashMap?</summary>
+        <div class="answer">
+          <pre><code>int expectedSize = 1_000;
+Map&lt;String, User&gt; map =
+    new HashMap&lt;&gt;((int) (expectedSize / 0.75f) + 1);</code></pre>
+          <p>Pre-sizing can reduce resize work, but excessive capacity increases memory use and iteration cost.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>18. What collection should implement top K?</summary>
+        <div class="answer"><p>Use a PriorityQueue of size K. Processing n items costs O(n log K), which is better than sorting all n values when K is small.</p></div>
+      </details>
+
+      <details>
+        <summary>19. Why return an empty collection instead of null?</summary>
+        <div class="answer"><p>It provides one consistent zero-result state and allows callers to iterate without null checks. Distinguish “not loaded” separately if the domain requires it.</p></div>
+      </details>
+
+      <details>
+        <summary>20. Which collections do you use most in projects?</summary>
+        <div class="answer">
+          <div class="interview">
+            <strong>Sample answer:</strong>
+            “ArrayList is my default List. I use HashMap for lookup and in-memory joins,
+            HashSet for deduplication, LinkedHashMap when encounter order matters,
+            ArrayDeque for queues, PriorityQueue for scheduling/top K, and concurrent
+            collections only when ownership cannot be confined. I choose based on access
+            pattern, ordering, uniqueness, concurrency, memory, and failure behavior.”
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section id="mistakes">
+      <h2>19. Common Mistakes</h2>
+      <div class="grid-2">
+        <div class="card"><h3>Using Streams everywhere</h3><p>Long nested pipelines with state and side effects are harder to maintain than a clear loop.</p></div>
+        <div class="card"><h3>Nested Stream lookup</h3><p>Searching a second list for every element creates O(n × m) behavior; build an index Map.</p></div>
+        <div class="card"><h3>parallelStream for remote I/O</h3><p>The common pool is not a rate limiter, connection pool, timeout policy, or bulkhead.</p></div>
+        <div class="card"><h3>Ignoring duplicate toMap keys</h3><p>A duplicate key throws unless a merge function defines the domain rule.</p></div>
+        <div class="card"><h3>Mutable map keys</h3><p>Changing equality fields after insertion can make entries unreachable.</p></div>
+        <div class="card"><h3>Choosing LinkedList from Big-O alone</h3><p>Traversal, allocation, and cache locality usually dominate.</p></div>
+        <div class="card"><h3>Returning null Optional</h3><p>An Optional-returning method must return Optional.empty, never null.</p></div>
+        <div class="card"><h3>Using Optional.get</h3><p>It hides the intended failure or fallback behavior behind a generic exception.</p></div>
+        <div class="card"><h3>Not closing resources</h3><p>Connection and file leaks cause pool exhaustion and production instability.</p></div>
+        <div class="card"><h3>Using preview features as stable APIs</h3><p>Preview source and bytecode require flags and may change in later releases.</p></div>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <h2>20. Learning and Interview Checklist</h2>
+      <div class="checklist">
+        <label><input type="checkbox"> Explain language, library, JVM, and tooling features separately.</label>
+        <label><input type="checkbox"> Distinguish final, preview, incubator, experimental, deprecated, and removed features.</label>
+        <label><input type="checkbox"> Explain when Optional is appropriate and when another null strategy is better.</label>
+        <label><input type="checkbox"> Explain Stream laziness, fusion, stateful operations, and short-circuiting.</label>
+        <label><input type="checkbox"> Compare Stream and loops using clarity, control flow, allocation, and performance.</label>
+        <label><input type="checkbox"> Describe HashMap hashing, buckets, resize, treeification, and complexity.</label>
+        <label><input type="checkbox"> Explain equals/hashCode and mutable-key failure.</label>
+        <label><input type="checkbox"> Select ArrayList, Set, Map, TreeMap, ArrayDeque, and PriorityQueue from access patterns.</label>
+        <label><input type="checkbox"> Explain ConcurrentHashMap and why a concurrent collection does not make a whole workflow atomic.</label>
+        <label><input type="checkbox"> Explain records, sealed classes, and pattern matching as a connected domain-modeling story.</label>
+        <label><input type="checkbox"> Explain virtual threads, carrier threads, pinning, and downstream capacity limits.</label>
+        <label><input type="checkbox"> Explain ScopedValue versus ThreadLocal.</label>
+        <label><input type="checkbox"> Describe a safe Java 8 → 17/21/25 migration process.</label>
+        <label><input type="checkbox"> Give production examples, trade-offs, and failure modes—not only definitions.</label>
+      </div>
+    </section>
+
+
+
+    <section id="sources">
+      <h2>21. Official References</h2>
+      <ul class="source-list">
+        <li><a href="https://docs.oracle.com/en/java/javase/25/language/java-language-changes-summary.html" target="_blank" rel="noopener">Oracle Java Language Changes Summary</a></li>
+        <li><a href="https://openjdk.org/projects/jdk/" target="_blank" rel="noopener">OpenJDK JDK release project</a></li>
+        <li><a href="https://openjdk.org/projects/jdk/21/" target="_blank" rel="noopener">OpenJDK JDK 21 features</a></li>
+        <li><a href="https://openjdk.org/projects/jdk/25/" target="_blank" rel="noopener">OpenJDK JDK 25 features</a></li>
+        <li><a href="https://openjdk.org/projects/jdk/26/" target="_blank" rel="noopener">OpenJDK JDK 26 features</a></li>
+        <li><a href="https://openjdk.org/jeps/395" target="_blank" rel="noopener">JEP 395: Records</a></li>
+        <li><a href="https://openjdk.org/jeps/409" target="_blank" rel="noopener">JEP 409: Sealed Classes</a></li>
+        <li><a href="https://openjdk.org/jeps/444" target="_blank" rel="noopener">JEP 444: Virtual Threads</a></li>
+        <li><a href="https://openjdk.org/jeps/454" target="_blank" rel="noopener">JEP 454: Foreign Function &amp; Memory API</a></li>
+        <li><a href="https://openjdk.org/jeps/506" target="_blank" rel="noopener">JEP 506: Scoped Values</a></li>
+      </ul>
+    </section>
+    <div class="footer">
+      Java 8–26 Features, Stream &amp; Collections Senior Interview Guide — standalone HTML.
+    </div>
+  </main>
+</div>
+
+<script>
+  const themeBtn = document.getElementById('themeBtn');
+  const expandBtn = document.getElementById('expandBtn');
+  const searchInput = document.getElementById('searchInput');
+  const progress = document.getElementById('progress');
+  const sections = [...document.querySelectorAll('main section')];
+  const navLinks = [...document.querySelectorAll('aside a')];
+
+  const savedTheme = localStorage.getItem('java-guide-theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark');
+    themeBtn.textContent = '☀️';
+  }
+
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const dark = document.body.classList.contains('dark');
+    themeBtn.textContent = dark ? '☀️' : '🌙';
+    localStorage.setItem('java-guide-theme', dark ? 'dark' : 'light');
+  });
+
+  let expanded = false;
+  expandBtn.addEventListener('click', () => {
+    expanded = !expanded;
+    document.querySelectorAll('details').forEach(d => d.open = expanded);
+    expandBtn.textContent = expanded ? 'Close Q&A' : 'Open Q&A';
+  });
+
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code')?.innerText || pre.innerText;
+      await navigator.clipboard.writeText(code);
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = 'Copy', 1200);
+    });
+    pre.appendChild(btn);
+  });
+
+  searchInput.addEventListener('input', () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+
+    sections.forEach(section => {
+      const match = !keyword || section.innerText.toLowerCase().includes(keyword);
+      section.classList.toggle('hidden-by-search', !match);
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const value = max > 0 ? (window.scrollY / max) * 100 : 0;
+    progress.style.width = value + '%';
+
+    let current = '';
+    for (const section of sections) {
+      if (section.getBoundingClientRect().top <= 110) {
+        current = section.id;
+      }
+    }
+
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facebook-Scale Login — Full Stack Principal Engineer Deep Dive</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1a2b;--panel2:#11233a;--text:#edf5ff;--muted:#a7b8cc;
+  --line:#29415f;--blue:#6db2ff;--cyan:#73e0df;--green:#88e0a6;--yellow:#ffd47a;
+  --red:#ff9090;--purple:#b59cff;--code:#050b13;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:
+radial-gradient(circle at 10% 0%,rgba(109,178,255,.12),transparent 28%),
+radial-gradient(circle at 90% 10%,rgba(115,224,223,.08),transparent 25%),
+var(--bg);color:var(--text);font:16px/1.72 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:var(--blue)}strong{color:#fff}.wrap{max-width:1240px;margin:auto;padding:0 24px 90px}
+.hero{padding:64px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font-weight:900;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}
+h1{font-size:clamp(2.35rem,5vw,5rem);line-height:1.02;margin:.25rem 0 1rem;max-width:1120px}
+h2{font-size:clamp(1.7rem,3vw,2.7rem);line-height:1.15;margin:0 0 12px}
+h3{font-size:1.32rem;margin:30px 0 8px}
+p,li{color:#dce7f5}.lead{font-size:1.18rem;color:var(--muted);max-width:1040px}
+nav{position:sticky;top:0;z-index:50;background:rgba(7,17,31,.94);backdrop-filter:blur(13px);border-bottom:1px solid var(--line);overflow:auto}
+nav .in{max-width:1240px;margin:auto;padding:10px 24px;display:flex;gap:8px;white-space:nowrap}
+nav a{text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.82rem}
+nav a:hover{color:#fff;border-color:var(--blue)}
+section{padding:50px 0 4px;scroll-margin-top:70px}
+.callout{padding:18px 20px;border-radius:14px;background:rgba(109,178,255,.08);border:1px solid #31527a;margin:22px 0}
+.callout.warn{background:rgba(255,212,122,.07);border-color:#725b30}
+.callout.red{background:rgba(255,144,144,.06);border-color:#6a3434}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:20px 0}
+.card{grid-column:span 4;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:19px}
+.card.wide{grid-column:span 6}.card h3{margin:0 0 7px}.card p{margin:0;color:var(--muted)}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:.74rem;font-weight:800;margin-bottom:10px}
+.fact{color:var(--green)}.infer{color:var(--yellow)}.historic{color:var(--purple)}
+.diagram{background:linear-gradient(180deg,#091426,#07101d);border:1px solid var(--line);border-radius:18px;padding:20px;overflow:auto;margin:22px 0}
+.flow{display:flex;align-items:center;gap:9px;min-width:1050px}
+.node{flex:0 0 auto;min-width:125px;padding:13px;border-radius:12px;background:#122641;border:1px solid #355c86;text-align:center;font-weight:900}
+.node small{display:block;font-weight:500;color:var(--muted);margin-top:4px;line-height:1.3}
+.arrow{color:var(--blue);font-size:1.4rem;font-weight:900}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-width:900px}
+.lane{border:1px dashed #35506f;border-radius:14px;padding:14px;background:rgba(255,255,255,.015)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:17px;overflow:auto;color:#dcecff;line-height:1.55}
+code{font-family:SFMono-Regular,Consolas,"Liberation Mono",monospace}
+table{width:100%;border-collapse:collapse;margin:18px 0 28px;background:var(--panel);font-size:.95rem}
+th,td{padding:12px 13px;border:1px solid var(--line);vertical-align:top;text-align:left}th{background:#142843;color:#fff}
+.good{color:var(--green);font-weight:850}.bad{color:var(--red);font-weight:850}.mid{color:var(--yellow);font-weight:850}
+.step{display:grid;grid-template-columns:52px 1fr;gap:13px;margin:20px 0}.num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--blue);background:rgba(109,178,255,.09);font-weight:900}
+.step h3{margin:0 0 4px}.step p{margin:0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:10px 0;padding:13px 15px}
+summary{cursor:pointer;font-weight:900;color:#fff}.tiny,.source{font-size:.88rem;color:var(--muted)}
+.interview{border:1px solid #3f6c9f;background:linear-gradient(180deg,rgba(109,178,255,.08),rgba(13,26,43,.96));padding:22px;border-radius:18px}
+.quote{border-left:4px solid var(--cyan);padding-left:15px;font-weight:850;color:#fff;font-size:1.1rem}
+footer{margin-top:55px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted)}
+
+.timeline{display:grid;gap:10px;margin:20px 0}
+.trow{display:grid;grid-template-columns:90px 210px 1fr;gap:12px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px}
+.tms{font-weight:900;color:var(--cyan)}.tname{font-weight:900;color:#fff}.trow p{margin:0;color:var(--muted)}
+.stack{display:grid;grid-template-columns:1fr 1fr;gap:16px}.stackcol{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px}
+.stackcol h3{margin-top:0}.pill{display:inline-block;margin:3px 3px 3px 0;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:.78rem;color:#dcecff}
+.fast{border-left:4px solid var(--green)}.slow{border-left:4px solid var(--yellow)}
+@media(max-width:900px){.trow{grid-template-columns:1fr}.stack{grid-template-columns:1fr}}
+
+@media(max-width:900px){.card,.card.wide{grid-column:span 12}.lanes{grid-template-columns:1fr;min-width:0}.hero{padding-top:42px}}
+</style>
+</head>
+<body>
+<nav><div class="in">
+<a href="#truth">Public vs Inference</a>
+<a href="#physical">Physical Setup</a>
+<a href="#dns">DNS & Traffic</a>
+<a href="#edge">Edge Stack</a>
+<a href="#backbone">Backbone</a>
+<a href="#dc">Inside DC</a>
+<a href="#trace">Vietnam → USA</a>
+<a href="#click">Behind the Click</a>
+<a href="#algorithms">Algorithms</a>
+<a href="#devops">DevOps Stack</a>
+<a href="#latency">Latency</a>
+<a href="#lookup">Email Lookup</a>
+<a href="#cache">Caching</a>
+<a href="#credential">Credentials</a>
+<a href="#failure">Failures</a>
+<a href="#tradeoff">Trade-offs</a>
+<a href="#interview">Interview</a>
+<a href="#sources">Sources</a>
+</div></nav>
+
+<div class="wrap">
+<header class="hero">
+<div class="eyebrow">Principal Engineer Deep Dive · Simple English, Deep Architecture</div>
+<h1>Facebook-Scale Login, From the Ocean Cable to the Password Record</h1>
+<p class="lead">
+This page explains much more than “put an index on email”.
+We start from physical server placement, ISP routing, DNS, BGP, Points of Presence, load balancers,
+private backbone links, data-center network fabric, service placement, cache hierarchy, sharding,
+replication, password verification, consistency, and failure recovery.
+</p>
+<div class="callout">
+<strong>Important:</strong> Meta does not publish the exact current private architecture of Facebook Login.
+This page separates <span class="fact">public Meta infrastructure facts</span> from
+<span class="infer">reasonable design inferences</span> that a Principal Engineer could make.
+</div>
+</header>
+
+<section id="truth">
+<h2>0. What Is Public Fact, and What Is Our Design?</h2>
+<div class="grid">
+<div class="card"><span class="tag fact">PUBLIC META FACT</span><h3>Global PoPs</h3><p>Meta publicly describes a worldwide Point-of-Presence network. PoPs connect to external networks and proxy traffic toward larger data centers.</p></div>
+<div class="card"><span class="tag fact">PUBLIC META FACT</span><h3>Private backbone</h3><p>Meta operates its own large backbone between PoPs and data-center regions, including intercontinental links.</p></div>
+<div class="card"><span class="tag fact">PUBLIC META FACT</span><h3>Huge caching systems</h3><p>Meta has published Memcache, TAO and CacheLib designs that solve caching problems at very large scale.</p></div>
+<div class="card"><span class="tag fact">PUBLIC META FACT</span><h3>Sharded storage</h3><p>Meta's public storage work describes massively sharded, geo-replicated systems and automated shard placement.</p></div>
+<div class="card"><span class="tag infer">DESIGN INFERENCE</span><h3>Login identity directory</h3><p>A directory like <code>email_hash → user_id</code> is a strong login design, but Meta has not publicly said Facebook Login uses exactly this structure.</p></div>
+<div class="card"><span class="tag infer">DESIGN INFERENCE</span><h3>Credential read policy</h3><p>We can infer a strong regional/authoritative read pattern, but the exact password storage and caching policy is private.</p></div>
+</div>
+<div class="callout warn">
+<strong>Interview rule:</strong> Never present an inference as a company fact.
+Say “Meta publicly uses these infrastructure ideas; for login I would compose them like this.”
+</div>
+</section>
+
+<section id="physical">
+<h2>1. Physical Setup: Where Are the Machines?</h2>
+<p>Do not imagine one giant “Facebook server in America”. A global system has several physical layers.</p>
+<div class="diagram"><div class="flow">
+<div class="node">Phone / Laptop<small>Vietnam, USA, Europe</small></div><div class="arrow">→</div>
+<div class="node">Local ISP<small>mobile / broadband</small></div><div class="arrow">→</div>
+<div class="node">Meta PoP<small>edge facility</small></div><div class="arrow">→</div>
+<div class="node">Private Backbone<small>fiber + routers</small></div><div class="arrow">→</div>
+<div class="node">DC Region<small>large compute area</small></div><div class="arrow">→</div>
+<div class="node">DC Building<small>many server halls</small></div><div class="arrow">→</div>
+<div class="node">Rack<small>servers + ToR switch</small></div><div class="arrow">→</div>
+<div class="node">Service Instance<small>auth / cache / DB</small></div>
+</div></div>
+
+<h3>1.1 PoP is not the same as a data center</h3>
+<p>
+A <strong>PoP</strong> is close to the internet edge. It meets ISPs and Internet Exchanges.
+It can terminate network connections, run load balancers, enforce network policy, and relay traffic.
+A <strong>data-center region</strong> has much larger compute and storage capacity.
+</p>
+
+<h3>1.2 Why not put the complete database in every city?</h3>
+<table>
+<tr><th>Design</th><th>Good</th><th>Bad</th></tr>
+<tr><td>Full DB in every city</td><td class="good">Very low local read latency</td><td class="bad">Very expensive, hard replication, large security surface</td></tr>
+<tr><td>Only one DB in the USA</td><td class="good">Simple write consistency</td><td class="bad">High global latency, poor regional resilience</td></tr>
+<tr><td>Edge + regional compute + selective replicas</td><td class="good">Balanced latency and resilience</td><td class="mid">More engineering complexity</td></tr>
+</table>
+
+<h3>1.3 How I would place authentication infrastructure</h3>
+<pre><code>Many cities / network hubs:
+  - DNS
+  - routers
+  - L4/L7 edge load balancing
+  - TLS termination
+  - DDoS / abuse controls
+  - no giant user database
+
+Several large geographic regions:
+  - auth services
+  - identity directory replicas
+  - regional caches
+  - risk services
+  - credential read replicas
+  - session services
+
+A smaller number of authoritative storage groups:
+  - password/security writes
+  - account recovery writes
+  - replication coordination</code></pre>
+</section>
+
+<section id="dns">
+<h2>2. DNS and Global Traffic Steering</h2>
+<p>Before your login request reaches a service, the client needs an address. DNS is part of the performance design.</p>
+
+<div class="step"><div class="num">1</div><div><h3>Client asks DNS</h3><p>The phone asks a recursive resolver: “What address should I use for facebook.com?”</p></div></div>
+<div class="step"><div class="num">2</div><div><h3>Authoritative DNS returns a useful entry point</h3><p>The answer can help steer the user toward a suitable PoP based on network conditions and policy.</p></div></div>
+<div class="step"><div class="num">3</div><div><h3>BGP carries the packet</h3><p>The ISP and Meta exchange routes. The actual path is selected by internet routing, not by a simple geographic map.</p></div></div>
+
+<h3>2.1 Cartographer vs Taiji</h3>
+<div class="grid">
+<div class="card wide"><span class="tag historic">PUBLIC META, 2017</span><h3>Cartographer</h3><p>Meta described Cartographer as assigning users to PoPs through DNS. Traffic can terminate at that PoP or be relayed to a data center.</p></div>
+<div class="card wide"><span class="tag historic">PUBLIC META, 2020+</span><h3>Taiji</h3><p>Meta described Taiji as a global load balancer that redistributes user traffic across data-center regions and supports disaster handling.</p></div>
+</div>
+
+<div class="callout">
+A safe modern mental model is:
+<strong>DNS/edge steering chooses a good internet entry point; regional traffic management chooses healthy compute capacity.</strong>
+The exact current Facebook Login control plane is not public.
+</div>
+
+<h3>2.2 DNS TTL trade-off</h3>
+<table>
+<tr><th>Short TTL</th><th>Long TTL</th></tr>
+<tr><td class="good">Faster reaction to failure or traffic shift</td><td class="good">Higher DNS cache hit ratio, lower DNS control-plane load</td></tr>
+<tr><td class="bad">More DNS requests</td><td class="bad">Clients can keep an old destination longer</td></tr>
+</table>
+
+<h3>2.3 “Nearest” is a network decision, not only a map decision</h3>
+<p>
+The geographically closest PoP may have bad peering or congestion.
+A slightly farther PoP may give lower real latency.
+A global system should use measured latency, packet loss, route quality, health, and capacity.
+</p>
+</section>
+
+<section id="edge">
+<h2>3. Edge Networking: BGP, VIP, L4, L7, TLS and QUIC</h2>
+<div class="diagram"><div class="flow">
+<div class="node">Internet Packet</div><div class="arrow">→</div>
+<div class="node">PoP Router<small>BGP / peering</small></div><div class="arrow">→</div>
+<div class="node">VIP<small>virtual service IP</small></div><div class="arrow">→</div>
+<div class="node">L4 Load Balancer<small>Katran-style</small></div><div class="arrow">→</div>
+<div class="node">L7 Proxy<small>Proxygen-style</small></div><div class="arrow">→</div>
+<div class="node">TLS / QUIC<small>Fizz / mvfst</small></div><div class="arrow">→</div>
+<div class="node">Backend Route<small>region/service</small></div>
+</div></div>
+
+<h3>3.1 BGP and peering</h3>
+<p>
+Meta can meet external networks using private peering, Internet Exchanges, and transit.
+BGP tells routers how to reach network prefixes.
+But BGP itself does not understand “this path has better Facebook p99 latency”, so Meta has published additional edge traffic control systems.
+</p>
+
+<h3>3.2 Virtual IP and L4 load balancing</h3>
+<p>
+Users do not connect to one permanent backend machine. They connect to a <strong>VIP</strong>.
+A software load balancer maps the connection to one backend.
+Meta's Katran uses XDP/eBPF and a Maglev-style consistent hashing approach.
+</p>
+<pre><code>connection key =
+(source_ip, source_port,
+ destination_ip, destination_port,
+ protocol)
+
+hash(connection key)
+      |
+      v
+stable backend instance</code></pre>
+
+<h3>3.3 L7 and TLS at the PoP</h3>
+<p>
+Meta has publicly described Proxygen as an HTTP/HTTPS L7 proxy at the PoP.
+The TLS handshake can end near the user, rather than crossing an ocean before encryption setup completes.
+Meta also published Fizz for TLS 1.3 and mvfst for QUIC/HTTP/3.
+</p>
+
+<div class="callout warn">
+<strong>Security trade-off:</strong> QUIC/TLS 0-RTT can reduce setup latency, but early data can have replay concerns.
+A login POST is security-sensitive. Do not use 0-RTT blindly for non-idempotent authentication operations.
+</div>
+</section>
+
+<section id="backbone">
+<h2>4. Private Backbone and Subsea Cables</h2>
+<p>
+The public internet gets a user to Meta's edge.
+After that, Meta can move traffic on its private backbone, where it controls capacity, routing, congestion handling and failure recovery more directly.
+</p>
+
+<div class="grid">
+<div class="card wide"><span class="tag fact">PUBLIC META</span><h3>Classic Backbone</h3><p>Meta describes a backbone for global reach between data centers and PoPs, using traditional IP/MPLS traffic engineering.</p></div>
+<div class="card wide"><span class="tag fact">PUBLIC META</span><h3>Express Backbone</h3><p>Meta describes a separate scalable data-center-to-data-center backbone with a customized software stack.</p></div>
+</div>
+
+<h3>4.1 APAC is connected by physical fiber</h3>
+<p>
+Meta has announced submarine connectivity such as Bifrost between Singapore / Southeast Asia and the United States,
+plus other APAC cable projects. These systems add large bandwidth and route diversity.
+</p>
+
+<div class="callout red">
+<strong>Bandwidth is not latency.</strong>
+A 100+ Tbps cable can carry huge traffic, but light still needs time to cross the Pacific.
+A good login system avoids unnecessary trans-Pacific round trips instead of trying to “optimize away” physical distance.
+</div>
+
+<pre><code>GOOD NORMAL PATH
+Vietnam user
+   -> nearby PoP
+   -> nearby APAC compute
+   -> local identity/cache/credential read
+   -> response
+
+REMOTE AUTHORITY ONLY WHEN NEEDED
+   -> one coarse-grained remote check
+
+BAD CHATTY PATH
+APAC -> US service A -> APAC service B
+     -> US service C -> APAC cache
+     -> US database -> APAC response</code></pre>
+</section>
+
+<section id="dc">
+<h2>5. Inside the Data Center: Rack → Fabric → Service</h2>
+<div class="diagram"><div class="flow">
+<div class="node">Auth Server<small>one service instance</small></div><div class="arrow">→</div>
+<div class="node">Top-of-Rack<small>ToR switch</small></div><div class="arrow">→</div>
+<div class="node">Fabric / Pod</div><div class="arrow">→</div>
+<div class="node">Spine Planes<small>many paths</small></div><div class="arrow">→</div>
+<div class="node">Other Rack<small>cache / DB instance</small></div>
+</div></div>
+
+<h3>5.1 Why a fabric instead of one giant switch?</h3>
+<ul>
+<li>Many smaller switches reduce the single failure domain.</li>
+<li>Capacity grows horizontally.</li>
+<li>There are several paths between racks.</li>
+<li>A new rack can join without redesigning one huge central network.</li>
+</ul>
+<p>
+Meta's published Data Center Fabric used pods and multiple spine planes, and used BGP inside the data center.
+Later generations such as F16/HGRID increased bandwidth and changed the physical topology,
+but the scale-out principle remains important.
+</p>
+
+<h3>5.2 Services are fleets, not machines</h3>
+<p>
+“Login Service” is not server <code>10.0.0.123</code>.
+It is many instances across racks and regions.
+Meta has publicly described Twine for large container fleets and Service Router for service-to-service routing.
+</p>
+
+<pre><code>login.service
+  region-apac:
+    rack-1: instance A, B
+    rack-2: instance C, D
+    rack-3: instance E, F
+
+  region-us:
+    rack-1: instance G, H
+    rack-2: instance I, J
+
+service discovery / routing
+chooses a healthy nearby instance.</code></pre>
+</section>
+
+<section id="trace">
+<h2>6. Full Trace: A Vietnamese User Logs In</h2>
+
+<h3>Case A — User is in Vietnam</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Phone in Vietnam</div><div class="arrow">→</div>
+<div class="node">Local ISP</div><div class="arrow">→</div>
+<div class="node">DNS / BGP</div><div class="arrow">→</div>
+<div class="node">Good APAC PoP</div><div class="arrow">→</div>
+<div class="node">L4/L7 + TLS</div><div class="arrow">→</div>
+<div class="node">APAC Region</div><div class="arrow">→</div>
+<div class="node">Auth Service</div><div class="arrow">→</div>
+<div class="node">Local Cache / Replica</div>
+</div></div>
+
+<h3>Case B — Same account, user flies to California</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Phone in California</div><div class="arrow">→</div>
+<div class="node">US ISP</div><div class="arrow">→</div>
+<div class="node">US PoP</div><div class="arrow">→</div>
+<div class="node">US Region</div><div class="arrow">→</div>
+<div class="node">Auth Service</div><div class="arrow">→</div>
+<div class="node">Global Identity Directory</div><div class="arrow">→</div>
+<div class="node">Local Credential Replica<small>or one authority call</small></div>
+</div></div>
+
+<p>
+The account should not be “stored in Vietnam” in a way that forces every future login back to Vietnam.
+The account has a global identity.
+The user's current physical location controls the network entry point.
+The account key controls the logical data shard.
+</p>
+
+<div class="callout">
+<strong>Important correction:</strong> Login in the USA is not guaranteed to have exactly the same milliseconds as login in Vietnam.
+The network paths are different.
+The architecture goal is to make both use nearby infrastructure and avoid several ocean crossings on the critical path.
+</div>
+</section>
+
+
+<section id="click">
+<h2>6A. What Really Happens After the User Clicks “Log In”?</h2>
+<div class="callout red">
+<strong>First fix the mental model:</strong> the complete login usually cannot finish in only a few milliseconds over the public Internet.
+A few milliseconds is realistic for a warm cache lookup, a local RPC, or an indexed local database read.
+The full login also includes network RTT and password verification, and password verification is intentionally expensive.
+</div>
+
+<h3>6A.1 The login page already did work before the click</h3>
+<p>
+When the login form is already visible, the browser or mobile app may already have paid several costs:
+DNS resolution may be cached, a TCP/TLS or QUIC connection may already be open, cookies/device identifiers are loaded,
+and the page can already contain a CSRF token or request nonce. Therefore the click can often reuse a <strong>warm connection</strong>.
+This is a major reason the action feels fast.
+</p>
+<pre><code>COLD CONNECTION
+DNS -> TCP/QUIC -> TLS -> HTTP request -> backend
+
+WARM LOGIN PAGE
+click -> reuse existing HTTP/2 or HTTP/3 connection -> backend
+
+The second path removes setup work from the click itself.</code></pre>
+
+<h3>6A.2 Exact request sequence — fast normal path</h3>
+<div class="timeline">
+<div class="trow fast"><div class="tms">Step 0</div><div class="tname">UI event</div><p>JavaScript/native code receives the click, disables duplicate submission, validates basic form shape, and creates the login request. No database call yet.</p></div>
+<div class="trow fast"><div class="tms">Step 1</div><div class="tname">Connection reuse</div><p>If the page is already connected, HTTP/2 or HTTP/3 reuses the existing encrypted connection. A cold connection would need DNS and a transport/TLS handshake first.</p></div>
+<div class="trow fast"><div class="tms">Step 2</div><div class="tname">PoP entry</div><p>The packet reaches a Meta edge PoP through ISP peering/BGP. Edge networking validates the flow and sends it to a healthy proxy/load-balancer host.</p></div>
+<div class="trow fast"><div class="tms">Step 3</div><div class="tname">L4 load balance</div><p>A Katran-style layer can hash the connection 5-tuple with a Maglev-style table so packets of one connection reach a stable backend with very low per-packet cost.</p></div>
+<div class="trow fast"><div class="tms">Step 4</div><div class="tname">L7 proxy</div><p>A Proxygen-style HTTP layer parses the request, terminates TLS when applicable, applies routing/policy, attaches request metadata, and forwards the request toward the selected regional service.</p></div>
+<div class="trow fast"><div class="tms">Step 5</div><div class="tname">Admission control</div><p>Before expensive crypto, perform cheap checks: request format, IP/device/account rate limits, bot/abuse signals, and whether the service is overloaded. Bad traffic should die here.</p></div>
+<div class="trow fast"><div class="tms">Step 6</div><div class="tname">Login service</div><p>The regional login service normalizes the identifier and creates a stable lookup key. It should not scan the user table.</p></div>
+<div class="trow fast"><div class="tms">Step 7</div><div class="tname">L1 identity cache</div><p>Check a tiny in-process cache first. CPU-local or process-local memory avoids a network hop. If it hits, <code>email_key → user_id</code> can be extremely cheap.</p></div>
+<div class="trow fast"><div class="tms">Step 8</div><div class="tname">L2 regional cache</div><p>If L1 misses, query a distributed regional cache through a router such as mcrouter. Consistent hashing sends the key to one cache shard or replica set.</p></div>
+<div class="trow slow"><div class="tms">Step 9</div><div class="tname">Directory store</div><p>If cache misses again, do one indexed/key-value lookup in the identity directory. The result is normally <code>user_id + routing metadata</code>, not a full profile object.</p></div>
+<div class="trow fast"><div class="tms">Step 10</div><div class="tname">Credential routing</div><p>Use <code>user_id</code> to identify a logical credential shard. Shard placement metadata maps the logical shard to healthy replicas in the current region.</p></div>
+<div class="trow slow"><div class="tms">Step 11</div><div class="tname">Credential read</div><p>Read password-verifier data and security metadata from a nearby replica when allowed. Security transitions may require a fresher/authoritative read.</p></div>
+<div class="trow slow"><div class="tms">Step 12</div><div class="tname">Password KDF</div><p>Run a deliberately expensive password verification algorithm. Exact Facebook password KDF parameters are not public; designs normally use a modern slow KDF and constant-time comparison.</p></div>
+<div class="trow fast"><div class="tms">Parallel</div><div class="tname">Risk checks</div><p>In parallel with password verification, fetch device/IP/location/account-risk signals. Independent reads should not be serialized.</p></div>
+<div class="trow fast"><div class="tms">Step 13</div><div class="tname">Decision</div><p>Combine password result, account state, abuse policy and risk score. Return success, generic invalid-credential result, or request 2FA/passkey/challenge.</p></div>
+<div class="trow fast"><div class="tms">Step 14</div><div class="tname">Session issue</div><p>Create or rotate an authenticated session. A browser typically receives a secure cookie; a native client may receive another session/token representation. Exact Meta token format is private.</p></div>
+<div class="trow fast"><div class="tms">Step 15</div><div class="tname">Response</div><p>The response travels back through the regional proxy and PoP over the already-open connection. The UI transitions to the authenticated application state.</p></div>
+<div class="trow fast"><div class="tms">Async</div><div class="tname">After response</div><p>Audit events, metrics, analytics, model-training events and non-critical notifications are queued asynchronously so the user does not wait for them.</p></div>
+</div>
+
+<h3>6A.3 Why email existence can be fast</h3>
+<pre><code>email text
+   |
+normalize
+   |
+keyed hash / stable key
+   |
+L1 process cache ------ HIT -> user_id
+   |
+   MISS
+   v
+regional cache -------- HIT -> user_id
+   |
+   MISS
+   v
+one identity shard / indexed lookup
+   |
+   v
+user_id</code></pre>
+<p>
+The important point is not a magical algorithm that searches one billion users.
+The system turns the identifier into a key, then performs one direct lookup in memory or one correctly routed shard.
+</p>
+
+<h3>6A.4 If the email does not exist</h3>
+<p>
+A naive server returns immediately for an unknown email, but this can leak account existence through message text or timing.
+A safer design uses the same generic response and can perform dummy password-verification work so the two paths are harder to distinguish.
+This is an authentication security design choice, not a Meta-specific public claim.
+</p>
+</section>
+
+<section id="algorithms">
+<h2>6B. Algorithms and Data Structures That Make This Fast</h2>
+<p>There is no single “Facebook login algorithm”. The speed comes from many small algorithms placed at different layers.</p>
+<table>
+<tr><th>Layer</th><th>Algorithm / technique</th><th>What it solves</th><th>Meta status</th></tr>
+<tr><td>Internet routing</td><td>BGP path selection + policy</td><td>Reach a PoP/data-center network and fail around broken paths.</td><td class="good">Publicly used</td></tr>
+<tr><td>Edge connection LB</td><td>Maglev-style consistent hashing</td><td>Map a flow to a stable backend with low per-packet state.</td><td class="good">Public in Katran</td></tr>
+<tr><td>Internal request LB</td><td>Power of Two Choices / load-aware selection</td><td>Avoid overloaded replicas and reduce tail latency.</td><td class="good">Public ServiceRouter example</td></tr>
+<tr><td>Cache routing</td><td>Consistent hashing / configurable hash pools</td><td>Send each key to the right cache host and reduce remapping.</td><td class="good">Public mcrouter concept</td></tr>
+<tr><td>User partitioning</td><td>Hash sharding</td><td>Spread users across logical shards without scanning all data.</td><td class="infer">Generic login design</td></tr>
+<tr><td>Lookup storage</td><td>B-tree / LSM / key-value index</td><td>Direct key lookup rather than O(N) scan.</td><td class="infer">Storage-engine dependent</td></tr>
+<tr><td>Cache refill</td><td>Lease / request coalescing</td><td>One miss fills cache instead of 50,000 requests hitting DB.</td><td class="good">Public Memcache technique</td></tr>
+<tr><td>Cache expiry</td><td>TTL + randomized jitter</td><td>Avoid many hot keys expiring at the same instant.</td><td class="infer">Common production technique</td></tr>
+<tr><td>Negative lookups</td><td>Negative cache; optional Bloom/Cuckoo filter</td><td>Reject repeated unknown identifiers before expensive storage reads.</td><td class="infer">Design option, not public Facebook login detail</td></tr>
+<tr><td>Replication</td><td>Raft consensus</td><td>Safe leader election and ordered replicated writes.</td><td class="good">Public MySQL Raft</td></tr>
+<tr><td>Password verification</td><td>Slow password KDF + salt</td><td>Make offline brute-force expensive.</td><td class="infer">Exact Facebook KDF not public</td></tr>
+<tr><td>Secret comparison</td><td>Constant-time comparison</td><td>Reduce timing side channels.</td><td class="infer">Security best practice</td></tr>
+<tr><td>Rate limiting</td><td>Token bucket / sliding window</td><td>Reject attack traffic before expensive password work.</td><td class="infer">Typical design; exact Meta method private</td></tr>
+<tr><td>Failure retry</td><td>Exponential backoff + jitter</td><td>Prevent synchronized retry storms.</td><td class="infer">Generic distributed-system technique</td></tr>
+<tr><td>Tail latency</td><td>Backup / hedged request in selected cases</td><td>Use another replica when one request is unusually slow.</td><td class="good">ServiceRouter exposes backup-request mechanisms</td></tr>
+</table>
+
+<h3>6B.1 Power of Two Choices</h3>
+<p>
+A simple but powerful load-balancing algorithm is: choose two candidate replicas, compare their load, and send the request to the less loaded one.
+Meta has publicly discussed this in ServiceRouter-related production work.
+</p>
+<pre><code>candidate A: 82 active/queued requests
+candidate B: 24 active/queued requests
+
+choose B
+
+Why not always query every server?
+Because the load-check itself becomes expensive at large scale.</code></pre>
+
+<h3>6B.2 Consistent hashing</h3>
+<pre><code>key = hash(email_key)
+        |
+        v
+  consistent-hash space
+   /      |       \
+cache A cache B cache C
+
+Add cache D:
+only part of the key space moves.
+The whole cache does not reshuffle.</code></pre>
+
+<h3>6B.3 Raft is not for every read</h3>
+<p>
+Raft is useful for strongly ordered replicated state, but forcing a cross-region quorum into every normal read would add WAN latency.
+A good auth design often separates a fast regional read path from stronger security-sensitive write/invalidation paths.
+</p>
+
+<h3>6B.4 The best optimization is often “do less work”</h3>
+<ul>
+<li>Reuse the existing connection.</li>
+<li>Do not call services that are not required for the decision.</li>
+<li>Read only small authentication records, not the user profile.</li>
+<li>Run independent checks in parallel.</li>
+<li>Keep analytics off the critical path.</li>
+<li>Reject abuse before CPU-expensive crypto.</li>
+<li>Keep the request in one region when possible.</li>
+</ul>
+
+<div class="callout">
+<strong>Status legend for the next sections:</strong>
+<span class="good">PUBLIC META</span> means Meta/Facebook has publicly described using the technique somewhere in production infrastructure.
+<span class="mid">DESIGN OPTION</span> means it is a strong authentication-system technique, but the exact Facebook Login implementation is private.
+</div>
+
+<h3>6B.5 Negative cache — remember that a key is absent</h3>
+<p><span class="mid">DESIGN OPTION for Login.</span> Negative caching stores a short-lived answer such as <code>email_key → NOT_FOUND</code>. It protects the identity directory when bots repeatedly ask for random accounts.</p>
+<pre><code>first request:
+unknown@example.com
+   -> L1 miss
+   -> L2 miss
+   -> Identity Directory: NOT_FOUND
+   -> cache NOT_FOUND for a short TTL
+
+next requests:
+unknown@example.com
+   -> negative-cache HIT
+   -> no storage read</code></pre>
+<p>The trade-off is freshness. If the user signs up immediately after a negative result, a long negative TTL could make the new account look absent. A good design uses a short TTL and/or explicit invalidation during signup. Authentication must also avoid turning this optimization into a user-enumeration oracle.</p>
+
+<h3>6B.6 Cache stampede and leases</h3>
+<p><span class="good">PUBLIC FACEBOOK/META TECHNIQUE.</span> Facebook's published Memcache design describes the <strong>thundering herd</strong>: a hot cache key expires and thousands of callers miss at once. If every caller queries storage, one cache expiry becomes a database DDoS.</p>
+<pre><code>WITHOUT COALESCING
+50,000 cache misses
+     | | | | | | | | |
+     v v v v v v v v v
+         DATABASE
+
+WITH A LEASE
+50,000 misses
+     |
+     +--> one lease owner --> DB --> refill cache
+     |
+     +--> other callers wait / retry cache</code></pre>
+<p>Facebook's Memcache paper describes lease tokens bound to keys. Conceptually this is the same family as <strong>single-flight / request coalescing</strong>: only one request performs the expensive refill.</p>
+
+<h3>6B.7 TTL + randomized jitter</h3>
+<p><span class="mid">DESIGN OPTION; TTL is common, exact Facebook Login jitter policy is not public.</span> If ten million entries are inserted together with the same 300-second TTL, they can expire together five minutes later.</p>
+<pre><code>BAD
+TTL = 300 seconds for every key
+          |
+          v
+millions of keys expire together
+          |
+          v
+miss spike -> storage spike
+
+BETTER
+TTL = baseTTL + random_jitter
+
+example:
+271s, 286s, 302s, 319s, 327s ...</code></pre>
+<p>Jitter spreads refill work over time. It reduces correlated cache expiry, but TTL is still not a replacement for correct invalidation of security-sensitive state.</p>
+
+<h3>6B.8 Bloom Filter — a fast “definitely absent / maybe present” test</h3>
+<p><span class="good">PUBLIC META TECHNIQUE elsewhere; exact Facebook Login usage is not public.</span> Meta has published Bloom-filter usage in storage/cache systems. For a login directory, a Bloom Filter is an optional front filter when negative lookups are very expensive.</p>
+<pre><code>email key
+   |
+   v
+Bloom Filter
+   |
+   +-- definitely NOT present --> skip expensive storage lookup
+   |
+   +-- MAYBE present -----------> query authoritative directory</code></pre>
+<p>A standard Bloom Filter has no normal false negatives but can have false positives. A false positive only causes an unnecessary lookup. For login, the design must also consider privacy, account enumeration, signup updates, deletion semantics, and whether the saved storage QPS is worth the extra system complexity.</p>
+
+<h3>6B.9 Token Bucket — reject abuse before password hashing</h3>
+<p><span class="mid">DESIGN OPTION; Meta publicly uses throttling/rate limiting broadly, but Facebook Login's exact limiter algorithm is private.</span></p>
+<pre><code>bucket capacity = 10 tokens
+refill rate     = 1 token / second
+login attempt   = consume 1 token
+
+10 -> 9 -> 8 -> ... -> 0
+                       |
+                       +--> throttle / challenge
+
+normal burst: accepted
+long attack: limited</code></pre>
+<p>A real auth system usually needs several limits at once: per IP, per account, per device, per network/ASN, per region, and possibly a global emergency limit. The important ordering is to run cheap abuse controls <em>before</em> the expensive password KDF.</p>
+
+<h3>6B.10 Constant-time comparison and timing side channels</h3>
+<p><span class="mid">SECURITY BEST PRACTICE; exact Facebook Login implementation is private.</span> A naive secret comparison can return after the first different byte. In security-sensitive code, comparison should avoid making “first byte wrong” measurably faster than “last byte wrong”.</p>
+<pre><code>password input
+    |
+    v
+slow password KDF
+    |
+    v
+derived verifier
+    |
+    v
+constant-time comparison
+    |
+    +--> stored verifier</code></pre>
+<p>There is a second timing problem: an unknown email could return immediately while a real email executes a 40 ms password KDF. A defensive design can perform dummy verification work for unknown users so response timing is less useful for account enumeration.</p>
+
+<h3>6B.11 Exponential backoff + jitter</h3>
+<p><span class="good">PUBLIC META TECHNIQUE in retry/downstream-protection systems; exact Login policy is private.</span> A million clients retrying exactly one second after an outage can kill the recovering service again.</p>
+<pre><code>retry 1: 100 ms
+retry 2: 200 ms
+retry 3: 400 ms
+retry 4: 800 ms
+
+then add randomness:
+actual_delay = random(0, exponential_delay)</code></pre>
+<p>For login, retries must also be safe. A blind retry can double-create sessions or repeat side effects. A strong design uses request IDs/idempotency semantics and retries only operations that are safe to repeat.</p>
+
+<h3>6B.12 Hedged / backup requests</h3>
+<p><span class="good">PUBLIC META TECHNIQUE in production systems; exact Facebook Login use is not public.</span> Hedging reduces tail latency for safe reads.</p>
+<pre><code>t=0ms   send READ to replica A
+
+usually:
+A replies at 2ms -> done
+
+slow case:
+t=5ms   A has not replied
+        send backup READ to replica B
+
+t=7ms   B replies -> use B
+
+t=80ms  A eventually replies -> ignore</code></pre>
+<p>This is good for idempotent reads such as identity metadata or replicated state. Do not naively hedge side-effecting operations such as session creation, OTP sending, account lock mutation, or password-attempt counters.</p>
+
+<h3>6B.13 p99 tail latency and fan-out amplification</h3>
+<p><span class="good">PUBLIC META FOCUS.</span> At hyperscale, average latency hides user pain. A service can have a good average while 1% of requests are very slow. With billions of requests, 1% is huge.</p>
+<pre><code>p50 = 20 ms
+p95 = 70 ms
+p99 = 250 ms
+
+If one login fans out to 5 dependencies:
+fast + fast + fast + SLOW + fast
+                    |
+                    v
+               whole login is SLOW</code></pre>
+<p>That is why Principal-level designs reduce the number of sequential hops, run independent branches in parallel, isolate overloaded resources, use strict deadlines, and sometimes use backup reads.</p>
+
+<h3>6B.14 Timeout budget and deadline propagation</h3>
+<p><span class="good">PUBLIC PLATFORM CONCEPT; exact Facebook Login numbers are private.</span> A request should carry one end-to-end deadline instead of giving every downstream service a long independent timeout.</p>
+<pre><code>global server deadline = 150 ms
+
+Auth sees:       140 ms remaining
+Identity budget:   5 ms
+Credential:       15 ms
+Risk:             25 ms
+Session:          10 ms
+
+Downstream receives:
+deadline_at = absolute_timestamp
+remaining = deadline_at - now
+
+If only 3 ms remain:
+fail fast instead of doing 100 ms of useless work.</code></pre>
+
+</section>
+
+<section id="devops">
+<h2>6C. How the DevOps / Production System Can Be Set Up</h2>
+<p>
+The request path above is the <strong>data plane</strong>.
+A second architecture, the <strong>control plane</strong>, keeps thousands of service instances correctly configured, deployed, discovered, scaled, and monitored.
+Meta has published many of these infrastructure pieces.
+</p>
+
+<h3>6C.1 Full control-plane diagram</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Engineer<small>code + config</small></div><div class="arrow">→</div>
+<div class="node">Code Review / CI<small>build + static analysis + tests</small></div><div class="arrow">→</div>
+<div class="node">Package / Artifact<small>fbpkg-style distribution</small></div><div class="arrow">→</div>
+<div class="node">Canary Rollout<small>small % first</small></div><div class="arrow">→</div>
+<div class="node">Twine<small>container placement/lifecycle</small></div><div class="arrow">→</div>
+<div class="node">Service Discovery<small>endpoints</small></div><div class="arrow">→</div>
+<div class="node">ServiceRouter<small>RPC LB / reliability</small></div><div class="arrow">→</div>
+<div class="node">Production Fleet<small>many regions</small></div>
+</div></div>
+
+<div class="stack">
+<div class="stackcol">
+<h3>Data plane technologies</h3>
+<span class="pill">BGP</span><span class="pill">Katran</span><span class="pill">Proxygen</span><span class="pill">Fizz</span><span class="pill">mvfst / QUIC</span><span class="pill">Thrift</span><span class="pill">ServiceRouter</span><span class="pill">mcrouter</span><span class="pill">CacheLib</span><span class="pill">MySQL Raft</span><span class="pill">ZippyDB</span><span class="pill">Shard Manager</span>
+<p>These systems carry or serve real requests.</p>
+</div>
+<div class="stackcol">
+<h3>Control plane / DevOps</h3>
+<span class="pill">Twine</span><span class="pill">ZooKeeper</span><span class="pill">Configerator</span><span class="pill">LAD</span><span class="pill">fbpkg</span><span class="pill">Conveyor</span><span class="pill">Gatekeeper</span><span class="pill">canary rollout</span><span class="pill">Scuba</span><span class="pill">Strobelight</span><span class="pill">Tracery</span>
+<p>These systems deploy, configure, discover, protect, debug, and observe the fleet.</p>
+</div>
+</div>
+
+<h3>6C.2 Twine: where service containers run</h3>
+<p>
+Meta has publicly described Twine as its internal container orchestration framework and said a Twine control plane can manage up to one million machines across data centers in a geographic region.
+The important idea is similar to a hyperscale scheduler: auth is declared as a job with CPU/memory/placement constraints; the scheduler decides which hosts run instances and replaces failed ones.
+</p>
+<pre><code>Desired state:
+login-service APAC
+  replicas: many
+  CPU/memory class: X
+  spread across failure domains
+  health check: /health
+  deployment version: v123
+
+Twine / scheduler:
+  place tasks
+  restart failed tasks
+  drain hosts for maintenance
+  coordinate lifecycle operations</code></pre>
+
+<h3>6C.3 Service discovery + ServiceRouter</h3>
+<p>
+A caller should not hard-code IP addresses.
+Service discovery publishes healthy endpoints.
+ServiceRouter can select a destination replica and provide load-balancing/reliability behavior.
+Meta has publicly used ServiceRouter with load-aware algorithms such as Power of Two Choices in production services.
+</p>
+<pre><code>Login Service
+   |
+   | Thrift RPC: CredentialService.get(...)
+   v
+ServiceRouter
+   |
+   +--> cred-host-01  load=82
+   +--> cred-host-02  load=24  <-- choose
+   +--> cred-host-03  unhealthy
+</code></pre>
+
+<h3>6C.4 Thrift: internal RPC contract</h3>
+<p>
+Meta created Thrift for cross-language RPC and has said most services at Facebook communicate using Thrift.
+Instead of sending free-form JSON between internal services, generated typed interfaces reduce serialization overhead and contract mistakes.
+</p>
+<pre><code>service IdentityDirectory {
+  LookupResult lookup(IdentifierKey key)
+}
+
+service CredentialService {
+  CredentialRecord get(UserId user)
+}
+
+service RiskService {
+  RiskDecision score(LoginContext ctx)
+}</code></pre>
+
+<h3>6C.5 Configerator + LAD: change configuration without rebuilding code</h3>
+<p>
+Rate limits, timeout budgets, feature flags, service routes, allowed regions, and emergency switches should be configuration, not hard-coded constants.
+Meta has published Configerator and Location-Aware Distribution (LAD) for large-scale config distribution.
+A tree-based distribution system prevents one central config server from becoming the bottleneck.
+</p>
+<pre><code>Config change:
+login.password_kdf_pool.max_queue = 500
+       |
+       v
+review + canary
+       |
+       v
+Configerator
+       |
+       v
+LAD distribution tree
+       |
+       +--> APAC hosts
+       +--> US hosts
+       +--> EU hosts</code></pre>
+
+<h3>6C.6 Safe rollout</h3>
+<p>
+Meta has publicly described progressive rollout for Facebook web releases and, more recently, canarying configuration changes.
+The exact current rollout percentages vary by system, but the production principle is stable:
+<strong>small blast radius first, observe, then expand.</strong>
+</p>
+<pre><code>new auth version
+   |
+internal / test fleet
+   |
+small production canary
+   |
+check error rate + p99 + CPU + auth success rate
+   |
+1% -> 10% -> larger percentage
+   |
+100%
+
+Regression?
+STOP rollout / rollback / disable feature flag.</code></pre>
+
+<h3>6C.7 Feature flags and emergency kill switches</h3>
+<p>
+A risky auth feature such as a new risk-model call should be behind a gate.
+If latency or errors rise, operations can turn the feature off without waiting for a full binary redeployment.
+Meta historically published Gatekeeper for this style of feature gating.
+</p>
+
+<h3>6C.8 Observability: measure every stage</h3>
+<p>
+A Principal Engineer does not monitor only “login API latency”.
+You need a latency breakdown and high-cardinality debugging dimensions.
+Meta currently publishes production profiling with Strobelight and visualization/query workflows involving Scuba and Tracery.
+</p>
+<pre><code>login.total_ms
+login.edge_ms
+login.identity_cache_l1_ms
+login.identity_cache_l2_ms
+login.identity_db_ms
+login.credential_read_ms
+login.password_kdf_ms
+login.risk_ms
+login.session_ms
+
+plus:
+region
+PoP
+service version
+cache hit/miss
+credential shard
+risk path
+error class</code></pre>
+
+<h3>6C.9 SLOs and tail latency</h3>
+<p>
+Average latency hides real user pain. Production should track at least p50, p95, p99 and timeout/error rate.
+A single overloaded credential host can make p99 terrible even while average latency looks good.
+This is why load-aware routing, queue limits, deadlines and load shedding matter.
+</p>
+
+<h3>6C.10 Timeout budget, not unlimited retries</h3>
+<pre><code>Total server budget: 100 ms example
+
+identity        10 ms deadline
+credential      15 ms deadline
+risk            30 ms deadline
+password KDF    controlled CPU budget
+session         10 ms deadline
+
+Never allow:
+service A timeout 5s
+  -> retries B 5s
+     -> retries C 5s
+
+One login can otherwise live for seconds and create retry storms.</code></pre>
+
+<h3>6C.11 Capacity isolation</h3>
+<p>
+Password verification is CPU-heavy, while identity cache lookup is memory/network-heavy.
+Do not let one resource class starve another.
+A good design uses separate pools and queue limits:
+</p>
+<pre><code>Pool 1: edge / HTTP
+Pool 2: lightweight login orchestration
+Pool 3: password KDF CPU workers
+Pool 4: risk-model workers
+Pool 5: cache
+Pool 6: durable storage
+
+If Pool 3 is attacked:
+identity lookup and normal infrastructure should stay healthy.</code></pre>
+<p><span class="good">META NOTE:</span> Meta has publicly described CPU/workload isolation and latency-critical scheduling in other large production services. The exact Facebook Login worker-pool layout is not public, but this is the right principle for an auth service because KDF work is intentionally expensive.</p>
+
+<h3>6C.12 The most important architecture split: control plane vs data plane</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Control Plane<small>discovery, config, health, shard placement</small></div><div class="arrow">→</div>
+<div class="node">Precomputed State<small>endpoints, routes, flags, deadlines</small></div><div class="arrow">→</div>
+<div class="node">Local Memory / Agent<small>ready before request</small></div><div class="arrow">→</div>
+<div class="node">Login Data Plane<small>fast request path</small></div>
+</div></div>
+<pre><code>DO NOT DO THIS PER LOGIN:
+query ZooKeeper
+query config database
+ask "where is CredentialService?"
+ask "which shard owns user 123?"
+then start real work
+
+DO THIS BEFORE REQUESTS ARRIVE:
+control plane watches health/config/topology
+        |
+        v
+push/cache local routing state
+        |
+        v
+request reads memory and goes directly to a healthy target</code></pre>
+<p><span class="good">PUBLIC META PATTERN.</span> Meta has publicly connected ZooKeeper, service endpoint catalogs, Configerator, Twine and service-routing infrastructure. The low-latency lesson is that discovery/configuration work is mostly removed from the synchronous request path.</p>
+
+<h3>6C.13 Service discovery in detail</h3>
+<p><span class="good">PUBLIC META.</span> A caller should never depend on one hard-coded server IP. Service discovery maintains a changing set of healthy endpoints, while the request path uses local or nearby routing state.</p>
+<pre><code>CredentialService endpoint set:
+
+host-a   healthy   load=31
+host-b   healthy   load=18
+host-c   unhealthy
+host-d   healthy   load=67
+
+control plane updates this set
+        |
+        v
+ServiceRouter/local routing state
+        |
+        v
+Login RPC chooses one healthy endpoint</code></pre>
+<p>This makes server replacement, deploys, rack maintenance and failover normal events rather than special cases.</p>
+
+<h3>6C.14 Configuration distribution in detail</h3>
+<p><span class="good">PUBLIC META.</span> Configuration such as timeouts, rate limits, feature gates, shard policy and emergency switches should be distributed ahead of request time. Meta has published Configerator and LAD for large-scale config distribution.</p>
+<pre><code>source config
+    |
+    v
+review / validation
+    |
+    v
+canary
+    |
+    v
+Configerator / distribution control
+    |
+    v
+location-aware distribution tree
+   / |  APAC US EU
+   |  |  |
+ local copies on service hosts</code></pre>
+<p>The request should normally read config from process memory or a local agent. A central configuration service must not become a dependency of every login.</p>
+
+<h3>6C.15 Canary deployment and progressive rollout</h3>
+<p><span class="good">PUBLIC FACEBOOK/META PRACTICE.</span> A login binary is too critical to deploy to 100% of the world at once.</p>
+<pre><code>new version
+   |
+   v
+internal / test fleet
+   |
+   v
+small canary
+   |
+   +--> observe login success
+   +--> p50/p95/p99 latency
+   +--> timeout/error rate
+   +--> KDF CPU queue
+   +--> cache hit ratio
+   +--> DB/storage QPS
+   |
+ healthy?
+   | yes
+   v
+1% -> 10% -> larger groups -> 100%
+
+bad signal?
+STOP / ROLLBACK</code></pre>
+<p>The exact percentages are system-specific. The important production rule is to keep the blast radius small until real traffic proves the release is healthy.</p>
+
+<h3>6C.16 Feature flags and kill switches</h3>
+<p><span class="good">PUBLIC META PRACTICE broadly; exact Login flags are private.</span> Deployment and feature activation should be separable.</p>
+<pre><code>code version contains NewRiskModel
+
+flag state:
+employees       = on
+0.1% users      = on
+1% users        = on
+10% users       = on
+
+latency regression?
+NewRiskModel = OFF
+
+No full binary rebuild required.</code></pre>
+<p>For authentication this is especially valuable for new risk models, new session flows, new 2FA paths, replica-read experiments, or emergency dependency bypasses.</p>
+
+<h3>6C.17 Observability: metrics, logs and distributed traces</h3>
+<p><span class="good">PUBLIC META.</span> A production team cannot optimize “login latency” as one number. It needs a stage-by-stage breakdown.</p>
+<div class="grid">
+<div class="card"><span class="tag fact">METRICS</span><h3>Is the system healthy?</h3><p>QPS, p50/p95/p99, error rate, timeout rate, queue depth, CPU, cache hit ratio, shard imbalance.</p></div>
+<div class="card"><span class="tag fact">LOGS</span><h3>What happened?</h3><p>Request ID, region, PoP, version, error class, dependency outcome. Never log passwords or raw secrets.</p></div>
+<div class="card"><span class="tag fact">TRACES</span><h3>Where was time spent?</h3><p>Edge → Auth → Identity → Credential → KDF → Risk → Session with per-span latency.</p></div>
+</div>
+<pre><code>trace login_id=abc123
+
+Edge                 8 ms
+Auth                72 ms
+  Identity L1       0.1 ms
+  Identity L2       1.4 ms
+  Credential        4.2 ms
+  Password KDF     41.0 ms
+  Risk             18.0 ms
+Session              3.0 ms</code></pre>
+
+<h3>6C.18 Profiling: when metrics say CPU=90%, find the function</h3>
+<p><span class="good">PUBLIC META.</span> Metrics tell you that something is wrong; profiling tells you what code consumed the resources. Meta has published Strobelight and analysis workflows with Scuba/Tracery.</p>
+<pre><code>example CPU profile:
+
+passwordVerify()       38%
+deserialize()          17%
+memory allocation      12%
+riskFeatureBuild()      9%
+other                  24%
+
+Question:
+"Why did p99 rise after version v392?"
+
+Answer with profile + trace + metrics,
+not with guessing.</code></pre>
+
+<h3>6C.19 Failover is a ladder, not one switch</h3>
+<p><span class="good">PUBLIC META INFRASTRUCTURE PRINCIPLE.</span> Different failures require different layers of recovery.</p>
+<table>
+<tr><th>Failure</th><th>Recovery layer</th><th>Example action</th></tr>
+<tr><td>One backend process</td><td>ServiceRouter / service discovery</td><td>Route to another healthy instance.</td></tr>
+<tr><td>One cache server</td><td>mcrouter / fallback cache</td><td>Fail over, use Gutter-style protection, avoid DB stampede.</td></tr>
+<tr><td>One shard leader</td><td>Replication / consensus</td><td>Promote/elect another replica.</td></tr>
+<tr><td>One rack / fabric segment</td><td>DC network + scheduler</td><td>Use alternate network paths and instances.</td></tr>
+<tr><td>One PoP</td><td>DNS/BGP/global edge steering</td><td>Move new traffic to another PoP.</td></tr>
+<tr><td>One region</td><td>Global traffic management</td><td>Shift traffic into regions with reserved disaster capacity.</td></tr>
+</table>
+<p>Meta has also published BellJar-style disaster-recovery testing: the principle is to exercise recovery paths before the real outage, because a recovery procedure that is never tested is not a reliable recovery procedure.</p>
+
+</section>
+
+<section id="latency">
+<h2>6D. Where Do the Milliseconds Actually Go?</h2>
+<div class="callout">
+<strong>Key insight:</strong> The fastest login click is a <em>warm path</em>: DNS cached, connection open, caches warm, local replica healthy, no 2FA, no cross-region call.
+The slow path pays for setup, misses, failures or extra security.
+</div>
+
+<h3>6D.1 Warm path vs cold path</h3>
+<table>
+<tr><th>Stage</th><th>Warm path</th><th>Cold / exceptional path</th></tr>
+<tr><td>DNS</td><td class="good">Already cached</td><td class="mid">Resolver + authoritative lookup</td></tr>
+<tr><td>Transport</td><td class="good">Existing HTTP/2 or HTTP/3 connection</td><td class="mid">New TCP/QUIC + TLS setup</td></tr>
+<tr><td>Identity</td><td class="good">L1/L2 cache hit</td><td class="mid">Directory storage lookup</td></tr>
+<tr><td>Credential</td><td class="good">Nearby healthy replica</td><td class="mid">Leader failover / remote authority</td></tr>
+<tr><td>Risk</td><td class="good">Known device, low risk</td><td class="mid">More checks / 2FA / passkey challenge</td></tr>
+<tr><td>Cache state</td><td class="good">Hot</td><td class="bad">Cold after deployment/outage</td></tr>
+</table>
+
+<h3>6D.2 Illustrative order-of-magnitude budget</h3>
+<p class="tiny">These are engineering examples, not measured Facebook Login production numbers.</p>
+<table>
+<tr><th>Operation</th><th>Illustrative order</th><th>Why</th></tr>
+<tr><td>In-process hash-map cache lookup</td><td>microseconds to sub-ms</td><td>No network; memory access + hash lookup.</td></tr>
+<tr><td>In-data-center cache RPC</td><td>sub-ms to a few ms</td><td>Network hop + serialization + queue.</td></tr>
+<tr><td>Indexed local storage read</td><td>~1–10 ms class</td><td>Depends on memory/SSD, queue, storage engine.</td></tr>
+<tr><td>Simple internal RPC</td><td>sub-ms to a few ms</td><td>When same data center and not queued.</td></tr>
+<tr><td>Password KDF</td><td>tens of ms class by design</td><td>Should be intentionally expensive.</td></tr>
+<tr><td>Nearby-user network RTT</td><td>often tens of ms</td><td>Access network + ISP + distance.</td></tr>
+<tr><td>Cross-ocean RTT</td><td>much larger</td><td>Physical distance; cannot be optimized to local RTT.</td></tr>
+</table>
+
+<h3>6D.3 Why “email check feels instant”</h3>
+<ol>
+<li>The login page is already loaded and connection may already be warm.</li>
+<li>The identifier lookup can be a direct cache/key lookup.</li>
+<li>The UI can show immediate local feedback while network work continues.</li>
+<li>The backend avoids loading profile/feed/messages during login.</li>
+<li>Risk checks can run in parallel.</li>
+<li>Non-critical work is asynchronous.</li>
+</ol>
+
+<h3>6D.4 Optimize p99, not only p50</h3>
+<p>
+If 99 users finish in 60 ms but one waits 2 seconds because a shard is overloaded, the average can still look acceptable.
+Principal-level design focuses on queueing, overload, per-stage deadlines, healthy-replica selection, and cold-cache recovery to control the tail.
+</p>
+</section>
+
+<section id="lookup">
+<h2>7. Email Lookup: Why One Billion Users Is Not One Billion Work</h2>
+<h3>7.1 Normalize to a stable lookup key</h3>
+<pre><code>raw login identifier
+      |
+      v
+normalization
+      |
+      v
+stable key / keyed hash
+      |
+      v
+identity directory</code></pre>
+
+<h3>7.2 Directory lookup</h3>
+<pre><code>email_key_hash -> user_id -> logical_shard
+
+7bd18...       -> 91827364 -> shard 421</code></pre>
+<p>
+A database index or key-value store goes directly to the relevant key.
+The system does not scan all users.
+It also does not broadcast the request to every shard.
+</p>
+
+<h3>7.3 Logical shard is not a physical server</h3>
+<pre><code>user_id -> logical shard 421
+
+Today:
+shard 421 replicas -> server A, B, C
+
+After a machine failure:
+shard 421 replicas -> server D, E, F
+
+user_id stays the same.</code></pre>
+<p>
+Meta has publicly described Shard Manager managing very large numbers of logical shards across large fleets.
+This is the important abstraction: move data placement without changing user identity.
+</p>
+
+<h3>7.4 Why hash only by country can be dangerous</h3>
+<p>
+A country partition can create hotspots when one market grows much faster than another.
+A better design often combines <strong>region locality</strong> with <strong>hash-based distribution inside a region</strong>.
+</p>
+
+<h3>7.5 A hot account is a different problem</h3>
+<p>
+Hash sharding spreads many users.
+It does not solve one account receiving 100,000 attacks per second.
+That hot key still maps to the same logical account.
+Use account/device/IP rate limiting before expensive password verification.
+</p>
+</section>
+
+<section id="cache">
+<h2>8. Caching Strategy: Much More Than “Use Redis”</h2>
+<p>
+At this scale, the hard cache questions are:
+<strong>what to cache, where to cache, how long, who invalidates it, what happens on a miss, and what happens when the cache is wrong.</strong>
+</p>
+
+<h3>8.1 What I would cache</h3>
+<table>
+<tr><th>Data</th><th>Cache?</th><th>Reason</th></tr>
+<tr><td><code>email_hash → user_id</code></td><td class="good">Yes</td><td>Small, read-heavy, mostly stable.</td></tr>
+<tr><td><code>user_id → shard route</code></td><td class="good">Yes</td><td>Routing metadata is a very good cache target.</td></tr>
+<tr><td>Account locked / disabled state</td><td class="mid">Carefully</td><td>Stale value can be a security bug. Use versioning/fast invalidation.</td></tr>
+<tr><td>Password hash</td><td class="mid">Specialized only</td><td>Sensitive material. Do not put it casually in a general shared cache.</td></tr>
+<tr><td>“Email does not exist”</td><td class="mid">Short negative cache</td><td>Reduces repeated misses, but affects signup freshness and enumeration behavior.</td></tr>
+</table>
+
+<h3>8.2 Multi-level regional cache</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Auth Process</div><div class="arrow">→</div>
+<div class="node">L1 Cache<small>in-process memory</small></div><div class="arrow">→</div>
+<div class="node">L2 Cache<small>regional distributed DRAM</small></div><div class="arrow">→</div>
+<div class="node">L3 Cache<small>optional NVM/flash</small></div><div class="arrow">→</div>
+<div class="node">Authoritative Store</div>
+</div></div>
+
+<p>
+Meta's CacheLib work shows DRAM + NVM caching at scale.
+TAO publicly describes regional follower and leader cache tiers.
+That does not prove Login uses TAO; it shows a proven Meta pattern for keeping read-heavy data close to regional compute.
+</p>
+
+<h3>8.3 Look-aside cache</h3>
+<pre><code>READ:
+1. GET cache(key)
+2. hit  -> return
+3. miss -> read source of truth
+4. SET cache(key, value)
+
+WRITE:
+1. update source of truth
+2. invalidate/delete cache key
+3. later read refills it</code></pre>
+
+<p>
+Facebook's published Memcache paper used this demand-filled look-aside model.
+Deleting on write is useful because deletion is easier to make idempotent than many distributed cache updates.
+</p>
+
+<h3>8.4 Cache stampede / thundering herd</h3>
+<p>
+Suppose one hot key expires while 50,000 requests arrive.
+If every request goes to the database, the cache can cause a database outage.
+Meta's Memcache paper describes <strong>leases</strong>: only a controlled client refills the key while others wait/retry.
+</p>
+<pre><code>50,000 misses
+      |
+      v
+one lease owner
+      |
+      +----> DB ----> refill cache
+      |
+other callers wait/retry
+      |
+      v
+cache HIT</code></pre>
+
+<h3>8.5 Separate cache pools</h3>
+<p>
+Do not let high-churn keys evict stable identity-routing data.
+Separate cache pools by workload:
+</p>
+<pre><code>Pool A: stable identity mappings
+Pool B: short-lived risk/device features
+Pool C: rate-limit counters
+Pool D: negative lookup cache</code></pre>
+
+<h3>8.6 Protect the DB when cache servers fail</h3>
+<p>
+The worst design is:
+<code>cache dies → all traffic hits DB → DB dies → total outage</code>.
+Facebook's published Memcache design used a small fallback pool called <strong>Gutter</strong> to absorb traffic from failed cache servers.
+Modern alternatives also include circuit breakers, stale-safe reads, request coalescing, admission control, and load shedding.
+</p>
+
+<h3>8.7 Cache correctness is different from cache availability</h3>
+<p>
+A cache can be healthy and still contain the wrong value.
+Meta has published work on Polaris and cache-consistency tracing.
+For authentication, this is critical: stale “account enabled” state can be worse than a cache outage.
+</p>
+
+<h3>8.8 Example TTL policy — design example, not Meta production values</h3>
+<table>
+<tr><th>Key</th><th>Example TTL</th><th>Reason</th></tr>
+<tr><td>email_hash → user_id</td><td>minutes to hours + explicit invalidation</td><td>Stable mapping.</td></tr>
+<tr><td>user_id → shard route</td><td>seconds to minutes</td><td>Shard placement can move.</td></tr>
+<tr><td>negative email miss</td><td>10–60 seconds</td><td>Protect backend without long signup delay.</td></tr>
+<tr><td>security state</td><td>short + version check</td><td>Safety is more important than hit rate.</td></tr>
+</table>
+
+<h3>8.9 L1 / L2 / L3 — what each level really means</h3>
+<table>
+<tr><th>Level</th><th>Typical location</th><th>Network?</th><th>Use in login design</th><th>Meta note</th></tr>
+<tr><td>L1</td><td>Inside the auth process</td><td>No</td><td>Very hot identity/shard metadata</td><td class="good">CacheLib is publicly used as an in-process cache in many Meta systems.</td></tr>
+<tr><td>L2</td><td>Regional distributed RAM cache</td><td>Yes, local DC/region</td><td>Shared identity/routing mappings</td><td class="good">Facebook publicly built huge Memcache/mcrouter deployments.</td></tr>
+<tr><td>L3</td><td>Flash/NVM or larger regional cache</td><td>Usually yes</td><td>Optional larger working set before durable storage</td><td class="good">Meta publicly uses DRAM+NVM tiering in CacheLib-related systems; exact Login hierarchy is private.</td></tr>
+</table>
+<p>The value of L1 is not just that RAM is fast. It also removes serialization, networking, queueing, load balancing and another failure dependency from the request.</p>
+
+<h3>8.10 Cold-cache recovery</h3>
+<p><span class="good">PUBLIC FACEBOOK TECHNIQUE through mcrouter.</span> A healthy new cache with zero data can be more dangerous than a partially failed warm cache because every request misses.</p>
+<pre><code>new cache cluster starts empty
+          |
+          v
+request -> new cache MISS
+          |
+          +----> warm old cache / warm source HIT
+                         |
+                         v
+                    return value
+                         |
+                         +----> fill new cache
+
+traffic continues
+hit ratio grows gradually
+10% -> 30% -> 70% -> 95%+
+
+then remove the warm source.</code></pre>
+<p>This prevents a restart or regional recovery from turning into a database overload event.</p>
+
+<h3>8.11 Gutter — reserve failure capacity</h3>
+<p><span class="good">PUBLIC FACEBOOK TECHNIQUE in the Memcache architecture.</span> When normal cache servers fail, traffic can use a small fallback cache pool rather than immediately sending the entire miss load to the database.</p>
+<pre><code>normal cache node
+       X failed
+       |
+       v
+     Gutter
+      /     HIT    MISS
+    |       |
+ result     v
+            DB
+            |
+            +--> fill Gutter</code></pre>
+<p>The systems lesson is larger than the name “Gutter”: <strong>reserve failure capacity before failure happens.</strong></p>
+
+<h3>8.12 Cache hierarchy is also a security decision</h3>
+<p>Not every auth field should be cached in every layer. Stable routing metadata is low-risk and highly cacheable. Password verifiers, account-recovery state, session-revocation state and lock state need stricter memory boundaries, shorter freshness windows, stronger invalidation or authoritative fallback.</p>
+
+</section>
+
+<section id="credential">
+<h2>9. Credential Storage: Stronger Rules Than Feed Data</h2>
+<p>
+A stale Like count is annoying.
+A stale password, account lock, or session-revocation state can be a security incident.
+Different data classes need different consistency guarantees.
+</p>
+
+<table>
+<tr><th>Data</th><th>Possible consistency policy</th></tr>
+<tr><td>Like count</td><td>Eventual consistency is usually fine.</td></tr>
+<tr><td>Feed ranking state</td><td>Eventual / bounded stale is usually fine.</td></tr>
+<tr><td>Email → user_id</td><td>Stable mapping; good candidate for replicated reads.</td></tr>
+<tr><td>Password hash</td><td>Stronger consistency and stricter security boundary.</td></tr>
+<tr><td>Account disabled</td><td>Fast global propagation / strong security semantics.</td></tr>
+<tr><td>Session revocation</td><td>Fast invalidation using version/revocation state.</td></tr>
+</table>
+
+<h3>9.1 Public Meta storage building blocks</h3>
+<ul>
+<li><strong>MySQL:</strong> publicly described by Meta as massively sharded and geo-replicated. MySQL Raft improved safe leader/failover behavior.</li>
+<li><strong>ZippyDB:</strong> a geographically distributed strongly consistent key-value store with tunable guarantees.</li>
+<li><strong>TAO:</strong> a read-heavy social-graph system that normally favors availability and eventual consistency.</li>
+</ul>
+<p>
+For a new authentication system, I would choose a stronger storage class for credentials/security state than I would for normal social graph data.
+</p>
+
+<h3>9.2 Regional read, authoritative fallback</h3>
+<div class="diagram"><div class="flow">
+<div class="node">Regional Auth</div><div class="arrow">→</div>
+<div class="node">Local Credential Replica</div><div class="arrow">→</div>
+<div class="node">Freshness / Version Check</div><div class="arrow">→</div>
+<div class="node">Authoritative Shard<small>only if needed</small></div><div class="arrow">↔</div>
+<div class="node">Other Replicas</div>
+</div></div>
+
+<p>
+Normal login can use a nearby replica if it is fresh enough.
+Password reset, account lock, suspicious login, or replica uncertainty can force a stronger authoritative check.
+This keeps the common path fast but protects security transitions.
+</p>
+
+<h3>9.3 Security version</h3>
+<pre><code>account.security_version = 81
+
+old_session.security_version = 80
+
+80 != 81
+=> reject old session</code></pre>
+<p>
+This can invalidate many sessions without scanning a giant session table.
+But the version itself becomes security-critical and must propagate quickly.
+</p>
+
+<h3>9.4 Password hashing should not be “too fast”</h3>
+<p>
+Email lookup should be fast.
+Password verification should use an expensive password KDF because that slows brute-force attackers.
+Therefore, password verification needs isolated CPU capacity and strict rate limiting before the expensive operation.
+</p>
+</section>
+
+<section>
+<h2>10. Parallel Work and Async Work</h2>
+<p>Do not put all login operations in one serial chain.</p>
+<div class="diagram"><div class="lanes">
+<div class="lane"><strong>Password path</strong><p>credential read → password KDF → constant-time compare</p></div>
+<div class="lane"><strong>Risk path</strong><p>device → IP → location → history → score</p></div>
+<div class="lane"><strong>Account path</strong><p>lock state → 2FA settings → session policy</p></div>
+</div></div>
+
+<pre><code>CRITICAL PATH — user waits:
+identity lookup
+credential/security read
+password verification
+required risk decision
+session/token issue
+
+ASYNC — user should not wait:
+analytics
+most logging
+ML training events
+business metrics
+non-critical notifications</code></pre>
+
+<h3>Why parallel work matters</h3>
+<pre><code>BAD SERIAL:
+password 40ms
+  -> risk 30ms
+  -> device 20ms
+  -> policy 10ms
+  = about 100ms processing
+
+BETTER:
+password 40ms  ┐
+risk     30ms   ├─ run together
+device   20ms   │
+policy   10ms   ┘
+critical processing closer to max(branches),
+not sum(branches).</code></pre>
+</section>
+
+<section id="failure">
+<h2>11. Failure Cases a Principal Engineer Must Discuss</h2>
+
+<details open><summary>1. PoP failure</summary>
+<p>Move traffic to another healthy PoP using DNS/routing. Keep spare edge capacity. Lower DNS TTL can speed movement but increases DNS load.</p>
+</details>
+
+<details><summary>2. Entire data-center region fails</summary>
+<p>Global traffic management moves user traffic to surviving regions. Capacity planning must keep disaster headroom; a region cannot normally run at 100% if it must absorb another region's users.</p>
+</details>
+
+<details><summary>3. Cache node failure</summary>
+<p>Do not let all misses hit the database. Use fallback caches, coalescing, circuit breakers, and load shedding.</p>
+</details>
+
+<details><summary>4. Cache cold start after an outage</summary>
+<p>When millions of users return, caches may be empty. Warm gradually, control refill concurrency, and prioritize critical keys. Recovery can otherwise cause a second outage.</p>
+</details>
+
+<details><summary>5. Credential leader failure</summary>
+<p>A replicated/consensus storage group should elect or promote another replica safely. The important question is what happens to writes during the failover window.</p>
+</details>
+
+<details><summary>6. Backbone partition</summary>
+<p>A PoP can be alive but unable to reach data-center services. Health checks must include end-to-end backend reachability, not only “the PoP server has power”.</p>
+</details>
+
+<details><summary>7. DNS and backbone failure amplify each other</summary>
+<p>Meta's October 2021 outage is a real lesson: backbone loss caused DNS locations to lose data-center reachability and withdraw BGP advertisements, making authoritative DNS unreachable. Control-plane dependencies can turn one failure into a global failure.</p>
+</details>
+
+<details><summary>8. One account is under attack</summary>
+<p>Sharding does not fix one hot account. Apply per-account, per-device, per-IP, ASN/network reputation, bot detection, and challenges before password KDF work.</p>
+</details>
+
+<details><summary>9. Password changed in USA, immediate login in Vietnam</summary>
+<p>Security state must beat stale replicas. Use versioned invalidation, bounded staleness, or an authoritative fallback after security changes.</p>
+</details>
+
+<details><summary>10. Cache is healthy but wrong</summary>
+<p>This is harder than a crash because normal health checks are green. You need cache correctness monitoring and consistency tracing, not only uptime dashboards.</p>
+</details>
+</section>
+
+<section id="tradeoff">
+<h2>12. Trade-off Matrix</h2>
+<table>
+<tr><th>Decision</th><th>Benefit</th><th>Cost / Risk</th><th>Auth position</th></tr>
+<tr><td>More PoPs</td><td class="good">Lower internet latency, better peering</td><td class="mid">Network and operations cost</td><td>Very useful globally</td></tr>
+<tr><td>More regional replicas</td><td class="good">Fast reads, resilience</td><td class="mid">Replication and consistency complexity</td><td>Good for identity/routing data</td></tr>
+<tr><td>Strong cross-region writes</td><td class="good">Security correctness</td><td class="bad">WAN latency and quorum dependency</td><td>Use only where necessary</td></tr>
+<tr><td>Long cache TTL</td><td class="good">High hit rate</td><td class="bad">Stale data</td><td>Stable mappings only</td></tr>
+<tr><td>Short cache TTL</td><td class="good">Freshness</td><td class="mid">More backend load</td><td>Security state + invalidation</td></tr>
+<tr><td>0-RTT transport</td><td class="good">Lower setup latency</td><td class="bad">Replay concerns</td><td>Do not blindly use for login writes</td></tr>
+<tr><td>Very fine microservices</td><td class="good">Clear ownership</td><td class="bad">RPC and tail latency</td><td>Keep critical path coarse</td></tr>
+<tr><td>Slow password KDF</td><td class="good">Brute-force resistance</td><td class="mid">CPU cost</td><td>Required + rate limiting</td></tr>
+<tr><td>Detailed “email exists” error</td><td class="good">Better UX</td><td class="bad">User enumeration</td><td>Usually avoid or heavily protect</td></tr>
+</table>
+</section>
+
+<section>
+<h2>13. Example Latency Budget</h2>
+<p class="tiny">Example only. These are not Facebook production numbers.</p>
+<table>
+<tr><th>Stage</th><th>Example budget</th><th>Main optimization</th></tr>
+<tr><td>User → nearby PoP</td><td>10–50 ms</td><td>PoP placement, ISP peering, route quality</td></tr>
+<tr><td>DNS if uncached</td><td>Variable</td><td>Distributed authoritative DNS, reasonable TTL</td></tr>
+<tr><td>TLS/QUIC setup</td><td>0–1 RTT depending on connection state</td><td>Edge termination, safe resumption</td></tr>
+<tr><td>PoP → regional compute</td><td>Few–tens ms when regional</td><td>Private backbone and region selection</td></tr>
+<tr><td>Identity directory</td><td>1–5 ms on cache hit</td><td>L1/L2 cache and one key lookup</td></tr>
+<tr><td>Credential read</td><td>2–10 ms local</td><td>Regional replica / correct placement</td></tr>
+<tr><td>Password verify</td><td>Tens of ms</td><td>Dedicated CPU pool; intentionally expensive</td></tr>
+<tr><td>Risk checks</td><td>Parallel</td><td>Batching and parallel RPCs</td></tr>
+<tr><td>Session issue</td><td>Few ms</td><td>Small controlled write/token operation</td></tr>
+</table>
+<div class="callout">
+The biggest latency killer is often not “one billion rows”.
+It is <strong>serial dependencies + cache misses + cross-region RPCs + overloaded shared resources + p99 tail latency</strong>.
+</div>
+</section>
+
+<section id="interview">
+<h2>14. How I Would Answer in a Principal Engineer Interview</h2>
+<div class="interview">
+<p class="quote">
+“I would design global login in layers.
+DNS and global traffic management first select a healthy nearby PoP.
+The PoP handles network entry, L4/L7 balancing and TLS.
+The request then reaches a selected regional auth tier.
+Inside the region, the service performs an indexed identity lookup, routes to one credential shard,
+and verifies the password.
+Stable routing data is cached aggressively.
+Password and security state use stronger consistency and stricter cache rules.
+The key rule is to keep cross-region calls out of the normal critical path.”
+</p>
+
+<pre><code>USER
+ |
+ v
+DNS / Traffic Steering
+ |
+ v
+Nearest healthy PoP
+ |
+ +-- BGP / Peering
+ +-- VIP + L4 load balancing
+ +-- L7 HTTP proxy
+ +-- TLS / HTTP3
+ |
+ v
+Selected regional auth tier
+ |
+ +---- L1/L2 identity cache
+ |          |
+ |          +----> identity directory
+ |
+ +---- credential replica
+ |          |
+ |          +----> authoritative shard if required
+ |
+ +---- risk engine
+ |
+ v
+Password decision / 2FA
+ |
+ v
+Session/token
+ |
+ v
+RESPONSE
+
+Async:
+audit + analytics + ML events + metrics</code></pre>
+
+<h3>Five follow-up questions I would volunteer</h3>
+<ol>
+<li>What happens if a whole region dies?</li>
+<li>How do we invalidate a changed password globally?</li>
+<li>How do we stop a cache stampede from killing storage?</li>
+<li>How do we stop attackers from turning password hashing into a CPU DDoS?</li>
+<li>How do we keep normal login local when the user travels between continents?</li>
+</ol>
+
+<h3>What makes this Principal-level?</h3>
+<p>
+The answer connects physical networking, DNS, routing, TLS, service placement, sharding, cache correctness,
+storage consistency, security, capacity planning, observability, and disaster recovery.
+It also says which guarantees are different for different data types.
+</p>
+</div>
+</section>
+
+<section>
+<h2>15. Fast Review: 12 Principles to Remember</h2>
+<ol>
+<li><strong>Do not scan users.</strong> Key → directory → one shard.</li>
+<li><strong>PoP is not a data center.</strong> Edge entry and large compute regions are different layers.</li>
+<li><strong>Route by measured network quality, not only geography.</strong></li>
+<li><strong>Terminate transport near the user when safe.</strong></li>
+<li><strong>Use a private backbone for controlled inter-region transport.</strong></li>
+<li><strong>Keep normal login inside one region.</strong></li>
+<li><strong>Cache stable mappings aggressively; cache security state carefully.</strong></li>
+<li><strong>Prevent thundering herd before it reaches the DB.</strong></li>
+<li><strong>Logical shard placement must be independent of physical servers.</strong></li>
+<li><strong>Use stronger consistency only for data that needs it.</strong></li>
+<li><strong>Parallelize independent security work.</strong></li>
+<li><strong>Design failure recovery before production, not after the outage.</strong></li>
+</ol>
+</section>
+
+<section id="sources">
+<h2>16. Public Sources Used for This Full-Stack Deep Dive</h2>
+<p class="source">
+These are public Meta Engineering / Meta Data Center pages and primary USENIX material.
+They support the infrastructure concepts, not a claim about the exact private Facebook Login implementation.
+</p>
+<ol>
+<li><a href="https://engineering.fb.com/2017/08/21/networking-traffic/steering-oceans-of-content-to-the-world/">Meta Engineering — Steering oceans of content to the world (PoPs, Cartographer, Edge Fabric)</a></li>
+<li><a href="https://engineering.fb.com/2018/05/22/open-source/open-sourcing-katran-a-scalable-network-load-balancer/">Meta Engineering — Katran L4 load balancer</a></li>
+<li><a href="https://engineering.fb.com/2023/08/07/security/short-lived-certificates-protect-tls-secrets/">Meta Engineering — TLS / Proxygen at the edge</a></li>
+<li><a href="https://engineering.fb.com/2020/10/21/networking-traffic/how-facebook-is-bringing-quic-to-billions/">Meta Engineering — QUIC / HTTP3</a></li>
+<li><a href="https://engineering.fb.com/2020/09/14/networking-traffic/throughput-autoscaling/">Meta Engineering — Taiji and regional traffic balancing</a></li>
+<li><a href="https://engineering.fb.com/2022/09/06/data-center-engineering/viewing-the-world-as-a-computer-global-capacity-management/">Meta Engineering — Global capacity management</a></li>
+<li><a href="https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/">Meta Engineering — October 2021 outage and DNS/BGP/backbone dependency</a></li>
+<li><a href="https://engineering.fb.com/2025/10/16/data-center-engineering/10x-backbone-how-meta-is-scaling-backbone-connectivity-for-ai/">Meta Engineering — Classic Backbone and Express Backbone</a></li>
+<li><a href="https://engineering.fb.com/2025/10/05/connectivity/introducing-the-candle-subsea-cable-updates-to-our-asia-pacific-connectivity-projects/">Meta Engineering — APAC subsea connectivity including Bifrost/Echo updates</a></li>
+<li><a href="https://datacenters.atmeta.com/all-locations/">Meta Data Centers — Global locations</a></li>
+<li><a href="https://engineering.fb.com/2014/11/14/production-engineering/introducing-data-center-fabric-the-next-generation-facebook-data-center-network/">Meta Engineering — Data Center Fabric</a></li>
+<li><a href="https://engineering.fb.com/2019/03/14/data-center-engineering/f16-minipack/">Meta Engineering — F16 / HGRID / Minipack</a></li>
+<li><a href="https://www.usenix.org/conference/nsdi13/technical-sessions/presentation/nishtala">USENIX NSDI 2013 — Scaling Memcache at Facebook</a></li>
+<li><a href="https://engineering.fb.com/2013/06/25/core-infra/tao-the-power-of-the-graph/">Meta Engineering — TAO</a></li>
+<li><a href="https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson">USENIX ATC 2013 — TAO paper</a></li>
+<li><a href="https://engineering.fb.com/2021/09/02/core-infra/cachelib/">Meta Engineering — CacheLib</a></li>
+<li><a href="https://engineering.fb.com/2022/06/08/core-infra/cache-made-consistent/">Meta Engineering — Cache consistency / Polaris</a></li>
+<li><a href="https://engineering.fb.com/2020/08/24/production-engineering/scaling-services-with-shard-manager/">Meta Engineering — Shard Manager</a></li>
+<li><a href="https://engineering.fb.com/2021/08/06/core-infra/zippydb/">Meta Engineering — ZippyDB</a></li>
+<li><a href="https://engineering.fb.com/2023/05/16/data-infrastructure/mysql-raft-meta/">Meta Engineering — MySQL Raft</a></li>
+<li><a href="https://engineering.fb.com/2025/09/29/data-infrastructure/metas-infrastructure-evolution-and-the-advent-of-ai/">Meta Engineering — Infrastructure evolution, Twine, Service Router, Shard Manager, Taiji</a></li>
+<li><a href="https://engineering.fb.com/2020/11/11/data-center-engineering/twine-2/">Meta Engineering — Twine shared infrastructure and regional container orchestration</a></li>
+<li><a href="https://engineering.fb.com/2020/08/31/developer-tools/zookeeper-twine/">Meta Engineering — ZooKeeper, service discovery, Configerator, fbpkg, Conveyor and Twine</a></li>
+<li><a href="https://engineering.fb.com/2018/07/19/data-infrastructure/location-aware-distribution-configuring-servers-at-scale/">Meta Engineering — Location-Aware Distribution (LAD) for configuration</a></li>
+<li><a href="https://engineering.fb.com/2014/02/20/open-source/under-the-hood-building-and-open-sourcing-fbthrift/">Meta Engineering — fbthrift RPC</a></li>
+<li><a href="https://engineering.fb.com/2014/09/15/web/introducing-mcrouter-a-memcached-protocol-router-for-scaling-memcached-deployments/">Meta Engineering — mcrouter: hashing, failover, multilevel cache, warm-up and QoS</a></li>
+<li><a href="https://engineering.fb.com/2024/07/10/production-engineering/tail-utilization-ads-inference-meta/">Meta Engineering — ServiceRouter load balancing and Power of Two Choices</a></li>
+<li><a href="https://engineering.fb.com/2017/08/31/web/rapid-release-at-massive-scale/">Meta Engineering — Progressive web release and Gatekeeper</a></li>
+<li><a href="https://engineering.fb.com/2026/04/08/security/trust-but-canary-configuration-safety-at-scale-meta-tech-podcast/">Meta Engineering — Canarying and progressive configuration rollout</a></li>
+<li><a href="https://engineering.fb.com/2025/01/21/production-engineering/strobelight-a-profiling-service-built-on-open-source-technology/">Meta Engineering — Strobelight, Scuba and Tracery for performance investigation</a></li>
+<li><a href="https://engineering.fb.com/2021/05/13/data-center-engineering/bgp/">Meta Engineering — BGP in large-scale data centers</a></li>
+<li><a href="https://engineering.fb.com/2023/08/08/security/how-meta-is-improving-password-security-and-preserving-privacy/">Meta Engineering — Password security research / Private Password Precheck</a></li>
+<li><a href="https://engineering.fb.com/2023/01/31/production-engineering/meta-asynchronous-computing/">Meta Engineering — Asynchronous computing: retries, backoff, rate limits and downstream protection</a></li>
+<li><a href="https://engineering.fb.com/2022/05/05/developer-tools/belljar/">Meta Engineering — BellJar disaster-recovery testing</a></li>
+<li><a href="https://engineering.fb.com/2021/10/26/core-infra/kangaroo/">Meta Engineering — Kangaroo cache and Bloom-filter use</a></li>
+<li><a href="https://engineering.fb.com/2021/07/09/core-infra/ribbon-filter/">Meta Engineering — Ribbon Filter, a Bloom-filter alternative</a></li>
+<li><a href="https://engineering.fb.com/2017/09/26/web/react-16-a-look-inside-an-api-compatible-rewrite-of-our-frontend-ui-library/">Meta Engineering — Facebook feature-flag-based production development example</a></li>
+</ol>
+</section>
+
+<footer>
+Deep-dive v4 · Full request path + low-latency algorithms + caching internals + DevOps/control plane · Built for Principal Engineer system-design interview study.
+</footer>
+</div>
+</body>
+</html>

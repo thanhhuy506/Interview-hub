@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senior Java Interview Prep - TPIsoftware</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #0d9488;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+        .q-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .q-tag {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .q-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .btn-toggle {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-toggle:hover {
+            background-color: #0f766e;
+        }
+        .answer-box {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border);
+        }
+        .answer-box.show {
+            display: block;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background: #f1f5f9;
+            color: #b91c1c;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Senior Java Developer Mock Interview</h1>
+        <p class="subtitle">TPIsoftware Preparation Guide • Practice Mode</p>
+    </header>
+
+    <!-- Question 1 -->
+    <div class="q-card">
+        <span class="q-tag">Core Java & Concurrency</span>
+        <p class="q-text">1. What are the main differences between using synchronized blocks, ReentrantLock, and ConcurrentHashMap? In what specific scenario would you choose ReentrantLock over a standard synchronized block?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <h4>Differences:</h4>
+            <ul>
+                <li><strong><code>synchronized</code> block:</strong> Implicit, built-in, block-structured mechanism. Automatically releases lock when exiting block. Lacks advanced features like fairness, timeouts, or non-blocking attempts.</li>
+                <li><strong><code>ReentrantLock</code>:</strong> Explicit lock implementation. Requires manual unlocking in a <code>finally</code> block. Supports advanced options like <code>tryLock()</code>, lock timeouts, and fairness policies.</li>
+                <li><strong><code>ConcurrentHashMap</code>:</strong> A thread-safe collection utilizing lock striping or CAS (Compare-And-Swap) operations rather than locking the entire resource, allowing high-throughput concurrent access.</li>
+            </ul>
+            <h4>Scenario for ReentrantLock:</h4>
+            <p>Choose <code>ReentrantLock</code> when implementing non-blocking or timed lock attempts to prevent system degradation. For example, in a payment gateway, if a thread fails to lock a user wallet within 2 seconds, you can cleanly abort and return a "System Busy" error using <code>lock.tryLock(2, TimeUnit.SECONDS)</code>.</p>
+        </div>
+    </div>
+
+    <!-- Question 2 -->
+    <div class="q-card">
+        <span class="q-tag">Spring Boot & Microservices</span>
+        <p class="q-text">2. Imagine Service A calls Service B via REST. Service B experiences high latency due to a DB bottleneck, causing Service A's thread pool to exhaust rapidly and crash the system. What pattern and configuration would you implement to prevent this cascading failure?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <h4>1. Pattern:</h4>
+            <p>Implement the <strong>Circuit Breaker Pattern</strong>. When Service B slows down, the circuit trips <strong>Open</strong>, rejecting subsequent requests immediately or routing them to a fallback method to preserve Service A's thread pool.</p>
+            <h4>2. Configuration & Metrics (Resilience4j):</h4>
+            <ul>
+                <li><code>slidingWindowType</code>: Set to <code>COUNT_BASED</code> or <code>TIME_BASED</code> to capture recent failures.</li>
+                <li><code>failureRateThreshold</code>: Open the circuit if a percentage threshold (e.g., 50%) is reached.</li>
+                <li><code>slowCallRateThreshold</code> & <code>slowCallDurationThreshold</code>: Mark calls taking longer than e.g., 2 seconds as slow, opening the circuit if too many slow calls occur.</li>
+                <li><code>waitDurationInOpenState</code>: Duration the circuit stays Open before attempting recovery in Half-Open state.</li>
+                <li><strong>Metrics to Monitor:</strong> <code>resilience4j_circuitbreaker_state</code> (State visualization) and <code>resilience4j_circuitbreaker_buffered_calls</code> (Throughput breakdown).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Question 3 -->
+    <div class="q-card">
+        <span class="q-tag">System Design & Database</span>
+        <p class="q-text">3. A reporting query on a table with tens of millions of rows takes over 10 seconds. What systematic steps do you take to optimize it, and what advanced strategies do you use if standard B-Tree indexes fail?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <h4>1. Diagnosis & Basic Optimization:</h4>
+            <ul>
+                <li>Run <code>EXPLAIN ANALYZE</code> to check for Sequential Scans or heavy sorting costs.</li>
+                <li>Verify indexing on filter predicates (<code>WHERE</code>) and join columns. Utilize Composite Indexes if needed.</li>
+                <li>Refactor the query to eliminate unnecessary subqueries or leading wildcards (e.g., <code>LIKE '%abc'</code>).</li>
+            </ul>
+            <h4>2. Advanced Strategies for Large Data:</h4>
+            <ul>
+                <li><strong>Database Partitioning:</strong> Logical breakdown by specific ranges (e.g., <code>CREATED_DATE</code>) to allow partition pruning.</li>
+                <li><strong>Materialized Views:</strong> Cache heavy reporting metrics and refresh them asynchronously.</li>
+                <li><strong>CQRS Pattern:</strong> Isolate the write operations from reads, synchronizing changes via a message broker (Kafka) to a dedicated query store like Elasticsearch.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Question 4 -->
+    <div class="q-card">
+        <span class="q-tag">Cloud, Security & DevOps</span>
+        <p class="q-text">4. How do you safely handle secrets in a Kubernetes-deployed Spring Boot app, and what practices do you follow to minimize and secure production container images?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <h4>1. Managing Sensitive Configurations:</h4>
+            <ul>
+                <li>Externalize secrets using <strong>HashiCorp Vault</strong> or Cloud Secret Managers (AWS/GCP).</li>
+                <li>Inject credentials dynamically at runtime using Kubernetes <code>Secret</code> objects managed by an External Secrets Operator.</li>
+                <li>Use library encryption like <strong>Jasypt</strong> if configurations must reside encrypted in the repository.</li>
+            </ul>
+            <h4>2. Optimizing Docker Containers:</h4>
+            <ul>
+                <li><strong>Multi-stage Builds:</strong> Compile using a full JDK image, then copy only the artifact into a runtime-only base.</li>
+                <li><strong>Distroless / Alpine Images:</strong> Minimize the attack surface by avoiding unnecessary shells and tools.</li>
+                <li><strong>Run as Non-Root:</strong> Declare a dedicated user (<code>USER appuser</code>) to restrict host container permissions.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Question 5 -->
+    <div class="q-card">
+        <span class="q-tag">AI Integration & Leadership</span>
+        <p class="q-text">5. How do you integrate AI coding assistants into your workflow safely, and how would you coach a Junior Developer who over-relies on AI and lacks debugging fundamentals?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <h4>1. Safe AI Integration:</h4>
+            <p>Leverage AI for boilerplate code, unit test generation, and regex matching. Ensure your enterprise license prohibits code reuse for model training. Never paste proprietary intellectual property, credentials, or actual DB structures into public prompts.</p>
+            <h4>2. Coaching Junior Engineers:</h4>
+            <ul>
+                <li>Enforce structured code reviews requiring the Junior to explain the logic of the code line-by-line.</li>
+                <li>Run pair programming sessions with AI turned off, guiding them through breakpoint evaluation and log reading.</li>
+                <li>Establish strict boundaries ensuring comprehension always precedes deployment.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Question 6 -->
+    <div class="q-card">
+        <span class="q-tag">Behavioral & Crisis Management</span>
+        <p class="q-text">6. A critical production memory leak occurs. The PO pressures for an immediate fix, and a Junior Developer panics thinking they caused it. As a Senior, how do you handle this crisis?</p>
+        <button class="btn-toggle" onclick="toggleAnswer(this)">Show/Hide Answer</button>
+        <div class="answer-box">
+            <h3>Ideal Answer:</h3>
+            <ol>
+                <li><strong>Triage & De-escalation:</strong> Defuse junior panic by emphasizing collective responsibility. Inform the Product Owner with an empirical timeline expectation rather than overpromising.</li>
+                <li><strong>Mitigation & Isolation:</strong> Trigger a prompt code rollback to the previous stable build, or provision temporary vertical scaling (JVM Memory allocation) to buy debugging time. Analyze heap dumps and APM logs afterwards.</li>
+                <li><strong>Prevention (Post-Mortem):</strong> Host a blameless post-mortem meeting to assess pipeline gaps and integrate preventative automated regression or load tests into the CI/CD pipeline.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAnswer(button) {
+        const answerBox = button.nextElementSibling;
+        answerBox.classList.toggle('show');
+    }
+</script>
+</body>
+</html>
