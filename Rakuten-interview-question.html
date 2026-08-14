@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Senior Software Engineer Interview Guide — Deep Dive</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#5f6b7a;--line:#dfe5ee;--blue:#2563eb;--blue2:#eff6ff;--green:#0f766e;--green2:#ecfdf5;--orange:#b45309;--orange2:#fffbeb;--dark:#111827}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+header{background:linear-gradient(135deg,#111827,#1e3a8a);color:white;padding:44px 7%;} header h1{margin:0 0 8px;font-size:34px} header p{margin:4px 0;color:#dbeafe}
+main{max-width:1180px;margin:28px auto;padding:0 20px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;margin:0 0 22px;box-shadow:0 3px 12px rgba(15,23,42,.04)}
+h2{font-size:24px;margin:0 0 18px;color:#172554} h3{font-size:18px;margin:22px 0 8px}.q{font-weight:700;font-size:20px;color:#111827;margin-bottom:14px}.tag{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--blue2);color:#1d4ed8;font-size:12px;font-weight:700;margin:0 5px 8px 0}
+.note{background:var(--orange2);border-left:4px solid #f59e0b;padding:13px 16px;margin:14px 0}.answer{background:var(--green2);border-left:4px solid #10b981;padding:16px;margin-top:15px}.senior{background:#eef2ff;border-left:4px solid #6366f1;padding:16px;margin-top:15px}.warning{background:#fef2f2;border-left:4px solid #ef4444;padding:13px 16px;margin:14px 0}
+pre{background:#0f172a;color:#e5e7eb;border-radius:10px;padding:16px;overflow:auto;line-height:1.5}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#f8fafc}
+ul{padding-left:22px}.flow{font-weight:700;color:#1e3a8a;letter-spacing:.2px}.small{color:var(--muted);font-size:13px}.toc a{color:#1d4ed8;text-decoration:none}.toc li{margin:5px 0}
+@media(max-width:700px){header h1{font-size:27px}.card{padding:18px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Senior Software Engineer Interview Guide</h1>
+<p>Java 17/21 • Spring Boot • Microservices • Database • Redis • Docker</p>
+<p>Focus: 9 years experience — every question includes concept, internal flow, concrete example, production usage, failure cases, trade-offs, and a senior interview answer.</p>
+</header>
+<main>
+<section class="card toc">
+<h2>How to use this guide</h2>
+<ul>
+<li><a href="#logging">1. Logging before and after Controller</a></li>
+<li><a href="#interceptor-filter">2. Interceptor vs Filter</a></li>
+<li><a href="#coordination">3. Microservice coordination and Order workflow</a></li>
+<li><a href="#transaction">4. @Transactional and partial rollback</a></li>
+<li><a href="#db-connect">5. Ways to connect to a database</a></li>
+<li><a href="#sql-performance">6. How to improve SQL performance</a></li>
+<li><a href="#index">7. Database indexes</a></li>
+<li><a href="#db-design">8. Database design</a></li>
+<li><a href="#rest">9. Implementing a REST API</a></li>
+<li><a href="#docker">10. Docker container communication</a></li>
+<li><a href="#redis">11. Redis vs database and large Redis data</a></li>
+</ul>
+</section>
+<section class="card" id="logging">
+<h2>1. How do you log before and after entering a Controller, besides Spring AOP?</h2>
+<div class="tag">Core idea</div><div class="tag">Spring MVC</div><div class="tag">Production</div>
+<div class="note"><b>Easy explanation:</b> A request passes through several layers. A <b>Filter</b> is close to the HTTP layer. A <b>HandlerInterceptor</b> is inside Spring MVC and knows about the selected handler/controller. AOP works at method level. For request tracing, Filter or Interceptor is often cleaner than putting logging logic into every controller.</div>
+<div class="note"><b>How it works in real life:</b> When a request arrives, the Filter can create a correlation ID and record the start time. The Interceptor can identify the Spring MVC handler. After the controller finishes, the interceptor/filter records the status and latency.</div>
+<h3>Concrete example — trace one request</h3>
+<pre><code>POST /api/orders
+X-Correlation-ID: req-123
+
+Filter:
+  requestId=req-123, start=10:00:00.000
+        ↓
+Interceptor:
+  handler=OrderController.createOrder()
+        ↓
+Controller
+        ↓
+Service
+        ↓
+Database
+        ↓
+Interceptor:
+  status=201
+        ↓
+Filter:
+  duration=152ms</code></pre>
+<p><b>When I use it:</b> For production troubleshooting, latency measurement, request tracing and audit metadata. I would not log the full request body by default because it can contain passwords, tokens, payment data or personal information.</p>
+<div class="note"><b>Real production example:</b> A customer reports that checkout is slow. I search for <code>req-123</code> and can follow the request through Order Service, Payment Service and database logs instead of searching thousands of unrelated log lines.</div>
+
+<pre><code>Client
+  ↓
+Filter
+  ↓
+DispatcherServlet
+  ↓
+Interceptor.preHandle()
+  ↓
+Controller
+  ↓
+Interceptor.afterCompletion()
+  ↓
+Response</code></pre>
+<h3>Option A — HandlerInterceptor</h3>
+<pre><code>@Component
+public class LoggingInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        log.info("Before Controller: {} {}",
+                request.getMethod(),
+                request.getRequestURI());
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+
+        log.info("After Controller: status={}",
+                response.getStatus());
+    }
+}</code></pre>
+<h3>Option B — OncePerRequestFilter</h3>
+<pre><code>@Component
+public class LoggingFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
+
+        long start = System.currentTimeMillis();
+
+        log.info("Before request");
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            log.info("After request: status={}, time={}ms",
+                    response.getStatus(),
+                    System.currentTimeMillis() - start);
+        }
+    }
+}</code></pre>
+<div class="note"><b>Production tip:</b> Add a correlation/request ID and put it into MDC. Then Controller → Service → Repository logs can be connected using the same ID. Avoid logging passwords, tokens, card data, or sensitive personal information.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“Besides AOP, I can use a HandlerInterceptor for Spring MVC controller-level logging, or a OncePerRequestFilter for lower-level HTTP logging. In production, I usually add a correlation ID and MDC so that one request can be traced across Controller, Service, database calls, and downstream services. I also log latency and status code, but avoid sensitive data.”</div>
+</section>
+<section class="card" id="interceptor-filter">
+<h2>2. What is the difference between Interceptor and Filter?</h2>
+<div class="note"><b>Easy explanation:</b> Filter belongs to the Servlet/HTTP layer. Interceptor belongs to Spring MVC. Therefore Filter can run before Spring MVC starts, while Interceptor works around the selected controller handler.</div>
+<h3>Concrete example — which one should I choose?</h3>
+<pre><code>Need correlation ID for EVERY HTTP request?
+        → Filter
+
+Need to know which Spring Controller/handler was selected?
+        → HandlerInterceptor
+
+Need to intercept a service method?
+        → Spring AOP
+
+Need raw HTTP request/response handling?
+        → Filter</code></pre>
+<div class="note"><b>Production example:</b> I would put correlation-ID initialization in a Filter because it should exist before Spring MVC starts. I might use an Interceptor to record which controller method handled the request. I would use AOP for service-level audit or metrics.</div>
+
+<table><tr><th>Filter</th><th>HandlerInterceptor</th></tr>
+<tr><td>Servlet / HTTP level</td><td>Spring MVC level</td></tr>
+<tr><td>Can run before DispatcherServlet</td><td>Runs around Spring MVC handler execution</td></tr>
+<tr><td>Good for request ID, security-related preprocessing, CORS, raw request/response concerns</td><td>Good for controller-specific checks, timing, handler information</td></tr>
+<tr><td>Does not naturally know which controller handler was selected</td><td>Receives the handler object</td></tr>
+</table>
+<div class="senior"><b>Interview answer:</b><br/>
+“A Filter is lower-level and works at the Servlet layer, while a HandlerInterceptor is part of Spring MVC. I would use a Filter for cross-cutting HTTP concerns such as correlation IDs or request preprocessing, and an Interceptor when I need Spring MVC handler information or controller-level behavior.”</div>
+</section>
+<section class="card" id="coordination">
+<h2>3. How do you coordinate microservices? Order → Process → Payment</h2>
+<div class="note"><b>Easy explanation:</b> Do not assume one database transaction can safely cover multiple independent microservices. A transaction normally belongs to one resource/transaction boundary. For distributed workflows, use patterns such as Saga, orchestration/choreography, events, idempotency, outbox, retries and compensation.</div>
+<h3>Concrete example — Order → Inventory → Payment</h3>
+<pre><code>1. Order Service
+   INSERT order(status = PENDING)
+   COMMIT
+
+2. Inventory Service
+   Reserve 2 items
+   COMMIT
+
+3. Payment Service
+   Charge $100
+   FAIL
+
+Now what?
+We cannot simply execute ROLLBACK in Payment Service
+and expect Order/Inventory databases to rollback.
+
+Saga compensation:
+   → Cancel Order
+   → Release Inventory</code></pre>
+<p><b>Why this matters:</b> Imagine the payment provider accepted the payment but the network response was lost. The client retries. Without idempotency, the customer could be charged twice. Therefore Saga, idempotency, retry policy, timeout and event delivery must be designed together.</p>
+<h3>Concrete Outbox example</h3>
+<pre><code>Order DB transaction:
+  UPDATE orders SET status='CONFIRMED'
+  INSERT outbox_event(type='OrderConfirmed', orderId=123)
+  COMMIT
+
+Outbox publisher:
+  reads event
+  → Kafka
+  → Inventory Service
+
+If Kafka is temporarily down:
+  event stays in outbox
+  → retry later</code></pre>
+<div class="note"><b>Senior thinking:</b> The goal is not “never have partial failure.” Distributed systems cannot guarantee that simply. The goal is to make partial failure <b>recoverable, observable and idempotent</b>.</div>
+
+<h3>Example</h3>
+<pre><code>Order Service
+    ↓
+Process Service
+    ↓
+Payment Service
+    ↓
+Payment fails</code></pre>
+<div class="warning"><b>Important:</b> If A commits and B commits, then C fails, a normal local database rollback in C cannot magically undo A and B. You need a distributed transaction strategy or business compensation.</div>
+<h3>Recommended production approach — Saga</h3>
+<pre><code>Create Order
+    ↓
+Reserve / Process Order
+    ↓
+Payment
+    ↓
+FAIL
+    ↓
+Compensating actions
+    ├── Cancel Order
+    └── Release reserved resources</code></pre>
+<p>Two common styles:</p>
+<ul>
+<li><b>Orchestration:</b> a Saga Orchestrator tells each service what to do and decides the next step.</li>
+<li><b>Choreography:</b> services publish events and react to events without one central coordinator.</li>
+</ul>
+<h3>Outbox pattern</h3>
+<div class="note">When a service updates its database and publishes an event, there is a dual-write problem. The service can update the DB successfully but fail before publishing the event. The Outbox pattern stores the business change and an event record in the same local DB transaction. A publisher then sends the outbox event to Kafka/RabbitMQ and marks it as published.</div>
+<pre><code>BEGIN TX
+  update orders
+  insert outbox_event
+COMMIT
+      ↓
+Outbox Publisher
+      ↓
+Kafka
+      ↓
+Payment Service</code></pre>
+<h3>Idempotency</h3>
+<p>Retries can send the same request more than once. Payment and order operations should have an idempotency key or unique business key so the same command is not applied twice.</p>
+<div class="senior"><b>Senior answer:</b><br/>
+“I would not try to use one local @Transactional boundary across independent microservices. For an Order → Process → Payment workflow, I would use a Saga with either orchestration or choreography. Each service commits its own local transaction. If a later step fails, the workflow executes compensating actions, for example canceling the order or releasing a reservation. I would combine this with an Outbox pattern for reliable event publishing and idempotency for safe retries. This gives eventual consistency rather than pretending we have one ACID transaction across all services.”</div>
+</section>
+<section class="card" id="transaction">
+<h2>4. How does @Transactional work? What if C fails but I only want B rolled back?</h2>
+<div class="note"><b>Easy explanation:</b> <code>@Transactional</code> creates a transaction boundary through Spring's transaction infrastructure, commonly via a proxy. A single transaction normally means A, B and C share the same commit/rollback decision.</div>
+<h3>Concrete example — partial rollback</h3>
+<pre><code>Requirement:
+A = create audit record
+B = update temporary data
+C = update final business data
+
+C fails.
+Need:
+A = keep
+B = rollback
+C = rollback
+
+One big transaction:
+A + B + C
+   ↓
+C fails
+   ↓
+Everything rolls back
+
+Nested/savepoint concept:
+BEGIN
+  A
+  SAVEPOINT before_B
+  B
+  C
+  if B must be undone:
+      ROLLBACK TO SAVEPOINT before_B
+  continue
+COMMIT</code></pre>
+<p><b>Important:</b> A savepoint only works inside the transaction and its exact support depends on the database/transaction manager. If B is placed in <code>REQUIRES_NEW</code> and commits, a later C failure cannot undo B.</p>
+<h3>Concrete REQUIRES_NEW example</h3>
+<pre><code>Outer T1:
+  A
+
+Suspend T1
+  Inner T2:
+    B
+    COMMIT T2
+
+Resume T1:
+  C → FAIL
+  ROLLBACK T1
+
+Final:
+  A = rollback
+  B = committed
+  C = rollback</code></pre>
+<div class="note"><b>Interview trap:</b> If the interviewer says “C fails, rollback only B, but keep A and C”, first ask whether B and C are in the same transaction and whether “rollback B” means database rollback or a business compensation. That clarification shows senior-level thinking.</div>
+
+<pre><code>@Transactional
+public void process() {
+    A();
+    B();
+    C();
+}</code></pre>
+<p>If C throws a rollback-triggering exception:</p>
+<pre><code>BEGIN
+ ↓
+A
+ ↓
+B
+ ↓
+C → exception
+ ↓
+ROLLBACK
+ ↓
+A + B + C are rolled back</code></pre>
+<p>By default, Spring rolls back for unchecked <code>RuntimeException</code> and <code>Error</code>. Checked exceptions normally do not trigger rollback unless configured, for example <code>rollbackFor = SomeCheckedException.class</code>.</p>
+<h3>Propagation options</h3>
+<table><tr><th>Propagation</th><th>Meaning</th></tr>
+<tr><td>REQUIRED</td><td>Join the current transaction, or create one.</td></tr>
+<tr><td>REQUIRES_NEW</td><td>Suspend the current transaction and create an independent transaction.</td></tr>
+<tr><td>NESTED</td><td>Use a nested transaction concept/savepoint when supported, allowing rollback to a savepoint.</td></tr>
+</table>
+<h3>If the requirement is “A stays, B rolls back, C continues”</h3>
+<pre><code>BEGIN T1
+  A
+  SAVEPOINT
+  B
+  B fails
+  ROLLBACK TO SAVEPOINT
+  C
+COMMIT T1</code></pre>
+<p>This is conceptually a <b>NESTED/savepoint</b> use case, subject to the transaction manager/database support.</p>
+<h3>If B must be completely independent</h3>
+<pre><code>@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void executeB() {
+    B();
+}</code></pre>
+<div class="warning"><b>Critical interview point:</b> REQUIRES_NEW commits B independently. Once B commits, a later failure in C cannot roll B back. Use REQUIRES_NEW when independence is the requirement, not when you need a later step to undo B.</div>
+<div class="note"><b>Self-invocation trap:</b> Calling another <code>@Transactional</code> method from the same class may bypass the Spring proxy, so propagation behavior may not be applied as expected. A separate bean/service is a common solution.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“@Transactional defines a transaction boundary. With A, B and C in the same transaction, an exception in C normally rolls back the whole transaction. If I need partial rollback while keeping the same transaction, I can use a nested transaction/savepoint where supported. If I need B to be completely independent, I use REQUIRES_NEW, but then B commits independently and cannot be rolled back by a later C failure. For distributed microservices, I would use Saga and compensation rather than trying to stretch a local transaction across services.”</div>
+</section>
+<section class="card" id="db-connect">
+<h2>5. How many ways can you connect to a database?</h2>
+<div class="note"><b>Interview note:</b> There is no single fixed number. The answer depends on the language, framework and database. For Java/Spring, explain the major access styles and their trade-offs.</div>
+<h3>Concrete example — JDBC vs JPA vs MyBatis</h3>
+<pre><code>Simple CRUD:
+  Spring Data JPA
+  → less SQL boilerplate
+
+Complex reporting query:
+  MyBatis / JDBC
+  → precise SQL control
+
+Reactive end-to-end application:
+  R2DBC
+  → non-blocking database access where supported
+
+All can use connection pooling:
+  Application
+      ↓
+  DataSource / HikariCP
+      ↓
+  DB connections
+      ↓
+  Database</code></pre>
+<div class="note"><b>Production example:</b> If 20 application instances each open 100 DB connections, the database could face up to roughly 2,000 connections. Increasing the pool size is not automatically a performance improvement. The DB has finite CPU, memory and connection capacity.</div>
+
+<table><tr><th>Approach</th><th>Example</th><th>Use case</th></tr>
+<tr><td>JDBC</td><td>DataSource / Connection / PreparedStatement</td><td>Low-level control</td></tr>
+<tr><td>JdbcTemplate</td><td>Spring JDBC</td><td>SQL with less boilerplate</td></tr>
+<tr><td>JPA / Hibernate</td><td>EntityManager, Spring Data JPA</td><td>ORM and domain-centric applications</td></tr>
+<tr><td>MyBatis</td><td>Mapper + SQL</td><td>SQL-centric applications</td></tr>
+<tr><td>R2DBC</td><td>Reactive database driver</td><td>Reactive/non-blocking stack where supported</td></tr>
+</table>
+<p>Also distinguish <b>connection pooling</b> from the database access technology. HikariCP, for example, manages a pool of JDBC connections; it is not a separate database API.</p>
+<div class="senior"><b>Senior answer:</b><br/>
+“In Java, the main choices are JDBC, Spring JdbcTemplate, JPA/Hibernate, MyBatis, and R2DBC for reactive access where supported. My choice depends on the workload. I prefer JPA for standard CRUD and domain relationships, JDBC/MyBatis when I need precise SQL control or complex queries, and R2DBC when the application is truly reactive end-to-end.”</div>
+</section>
+<section class="card" id="sql-performance">
+<h2>6. How do you improve SQL performance?</h2>
+<div class="note"><b>Easy explanation:</b> Do not start by adding indexes blindly. First measure the slow query and inspect its execution plan.</div>
+<h3>Concrete example — finding a slow query</h3>
+<pre><code>Problem:
+GET /orders takes 4 seconds
+
+Step 1:
+Find the SQL in APM/database slow-query logs.
+
+Step 2:
+Run EXPLAIN / EXPLAIN ANALYZE.
+
+Suppose we discover:
+  full table scan
+  10 million rows examined
+  only 20 rows returned
+
+Step 3:
+Check WHERE/JOIN columns and add an appropriate index.
+
+Step 4:
+Run the query again and compare:
+  rows scanned
+  execution time
+  CPU / I/O
+
+Step 5:
+Verify the improvement under realistic data volume.</code></pre>
+<p><b>Another real example:</b> <code>OFFSET 1000000 LIMIT 20</code> may become expensive because the database still has to walk through many rows. For very large datasets, keyset/cursor pagination can be a better design.</p>
+
+<ol>
+<li>Identify the slow query using application/APM/database monitoring.</li>
+<li>Run <code>EXPLAIN</code> / <code>EXPLAIN ANALYZE</code> where supported.</li>
+<li>Check indexes and whether the query actually uses them.</li>
+<li>Reduce unnecessary columns and rows.</li>
+<li>Review joins, filters and sorting.</li>
+<li>Check statistics and data distribution.</li>
+<li>Review pagination strategy for large datasets.</li>
+<li>Check locking, connection pool size and transaction duration.</li>
+<li>Consider caching, read replicas or partitioning if the workload requires it.</li>
+</ol>
+<pre><code>Bad:
+SELECT * FROM orders
+WHERE DATE(created_at) = '2026-08-15';
+
+Better:
+SELECT id, status, created_at
+FROM orders
+WHERE created_at &gt;= '2026-08-15'
+  AND created_at &lt;  '2026-08-16';</code></pre>
+<div class="note"><b>Why?</b> Applying a function to an indexed column can prevent a normal index from being used efficiently. The exact optimizer behavior depends on the database and available indexes.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“I start with measurement, not assumptions. I check the execution plan, scan type, join strategy, estimated versus actual rows, indexes, locks and I/O. Then I optimize the query, index design, pagination, schema or workload. For large-scale systems I may add caching, read replicas or partitioning, but only after identifying the actual bottleneck.”</div>
+</section>
+<section class="card" id="index">
+<h2>7. Explain database indexes</h2>
+<div class="note"><b>Easy explanation:</b> An index is an additional data structure that helps the database find rows without scanning the entire table. A common implementation is a B-tree/B+tree family structure, depending on the database.</div>
+<h3>Concrete example — why an index helps</h3>
+<pre><code>orders = 10,000,000 rows
+
+Query:
+SELECT *
+FROM orders
+WHERE customer_id = 123;
+
+Without suitable index:
+  potentially inspect many rows
+
+With:
+CREATE INDEX idx_orders_customer
+ON orders(customer_id);
+
+Database can use the index
+to find rows for customer 123 much faster.</code></pre>
+<h3>Composite index example</h3>
+<pre><code>CREATE INDEX idx_order_customer_status
+ON orders(customer_id, status);
+
+Good candidate:
+WHERE customer_id = ?
+  AND status = ?
+
+Also potentially useful:
+WHERE customer_id = ?
+
+Not automatically ideal:
+WHERE status = ?</code></pre>
+<div class="note"><b>Senior point:</b> The exact result depends on the optimizer, database engine, statistics and query. Always verify with the execution plan instead of memorizing a rule.</div>
+
+<pre><code>Without index:
+Table → scan row 1 → row 2 → ... → row N
+
+With index:
+Index → locate matching key → fetch required row(s)</code></pre>
+<h3>Trade-off</h3>
+<table><tr><th>Benefit</th><th>Cost</th></tr>
+<tr><td>Faster reads</td><td>Extra storage</td></tr>
+<tr><td>Faster filtering/joining/sorting for suitable queries</td><td>INSERT/UPDATE/DELETE may become more expensive</td></tr>
+<tr><td>Can enforce uniqueness with unique indexes</td><td>Too many indexes increase maintenance cost</td></tr>
+</table>
+<h3>Composite index</h3>
+<pre><code>CREATE INDEX idx_order_customer_status
+ON orders(customer_id, status);</code></pre>
+<p>Column order matters. For a B-tree composite index, queries filtering by the leading column(s) can generally benefit more than queries that only use a later column. This is often described using the <b>leftmost prefix</b> concept, although exact optimizer behavior depends on the database.</p>
+<div class="senior"><b>Senior answer:</b><br/>
+“An index is a data structure that reduces the amount of data the database must scan. I design indexes based on real query patterns, especially WHERE, JOIN, ORDER BY and uniqueness requirements. I also consider write overhead, storage, selectivity and column order for composite indexes. I validate the result using the execution plan rather than assuming an index is always beneficial.”</div>
+</section>
+<section class="card" id="db-design">
+<h2>8. How do you design a database?</h2>
+<div class="note"><b>Easy explanation:</b> Start from business requirements and access patterns, not from tables alone.</div>
+<h3>Concrete example — Order database</h3>
+<pre><code>customers
+  id PK
+  name
+     |
+     | 1:N
+     ↓
+orders
+  id PK
+  customer_id FK
+  status
+  created_at
+     |
+     | 1:N
+     ↓
+order_items
+  id PK
+  order_id FK
+  product_id
+  quantity
+  price
+
+payments
+  id PK
+  order_id
+  status</code></pre>
+<p><b>Why separate order_items?</b> An order can contain many products. Storing multiple products in one column makes querying, constraints and updates difficult.</p>
+<div class="note"><b>Production example:</b> If the order table reaches hundreds of millions of rows, I would not immediately shard it. First measure workload, then consider indexing, partitioning, archiving old orders, read replicas and query optimization. Sharding is a larger operational and consistency decision.</div>
+
+<ol>
+<li>Understand business entities and relationships.</li>
+<li>Define data ownership and service boundaries.</li>
+<li>Choose relational or NoSQL based on access patterns and consistency needs.</li>
+<li>Normalize to reduce unnecessary duplication for transactional data.</li>
+<li>Define primary keys and foreign keys where appropriate.</li>
+<li>Define constraints: NOT NULL, UNIQUE, CHECK, referential integrity.</li>
+<li>Design indexes from expected queries.</li>
+<li>Define transaction boundaries and isolation requirements.</li>
+<li>Plan growth: partitioning, archiving, sharding, read replicas if necessary.</li>
+<li>Plan backup, recovery, migration and observability.</li>
+</ol>
+<h3>Example — Order system</h3>
+<pre><code>customers
+  |
+  +--- orders
+          |
+          +--- order_items --- products
+          |
+          +--- payments</code></pre>
+<div class="note"><b>Senior point:</b> In microservices, avoid creating one giant shared database schema owned by every service. Prefer clear ownership. If another service needs data, expose an API/event or replicate the needed read model rather than directly changing another service's tables.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“I start from domain requirements, data ownership and read/write patterns. I choose the database based on consistency, query patterns, scale and operational requirements. For relational systems I define keys, constraints, normalization and indexes, then validate the design against expected queries. In microservices, I also define database ownership per service and avoid uncontrolled cross-service table access.”</div>
+</section>
+<section class="card" id="rest">
+<h2>9. How do you implement a REST API?</h2>
+<div class="note"><b>Easy explanation:</b> A production REST API is more than a Controller method. Think about contract, validation, security, service logic, persistence, errors, observability and backward compatibility.</div>
+<h3>Concrete example — POST /orders</h3>
+<pre><code>POST /api/orders
+Authorization: Bearer ...
+Idempotency-Key: payment-order-123
+
+{
+  "customerId": 10,
+  "items": [
+    {"productId": 100, "quantity": 2}
+  ]
+}
+
+→ Authentication
+→ Authorization
+→ Validation
+→ Controller
+→ Order Service
+→ Transaction
+→ Repository
+→ DB
+→ 201 Created
+
+Response:
+{
+  "orderId": 123,
+  "status": "PENDING"
+}</code></pre>
+<p><b>Why return DTO?</b> If the JPA entity contains internal fields such as database IDs, audit columns or internal status flags, exposing the entity directly can accidentally expose implementation details and make API changes harder.</p>
+<div class="note"><b>Production example:</b> For a payment/order endpoint, idempotency is important because a client may retry after a timeout. The API should not create two orders or charge twice simply because the network response was lost.</div>
+
+<pre><code>Client
+ ↓
+Controller
+ ↓ validation
+Service
+ ↓
+Repository
+ ↓
+Database</code></pre>
+<h3>Implementation steps</h3>
+<ol>
+<li>Define the resource and API contract.</li>
+<li>Choose HTTP method and URI.</li>
+<li>Define request/response DTOs.</li>
+<li>Validate input.</li>
+<li>Authenticate and authorize.</li>
+<li>Execute business logic in the service layer.</li>
+<li>Use a transaction where required.</li>
+<li>Persist through repository/data access layer.</li>
+<li>Map domain result to DTO.</li>
+<li>Define consistent error responses.</li>
+<li>Add logging, metrics, tracing and tests.</li>
+<li>Document with OpenAPI/Swagger.</li>
+</ol>
+<pre><code>@PostMapping("/orders")
+public ResponseEntity&lt;OrderResponse&gt; create(
+        @Valid @RequestBody CreateOrderRequest request) {
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(orderService.create(request));
+}</code></pre>
+<div class="note"><b>HTTP basics:</b> GET reads, POST commonly creates/actions, PUT replaces a resource, PATCH partially updates it, DELETE removes it. Use status codes consistently: 200/201 for success, 400 for invalid input, 401 unauthenticated, 403 forbidden, 404 not found, 409 conflict, 500 for unexpected server failure.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“I first define the API contract and resource model, then implement Controller → Service → Repository separation. I use DTOs rather than exposing persistence entities directly, validate input, apply authentication and authorization, define consistent error responses, and make transaction boundaries explicit. For production I also add observability, idempotency where needed, OpenAPI documentation and automated tests.”</div>
+</section>
+<section class="card" id="docker">
+<h2>10. How do Docker containers communicate with each other?</h2>
+<div class="note"><b>Easy explanation:</b> Containers normally communicate through a Docker network. On a user-defined Docker network, containers can resolve each other by container/service name using Docker's built-in DNS.</div>
+<h3>Concrete example — Docker Compose</h3>
+<pre><code>services:
+  order:
+    ...
+  payment:
+    ...
+
+Both are on app-net.
+
+Inside order container:
+curl http://payment:8080/health
+
+NOT:
+curl http://localhost:8080/health
+
+Because:
+localhost = current order container
+payment = another container resolved by Docker DNS</code></pre>
+<div class="note"><b>Production mindset:</b> Do not hard-code container IPs. Containers can be recreated. Use service discovery/DNS. In Kubernetes, use a Kubernetes Service such as <code>payment-service</code> and let cluster DNS resolve it.</div>
+
+<pre><code>docker network create app-net
+
+docker run --network app-net --name order-service ...
+docker run --network app-net --name payment-service ...</code></pre>
+<p>Then Order Service can call:</p>
+<pre><code>http://payment-service:8080/api/payments</code></pre>
+<div class="warning"><b>Common mistake:</b> Inside a container, <code>localhost</code> means that same container. It does not mean another container or the host machine.</div>
+<h3>Docker Compose example</h3>
+<pre><code>services:
+  order:
+    build: .
+    depends_on:
+      - payment
+    networks:
+      - app-net
+
+  payment:
+    build: ./payment
+    networks:
+      - app-net
+
+networks:
+  app-net:</code></pre>
+<p>For Kubernetes, the equivalent concept is normally a <b>Service</b> and cluster DNS rather than directly addressing a container IP.</p>
+<div class="senior"><b>Senior answer:</b><br/>
+“In Docker, I normally put related containers on the same user-defined network and communicate using service/container DNS names rather than hard-coded IP addresses. For example, order-service can call payment-service:8080. In Kubernetes, I would use a Kubernetes Service and service discovery. I also separate internal ports from published host ports and apply network/security policies as needed.”</div>
+</section>
+<section class="card" id="redis">
+<h2>11. Redis vs Database — what happens when Redis stores a large amount of data?</h2>
+<div class="note"><b>Easy explanation:</b> Redis is primarily an in-memory data store. A relational database is usually the system of record for durable transactional business data. Redis is often used for cache, session, counters, locks, rate limiting, queues/streams and fast key-value access.</div>
+<h3>Concrete example — Redis cache-aside</h3>
+<pre><code>GET product:100
+      ↓
+Redis HIT?
+  ├─ Yes → return product
+  └─ No
+       ↓
+     Query DB
+       ↓
+     SET product:100 TTL=300
+       ↓
+     return product</code></pre>
+<h3>What if Redis is full?</h3>
+<p>If <code>maxmemory</code> is configured, Redis follows its configured eviction policy for eligible keys. For example, a cache-oriented policy may remove keys to make room. If the policy does not allow eviction for the operation/data involved, writes can fail because Redis cannot allocate enough memory.</p>
+<h3>Concrete promotion example — 1 million requests</h3>
+<pre><code>1,000,000 users
+      ↓
+same product key
+      ↓
+TTL expires
+      ↓
+1,000,000 cache misses
+      ↓
+DB receives huge traffic
+      ↓
+DB becomes bottleneck
+
+Protection:
+  TTL jitter
+  single-flight / request coalescing
+  distributed lock for regeneration
+  cache warming
+  rate limiting
+  DB connection limits
+  fallback / degraded response</code></pre>
+<div class="note"><b>Important distinction:</b> Redis can scale by replication and sharding/Redis Cluster, but that does not solve every problem. Large values, hot keys, memory fragmentation, network bandwidth and uneven key distribution can still become bottlenecks.</div>
+<div class="senior"><b>Production example:</b> During a promotion, I would pre-warm popular products, avoid synchronized TTLs, monitor hit ratio and evictions, protect the DB from cache stampede, and make sure the application can degrade gracefully if Redis becomes temporarily unavailable.</div>
+
+<table><tr><th>Redis</th><th>Relational Database</th></tr>
+<tr><td>Memory-first, very low latency</td><td>Disk-backed durable storage with database-specific caching</td></tr>
+<tr><td>Key-value/data-structure oriented</td><td>Relational model, SQL, joins and constraints</td></tr>
+<tr><td>Great for cache and fast access</td><td>Great for system-of-record transactional data</td></tr>
+<tr><td>Memory is expensive and limited</td><td>Usually more economical for very large durable datasets</td></tr>
+</table>
+<h3>What if Redis becomes very large?</h3>
+<ul>
+<li><b>Eviction policies:</b> if configured with a maxmemory limit, Redis can evict keys according to the configured policy.</li>
+<li><b>TTL:</b> cache entries can expire automatically.</li>
+<li><b>Data modeling:</b> avoid storing unnecessarily large values; use appropriate structures and key design.</li>
+<li><b>Replication:</b> replicas can improve availability and read scaling depending on the architecture.</li>
+<li><b>Redis Cluster:</b> shard data across nodes using hash slots.</li>
+<li><b>Monitoring:</b> monitor memory usage, hit ratio, evictions, latency and fragmentation.</li>
+</ul>
+<h3>Important production case — cache stampede</h3>
+<pre><code>1,000,000 requests
+       ↓
+same product key
+       ↓
+TTL expires
+       ↓
+all requests miss Redis
+       ↓
+all requests hit DB
+       ↓
+DB overload</code></pre>
+<p>Mitigations include cache-aside with controlled repopulation, distributed locking/single-flight, TTL jitter, pre-warming popular keys, request coalescing and rate limiting.</p>
+<div class="note"><b>Important:</b> Do not treat Redis as an automatic replacement for a database just because it is faster. Decide what data can be regenerated and what data must remain durable and strongly consistent.</div>
+<div class="senior"><b>Senior answer:</b><br/>
+“Redis and a relational database solve different problems. I normally keep durable business data in the database and use Redis for low-latency access such as caching, sessions, counters or distributed coordination. If Redis grows too large, I control memory with TTL and eviction policies, optimize the data model, monitor memory and latency, and use replication or Redis Cluster for scale and availability. For high-traffic cache keys, I also design against cache stampede when TTLs expire at the same time.”</div>
+</section>
+
+<section class="card">
+<h2>Final Senior Interview Framework</h2>
+<div class="note"><b>Do not answer only with definitions.</b> For a 9-year Senior Engineer interview, show that you can make decisions under production constraints.</div>
+<pre><code>1. What is the problem?
+2. Why does it happen?
+3. What are the options?
+4. Which option would I choose?
+5. Why?
+6. What are the trade-offs?
+7. What happens under failure / peak traffic?
+8. How do I monitor it?
+9. Give a real production example.</code></pre>
+<p><b>Example:</b> Instead of saying “I use Redis for caching”, say: “I use Redis to reduce DB load and latency. However, I consider cache stampede, stale data, eviction, memory limits, failure fallback and invalidation strategy. For a promotion event, I may pre-warm hot keys, add TTL jitter and protect the database with rate limiting or request coalescing.”</p>
+</section>
+</main>
+</body>
+</html>
