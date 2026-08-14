@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Testing Guide</title>
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #5b6472;
+    --primary: #2563eb;
+    --primary-soft: #eaf2ff;
+    --border: #dfe5ee;
+    --code: #111827;
+    --success: #15803d;
+    --warning: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+  }
+  header {
+    background: linear-gradient(135deg, #172554, #2563eb);
+    color: white;
+    padding: 48px 20px;
+  }
+  header .wrap, main, footer { max-width: 1180px; margin: auto; }
+  header h1 { margin: 0 0 10px; font-size: 38px; }
+  header p { margin: 0; max-width: 850px; font-size: 18px; opacity: .94; }
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(255,255,255,.97);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    overflow-x: auto;
+  }
+  nav .nav-inner {
+    max-width: 1180px;
+    margin: auto;
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  nav a {
+    color: #334155;
+    text-decoration: none;
+    padding: 7px 11px;
+    border-radius: 7px;
+    font-size: 14px;
+  }
+  nav a:hover { background: var(--primary-soft); color: var(--primary); }
+  main { padding: 28px 20px 60px; }
+  section { margin-bottom: 34px; scroll-margin-top: 70px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 7px rgba(15,23,42,.04);
+    margin-bottom: 18px;
+  }
+  h2 { margin-top: 0; font-size: 28px; }
+  h3 { color: #173b87; margin-top: 26px; }
+  h4 { margin-bottom: 7px; }
+  .lead { color: var(--muted); font-size: 17px; }
+  .tag {
+    display: inline-block;
+    padding: 3px 9px;
+    margin-right: 5px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    vertical-align: top;
+    text-align: left;
+  }
+  th { background: #f1f5f9; }
+  code {
+    background: #eef2f7;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+  }
+  pre {
+    background: var(--code);
+    color: #e5e7eb;
+    padding: 17px;
+    border-radius: 9px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  .note, .success, .warning {
+    padding: 14px 16px;
+    border-left: 4px solid;
+    border-radius: 6px;
+    margin: 16px 0;
+  }
+  .note { background: #eff6ff; border-color: var(--primary); }
+  .success { background: #f0fdf4; border-color: var(--success); }
+  .warning { background: #fffbeb; border-color: var(--warning); }
+  li { margin: 5px 0; }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 16px 0;
+  }
+  .flow span {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-weight: 600;
+  }
+  .arrow { color: #64748b; font-weight: bold; }
+  .small { font-size: 13px; color: var(--muted); }
+  .toc-box { background: #f8fafc; }
+  footer {
+    padding: 25px 20px 45px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 13px;
+  }
+  @media (max-width: 800px) {
+    .grid, .grid-3 { grid-template-columns: 1fr; }
+    header h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Software Testing: Practical Guide</h1>
+    <p>
+      A practical guide to the main software testing types, including concepts,
+      how to perform them, common tools, and how to apply them in a real project.
+      The English uses simple vocabulary for easy interview and daily work use.
+    </p>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#overview">Overview</a>
+    <a href="#levels">Test Levels</a>
+    <a href="#functional">Functional Testing</a>
+    <a href="#ut">Unit Test</a>
+    <a href="#integration">Integration</a>
+    <a href="#api">API Test</a>
+    <a href="#e2e">E2E</a>
+    <a href="#regression">Regression</a>
+    <a href="#performance">Performance</a>
+    <a href="#security">Security</a>
+    <a href="#uat">UAT</a>
+    <a href="#smoke">Smoke</a>
+    <a href="#sanity">Sanity</a>
+    <a href="#monkey">Monkey</a>
+    <a href="#exploratory">Exploratory</a>
+    <a href="#compatibility">Compatibility</a>
+    <a href="#usability">Usability</a>
+    <a href="#recovery">Recovery</a>
+    <a href="#automation">Automation</a>
+    <a href="#project">Real Project</a>
+    <a href="#interview">Interview</a>
+</div>
+</nav>
+
+<main>
+
+<section id="overview">
+<div class="card">
+<h2>1. What is Software Testing?</h2>
+<p class="lead">
+Software testing is the process of checking whether software works as expected
+and finding problems before or after release.
+</p>
+
+<h3>Main goals</h3>
+<ul>
+  <li>Find bugs before users find them.</li>
+  <li>Check that the system meets business requirements.</li>
+  <li>Make sure old functions still work after new changes.</li>
+  <li>Check performance, security, reliability, and user experience.</li>
+  <li>Reduce production risk.</li>
+</ul>
+
+<div class="note">
+<strong>Important:</strong> Testing is not only "checking if the code works".
+A good testing strategy checks the system from different levels and different risks.
+</div>
+</div>
+
+<div class="card">
+<h2>2. Big Picture</h2>
+<div class="flow">
+<span>Requirement</span><b class="arrow">→</b>
+<span>Test Plan</span><b class="arrow">→</b>
+<span>Unit Test</span><b class="arrow">→</b>
+<span>Integration Test</span><b class="arrow">→</b>
+<span>API / E2E</span><b class="arrow">→</b>
+<span>Performance / Security</span><b class="arrow">→</b>
+<span>UAT</span><b class="arrow">→</b>
+<span>Release</span>
+</div>
+
+<p>
+Different tests answer different questions:
+</p>
+<table>
+<tr><th>Question</th><th>Useful test</th></tr>
+<tr><td>Does this small method work?</td><td>Unit Test</td></tr>
+<tr><td>Do several components work together?</td><td>Integration Test</td></tr>
+<tr><td>Does the API return the correct result?</td><td>API Test</td></tr>
+<tr><td>Can a user complete a business flow?</td><td>End-to-End Test</td></tr>
+<tr><td>Does the system meet the business requirement?</td><td>Functional / UAT</td></tr>
+<tr><td>Does the system handle high traffic?</td><td>Performance Test</td></tr>
+<tr><td>Is the system protected against common attacks?</td><td>Security Test</td></tr>
+<tr><td>Did a new change break old functions?</td><td>Regression Test</td></tr>
+</table>
+</div>
+</section>
+
+<section id="levels">
+<div class="card">
+<h2>3. Test Levels</h2>
+<p>There are four common levels in a software project.</p>
+<table>
+<tr><th>Level</th><th>Purpose</th><th>Example</th><th>Typical tools</th></tr>
+<tr><td>Unit</td><td>Test one small unit of code.</td><td>Test a Java service method.</td><td>JUnit, Mockito</td></tr>
+<tr><td>Integration</td><td>Test real communication between components.</td><td>Service + PostgreSQL.</td><td>Spring Boot Test, Testcontainers</td></tr>
+<tr><td>System / E2E</td><td>Test a complete user flow.</td><td>Login → Buy → Pay → Order.</td><td>Playwright, Cypress, Selenium</td></tr>
+<tr><td>Acceptance</td><td>Check business acceptance.</td><td>Customer accepts a promotion flow.</td><td>Manual test, Cucumber, UAT</td></tr>
+</table>
+<div class="success">
+A practical project normally uses all levels. The lower tests are usually faster,
+while higher-level tests give more confidence about the complete system.
+</div>
+</div>
+</section>
+
+<section id="functional">
+<div class="card">
+<h2>4. Functional Testing</h2>
+<span class="tag">What the system does</span>
+<p>
+Functional testing checks whether a function behaves according to the requirement.
+It focuses on business behavior rather than internal code structure.
+</p>
+
+<h3>Example</h3>
+<p>Requirement: "A customer gets 20% discount when the promotion is active."</p>
+<ul>
+  <li>Promotion is active → discount is 20%.</li>
+  <li>Promotion is expired → no discount.</li>
+  <li>Customer is not eligible → no discount.</li>
+  <li>Product is excluded → no discount.</li>
+</ul>
+
+<h3>How to perform it</h3>
+<ol>
+  <li>Read the requirement.</li>
+  <li>Identify normal cases and edge cases.</li>
+  <li>Create test scenarios and test cases.</li>
+  <li>Prepare test data.</li>
+  <li>Execute tests manually or with automation.</li>
+  <li>Compare actual result with expected result.</li>
+  <li>Report defects with steps, logs, and evidence.</li>
+</ol>
+
+<h3>Tools</h3>
+<p>Jira, TestRail, Xray, Zephyr, Postman, Playwright, Cypress, Selenium.</p>
+</div>
+</section>
+
+<section id="ut">
+<div class="card">
+<h2>5. Unit Testing (UT)</h2>
+<span class="tag">Smallest test level</span>
+<p>
+A unit test checks one small piece of code, normally one method or class,
+without depending on external systems.
+</p>
+
+<h3>Example: Java + JUnit</h3>
+<pre>
+public BigDecimal calculateDiscount(BigDecimal price, int percent) {
+    return price.multiply(
+        BigDecimal.valueOf(100 - percent)
+    ).divide(BigDecimal.valueOf(100));
+}
+
+@Test
+void shouldCalculate20PercentDiscount() {
+    var result = service.calculateDiscount(
+        new BigDecimal("100"), 20
+    );
+
+    assertEquals(new BigDecimal("80.00"), result);
+}
+</pre>
+
+<h3>What should be tested?</h3>
+<ul>
+  <li>Normal input.</li>
+  <li>Boundary values.</li>
+  <li>Invalid input.</li>
+  <li>Exception cases.</li>
+  <li>Business rules.</li>
+</ul>
+
+<h3>Tools</h3>
+<ul>
+  <li>Java: JUnit 5, Mockito, AssertJ.</li>
+  <li>JavaScript / TypeScript: Jest, Vitest.</li>
+  <li>C#: xUnit, NUnit, Moq.</li>
+  <li>Python: pytest.</li>
+</ul>
+
+<div class="warning">
+<strong>Do not make every unit test depend on a real database.</strong>
+Use mocks or test doubles for external dependencies when the goal is to test
+only the unit's logic.
+</div>
+
+<h3>Real project example</h3>
+<p>
+For a Spring Boot Promotion Service, unit tests can cover:
+<code>PromotionService.calculateDiscount()</code>,
+<code>PromotionService.validatePromotion()</code>, and
+<code>PromotionService.isEligible()</code>.
+</p>
+</div>
+</section>
+
+<section id="integration">
+<div class="card">
+<h2>6. Integration Testing</h2>
+<span class="tag">Components working together</span>
+<p>
+Integration testing checks whether two or more components work correctly together.
+Unlike a pure unit test, it normally uses real infrastructure or a close test version.
+</p>
+
+<h3>Example</h3>
+<div class="flow">
+<span>Promotion Service</span><b class="arrow">→</b>
+<span>PostgreSQL</span><b class="arrow">→</b>
+<span>Redis</span>
+</div>
+
+<p>Test cases can verify:</p>
+<ul>
+  <li>Data is correctly saved to PostgreSQL.</li>
+  <li>Data can be read back correctly.</li>
+  <li>Redis cache is updated correctly.</li>
+  <li>Transaction rollback works when an error occurs.</li>
+</ul>
+
+<h3>Useful tools</h3>
+<ul>
+  <li>Spring Boot Test.</li>
+  <li>Testcontainers for PostgreSQL, Redis, Kafka, etc.</li>
+  <li>WireMock for external HTTP services.</li>
+  <li>Embedded Kafka or Testcontainers Kafka for event testing.</li>
+</ul>
+
+<h3>Example architecture</h3>
+<pre>
+@Test
+void shouldCreatePromotionAndSaveToDatabase() {
+    // Call application service
+    // Verify HTTP/API behavior
+    // Check real test PostgreSQL
+    // Verify saved data
+}
+</pre>
+
+<div class="note">
+Integration tests are slower than unit tests, but they give stronger confidence
+that the application works with real infrastructure.
+</div>
+</div>
+</section>
+
+<section id="api">
+<div class="card">
+<h2>7. API Testing</h2>
+<p>
+API testing checks REST, GraphQL, or other service APIs without using the full UI.
+It is very useful for backend and microservice projects.
+</p>
+
+<h3>Example</h3>
+<pre>
+POST /api/promotions
+
+Request:
+{
+  "name": "Summer Sale",
+  "discount": 20
+}
+
+Expected:
+HTTP 201 Created
+
+Response:
+{
+  "promotionId": "P10001",
+  "status": "ACTIVE"
+}
+</pre>
+
+<h3>What should be checked?</h3>
+<ul>
+  <li>HTTP status code.</li>
+  <li>Response body.</li>
+  <li>Headers.</li>
+  <li>Authentication and authorization.</li>
+  <li>Validation errors.</li>
+  <li>Database side effects.</li>
+  <li>Response time.</li>
+  <li>Idempotency where required.</li>
+</ul>
+
+<h3>Tools</h3>
+<p>Postman, Newman, REST Assured, Karate, Swagger/OpenAPI.</p>
+
+<h3>Real project</h3>
+<p>
+For a microservice project, API tests are useful for checking:
+<code>POST /orders</code>, <code>GET /orders/{id}</code>,
+<code>POST /payments</code>, and error cases such as 400, 401, 403, 404, and 500.
+</p>
+</div>
+</section>
+
+<section id="e2e">
+<div class="card">
+<h2>8. End-to-End (E2E) Testing</h2>
+<p>
+E2E testing checks a complete business flow from the user's point of view.
+It may include frontend, backend, database, and external services.
+</p>
+
+<h3>Example: E-commerce</h3>
+<div class="flow">
+<span>Login</span><b class="arrow">→</b>
+<span>Search Product</span><b class="arrow">→</b>
+<span>Add Cart</span><b class="arrow">→</b>
+<span>Checkout</span><b class="arrow">→</b>
+<span>Payment</span><b class="arrow">→</b>
+<span>Order Created</span>
+</div>
+
+<h3>Tools</h3>
+<p>Playwright, Cypress, Selenium.</p>
+
+<h3>When to use it</h3>
+<ul>
+  <li>Important business flows.</li>
+  <li>Critical customer journeys.</li>
+  <li>Release smoke testing.</li>
+  <li>Regression testing for key UI flows.</li>
+</ul>
+
+<div class="warning">
+Do not create thousands of E2E tests for every small rule. They are usually slower
+and more fragile. Put detailed business-rule tests at the unit/API level.
+</div>
+</div>
+</section>
+
+<section id="regression">
+<div class="card">
+<h2>9. Regression Testing</h2>
+<p>
+Regression testing checks that existing functions still work after a change.
+</p>
+
+<h3>Example</h3>
+<p>
+A developer changes the payment calculation. The team should not only test the new
+payment logic. They should also check order creation, refund, invoice, notification,
+and other affected functions.
+</p>
+
+<h3>Typical process</h3>
+<ol>
+  <li>Identify the changed area.</li>
+  <li>Identify related functions.</li>
+  <li>Run focused regression tests.</li>
+  <li>Run the full regression suite when needed.</li>
+  <li>Review failures and decide whether they are bugs or expected changes.</li>
+</ol>
+
+<p>
+Regression testing is a major reason why automated tests are valuable in CI/CD.
+</p>
+</div>
+</section>
+
+<section id="performance">
+<div class="card">
+<h2>10. Performance Testing</h2>
+<p>
+Performance testing checks how the system behaves under different traffic and data loads.
+</p>
+
+<table>
+<tr><th>Type</th><th>Meaning</th><th>Example</th></tr>
+<tr><td>Load Test</td><td>Expected normal traffic.</td><td>1,000 requests/sec.</td></tr>
+<tr><td>Stress Test</td><td>Push beyond normal capacity.</td><td>10,000 requests/sec.</td></tr>
+<tr><td>Spike Test</td><td>Sudden traffic increase.</td><td>100 → 10,000 users in seconds.</td></tr>
+<tr><td>Soak Test</td><td>Long running load.</td><td>2,000 users for 6 hours.</td></tr>
+</table>
+
+<h3>Example: Promotion Event</h3>
+<p>
+Imagine 1 million users open the same promotion at 12:00.
+A good performance test should check:
+</p>
+<ul>
+  <li>API response time.</li>
+  <li>CPU and memory.</li>
+  <li>Database connection pool.</li>
+  <li>Redis hit rate.</li>
+  <li>Kafka lag if events are used.</li>
+  <li>Error rate.</li>
+  <li>System recovery after traffic goes down.</li>
+</ul>
+
+<h3>Tools</h3>
+<p>JMeter, Gatling, k6, Locust.</p>
+
+<h3>Important metrics</h3>
+<ul>
+  <li>Average latency.</li>
+  <li>P95 / P99 latency.</li>
+  <li>Requests per second (RPS).</li>
+  <li>Error rate.</li>
+  <li>CPU / memory.</li>
+  <li>Database query time.</li>
+</ul>
+</div>
+</section>
+
+<section id="security">
+<div class="card">
+<h2>11. Security Testing</h2>
+<p>
+Security testing checks whether the application protects data and prevents common attacks.
+</p>
+
+<h3>Common areas</h3>
+<ul>
+  <li>Authentication.</li>
+  <li>Authorization.</li>
+  <li>SQL Injection.</li>
+  <li>XSS.</li>
+  <li>CSRF where relevant.</li>
+  <li>Broken access control.</li>
+  <li>Weak passwords and session handling.</li>
+  <li>Sensitive data exposure.</li>
+  <li>Dependency vulnerabilities.</li>
+</ul>
+
+<h3>Example</h3>
+<p>
+User A must not be able to call
+<code>GET /orders/USER_B_ORDER</code> and read User B's order.
+This is an authorization test, not only a normal functional test.
+</p>
+
+<h3>Tools</h3>
+<p>OWASP ZAP, Burp Suite, Snyk, Dependabot, SonarQube, Trivy.</p>
+</div>
+</section>
+
+<section id="uat">
+<div class="card">
+<h2>12. UAT - User Acceptance Testing</h2>
+<p>
+UAT is performed to confirm that the product meets real business needs.
+It is usually done by business users, customers, product owners, or representatives.
+</p>
+
+<h3>Example</h3>
+<p>
+For a payment system, the business may verify:
+</p>
+<ul>
+  <li>Merchant can create a payment.</li>
+  <li>Customer can pay successfully.</li>
+  <li>Payment failure is shown correctly.</li>
+  <li>Refund works according to business rules.</li>
+  <li>Reports contain correct information.</li>
+</ul>
+
+<div class="note">
+Developers should support UAT, but UAT is not the same as a developer's unit test.
+The business decides whether the delivered behavior is acceptable.
+</div>
+</div>
+</section>
+
+
+<section id="smoke">
+<div class="card">
+<h2>13. Smoke Testing</h2>
+<span class="tag">Basic build health check</span>
+<p>
+Smoke testing is a quick test to check whether a new build is stable enough for
+more detailed testing. It answers a simple question:
+<strong>"Is the application basically working?"</strong>
+</p>
+
+<h3>Example</h3>
+<p>After deploying a new build to the test environment, check:</p>
+<ul>
+  <li>Application starts successfully.</li>
+  <li>Login works.</li>
+  <li>Main page can be opened.</li>
+  <li>Important API is reachable.</li>
+  <li>Database connection works.</li>
+  <li>A basic transaction can be completed.</li>
+</ul>
+
+<h3>When to use it</h3>
+<p>
+Run smoke tests after a new deployment or build. If smoke testing fails,
+the team normally does not continue with the full test suite until the build is fixed.
+</p>
+
+<h3>Tools</h3>
+<p>Postman/Newman, Playwright, Cypress, Selenium, automated CI/CD scripts.</p>
+
+<div class="note">
+<strong>Think of it as:</strong> "Does this build work well enough to test further?"
+</div>
+</div>
+</section>
+
+<section id="sanity">
+<div class="card">
+<h2>14. Sanity Testing</h2>
+<span class="tag">Focused change check</span>
+<p>
+Sanity testing is a focused test after a small change or bug fix. It checks whether
+the specific changed area works correctly and whether the change did not create
+an obvious problem around it.
+</p>
+
+<h3>Smoke vs Sanity</h3>
+<table>
+<tr><th>Smoke Testing</th><th>Sanity Testing</th></tr>
+<tr><td>Checks overall build health.</td><td>Checks a specific changed area.</td></tr>
+<tr><td>Usually broad but shallow.</td><td>Narrow but deeper.</td></tr>
+<tr><td>Often done after deployment/build.</td><td>Often done after a bug fix or small change.</td></tr>
+<tr><td>"Can we start testing?"</td><td>"Does this specific change work?"</td></tr>
+</table>
+
+<h3>Example</h3>
+<p>
+A developer fixes a bug where a promotion was not applied when the order value
+was exactly $100.
+</p>
+<ul>
+  <li>Test order = $100.</li>
+  <li>Test order slightly below $100.</li>
+  <li>Test order slightly above $100.</li>
+  <li>Check that the promotion still works for normal orders.</li>
+</ul>
+
+<p>
+This is a sanity check. We do not need to run the entire system regression suite
+for this first verification.
+</p>
+
+<h3>Tools</h3>
+<p>Postman, JUnit, REST Assured, Playwright, Cypress, manual test cases.</p>
+</div>
+</section>
+
+<section id="monkey">
+<div class="card">
+<h2>15. Monkey Testing</h2>
+<span class="tag">Random / unexpected actions</span>
+<p>
+Monkey testing means giving random or unexpected input and actions to the system
+without following a fixed business scenario. The goal is to find crashes,
+unexpected behavior, or stability problems.
+</p>
+
+<h3>Example</h3>
+<p>For a mobile or web application, a test may:</p>
+<ul>
+  <li>Click buttons very quickly.</li>
+  <li>Open and close screens repeatedly.</li>
+  <li>Enter random values.</li>
+  <li>Use very long text.</li>
+  <li>Press back and refresh at unexpected times.</li>
+  <li>Change network connection during an operation.</li>
+  <li>Send many unexpected requests.</li>
+</ul>
+
+<h3>Example in a payment system</h3>
+<p>
+Imagine a user clicks the "Pay" button 20 times very quickly.
+The system should not create 20 payments for the same order.
+This type of unexpected behavior can reveal an idempotency or concurrency problem.
+</p>
+
+<h3>Tools</h3>
+<p>
+Android Monkey, Appium, random test scripts, property-based testing tools,
+fuzzing tools, and custom automation scripts.
+</p>
+
+<div class="warning">
+Monkey testing is useful for finding unexpected problems, but it does not replace
+normal functional and business-rule testing.
+</div>
+</div>
+</section>
+
+<section id="exploratory">
+<div class="card">
+<h2>16. Exploratory Testing</h2>
+<span class="tag">Learn + test at the same time</span>
+<p>
+Exploratory testing means learning about the system while testing it.
+The tester does not follow only a fixed test script. They use experience and
+observation to find unusual problems.
+</p>
+
+<h3>Example</h3>
+<p>
+A tester receives a new checkout feature. Instead of only following prepared
+test cases, the tester tries:
+</p>
+<ul>
+  <li>Different browsers.</li>
+  <li>Very slow network.</li>
+  <li>Empty fields.</li>
+  <li>Special characters.</li>
+  <li>Multiple browser tabs.</li>
+  <li>Refresh during payment.</li>
+  <li>Back button during checkout.</li>
+</ul>
+
+<h3>When it is useful</h3>
+<ul>
+  <li>New features.</li>
+  <li>Complex UI.</li>
+  <li>Areas with many unknown risks.</li>
+  <li>When requirements are not fully clear.</li>
+  <li>Before creating a complete automation suite.</li>
+</ul>
+
+<h3>Tools</h3>
+<p>Browser DevTools, Postman, Charles Proxy, Burp Suite, device emulators,
+and normal application tools.</p>
+</div>
+</section>
+
+<section id="compatibility">
+<div class="card">
+<h2>17. Compatibility Testing</h2>
+<p>
+Compatibility testing checks whether the application works correctly in different
+environments.
+</p>
+
+<h3>Examples</h3>
+<ul>
+  <li>Chrome, Firefox, Safari, Edge.</li>
+  <li>Windows, macOS, Android, iOS.</li>
+  <li>Different screen sizes.</li>
+  <li>Different database versions.</li>
+  <li>Different Java or framework versions when supported.</li>
+  <li>Different network conditions.</li>
+</ul>
+
+<h3>Real project example</h3>
+<p>
+For an Angular Business Portal, test important screens on Chrome, Edge, and Safari,
+and check common desktop resolutions. For a mobile application, test supported
+iPhone and Android versions.
+</p>
+
+<h3>Tools</h3>
+<p>BrowserStack, Sauce Labs, Selenium Grid, real devices, emulators.</p>
+</div>
+</section>
+
+<section id="usability">
+<div class="card">
+<h2>18. Usability Testing</h2>
+<p>
+Usability testing checks whether users can understand and use the product easily.
+It focuses on user experience rather than only technical correctness.
+</p>
+
+<h3>Example</h3>
+<p>
+A payment error message says:
+<code>ERR_PAYMENT_PROCESSOR_5001</code>.
+Technically it may be correct, but it is not a good user message.
+A better message may be:
+<code>Payment could not be completed. Please try again.</code>
+</p>
+
+<h3>What to check</h3>
+<ul>
+  <li>Is the screen easy to understand?</li>
+  <li>Can users find the main action?</li>
+  <li>Are error messages clear?</li>
+  <li>Are forms easy to complete?</li>
+  <li>Does the UI give useful feedback?</li>
+  <li>Is the flow too complicated?</li>
+</ul>
+
+<h3>Tools</h3>
+<p>Manual user testing, Figma prototypes, session recording tools,
+accessibility checkers, and browser DevTools.</p>
+</div>
+</section>
+
+<section id="recovery">
+<div class="card">
+<h2>19. Recovery Testing</h2>
+<p>
+Recovery testing checks whether the system can recover correctly after a failure.
+It is important for production systems and distributed systems.
+</p>
+
+<h3>Examples</h3>
+<ul>
+  <li>Database goes down and comes back.</li>
+  <li>Redis becomes unavailable.</li>
+  <li>Kafka becomes temporarily unavailable.</li>
+  <li>Network connection is lost.</li>
+  <li>A service crashes during a transaction.</li>
+  <li>A pod is restarted during high traffic.</li>
+</ul>
+
+<h3>Example</h3>
+<p>
+During payment, the Payment Service crashes. After it comes back, the system should
+not create a duplicate payment and should be able to continue or safely recover
+the transaction.
+</p>
+
+<h3>Tools</h3>
+<p>Chaos testing tools, Kubernetes, Docker, Toxiproxy, LitmusChaos, Gremlin,
+monitoring tools such as Grafana and Prometheus.</p>
+
+<div class="success">
+For Senior-level system design, recovery testing is very important because
+production failures are normal. The goal is not "nothing will fail";
+the goal is "the system can fail safely and recover."
+</div>
+</div>
+</section>
+
+<section id="automation">
+<div class="card">
+<h2>20. Test Automation</h2>
+<p>
+Test automation means using software to execute tests automatically instead of doing
+all checks manually.
+</p>
+
+<h3>Good candidates for automation</h3>
+<ul>
+  <li>Tests that run often.</li>
+  <li>Stable business rules.</li>
+  <li>Regression tests.</li>
+  <li>API tests.</li>
+  <li>Large data sets.</li>
+  <li>Critical business flows.</li>
+</ul>
+
+<h3>Less suitable candidates</h3>
+<ul>
+  <li>One-time tests.</li>
+  <li>Frequently changing UI.</li>
+  <li>Exploratory testing.</li>
+  <li>Tests that require human judgment.</li>
+</ul>
+
+<h3>Test Pyramid</h3>
+<pre>
+              /\
+             /  \
+            / E2E \       Few
+           /------\
+          /  API   \      Some
+         /----------\
+        / Integration \   More
+       /--------------\
+      /   Unit Tests   \  Many
+     /------------------\
+</pre>
+
+<p>
+A healthy test strategy normally has many fast unit tests, a good number of integration
+and API tests, and a smaller number of important E2E tests.
+</p>
+</div>
+</section>
+
+<section id="project">
+<div class="card">
+<h2>21. How to Apply Testing in a Real Project</h2>
+
+<h3>Example Project: Payment / Promotion Microservice</h3>
+
+<div class="flow">
+<span>Angular UI</span><b class="arrow">→</b>
+<span>API Gateway</span><b class="arrow">→</b>
+<span>Promotion Service</span><b class="arrow">→</b>
+<span>PostgreSQL</span>
+</div>
+<div class="flow">
+<span>Promotion Service</span><b class="arrow">→</b>
+<span>Redis</span>
+</div>
+<div class="flow">
+<span>Promotion Service</span><b class="arrow">→</b>
+<span>Kafka</span><b class="arrow">→</b>
+<span>Notification Service</span>
+</div>
+
+<h3>Step 1 - Unit Tests</h3>
+<p>Test business rules without real infrastructure.</p>
+<ul>
+  <li>Calculate discount.</li>
+  <li>Check promotion date.</li>
+  <li>Check customer eligibility.</li>
+  <li>Validate request.</li>
+  <li>Handle invalid input.</li>
+</ul>
+
+<h3>Step 2 - Integration Tests</h3>
+<p>Use Testcontainers to run real PostgreSQL / Redis / Kafka containers.</p>
+<ul>
+  <li>Save promotion to DB.</li>
+  <li>Read promotion from DB.</li>
+  <li>Read/write cache.</li>
+  <li>Publish Kafka event.</li>
+  <li>Verify transaction behavior.</li>
+</ul>
+
+<h3>Step 3 - API Tests</h3>
+<p>Test the service through HTTP.</p>
+<ul>
+  <li>POST promotion.</li>
+  <li>GET promotion.</li>
+  <li>Update promotion.</li>
+  <li>Delete promotion.</li>
+  <li>Authentication and authorization.</li>
+  <li>Validation and error responses.</li>
+</ul>
+
+<h3>Step 4 - E2E Tests</h3>
+<p>Test the critical user journey:</p>
+<ol>
+  <li>Merchant logs in.</li>
+  <li>Merchant creates promotion.</li>
+  <li>Customer places an order.</li>
+  <li>Promotion is applied.</li>
+  <li>Payment is completed.</li>
+  <li>Order is created.</li>
+</ol>
+
+<h3>Step 5 - Performance Tests</h3>
+<p>
+Simulate a promotion event where traffic suddenly becomes very high.
+Check P95/P99 latency, error rate, DB load, Redis behavior, and Kafka lag.
+</p>
+
+<h3>Step 6 - Security Tests</h3>
+<p>
+Check that only authorized merchants can manage their own promotions and that
+customer information cannot be accessed by another customer.
+</p>
+
+<h3>Step 7 - UAT</h3>
+<p>
+Business users execute real business scenarios and confirm that the feature
+matches the requirement.
+</p>
+</div>
+
+<div class="card">
+<h2>22. Testing in CI/CD</h2>
+<p>
+Tests should be connected to the delivery pipeline so that bad code is detected early.
+</p>
+
+<div class="flow">
+<span>Developer Push</span><b class="arrow">→</b>
+<span>Build</span><b class="arrow">→</b>
+<span>Unit Test</span><b class="arrow">→</b>
+<span>Integration Test</span><b class="arrow">→</b>
+<span>API Test</span><b class="arrow">→</b>
+<span>Deploy</span><b class="arrow">→</b>
+<span>E2E / Smoke</span>
+</div>
+
+<h3>Example GitHub Actions strategy</h3>
+<table>
+<tr><th>Stage</th><th>Test</th><th>Reason</th></tr>
+<tr><td>Pull Request</td><td>Unit + static analysis</td><td>Fast feedback.</td></tr>
+<tr><td>Build</td><td>Unit + integration</td><td>Verify code and infrastructure interaction.</td></tr>
+<tr><td>Test Environment</td><td>API + E2E</td><td>Verify complete behavior.</td></tr>
+<tr><td>Before Release</td><td>Regression + security</td><td>Reduce release risk.</td></tr>
+<tr><td>Scheduled</td><td>Performance / security scans</td><td>Check non-functional risks.</td></tr>
+</table>
+
+<div class="success">
+The key idea is: <strong>fail fast</strong>. Run cheap and fast tests first.
+Do not wait until the final stage to discover a simple bug.
+</div>
+</div>
+</section>
+
+<section id="testcase">
+<div class="card">
+<h2>23. How to Write a Good Test Case</h2>
+
+<table>
+<tr><th>Field</th><th>Example</th></tr>
+<tr><td>Test Case ID</td><td>TC-PROMO-001</td></tr>
+<tr><td>Title</td><td>Apply active 20% promotion</td></tr>
+<tr><td>Precondition</td><td>Promotion is active.</td></tr>
+<tr><td>Test Data</td><td>Product price = $100, discount = 20%</td></tr>
+<tr><td>Steps</td><td>Open checkout and apply promotion.</td></tr>
+<tr><td>Expected Result</td><td>Final price = $80.</td></tr>
+<tr><td>Priority</td><td>High</td></tr>
+</table>
+
+<h3>Important test case categories</h3>
+<ul>
+  <li>Positive case - valid input.</li>
+  <li>Negative case - invalid input.</li>
+  <li>Boundary case - minimum / maximum value.</li>
+  <li>Exception case - dependency or system failure.</li>
+  <li>Security case - unauthorized access.</li>
+  <li>Performance case - high traffic or large data.</li>
+</ul>
+</div>
+</section>
+
+<section id="strategy">
+<div class="card">
+<h2>24. Senior Developer Testing Mindset</h2>
+<p>
+A Senior Developer should not think only about "Does my code work?"
+A stronger question is:
+</p>
+
+<div class="note">
+<strong>"What can go wrong in production, and how can I prove that my system handles it?"</strong>
+</div>
+
+<h3>Example: Redis cache expiration</h3>
+<p>
+Suppose product data is cached in Redis with a TTL. The TTL expires during a large
+promotion event.
+</p>
+
+<p>A basic developer may test:</p>
+<ul>
+  <li>Cache hit.</li>
+  <li>Cache miss.</li>
+</ul>
+
+<p>A stronger production-focused test strategy also checks:</p>
+<ul>
+  <li>Many requests miss the cache at the same time.</li>
+  <li>Database receives too many requests.</li>
+  <li>Cache stampede protection.</li>
+  <li>Request timeout.</li>
+  <li>Retry behavior.</li>
+  <li>Circuit breaker behavior.</li>
+  <li>Fallback behavior.</li>
+  <li>System recovery after DB becomes healthy.</li>
+</ul>
+
+<p>
+Possible solutions include distributed locking, request coalescing, TTL jitter,
+cache warming, rate limiting, circuit breakers, and read replicas.
+</p>
+</div>
+</section>
+
+<section id="summary">
+<div class="card">
+<h2>25. Quick Comparison</h2>
+<table>
+<tr>
+<th>Test</th><th>What it checks</th><th>Speed</th><th>Common tools</th>
+</tr>
+<tr><td>Unit</td><td>One method/class</td><td>Very fast</td><td>JUnit, Mockito</td></tr>
+<tr><td>Integration</td><td>Components + infrastructure</td><td>Medium</td><td>Testcontainers</td></tr>
+<tr><td>Functional</td><td>Business behavior</td><td>Varies</td><td>Postman, test management tools</td></tr>
+<tr><td>API</td><td>Service contract and behavior</td><td>Fast/medium</td><td>Postman, REST Assured</td></tr>
+<tr><td>E2E</td><td>Complete user flow</td><td>Slow</td><td>Playwright, Cypress</td></tr>
+<tr><td>Regression</td><td>Old features after changes</td><td>Varies</td><td>Automation suites</td></tr>
+<tr><td>Performance</td><td>Load, latency, capacity</td><td>Slow</td><td>JMeter, k6, Gatling</td></tr>
+<tr><td>Security</td><td>Security risks</td><td>Varies</td><td>OWASP ZAP, Burp Suite</td></tr>
+<tr><td>UAT</td><td>Business acceptance</td><td>Varies</td><td>Manual / Cucumber</td></tr>
+<tr><td>Smoke</td><td>Basic build health</td><td>Very fast</td><td>CI/CD, Postman, Playwright</td></tr>
+<tr><td>Sanity</td><td>Specific change or bug fix</td><td>Fast</td><td>JUnit, Postman, UI tools</td></tr>
+<tr><td>Monkey</td><td>Unexpected/random behavior</td><td>Varies</td><td>Monkey, Appium, fuzzing</td></tr>
+<tr><td>Exploratory</td><td>Unknown problems and user behavior</td><td>Varies</td><td>Manual tools, DevTools</td></tr>
+<tr><td>Compatibility</td><td>Different environments</td><td>Varies</td><td>BrowserStack, Sauce Labs</td></tr>
+<tr><td>Usability</td><td>User experience</td><td>Varies</td><td>Manual user testing, DevTools</td></tr>
+<tr><td>Recovery</td><td>Failure and recovery behavior</td><td>Slow/varies</td><td>Chaos tools, Kubernetes</td></tr>
+</table>
+</div>
+</section>
+
+<section id="interview">
+<div class="card">
+<h2>26. Senior Interview Answer</h2>
+<p><strong>Question:</strong> "What types of testing do you use in your project?"</p>
+
+<div class="note">
+<p>
+"In my project, I normally use several levels of testing. First, we use unit tests
+to test business logic at the code level. Then we use integration tests to check
+the connection between the application and infrastructure such as PostgreSQL,
+Redis, or Kafka. For APIs, we use API tests to verify request, response,
+validation, authentication, and error cases. We also have a small number of E2E
+tests for critical business flows.
+</p>
+<p>
+For non-functional requirements, we use performance testing to check high traffic
+and response time, and security testing to find common security problems.
+Before release, we run regression tests and support UAT with the business team.
+</p>
+<p>
+I prefer to run fast tests first in CI/CD and keep the test pyramid balanced:
+many unit tests, enough integration and API tests, and fewer E2E tests.
+This gives us good coverage without making the pipeline too slow."
+</p>
+</div>
+</div>
+
+<div class="card">
+<h2>27. Key Takeaways</h2>
+<ul>
+  <li><strong>Unit Test:</strong> Does this small piece of code work?</li>
+  <li><strong>Integration Test:</strong> Do components work together?</li>
+  <li><strong>Functional Test:</strong> Does the feature meet the requirement?</li>
+  <li><strong>API Test:</strong> Does the service API behave correctly?</li>
+  <li><strong>E2E Test:</strong> Can the user complete the full business flow?</li>
+  <li><strong>Regression Test:</strong> Did the change break something old?</li>
+  <li><strong>Performance Test:</strong> Can the system handle the expected load?</li>
+  <li><strong>Security Test:</strong> Can the system protect itself and its data?</li>
+  <li><strong>UAT:</strong> Does the business accept the product?</li>
+  <li><strong>Smoke:</strong> Is the new build stable enough for more testing?</li>
+  <li><strong>Sanity:</strong> Does the specific change or bug fix work correctly?</li>
+  <li><strong>Monkey:</strong> Can unexpected actions cause crashes or bad behavior?</li>
+  <li><strong>Exploratory:</strong> What problems can we find beyond the prepared test cases?</li>
+  <li><strong>Compatibility:</strong> Does it work in supported environments?</li>
+  <li><strong>Usability:</strong> Can users understand and use it easily?</li>
+  <li><strong>Recovery:</strong> Can the system recover safely after failure?</li>
+</ul>
+
+<div class="success">
+<strong>Senior mindset:</strong> Choose the right test at the right level.
+Do not test everything with E2E tests. Put detailed logic in unit tests,
+system interaction in integration tests, API behavior in API tests, and only
+critical business journeys in E2E tests.
+</div>
+</div>
+</section>
+
+</main>
+
+<footer>
+Software Testing Practical Guide · Simple English · Suitable for Java / Spring Boot / Microservices projects
+</footer>
+
+</body>
+</html>
