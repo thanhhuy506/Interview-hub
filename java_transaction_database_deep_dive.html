@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Java Transaction & Database Deep Dive</title>
+<style>
+body{font-family:Arial,sans-serif;line-height:1.6;margin:0;background:#f5f7fb;color:#1f2937}
+header{background:#172554;color:white;padding:30px 8%} .container{max-width:1100px;margin:25px auto;padding:0 18px}
+section{background:white;border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:0 2px 10px #00000010}
+h1{margin:0} h2{color:#172554;border-bottom:2px solid #e5e7eb;padding-bottom:8px}
+h3{color:#1d4ed8} code{background:#eef2ff;padding:2px 5px;border-radius:4px}
+pre{background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:9px;text-align:left;vertical-align:top}th{background:#e5e7eb}
+.note{background:#fff7ed;border-left:5px solid #f97316;padding:12px 16px}.good{background:#ecfdf5;border-left:5px solid #10b981;padding:12px 16px}
+.bad{background:#fef2f2;border-left:5px solid #ef4444;padding:12px 16px}.tag{display:inline-block;background:#dbeafe;color:#1e40af;border-radius:14px;padding:3px 9px;margin:3px}
+</style>
+</head>
+<body>
+<header><h1>Java Transactions — Senior Interview Deep Dive</h1>
+<p>Spring @Transactional • Database Fundamentals • Performance • Replication • Payment examples</p></header>
+<div class="container">
+
+<section><h2>1. Transaction Basics</h2>
+<p>A transaction is a group of database operations treated as one business unit.</p>
+<pre>BEGIN
+ ↓
+SELECT payment
+ ↓
+UPDATE payment
+ ↓
+INSERT transaction
+ ↓
+COMMIT</pre>
+<p>If an important operation fails, the database changes can be rolled back.</p>
+<div class="good"><b>Important:</b> A DB transaction protects database changes. It cannot automatically roll back an external bank or PSP API.</div>
+</section>
+
+<section><h2>2. @Transactional Configuration</h2>
+<table>
+<tr><th>Option</th><th>Example</th><th>When to use</th></tr>
+<tr><td>readOnly</td><td><code>@Transactional(readOnly=true)</code></td><td>Only reads data: search, detail, reports.</td></tr>
+<tr><td>timeout</td><td><code>@Transactional(timeout=5)</code></td><td>Limit how long the transaction may run.</td></tr>
+<tr><td>rollbackFor</td><td><code>@Transactional(rollbackFor=Exception.class)</code></td><td>Make selected checked exceptions trigger rollback.</td></tr>
+<tr><td>noRollbackFor</td><td><code>@Transactional(noRollbackFor=BusinessWarning.class)</code></td><td>Rare case where a selected exception should not trigger rollback.</td></tr>
+<tr><td>propagation</td><td><code>@Transactional(propagation=Propagation.REQUIRES_NEW)</code></td><td>Control whether a method joins or creates a transaction.</td></tr>
+<tr><td>isolation</td><td><code>@Transactional(isolation=Isolation.READ_COMMITTED)</code></td><td>Control concurrent read/write visibility.</td></tr>
+</table></section>
+
+<section><h2>3. READ_ONLY</h2>
+<pre>@Transactional(readOnly = true)
+public Payment getPayment(Long id) {
+    return paymentRepository.findById(id).orElseThrow();
+}</pre>
+<p>Use it for get/search/report/dashboard operations.</p>
+<div class="note"><b>Important:</b> <code>readOnly=true</code> is not a universal guarantee that the database will reject every write. It can be a hint/optimization depending on DB, JDBC driver, transaction manager and ORM.</div>
+<p>It also does <b>not</b> automatically route traffic to a read replica. That requires explicit datasource/routing configuration.</p>
+</section>
+
+<section><h2>4. Normal Read-Write Transaction</h2>
+<pre>@Transactional
+public void processPayment(Long paymentId) {
+    Payment payment = paymentRepository.findById(paymentId).orElseThrow();
+    payment.setStatus("SUCCESS");
+    transactionRepository.save(new PaymentTransaction(paymentId));
+}</pre>
+<pre>BEGIN → SELECT → UPDATE → INSERT → COMMIT</pre>
+<p>Use this when the business operation creates or changes database state.</p>
+</section>
+
+<section><h2>5. Timeout</h2>
+<pre>@Transactional(timeout = 5)
+public void updatePayment(Long id) {
+    // DB work
+}</pre>
+<p>Useful to avoid very long transactions, long-held locks and connection-pool pressure.</p>
+<div class="bad"><b>Bad:</b> BEGIN DB transaction → call bank API → wait 20 seconds → update DB → COMMIT.</div>
+<div class="good"><b>Better:</b> keep the DB transaction short. Call the external service outside the DB transaction when possible, then start a short transaction to save the result.</div>
+</section>
+
+<section><h2>6. COMMIT</h2>
+<p>Commit confirms the database changes.</p>
+<pre>@Transactional
+public void createOrder() {
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+}
+// successful method completion → commit</pre>
+</section>
+
+<section><h2>7. ROLLBACK</h2>
+<pre>@Transactional
+public void createOrder() {
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+    throw new RuntimeException("Payment failed");
+}</pre>
+<pre>INSERT order ✓
+INSERT payment ✓
+Exception ✗
+   ↓
+ROLLBACK
+   ↓
+Both DB changes are undone</pre>
+<p>This supports Atomicity: the DB changes succeed together or are rolled back.</p>
+</section>
+
+<section><h2>8. rollbackFor</h2>
+<p>Spring normally rolls back for unchecked exceptions such as RuntimeException and Error, but checked exceptions need explicit rules when rollback is required.</p>
+<pre>@Transactional(rollbackFor = Exception.class)
+public void processPayment() throws Exception {
+    updatePayment();
+    createTransaction();
+    throw new Exception("Checked exception");
+}</pre>
+<p>Use it when a checked exception represents a failure that must undo the transaction.</p>
+</section>
+
+<section><h2>9. noRollbackFor</h2>
+<pre>@Transactional(noRollbackFor = BusinessWarningException.class)
+public void process() {
+    saveSomething();
+    throw new BusinessWarningException();
+}</pre>
+<p>The selected exception should not trigger rollback.</p>
+<div class="note"><b>Use carefully.</b> For payment failures, it is usually better to model the business state explicitly than to simply prevent rollback.</div>
+</section>
+
+<section><h2>10. Rollback-Only</h2>
+<p>A transaction can be marked <b>rollback-only</b>. It may continue running, but it cannot finally commit.</p>
+<pre>Outer transaction
+ ↓
+Inner service
+ ↓
+failure
+ ↓
+transaction marked rollback-only
+ ↓
+outer method continues
+ ↓
+commit requested
+ ↓
+ROLLBACK</pre>
+<p>In Spring this can result in <code>UnexpectedRollbackException</code> when an outer method tries to commit a transaction already marked rollback-only.</p>
+</section>
+
+<section><h2>11. Isolation Level</h2>
+<pre>@Transactional(isolation = Isolation.READ_COMMITTED)
+public Payment getPayment(Long id) { ... }</pre>
+<table>
+<tr><th>Level</th><th>Main idea</th><th>Typical use</th></tr>
+<tr><td>READ_UNCOMMITTED</td><td>May see uncommitted changes.</td><td>Rare; normally unsuitable for financial data.</td></tr>
+<tr><td>READ_COMMITTED</td><td>Reads committed data.</td><td>Common choice.</td></tr>
+<tr><td>REPEATABLE_READ</td><td>Repeated reads are more stable.</td><td>When repeatable reads matter.</td></tr>
+<tr><td>SERIALIZABLE</td><td>Strongest isolation; lower concurrency.</td><td>Special correctness-critical cases.</td></tr>
+</table>
+<p>Know these problems: <b>dirty read, non-repeatable read, phantom read, lost update, write skew.</b></p>
+</section>
+
+<section><h2>12. Optimistic Locking</h2>
+<pre>@Version
+private Long version;</pre>
+<pre>UPDATE account
+SET balance = 80, version = 6
+WHERE id = 1 AND version = 5;</pre>
+<p>If another transaction already changed version 5, the update affects zero rows and the application detects a concurrent update.</p>
+<p><b>Use when:</b> conflicts are not frequent and you do not want to hold database locks for a long time.</p>
+</section>
+
+<section><h2>13. Pessimistic Locking</h2>
+<pre>SELECT *
+FROM account
+WHERE id = 1
+FOR UPDATE;</pre>
+<p>JPA example:</p>
+<pre>@Lock(LockModeType.PESSIMISTIC_WRITE)
+Optional&lt;Account&gt; findByIdForUpdate(Long id);</pre>
+<p><b>Use when:</b> concurrent changes to the same critical row are likely and the operation must serialize access.</p>
+<div class="note">Locks should be short. Inconsistent lock order can cause deadlocks.</div>
+</section>
+
+<section><h2>14. Transaction Propagation</h2>
+<table>
+<tr><th>Propagation</th><th>Meaning</th><th>When</th></tr>
+<tr><td>REQUIRED</td><td>Join current transaction or create one.</td><td>Default service behavior.</td></tr>
+<tr><td>REQUIRES_NEW</td><td>Suspend current transaction and create a new one.</td><td>Independent audit/log record.</td></tr>
+<tr><td>SUPPORTS</td><td>Join if one exists; otherwise run without one.</td><td>Some read operations.</td></tr>
+<tr><td>NOT_SUPPORTED</td><td>Suspend current transaction.</td><td>Special non-transactional work.</td></tr>
+<tr><td>MANDATORY</td><td>Must already have a transaction.</td><td>Internal method requiring a transaction.</td></tr>
+<tr><td>NEVER</td><td>Must not run inside a transaction.</td><td>Rare.</td></tr>
+<tr><td>NESTED</td><td>Uses nested transaction/savepoint when supported.</td><td>Partial rollback cases.</td></tr>
+</table>
+<h3>REQUIRED</h3>
+<pre>@Transactional
+public void processPayment() {
+    updatePayment();
+    createTransaction();
+}
+
+@Transactional(propagation = Propagation.REQUIRED)
+public void updatePayment() { ... }</pre>
+<p>The inner method joins the outer transaction.</p>
+<h3>REQUIRES_NEW</h3>
+<pre>@Transactional
+public void processPayment() {
+    updatePayment();
+    auditService.saveAudit();
+}
+
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void saveAudit() {
+    auditRepository.save(...);
+}</pre>
+<pre>Transaction A → suspend → Transaction B → commit → A resumes</pre>
+<p>Useful when the audit record must be independent from the main transaction.</p>
+</section>
+
+<section><h2>15. Read Replica + Master/Replica Switching</h2>
+<pre>Application
+ ├── WRITE → Master / Primary DB
+ └── READ  → Replica DB</pre>
+
+<h3>15.1 Why use Read Replicas?</h3>
+<p>When the system has many more reads than writes, read traffic can be distributed to replicas while writes stay on the master.</p>
+<pre>100,000 requests
+      ↓
+Application
+ ├── 90,000 READ  ──→ Replica
+ └── 10,000 WRITE ──→ Master</pre>
+
+<h3>15.2 Configure two DataSources</h3>
+<pre>spring:
+  datasource:
+    master:
+      jdbc-url: jdbc:postgresql://db-master:5432/payment
+      username: app
+      password: ${DB_PASSWORD}
+
+    replica:
+      jdbc-url: jdbc:postgresql://db-replica:5432/payment
+      username: app
+      password: ${DB_PASSWORD}</pre>
+
+<h3>15.3 Routing DataSource</h3>
+<pre>public enum DbType {
+    MASTER, REPLICA
+}
+
+public class RoutingDataSource
+        extends AbstractRoutingDataSource {
+
+    @Override
+    protected Object determineCurrentLookupKey() {
+        return DbContext.get();
+    }
+}</pre>
+
+<p>The application can route a request to Master or Replica. A common design is to use the transaction's read-only state as the routing signal.</p>
+
+<pre>@Transactional(readOnly = true)
+public Payment getPayment(Long id) {
+    return paymentRepository.findById(id).orElseThrow();
+}
+
+@Transactional
+public void updatePayment(Long id) {
+    // write → Master
+}</pre>
+
+<pre>readOnly = true
+      ↓
+Replica
+
+readOnly = false
+      ↓
+Master</pre>
+
+<div class="note"><b>Important:</b> <code>@Transactional(readOnly=true)</code> does NOT automatically switch to a Replica. You need a routing DataSource / transaction-aware routing mechanism.</div>
+
+<h3>15.4 Replication Lag</h3>
+<pre>1. UPDATE payment on Master
+        ↓
+2. COMMIT
+        ↓
+3. SELECT payment from Replica
+        ↓
+4. Replica has not caught up
+        ↓
+5. Old data returned</pre>
+
+<p>This is <b>replication lag</b>. It creates an important consistency problem called <b>read-after-write inconsistency</b>.</p>
+
+<h3>15.5 How to handle read-after-write?</h3>
+<ul>
+<li>Read from Master immediately after a critical write.</li>
+<li>Use consistency-aware routing for the affected user/request.</li>
+<li>Use Replica only when slightly stale data is acceptable.</li>
+<li>For payment status, prefer Master when the user must immediately see the latest result.</li>
+</ul>
+
+<div class="good"><b>Production example:</b> User pays successfully → update payment on Master → immediately show SUCCESS from Master. Do not depend on a lagging Replica for that immediate response.</div>
+
+<h3>15.6 Important architecture point</h3>
+<p>Read replicas improve read scalability, but they do not remove the need for a strong primary database. Writes, locks and consistency-critical reads still depend on the primary.</p>
+</section>
+
+<section><h2>16. ACID</h2>
+<table>
+<tr><th>Property</th><th>Meaning</th><th>Payment example</th></tr>
+<tr><td>Atomicity</td><td>All DB changes succeed or roll back.</td><td>Payment status + transaction record.</td></tr>
+<tr><td>Consistency</td><td>DB rules remain valid.</td><td>Constraints and business invariants.</td></tr>
+<tr><td>Isolation</td><td>Concurrent transactions are controlled.</td><td>Two requests update one payment.</td></tr>
+<tr><td>Durability</td><td>Committed data survives normal failures.</td><td>SUCCESS remains after restart.</td></tr>
+</table>
+</section>
+
+<section><h2>17. Deadlock</h2>
+<pre>Transaction A: lock User 1 → wait User 2
+Transaction B: lock User 2 → wait User 1
+                         ↓
+                      DEADLOCK</pre>
+<p>Reduce risk with short transactions, consistent lock ordering, good indexes, fewer unnecessary locks, timeout and safe retry.</p>
+</section>
+
+<section><h2>18. Connection Pool + How to Calculate Pool Size</h2>
+<pre>Request
+  ↓
+Connection Pool
+  ↓
+DB Connection
+  ↓
+Transaction
+  ↓
+SQL
+  ↓
+Commit / Rollback
+  ↓
+Connection returned to pool</pre>
+
+<h3>18.1 Why use a Connection Pool?</h3>
+<p>Opening a new DB connection for every request is expensive. A pool keeps reusable connections ready.</p>
+
+<h3>18.2 Important HikariCP settings</h3>
+<table>
+<tr><th>Setting</th><th>Meaning</th></tr>
+<tr><td><code>maximumPoolSize</code></td><td>Maximum DB connections for one application instance.</td></tr>
+<tr><td><code>minimumIdle</code></td><td>Idle connections the pool tries to keep available.</td></tr>
+<tr><td><code>connectionTimeout</code></td><td>Maximum time a request waits for a connection.</td></tr>
+<tr><td><code>idleTimeout</code></td><td>How long an idle connection can remain.</td></tr>
+<tr><td><code>maxLifetime</code></td><td>Maximum lifetime of a pooled connection.</td></tr>
+</table>
+
+<h3>18.3 Practical sizing formula — Little's Law</h3>
+<div class="good"><b>DB connection concurrency ≈ Throughput × Average DB time</b></div>
+
+<pre>Example:
+500 requests/sec
+Average DB time = 20 ms = 0.020 sec
+
+DB concurrency
+= 500 × 0.020
+= 10 connections</pre>
+
+<p>Add headroom for bursts and variation:</p>
+<pre>10 × 1.5 = 15
+
+Starting point:
+maximumPoolSize ≈ 15</pre>
+
+<h3>18.4 Production example</h3>
+<pre>1,000 requests/sec
+Average DB time = 30 ms
+
+Concurrency
+= 1,000 × 0.030
+= 30 connections
+
+30% headroom
+= 30 × 1.3
+≈ 39
+
+Starting point
+≈ 40 connections</pre>
+
+<div class="note"><b>Do not blindly use:</b> CPU cores × 2. Pool size depends on DB latency, query behavior, workload, DB capacity and number of application instances.</div>
+
+<h3>18.5 Total connection calculation</h3>
+<pre>10 application instances
+× 40 connections per instance
+= 400 possible DB connections</pre>
+
+<p>The database must support the total, not just the pool size of one instance. Leave capacity for other services, jobs, migrations and administration.</p>
+
+<h3>18.6 HikariCP configuration</h3>
+<pre>spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 40
+      minimum-idle: 10
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000</pre>
+
+<h3>18.7 Pool exhaustion</h3>
+<pre>Request 1..40 → connections occupied
+
+Request 41
+    ↓
+No connection available
+    ↓
+wait up to connectionTimeout
+    ↓
+timeout
+    ↓
+request fails</pre>
+
+<p>Increasing the pool is not always the solution. Too many connections can overload the database, increase CPU usage, lock contention and query latency.</p>
+
+<h3>18.8 What should you monitor?</h3>
+<ul>
+<li>Active connections</li>
+<li>Idle connections</li>
+<li>Pending/waiting requests</li>
+<li>Connection acquisition time</li>
+<li>DB CPU and memory</li>
+<li>Query latency</li>
+<li>Slow queries</li>
+<li>Lock waits</li>
+</ul>
+
+<h3>18.9 Senior tuning process</h3>
+<ol>
+<li>Measure request throughput.</li>
+<li>Measure actual DB time.</li>
+<li>Calculate approximate DB concurrency.</li>
+<li>Add reasonable headroom.</li>
+<li>Check database maximum connections.</li>
+<li>Multiply by application instance count.</li>
+<li>Load test.</li>
+<li>Monitor pool and DB metrics.</li>
+<li>Tune from real measurements.</li>
+</ol>
+
+<div class="good"><b>Senior point:</b> The goal is not to maximize connections. The goal is to have enough connections to meet the target throughput without overwhelming the database.</div>
+</section>
+
+<section><h2>19. JDBC Auto Commit</h2>
+<pre>Connection c = dataSource.getConnection();
+c.setAutoCommit(false);
+
+try {
+    updatePayment();
+    insertTransaction();
+    c.commit();
+} catch (Exception e) {
+    c.rollback();
+    throw e;
+}</pre>
+<p>Use an explicit transaction when several SQL operations must succeed as one unit.</p>
+</section>
+
+<section><h2>20. Dirty Checking</h2>
+<pre>@Transactional
+public void updatePayment(Long id) {
+    Payment payment = paymentRepository.findById(id).orElseThrow();
+    payment.setStatus("SUCCESS");
+}</pre>
+<pre>SELECT → managed entity → change field → dirty checking → UPDATE → COMMIT</pre>
+<p>Hibernate can detect changes to managed entities and flush them at the right time.</p>
+</section>
+
+<section><h2>21. N+1 Query</h2>
+<pre>List&lt;Order&gt; orders = orderRepository.findAll();
+
+for (Order order : orders) {
+    order.getItems();
+}</pre>
+<p>Depending on mappings, this can cause 1 query for orders plus N queries for items. Use appropriate joins, projections or batch fetching.</p>
+</section>
+
+<section><h2>22. Payment: DB Transaction vs External PSP</h2>
+<pre>BEGIN DB TRANSACTION
+ ↓
+Call PSP
+ ↓
+PSP = SUCCESS
+ ↓
+UPDATE DB
+ ↓
+DB ERROR
+ ↓
+ROLLBACK DB</pre>
+<p>The DB can roll back its own changes, but it cannot automatically undo the external PSP payment.</p>
+<p>Payment systems therefore often need:</p>
+<p>
+<span class="tag">Idempotency</span><span class="tag">State Machine</span><span class="tag">Retry</span>
+<span class="tag">Webhook</span><span class="tag">Reconciliation</span><span class="tag">Outbox</span><span class="tag">Saga/Compensation</span>
+</p>
+</section>
+
+<section><h2>23. Recommended Payment Transaction Boundary</h2>
+<pre>Validate
+ ↓
+Prepare payment state
+ ↓
+Call PSP / Bank
+ ↓
+Receive response / webhook
+ ↓
+SHORT DB TRANSACTION
+ ↓
+Update payment state
+ ↓
+Insert transaction / outbox event
+ ↓
+COMMIT</pre>
+<p>If the external result is uncertain, keep the payment in <code>PENDING</code> and reconcile later instead of guessing SUCCESS or FAILED.</p>
+</section>
+
+<section><h2>24. Complete @Transactional Example</h2>
+<pre>@Transactional(
+    propagation = Propagation.REQUIRED,
+    isolation = Isolation.READ_COMMITTED,
+    timeout = 5,
+    rollbackFor = PaymentException.class
+)
+public void updatePayment(Long paymentId, PaymentStatus status) {
+
+    Payment payment =
+        paymentRepository.findById(paymentId)
+            .orElseThrow();
+
+    payment.setStatus(status);
+
+    transactionRepository.save(
+        new PaymentTransaction(paymentId, status)
+    );
+}</pre>
+<ul>
+<li><b>REQUIRED:</b> join an existing transaction or create one.</li>
+<li><b>READ_COMMITTED:</b> do not read uncommitted changes.</li>
+<li><b>timeout=5:</b> limit transaction execution time.</li>
+<li><b>rollbackFor:</b> PaymentException should roll back the DB work.</li>
+<li>Payment update and transaction record should commit together.</li>
+</ul>
+</section>
+
+<section><h2>26. Database Fundamentals You Should Know as a Senior Backend Engineer</h2>
+
+<h3>26.1 Index</h3>
+<p>An index is an extra data structure that helps the database find rows faster.</p>
+<pre>SELECT *
+FROM payment
+WHERE user_id = 1001;</pre>
+<p>If <code>user_id</code> is frequently searched, an index can avoid scanning the entire table.</p>
+<pre>Without index:
+10 million rows
+ ↓
+scan many/all rows
+
+With index:
+user_id = 1001
+ ↓
+index lookup
+ ↓
+small set of rows</pre>
+<div class="note">Indexes speed up reads but cost storage and make INSERT/UPDATE/DELETE more expensive because indexes also need maintenance.</div>
+
+<h3>26.2 Composite Index</h3>
+<pre>CREATE INDEX idx_payment_user_status
+ON payment(user_id, status);</pre>
+<p>Column order matters. The database can use the leftmost part efficiently.</p>
+<pre>WHERE user_id = ?
+WHERE user_id = ? AND status = ?</pre>
+<p>These are usually good matches for this index. A query filtering only by <code>status</code> may not get the same benefit.</p>
+
+<h3>26.3 EXPLAIN / Query Plan</h3>
+<pre>EXPLAIN
+SELECT *
+FROM payment
+WHERE user_id = 1001;</pre>
+<p>Use the execution plan to understand whether the DB uses an index, scans a table, estimates many rows, or performs expensive joins/sorts.</p>
+
+<h3>26.4 Full Table Scan</h3>
+<p>A full table scan reads many or all rows. It is not always bad: for a small table, scanning may be cheaper than using an index. The important point is to understand <b>why</b> the database selected that plan.</p>
+
+<h3>26.5 Pagination</h3>
+<p>For large datasets, avoid returning millions of rows.</p>
+<pre>SELECT *
+FROM payment
+ORDER BY id
+LIMIT 50;</pre>
+<p>For very large tables, keyset pagination is often better than a huge OFFSET.</p>
+<pre>SELECT *
+FROM payment
+WHERE id &gt; :lastId
+ORDER BY id
+LIMIT 50;</pre>
+<p>This avoids walking through many skipped rows.</p>
+
+<h3>26.6 Constraints</h3>
+<table>
+<tr><th>Constraint</th><th>Purpose</th></tr>
+<tr><td>PRIMARY KEY</td><td>Uniquely identifies a row.</td></tr>
+<tr><td>FOREIGN KEY</td><td>Protects relationships between tables.</td></tr>
+<tr><td>UNIQUE</td><td>Prevents duplicate business values.</td></tr>
+<tr><td>NOT NULL</td><td>Requires a value.</td></tr>
+<tr><td>CHECK</td><td>Protects simple data rules when supported.</td></tr>
+</table>
+<p>Use the database to protect important invariants. Application validation alone can fail under concurrent requests.</p>
+
+<h3>26.7 Unique Constraint + Idempotency</h3>
+<p>For payment APIs, an idempotency key can be protected by a unique constraint.</p>
+<pre>CREATE UNIQUE INDEX uk_payment_idempotency
+ON payment(idempotency_key);</pre>
+<p>Two identical requests cannot create two payment records if the database constraint is correctly designed.</p>
+
+<h3>26.8 Locking and Row Scope</h3>
+<p>A good index can reduce the number of rows the database needs to inspect and lock. Poor queries can increase lock scope and contention.</p>
+
+<h3>26.9 Long Transaction</h3>
+<pre>BEGIN
+ ↓
+SELECT
+ ↓
+Call external API
+ ↓
+wait 10 seconds
+ ↓
+UPDATE
+ ↓
+COMMIT</pre>
+<p>This can hold resources for too long. Keep transaction boundaries close to the database work that must be atomic.</p>
+
+<h3>26.10 Optimistic vs Pessimistic</h3>
+<table>
+<tr><th></th><th>Optimistic</th><th>Pessimistic</th></tr>
+<tr><td>Idea</td><td>Detect conflict when updating.</td><td>Lock early.</td></tr>
+<tr><td>DB lock duration</td><td>Usually lower.</td><td>Can be longer.</td></tr>
+<tr><td>Best when</td><td>Conflicts are uncommon.</td><td>Conflicts are common and serialization is required.</td></tr>
+<tr><td>Risk</td><td>Retry/conflict handling.</td><td>Lock waits/deadlocks.</td></tr>
+</table>
+
+<h3>26.11 Database Normalization vs Denormalization</h3>
+<p><b>Normalization</b> reduces duplicate data and update anomalies. <b>Denormalization</b> intentionally duplicates some data to improve read performance.</p>
+<pre>Normalized:
+Order → Customer
+Order → OrderItem → Product
+
+Denormalized:
+Order also stores customer_name
+for fast reporting/read</pre>
+<p>Denormalization increases write complexity and consistency responsibility.</p>
+
+<h3>26.12 Cache vs Database</h3>
+<pre>Request
+ ↓
+Redis cache
+ ├── HIT  → return quickly
+ └── MISS → DB → cache → return</pre>
+<p>Cache reduces DB load, but creates cache invalidation and consistency problems.</p>
+
+<h3>26.13 Cache Stampede</h3>
+<pre>1 million requests
+      ↓
+same Redis key expires
+      ↓
+1 million requests hit DB
+      ↓
+DB overload</pre>
+<p>Common solutions include locking/single-flight, jittered TTL, background refresh and careful cache-aside design.</p>
+
+<h3>26.14 Write-Through / Write-Behind</h3>
+<table>
+<tr><th>Pattern</th><th>Idea</th></tr>
+<tr><td>Cache-aside</td><td>Application reads cache; on miss reads DB and fills cache.</td></tr>
+<tr><td>Write-through</td><td>Write goes through cache and DB according to the cache design.</td></tr>
+<tr><td>Write-behind</td><td>Cache accepts the write and DB update happens later; higher consistency risk.</td></tr>
+</table>
+
+<h3>26.15 Outbox Pattern</h3>
+<p>When DB state and an event must be consistent, store the event in the same DB transaction.</p>
+<pre>BEGIN
+ ↓
+UPDATE payment = SUCCESS
+ ↓
+INSERT outbox_event
+ ↓
+COMMIT
+ ↓
+Outbox worker publishes event to Kafka
+ ↓
+mark event as published</pre>
+<p>This avoids the dangerous situation where the DB commits but the application crashes before publishing the event.</p>
+
+<h3>26.16 Backup, Recovery and Replication</h3>
+<ul>
+<li><b>Backup:</b> recover data after corruption or disaster.</li>
+<li><b>Replication:</b> maintain another database copy, often for availability/read scaling.</li>
+<li><b>Failover:</b> move traffic to another database when the primary fails.</li>
+<li><b>RPO:</b> how much data loss is acceptable.</li>
+<li><b>RTO:</b> how quickly the system must recover.</li>
+</ul>
+
+<h3>26.17 CAP and Database Trade-offs</h3>
+<p>In distributed systems, network partitions force trade-offs between consistency and availability. Do not treat distributed database design as simply “make everything strongly consistent”; choose consistency based on the business requirement.</p>
+
+<h3>26.18 Production DB Checklist</h3>
+<ul>
+<li>Correct transaction boundary</li>
+<li>Correct isolation level</li>
+<li>Indexes based on real query patterns</li>
+<li>EXPLAIN slow queries</li>
+<li>Connection pool sized from measurements</li>
+<li>Read replicas with a clear consistency strategy</li>
+<li>Locking strategy</li>
+<li>Deadlock detection/retry</li>
+<li>Timeouts</li>
+<li>Slow-query monitoring</li>
+<li>Backup and recovery plan</li>
+<li>Idempotency for retryable APIs</li>
+<li>Outbox for reliable event publishing</li>
+<li>Capacity/load testing</li>
+</ul>
+</section>
+<section><h2>25. Senior Interview Checklist</h2>
+<table>
+<tr><th>Topic</th><th>What you should be able to explain</th></tr>
+<tr><td>readOnly</td><td>When to use it, what it does, and why it does not automatically mean read replica.</td></tr>
+<tr><td>timeout</td><td>Why long transactions are dangerous for locks and connection pools.</td></tr>
+<tr><td>rollbackFor</td><td>Default rollback behavior and checked exceptions.</td></tr>
+<tr><td>Propagation</td><td>REQUIRED vs REQUIRES_NEW and transaction boundaries.</td></tr>
+<tr><td>Isolation</td><td>Dirty/non-repeatable/phantom reads and concurrency trade-offs.</td></tr>
+<tr><td>Locking</td><td>Optimistic vs pessimistic and deadlock risk.</td></tr>
+<tr><td>ACID</td><td>Explain each property using a payment example.</td></tr>
+<tr><td>Payment</td><td>Why a DB transaction cannot roll back an external PSP call.</td></tr>
+</table>
+</section>
+
+</div>
+</body>
+</html>
