@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Transaction Propagation — Bilingual Deep Dive</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2d;--panel2:#11233a;--text:#eef5ff;--muted:#9eb0c7;
+  --line:#263d5c;--cyan:#61dafb;--violet:#8f7cff;--green:#56d991;--yellow:#ffc857;--red:#ff6b7a;--code:#07101b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:
+radial-gradient(circle at 10% 0%,rgba(97,218,251,.12),transparent 28%),
+radial-gradient(circle at 90% 0%,rgba(143,124,255,.12),transparent 30%),var(--bg);color:var(--text);line-height:1.68}
+a{color:var(--cyan);text-decoration:none}
+.top{position:sticky;top:0;z-index:50;background:rgba(7,17,31,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}
+.topin{max-width:1360px;margin:auto;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-weight:900}.brand span{color:var(--cyan)}
+.switch{display:flex;gap:8px;flex-wrap:wrap}.switch button{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:8px 12px;border-radius:9px;cursor:pointer;font-weight:800}
+.switch button.active{color:var(--cyan);border-color:var(--cyan)}
+.hero{max-width:1360px;margin:auto;padding:64px 22px 34px}
+.badge{display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--cyan);font-size:.8rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:clamp(2.4rem,6vw,5rem);line-height:1.02;margin:18px 0;letter-spacing:-.045em}
+.hero p{max-width:950px;color:var(--muted);font-size:1.08rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}.stat{padding:17px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.025)}.stat b{display:block;color:var(--cyan);font-size:1.3rem}.stat span{color:var(--muted);font-size:.9rem}
+.wrap{max-width:1360px;margin:auto;padding:16px 22px 80px;display:grid;grid-template-columns:260px 1fr;gap:28px}
+nav{position:sticky;top:78px;align-self:start;max-height:calc(100vh - 100px);overflow:auto;border:1px solid var(--line);border-radius:16px;background:rgba(13,27,45,.83);padding:14px}
+nav h3{font-size:.8rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px}
+nav a{display:block;padding:8px 9px;border-radius:8px;color:#cbd8e8;font-size:.91rem}
+nav a:hover{background:rgba(97,218,251,.08);color:var(--cyan)}
+main{min-width:0}
+section{scroll-margin-top:85px;margin-bottom:26px;padding:26px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));box-shadow:0 20px 50px rgba(0,0,0,.22)}
+h2{font-size:1.7rem;margin:0 0 16px;letter-spacing:-.02em}h3{font-size:1.15rem;margin:24px 0 10px}h4{margin:18px 0 8px;color:var(--cyan)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:rgba(7,16,27,.42)}
+.lab{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);font-weight:900;margin-bottom:6px}
+pre{background:var(--code);border:1px solid #1f3553;border-radius:13px;padding:16px;overflow:auto;white-space:pre;font-size:.88rem;line-height:1.52;color:#dce8f8}
+code{font-family:"SFMono-Regular",Consolas,monospace}
+.call{padding:13px 15px;border-left:4px solid var(--cyan);border-radius:9px;background:rgba(97,218,251,.07);margin:13px 0}
+.call.good{border-left-color:var(--green);background:rgba(86,217,145,.07)}.call.warn{border-left-color:var(--yellow);background:rgba(255,200,87,.07)}.call.bad{border-left-color:var(--red);background:rgba(255,107,122,.07)}
+.diagram{background:#091525;border:1px dashed #365173;border-radius:14px;padding:16px;margin:14px 0}.diagram pre{border:0;background:transparent;margin:0;padding:0}
+table{width:100%;border-collapse:collapse;margin-top:14px;border:1px solid var(--line)}th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#10233b;color:var(--cyan)}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.79rem;font-weight:900;border:1px solid}.green{color:var(--green);border-color:rgba(86,217,145,.4)}.red{color:var(--red);border-color:rgba(255,107,122,.4)}.yellow{color:var(--yellow);border-color:rgba(255,200,87,.4)}
+.memory{padding:16px;border:1px solid var(--line);border-radius:13px;background:rgba(143,124,255,.08);font-weight:800}
+.q{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.q strong{color:var(--cyan)}
+.footer{max-width:1360px;margin:auto;padding:0 22px 50px;color:var(--muted);text-align:center;font-size:.9rem}
+body.en-only .vi{display:none!important}body.vi-only .en{display:none!important}body.en-only .grid2,body.vi-only .grid2{grid-template-columns:1fr}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}nav{position:relative;top:auto;max-height:none}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:1fr}section{padding:19px}.topin{align-items:flex-start;flex-direction:column}h1{font-size:2.7rem}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="topin">
+    <div class="brand">Spring <span>Transaction Propagation</span></div>
+    <div class="switch">
+      <button class="active" data-mode="dual">EN + VI</button>
+      <button data-mode="en">English</button>
+      <button data-mode="vi">Tiếng Việt</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="badge">Java · Spring Boot · JPA · Hibernate · JDBC</div>
+  <h1>Transaction Propagation<br>Deep Dive</h1>
+  <p class="en">A practical bilingual guide built around real Java code, transaction timelines, expected database results, production pitfalls, and senior-level interview explanations.</p>
+  <p class="vi">Tài liệu song ngữ thực chiến, tập trung vào code Java thật, transaction timeline, kết quả DB mong đợi, lỗi production thường gặp và cách trả lời phỏng vấn Senior.</p>
+  <div class="stats">
+    <div class="stat"><b>REQUIRED</b><span>Default Spring propagation</span></div>
+    <div class="stat"><b>NESTED</b><span>Savepoint / partial rollback</span></div>
+    <div class="stat"><b>REQUIRES_NEW</b><span>Independent transaction</span></div>
+    <div class="stat"><b>rollback-only</b><span>Common hidden failure state</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+<nav>
+  <h3>Contents</h3>
+  <a href="#mental-model">1. Mental model</a>
+  <a href="#default">2. Default propagation</a>
+  <a href="#required">3. REQUIRED</a>
+  <a href="#catch">4. Catch != commit</a>
+  <a href="#nested">5. NESTED</a>
+  <a href="#new">6. REQUIRES_NEW</a>
+  <a href="#jdbc">7. JDBC savepoint</a>
+  <a href="#proxy">8. Self invocation</a>
+  <a href="#rollback">9. Rollback rules</a>
+  <a href="#jpa">10. JPA / Hibernate caveats</a>
+  <a href="#repo">11. Repository & flush</a>
+  <a href="#real">12. Real-world cases</a>
+  <a href="#tests">13. Integration tests</a>
+  <a href="#compare">14. Comparison matrix</a>
+  <a href="#other">15. Other propagation modes</a>
+  <a href="#decision">16. Decision tree</a>
+  <a href="#interview">17. Senior interview</a>
+  <a href="#traps">18. Senior traps</a>
+  <a href="#core-recap">19. Core recap</a>
+</nav>
+
+<main>
+
+<section id="mental-model">
+<h2>1. Mental model: what does propagation answer?</h2>
+<div class="grid2">
+  <div class="card en"><div class="lab">English</div><p>Propagation answers one core question:</p><p><strong>“When this method is called, should it join the current transaction, create a new one, create a savepoint, or run without a transaction?”</strong></p></div>
+  <div class="card vi"><div class="lab">Tiếng Việt</div><p>Propagation trả lời một câu hỏi cốt lõi:</p><p><strong>“Khi method này được gọi, nó sẽ join transaction hiện tại, tạo transaction mới, tạo savepoint hay chạy không transaction?”</strong></p></div>
+</div>
+<div class="memory">REQUIRED = dùng chung · NESTED = dùng chung + savepoint · REQUIRES_NEW = transaction riêng</div>
+</section>
+
+<section id="default">
+<h2>2. Default propagation in Spring</h2>
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>The default propagation of <code>@Transactional</code> is <strong>Propagation.REQUIRED</strong>.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>Propagation mặc định của <code>@Transactional</code> là <strong>Propagation.REQUIRED</strong>.</p></div>
+</div>
+<pre><code>@Transactional
+public void process() {
+    ...
+}
+
+// Conceptually:
+@Transactional(propagation = Propagation.REQUIRED)
+public void process() {
+    ...
+}</code></pre>
+<div class="call good"><span class="en">If a transaction already exists, REQUIRED joins it. If none exists, Spring creates one.</span><span class="vi">Nếu đã có transaction, REQUIRED join vào đó. Nếu chưa có, Spring tạo transaction mới.</span></div>
+</section>
+
+<section id="required">
+<h2>3. REQUIRED — same transaction</h2>
+<pre><code>@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+    private final OrderRepository orderRepository;
+    private final AuditRepository auditRepository;
+
+    @Transactional
+    public void processOrder() {
+        // A
+        orderRepository.save(new Order("ORDER-001", "CREATED"));
+
+        // B
+        paymentService.processPayment();
+
+        // C
+        auditRepository.save(new Audit("ORDER-001", "DONE"));
+    }
+}
+
+@Service
+public class PaymentService {
+
+    @Transactional // REQUIRED
+    public void processPayment() {
+        paymentRepository.save(new Payment("ORDER-001", 100_000L));
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>processOrder()
+    |
+BEGIN T1
+    |
+    +-- A
+    |
+    +-- B (REQUIRED -> join T1)
+    |
+    +-- C
+    |
+COMMIT T1</code></pre></div>
+
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>Although there are two <code>@Transactional</code> annotations, there is still normally only one physical transaction: T1.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>Dù có hai annotation <code>@Transactional</code>, thông thường vẫn chỉ có một physical transaction: T1.</p></div>
+</div>
+</section>
+
+<section id="catch">
+<h2>4. REQUIRED + try/catch — why A and C can still be rolled back</h2>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>This is one of the most important Spring Transaction traps.</p>
+    <p>Many developers look at the Java code below and think:</p>
+    <pre><code>A succeeds
+B fails
+catch B exception
+C still runs
+=> A and C should commit</code></pre>
+    <p>But that conclusion can be wrong when B uses <code>Propagation.REQUIRED</code>.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Đây là một trong những trap quan trọng nhất của Spring Transaction.</p>
+    <p>Nhiều developer nhìn đoạn code dưới đây và nghĩ:</p>
+    <pre><code>A thành công
+B fail
+catch exception của B
+C vẫn chạy
+=> A và C sẽ commit</code></pre>
+    <p>Nhưng kết luận đó có thể sai nếu B dùng <code>Propagation.REQUIRED</code>.</p>
+  </div>
+</div>
+
+<h3>4.1 Code that looks safe but is not</h3>
+
+<pre><code>@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+    private final OrderRepository orderRepository;
+    private final AuditRepository auditRepository;
+
+    @Transactional
+    public void processOrder() {
+
+        // A
+        orderRepository.save(
+            new Order("ORDER-002", "CREATED")
+        );
+
+        try {
+            // B
+            paymentService.processPayment();
+        } catch (Exception e) {
+            // Developer thinks:
+            // "I caught B's exception, so T1 is fine."
+            log.warn("Payment failed, continue flow", e);
+        }
+
+        // C
+        auditRepository.save(
+            new Audit("ORDER-002", "DONE")
+        );
+    }
+}</code></pre>
+
+<pre><code>@Service
+public class PaymentService {
+
+    @Transactional // REQUIRED by default
+    public void processPayment() {
+
+        paymentRepository.save(
+            new Payment("ORDER-002", 100_000L)
+        );
+
+        throw new RuntimeException("Payment failed");
+    }
+}</code></pre>
+
+<h3>4.2 The key point: B is NOT a separate transaction</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>Because <code>processPayment()</code> also uses REQUIRED, it joins the already existing transaction T1.</p>
+    <p>So A, B and C are all working inside the same physical transaction.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Vì <code>processPayment()</code> cũng dùng REQUIRED, nó join vào transaction T1 đang tồn tại.</p>
+    <p>Do đó A, B và C thực chất đều chạy trong cùng một physical transaction.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>OrderService.processOrder()
+|
++-- Spring Transaction Proxy
+    |
+    +-- BEGIN T1
+        |
+        +-- A
+        |
+        +-- PaymentService.processPayment()
+        |      |
+        |      +-- REQUIRED
+        |      +-- join existing T1
+        |
+        +-- C
+        |
+        +-- COMMIT T1</code></pre></div>
+
+<h3>4.3 What the Spring proxy/interceptor does when B throws RuntimeException</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>The important part is not only that B throws an exception. The important part is that the exception crosses B's transactional proxy boundary.</p>
+    <p>Spring's transaction interceptor sees that B ended with a rollback-causing exception. But B does not own an independent physical transaction; it is participating in T1.</p>
+    <p>Therefore the shared transaction can be marked:</p>
+    <pre><code>rollbackOnly = true</code></pre>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Điểm quan trọng không chỉ là B throw exception. Quan trọng là exception đi ra khỏi transactional proxy boundary của B.</p>
+    <p>Transaction interceptor của Spring thấy B kết thúc bằng một exception thuộc rollback rule. Nhưng B không có physical transaction riêng; B đang tham gia T1.</p>
+    <p>Vì vậy transaction dùng chung có thể bị mark:</p>
+    <pre><code>rollbackOnly = true</code></pre>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>                    SAME PHYSICAL TRANSACTION T1
+┌────────────────────────────────────────────────────────────┐
+│                                                            │
+│  A executes                                                │
+│  INSERT order                                              │
+│                                                            │
+│  call PaymentService through Spring proxy                  │
+│          |                                                 │
+│          v                                                 │
+│      REQUIRED                                              │
+│      join T1                                               │
+│          |                                                 │
+│          v                                                 │
+│      B executes                                            │
+│      INSERT payment                                        │
+│          |                                                 │
+│          X RuntimeException                                │
+│          |                                                 │
+│          v                                                 │
+│   Transaction interceptor sees rollback exception          │
+│          |                                                 │
+│          v                                                 │
+│      T1.rollbackOnly = true                                │
+│                                                            │
+└────────────────────────────────────────────────────────────┘</code></pre></div>
+
+<h3>4.4 Then why does the outer catch still work?</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>Because there are two separate concerns:</p>
+    <p><strong>1. Java control flow</strong><br>The outer <code>try/catch</code> catches the exception, so Java continues to execute C.</p>
+    <p><strong>2. Transaction state</strong><br>The transaction may already be marked rollback-only by Spring.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Vì có hai vấn đề hoàn toàn khác nhau:</p>
+    <p><strong>1. Java control flow</strong><br><code>try/catch</code> phía ngoài bắt được exception nên Java vẫn chạy tiếp C.</p>
+    <p><strong>2. Transaction state</strong><br>Transaction có thể đã bị Spring mark rollback-only.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>B throws RuntimeException
+        |
+        v
+Spring marks T1 rollback-only
+        |
+        v
+Exception returns to OrderService
+        |
+        v
+catch (Exception e)
+        |
+        +-- exception is handled at Java level
+        |
+        +-- BUT rollbackOnly is still true
+        |
+        v
+C executes normally</code></pre></div>
+
+<div class="call bad">
+  <span class="en"><strong>C executing successfully does NOT mean C will be committed.</strong></span>
+  <span class="vi"><strong>C chạy thành công KHÔNG có nghĩa là C sẽ được commit.</strong></span>
+</div>
+
+<h3>4.5 What happens when processOrder() returns?</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>After <code>processOrder()</code> returns normally, the outer transaction interceptor attempts to commit T1.</p>
+    <p>But it discovers that T1 has already been marked rollback-only.</p>
+    <p>So Spring cannot safely commit the transaction and rolls it back.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Sau khi <code>processOrder()</code> return bình thường, transaction interceptor phía ngoài cố commit T1.</p>
+    <p>Nhưng lúc này nó phát hiện T1 đã bị mark rollback-only.</p>
+    <p>Spring không thể commit transaction đó nên rollback toàn bộ.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>BEGIN T1
+
+A
+INSERT order
+✅ executed
+
+B
+INSERT payment
+❌ RuntimeException
+
+Spring:
+T1.rollbackOnly = true
+
+OrderService catches B exception
+
+C
+INSERT audit
+✅ executed
+
+processOrder() returns normally
+
+Spring outer proxy:
+"Now I will COMMIT T1"
+
+Check transaction state:
+rollbackOnly == true
+        |
+        X cannot commit
+        |
+        v
+ROLLBACK T1
+
+Final database result:
+
+A ❌ rolled back
+B ❌ rolled back
+C ❌ rolled back</code></pre></div>
+
+<h3>4.6 Why UnexpectedRollbackException appears</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>From the outer method's point of view, everything looked successful because the exception was caught and the method returned normally.</p>
+    <p>But Spring knows the transaction was already doomed. To avoid silently pretending that the commit succeeded, Spring can throw:</p>
+    <pre><code>UnexpectedRollbackException</code></pre>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Từ góc nhìn của outer method, mọi thứ trông có vẻ ổn vì exception đã được catch và method return bình thường.</p>
+    <p>Nhưng Spring biết transaction này đã bị đánh dấu phải rollback. Để tránh việc giả vờ rằng commit thành công, Spring có thể throw:</p>
+    <pre><code>UnexpectedRollbackException</code></pre>
+  </div>
+</div>
+
+<div class="call warn">
+  <span class="en"><strong>Interpretation:</strong> “Your code returned normally, but the transaction could not actually be committed because an inner participant had already marked it for rollback.”</span>
+  <span class="vi"><strong>Hiểu đơn giản:</strong> “Code của bạn return bình thường, nhưng transaction thật sự không thể commit vì một inner participant đã đánh dấu nó phải rollback.”</span>
+</div>
+
+<h3>4.7 Proxy-by-proxy timeline</h3>
+
+<div class="diagram"><pre><code>CALLER
+  |
+  v
+OrderService Spring Proxy
+  |
+  +-- create T1
+  |
+  v
+OrderService.processOrder()
+  |
+  +-- A
+  |
+  +-- call paymentService.processPayment()
+          |
+          v
+     PaymentService Spring Proxy
+          |
+          +-- propagation = REQUIRED
+          +-- existing T1 found
+          +-- join T1
+          |
+          v
+     PaymentService.processPayment()
+          |
+          +-- INSERT payment
+          |
+          X RuntimeException
+          |
+          v
+     PaymentService Proxy catches exception
+          |
+          +-- rollback rule says rollback
+          |
+          +-- B has no independent T2
+          |
+          +-- mark shared T1 rollback-only
+          |
+          +-- rethrow exception
+          |
+          v
+OrderService catches exception
+  |
+  +-- continue
+  |
+  +-- C
+  |
+  v
+OrderService returns normally
+  |
+  v
+OrderService Proxy tries to commit T1
+  |
+  +-- sees rollback-only = true
+  |
+  X rollback T1
+  |
+  +-- may throw UnexpectedRollbackException</code></pre></div>
+
+<h3>4.8 The mental model you should remember</h3>
+
+<div class="memory">
+  <span class="en">
+    <strong>try/catch handles the exception, not the transaction.</strong><br><br>
+    REQUIRED means B joins T1.<br>
+    B fails through its transactional proxy.<br>
+    Spring may mark T1 rollback-only.<br>
+    Outer catch lets Java continue.<br>
+    C can execute.<br>
+    Final commit still fails because T1 is already rollback-only.
+  </span>
+  <span class="vi">
+    <strong>try/catch xử lý exception, không xử lý trạng thái transaction.</strong><br><br>
+    REQUIRED nghĩa là B join T1.<br>
+    B fail khi đi qua transactional proxy của nó.<br>
+    Spring có thể mark T1 rollback-only.<br>
+    Outer catch làm Java chạy tiếp.<br>
+    C vẫn có thể execute.<br>
+    Nhưng commit cuối vẫn fail vì T1 đã rollback-only.
+  </span>
+</div>
+
+<h3>4.9 Expected result comparison</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th class="en">Scenario</th>
+      <th class="vi">Scenario</th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="en">REQUIRED + B succeeds</td>
+      <td class="vi">REQUIRED + B thành công</td>
+      <td>✅ Commit</td>
+      <td>✅ Commit</td>
+      <td>✅ Commit</td>
+    </tr>
+    <tr>
+      <td class="en">REQUIRED + B fails, no catch</td>
+      <td class="vi">REQUIRED + B fail, không catch</td>
+      <td>❌ Rollback</td>
+      <td>❌ Rollback</td>
+      <td>— Not executed</td>
+    </tr>
+    <tr>
+      <td class="en">REQUIRED + B fails, outer catches</td>
+      <td class="vi">REQUIRED + B fail, outer catch</td>
+      <td>❌ Usually rollback with T1</td>
+      <td>❌ Rollback</td>
+      <td>❌ May execute, but rollback at the end</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="call good">
+  <span class="en">This is exactly why “A stays, B rolls back, C continues” is not a normal REQUIRED use case. You need a different transaction boundary such as NESTED/savepoint or REQUIRES_NEW, depending on the business requirement.</span>
+  <span class="vi">Đây chính là lý do “A giữ lại, B rollback, C tiếp tục” không phải case phù hợp với REQUIRED thông thường. Bạn cần transaction boundary khác như NESTED/savepoint hoặc REQUIRES_NEW tùy business requirement.</span>
+</div>
+</section>
+
+<section id="nested">
+<h2>5. NESTED — “A stays, B rolls back, C continues”</h2>
+
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>NESTED is conceptually a savepoint inside the outer transaction.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>NESTED về mặt ý tưởng là một savepoint nằm trong outer transaction.</p></div>
+</div>
+
+<pre><code>@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+
+    @Transactional
+    public void processOrder() {
+
+        // A
+        orderRepository.save(new Order("ORDER-003", "CREATED"));
+
+        try {
+            // B
+            paymentService.processPaymentNested();
+        } catch (Exception e) {
+            log.warn("B failed, continue outer transaction", e);
+        }
+
+        // C
+        auditRepository.save(new Audit("ORDER-003", "DONE"));
+    }
+}</code></pre>
+
+<pre><code>@Service
+public class PaymentService {
+
+    @Transactional(propagation = Propagation.NESTED)
+    public void processPaymentNested() {
+
+        paymentRepository.save(
+            new Payment("ORDER-003", 100_000L)
+        );
+
+        throw new RuntimeException("Payment failed");
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>BEGIN T1
+
+A -> INSERT order
+
+SAVEPOINT S1
+
+B -> INSERT payment
+B -> fails
+
+ROLLBACK TO S1
+|
++-- undo B only
+
+catch
+
+C -> INSERT audit
+
+COMMIT T1
+
+Final:
+A ✅
+B ❌
+C ✅</code></pre></div>
+
+<div class="call warn"><span class="en">NESTED is still part of T1. If T1 later rolls back, A and C also roll back.</span><span class="vi">NESTED vẫn thuộc T1. Nếu T1 rollback về sau thì A và C cũng rollback.</span></div>
+</section>
+
+<section id="new">
+<h2>6. REQUIRES_NEW — independent transaction T2</h2>
+
+<pre><code>@Service
+public class PaymentService {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processPaymentInNewTransaction() {
+
+        paymentRepository.save(
+            new Payment("ORDER-004", 100_000L)
+        );
+
+        throw new RuntimeException("Payment failed");
+    }
+}</code></pre>
+
+<pre><code>@Transactional
+public void processOrder() {
+
+    // T1
+    orderRepository.save(new Order("ORDER-004", "CREATED")); // A
+
+    try {
+        // suspend T1, create T2
+        paymentService.processPaymentInNewTransaction(); // B
+    } catch (Exception e) {
+        log.warn("B failed in T2");
+    }
+
+    // resume T1
+    auditRepository.save(new Audit("ORDER-004", "DONE")); // C
+}</code></pre>
+
+<div class="diagram"><pre><code>BEGIN T1
+|
++-- A
+|
++-- suspend T1
+|    |
+|    +-- BEGIN T2
+|    |    |
+|    |    +-- B
+|    |    X failure
+|    |
+|    +-- ROLLBACK T2
+|
++-- resume T1
+|
++-- C
+|
+COMMIT T1
+
+Final:
+A ✅
+B ❌
+C ✅</code></pre></div>
+
+<h3>Important: B succeeds, then T1 fails</h3>
+<pre><code>@Transactional
+public void processOrder() {
+
+    orderRepository.save(new Order("ORDER-005", "CREATED")); // A
+
+    paymentService.processPaymentInNewTransaction(); // B commits T2
+
+    auditRepository.save(new Audit("ORDER-005", "DONE")); // C
+
+    throw new RuntimeException("Outer T1 fails");
+}</code></pre>
+
+<div class="diagram"><pre><code>T1: A
+    |
+    +-- suspend T1
+         |
+         +-- T2: B -> COMMIT ✅
+    |
+    +-- resume T1
+    |
+    +-- C
+    |
+    X failure
+
+ROLLBACK T1
+
+Final:
+A ❌
+B ✅  <-- independent commit survives
+C ❌</code></pre></div>
+
+<div class="call good"><span class="en">This is the cleanest difference between NESTED and REQUIRES_NEW.</span><span class="vi">Đây là khác biệt dễ thấy nhất giữa NESTED và REQUIRES_NEW.</span></div>
+</section>
+
+<section id="jdbc">
+<h2>7. Plain JDBC SAVEPOINT — the mechanism directly</h2>
+
+<pre><code>public void processWithSavepoint(DataSource dataSource) throws SQLException {
+
+    try (Connection connection = dataSource.getConnection()) {
+
+        connection.setAutoCommit(false);
+
+        try {
+            // A
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO orders(order_code, status) VALUES (?, ?)")) {
+                ps.setString(1, "ORDER-006");
+                ps.setString(2, "CREATED");
+                ps.executeUpdate();
+            }
+
+            Savepoint beforeB = connection.setSavepoint("BEFORE_B");
+
+            try {
+                // B
+                try (PreparedStatement ps = connection.prepareStatement(
+                        "INSERT INTO payments(order_code, amount) VALUES (?, ?)")) {
+                    ps.setString(1, "ORDER-006");
+                    ps.setLong(2, 100_000L);
+                    ps.executeUpdate();
+                }
+
+                throw new RuntimeException("B failed");
+
+            } catch (Exception bError) {
+                // rollback only B
+                connection.rollback(beforeB);
+            }
+
+            // C
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO audit_log(order_code, message) VALUES (?, ?)")) {
+                ps.setString(1, "ORDER-006");
+                ps.setString(2, "DONE");
+                ps.executeUpdate();
+            }
+
+            connection.commit(); // A + C
+
+        } catch (Exception e) {
+            connection.rollback(); // rollback everything
+            throw e;
+        }
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>setAutoCommit(false)
+A
+SAVEPOINT
+B
+B fails
+rollback(savepoint)
+C
+commit()
+
+Result:
+A ✅
+B ❌
+C ✅</code></pre></div>
+</section>
+
+<section id="proxy">
+<h2>8. Spring Proxy trap — self invocation</h2>
+
+<h3>Wrong / dangerous</h3>
+<pre><code>@Service
+public class OrderService {
+
+    @Transactional
+    public void processOrder() {
+        saveOrder();
+
+        this.processPayment(); // self invocation
+
+        saveAudit();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processPayment() {
+        // You expect T2 here
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>Caller
+  |
+Spring Proxy
+  |
+processOrder()
+  |
+  +-- this.processPayment()
+         |
+         X bypasses proxy interception</code></pre></div>
+
+<h3>Better</h3>
+<pre><code>@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+
+    @Transactional
+    public void processOrder() {
+        saveOrder();
+
+        paymentService.processPayment(); // through another bean proxy
+
+        saveAudit();
+    }
+}
+
+@Service
+public class PaymentService {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processPayment() {
+        ...
+    }
+}</code></pre>
+
+<div class="call bad"><span class="en">Transaction propagation is proxy-based in the common Spring setup. Same-class calls are a classic interview and production trap.</span><span class="vi">Propagation thường dựa trên proxy trong Spring. Gọi method cùng class là lỗi kinh điển ở interview và production.</span></div>
+</section>
+
+<section id="rollback">
+<h2>9. Default rollback rules</h2>
+
+<table>
+<thead><tr><th>Exception</th><th class="en">Default</th><th class="vi">Mặc định</th></tr></thead>
+<tbody>
+<tr><td>RuntimeException</td><td class="en"><span class="pill red">Rollback</span></td><td class="vi"><span class="pill red">Rollback</span></td></tr>
+<tr><td>Error</td><td class="en"><span class="pill red">Rollback</span></td><td class="vi"><span class="pill red">Rollback</span></td></tr>
+<tr><td>Checked Exception</td><td class="en"><span class="pill yellow">Not automatic</span></td><td class="vi"><span class="pill yellow">Không tự động</span></td></tr>
+</tbody>
+</table>
+
+<pre><code>@Transactional(rollbackFor = Exception.class)
+public void importData() throws Exception {
+    repository.save(...);
+    throw new IOException("File error");
+}</code></pre>
+
+<pre><code>@Transactional(noRollbackFor = BusinessWarningException.class)
+public void process() {
+    repository.save(...);
+    throw new BusinessWarningException("Warning only");
+}</code></pre>
+
+<div class="call warn"><span class="en">Do not set <code>rollbackFor = Exception.class</code> everywhere blindly. Rollback policy should match business semantics.</span><span class="vi">Không nên đặt <code>rollbackFor = Exception.class</code> khắp nơi. Rollback policy phải phù hợp business semantics.</span></div>
+</section>
+
+<section id="jpa">
+<h2>10. Spring Data JPA / Hibernate caveats</h2>
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>Do not assume NESTED always behaves like plain JDBC savepoints in every JPA setup. Support depends on the transaction manager and underlying resources.</p><p>For a JPA-heavy system, verify the actual transaction manager before relying on NESTED behavior.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>Không nên mặc định NESTED luôn hoạt động y hệt JDBC savepoint trong mọi cấu hình JPA. Support phụ thuộc transaction manager và resource phía dưới.</p><p>Với hệ thống dùng JPA nhiều, hãy kiểm tra transaction manager thật sự trước khi dựa vào NESTED.</p></div>
+</div>
+<div class="call good"><span class="en">If B truly needs an independent transaction boundary, REQUIRES_NEW is often clearer conceptually.</span><span class="vi">Nếu B thật sự cần transaction boundary độc lập, REQUIRES_NEW thường dễ hiểu hơn về mặt kiến trúc.</span></div>
+</section>
+
+<section id="repo">
+<h2>11. Repository.save(), flush(), and commit are not the same</h2>
+
+<pre><code>@Transactional
+public void processOrder() {
+
+    orderRepository.save(order);
+    paymentRepository.save(payment);
+    auditRepository.save(audit);
+}</code></pre>
+
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>Three repository calls do not mean three transactions. They participate in the transaction defined by the service boundary.</p><p><strong>save != commit</strong>. <strong>flush != commit</strong>. Flush synchronizes pending SQL to the DB, but the transaction can still roll back later.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>Ba repository call không có nghĩa là ba transaction. Chúng tham gia transaction do service boundary quyết định.</p><p><strong>save != commit</strong>. <strong>flush != commit</strong>. Flush có thể đẩy SQL xuống DB nhưng transaction vẫn có thể rollback về sau.</p></div>
+</div>
+</section>
+
+<section id="real">
+<h2>12. Real-world cases</h2>
+
+<h3>Case A — Failure audit must survive outer rollback</h3>
+<pre><code>@Service
+public class AuditService {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void writeFailureAudit(String orderCode, String reason) {
+        auditRepository.save(
+            new Audit(orderCode, "FAILED: " + reason)
+        );
+    }
+}</code></pre>
+
+<pre><code>@Transactional
+public void placeOrder() {
+
+    try {
+        orderRepository.save(...);
+        inventoryService.reserve(...);
+        paymentService.charge(...);
+
+    } catch (Exception e) {
+
+        auditService.writeFailureAudit(
+            "ORDER-100",
+            e.getMessage()
+        );
+
+        throw e;
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>T1 business transaction
+|
++-- order
++-- inventory
++-- payment
+X failure
+|
++-- suspend T1
+    |
+    +-- T2 audit -> COMMIT ✅
+|
+ROLLBACK T1
+
+Business data ❌
+Failure audit ✅</code></pre></div>
+
+<h3>Case B — Why not overuse REQUIRES_NEW?</h3>
+<div class="grid2">
+<div class="card en"><div class="lab">English</div><p>The outer transaction may already hold one DB connection. The inner REQUIRES_NEW usually needs another connection. At high concurrency, this can pressure the connection pool and create lock interactions.</p></div>
+<div class="card vi"><div class="lab">Tiếng Việt</div><p>Outer transaction có thể đang giữ một DB connection. Inner REQUIRES_NEW thường cần thêm connection khác. Khi concurrency cao, điều này có thể gây áp lực connection pool và lock interaction.</p></div>
+</div>
+
+<h3>Case C — Service layer as transaction boundary</h3>
+<div class="diagram"><pre><code>Controller
+   |
+   v
+Application Service  <-- transaction boundary
+   |
+   +-- Repository A
+   +-- Domain Service B
+   +-- Repository C</code></pre></div>
+<div class="memory"><span class="en">Default design principle: put transactions around a meaningful business use case, not around every repository call.</span><span class="vi">Nguyên tắc thiết kế: đặt transaction quanh business use case có ý nghĩa, không phải quanh từng repository call.</span></div>
+</section>
+
+<section id="tests">
+<h2>13. Integration test idea</h2>
+
+<pre><code>@SpringBootTest
+class OrderServiceIntegrationTest {
+
+    @Autowired OrderService orderService;
+    @Autowired OrderRepository orderRepository;
+    @Autowired PaymentRepository paymentRepository;
+    @Autowired AuditRepository auditRepository;
+
+    @Test
+    void nested_should_keep_A_and_C_but_rollback_B() {
+
+        orderService.processOrder();
+
+        assertThat(
+            orderRepository.findByOrderCode("ORDER-003")
+        ).isPresent();
+
+        assertThat(
+            paymentRepository.findByOrderCode("ORDER-003")
+        ).isEmpty();
+
+        assertThat(
+            auditRepository.findByOrderCode("ORDER-003")
+        ).isPresent();
+    }
+}</code></pre>
+
+<div class="call warn"><span class="en">Be careful if the test itself is annotated with <code>@Transactional</code>; test-managed rollback may hide the production behavior you want to verify.</span><span class="vi">Cẩn thận nếu test cũng có <code>@Transactional</code>; transaction của test có thể che mất behavior production bạn muốn kiểm tra.</span></div>
+</section>
+
+<section id="compare">
+<h2>14. Comparison matrix</h2>
+<table>
+<thead><tr><th>Propagation</th><th class="en">Behavior</th><th class="vi">Cách hoạt động</th><th class="en">B fails</th><th class="vi">B fail</th><th class="en">Outer later fails</th><th class="vi">Outer fail sau đó</th></tr></thead>
+<tbody>
+<tr><td><strong>REQUIRED</strong></td><td class="en">Join T1</td><td class="vi">Join T1</td><td class="en">May affect T1</td><td class="vi">Có thể ảnh hưởng T1</td><td class="en">Everything in T1 rolls back</td><td class="vi">Tất cả trong T1 rollback</td></tr>
+<tr><td><strong>NESTED</strong></td><td class="en">Savepoint inside T1</td><td class="vi">Savepoint trong T1</td><td class="en">Rollback to savepoint</td><td class="vi">Rollback về savepoint</td><td class="en">Nested work also rolls back</td><td class="vi">Nested work cũng rollback</td></tr>
+<tr><td><strong>REQUIRES_NEW</strong></td><td class="en">Separate T2</td><td class="vi">T2 riêng</td><td class="en">Only T2 rolls back</td><td class="vi">Chỉ T2 rollback</td><td class="en">Committed T2 survives</td><td class="vi">T2 đã commit vẫn giữ</td></tr>
+</tbody>
+</table>
+
+<h3>Requirement matrix</h3>
+<table>
+<thead><tr><th class="en">Requirement</th><th class="vi">Yêu cầu</th><th>Choice</th></tr></thead>
+<tbody>
+<tr><td class="en">A, B, C succeed/fail together</td><td class="vi">A, B, C cùng thành công/cùng rollback</td><td><strong>REQUIRED</strong></td></tr>
+<tr><td class="en">A stays, B rolls back, C continues in same outer transaction</td><td class="vi">A giữ lại, B rollback, C tiếp tục trong cùng outer transaction</td><td><strong>NESTED</strong></td></tr>
+<tr><td class="en">B must commit independently</td><td class="vi">B phải commit độc lập</td><td><strong>REQUIRES_NEW</strong></td></tr>
+<tr><td class="en">Failure audit must survive outer rollback</td><td class="vi">Failure audit phải sống dù outer rollback</td><td><strong>REQUIRES_NEW</strong></td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="other">
+<h2>15. Other propagation modes</h2>
+<table>
+<thead><tr><th>Mode</th><th class="en">Meaning</th><th class="vi">Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td><strong>SUPPORTS</strong></td><td class="en">Use transaction if present; otherwise run without one.</td><td class="vi">Có transaction thì dùng, không có thì chạy không transaction.</td></tr>
+<tr><td><strong>MANDATORY</strong></td><td class="en">Transaction must exist or Spring throws an exception.</td><td class="vi">Bắt buộc phải có transaction sẵn, nếu không Spring throw exception.</td></tr>
+<tr><td><strong>NOT_SUPPORTED</strong></td><td class="en">Suspend current transaction and run without one.</td><td class="vi">Suspend transaction hiện tại và chạy không transaction.</td></tr>
+<tr><td><strong>NEVER</strong></td><td class="en">Must run without a transaction; fail if one exists.</td><td class="vi">Bắt buộc chạy không transaction; fail nếu đang có transaction.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="decision">
+<h2>16. Decision tree</h2>
+<div class="diagram"><pre><code>Should B use the same transaction as A/C?
+|
++-- YES
+|    |
+|    +-- Should B failure fail everything?
+|         |
+|         +-- YES -> REQUIRED
+|         |
+|         +-- NO -> Need partial rollback
+|                    |
+|                    +-- NESTED / SAVEPOINT
+|
++-- NO
+     |
+     +-- Should B commit/rollback independently?
+          |
+          +-- YES -> REQUIRES_NEW</code></pre></div>
+</section>
+
+<section id="interview">
+<h2>17. Senior interview answer</h2>
+<div class="card en">
+<div class="lab">English</div>
+<p><strong>Question:</strong> What is the default propagation in Spring, and how would you implement “A stays, B rolls back, C continues”?</p>
+<p><strong>Answer:</strong> The default propagation of <code>@Transactional</code> is <code>REQUIRED</code>. If a transaction already exists, the called method joins it; otherwise Spring starts a new one. Therefore, if A, B, and C all participate in the same REQUIRED transaction, a failure in B may mark the shared transaction rollback-only, so simply catching B's exception may not be enough.</p>
+<p>If the requirement is partial rollback inside the same outer transaction, NESTED/savepoint is the conceptual match when the transaction manager supports it. If B must be independent from A and C, REQUIRES_NEW is more appropriate because it suspends T1 and creates a separate T2. I would also verify proxy boundaries, actual transaction manager support, connection-pool impact, and integration-test behavior before choosing.</p>
+</div>
+<div class="card vi" style="margin-top:14px">
+<div class="lab">Tiếng Việt</div>
+<p><strong>Câu hỏi:</strong> Propagation mặc định trong Spring là gì, và xử lý requirement “A giữ lại, B rollback, C tiếp tục” như thế nào?</p>
+<p><strong>Trả lời:</strong> Propagation mặc định của <code>@Transactional</code> là <code>REQUIRED</code>. Nếu đã có transaction thì method được gọi join vào transaction đó; nếu chưa có thì Spring tạo mới. Vì vậy nếu A, B, C cùng tham gia một REQUIRED transaction, lỗi ở B có thể mark transaction dùng chung thành rollback-only, nên chỉ catch exception của B chưa chắc đủ.</p>
+<p>Nếu requirement là rollback một phần trong cùng outer transaction thì NESTED/savepoint là lựa chọn đúng về mặt ý tưởng khi transaction manager hỗ trợ. Nếu B phải độc lập với A và C thì REQUIRES_NEW phù hợp hơn vì nó suspend T1 và tạo T2 riêng. Ngoài ra cần kiểm tra proxy boundary, transaction manager thực tế, ảnh hưởng connection pool và integration test.</p>
+</div>
+</section>
+
+<section id="traps">
+<h2>18. Senior-level traps & follow-up questions</h2>
+
+<div class="q"><strong>Q1. Catch exception rồi tại sao vẫn rollback?</strong><p class="en">Because catch changes Java control flow, but it does not necessarily clear the transaction rollback-only state.</p><p class="vi">Vì catch chỉ thay đổi luồng Java, không nhất thiết xóa rollback-only.</p></div>
+
+<div class="q"><strong>Q2. REQUIRES_NEW có luôn tốt hơn NESTED không?</strong><p class="en">No. NESTED means partial rollback within one outer transaction. REQUIRES_NEW means an independent transaction.</p><p class="vi">Không. NESTED là rollback một phần trong outer transaction; REQUIRES_NEW là transaction độc lập.</p></div>
+
+<div class="q"><strong>Q3. REQUIRES_NEW có downside gì?</strong><p class="en">It may require another DB connection and create more transaction/locking pressure under concurrency.</p><p class="vi">Nó có thể cần thêm DB connection và tăng áp lực transaction/locking khi concurrency cao.</p></div>
+
+<div class="q"><strong>Q4. repository.save() có commit ngay không?</strong><p class="en">Normally no. Commit is controlled by the transaction boundary.</p><p class="vi">Thông thường không. Commit được quyết định bởi transaction boundary.</p></div>
+
+<div class="q"><strong>Q5. flush() có phải commit không?</strong><p class="en">No. Flush synchronizes pending changes, but the transaction may still roll back later.</p><p class="vi">Không. Flush đồng bộ pending changes, nhưng transaction vẫn có thể rollback.</p></div>
+
+<div class="q"><strong>Q6. Transaction nên đặt ở đâu?</strong><p class="en">Usually around a meaningful application/service use case that coordinates several repository/domain operations.</p><p class="vi">Thường nên đặt quanh một application/service use case có ý nghĩa, nơi điều phối nhiều repository/domain operation.</p></div>
+
+<div class="q"><strong>Q7. Nếu B cần gọi external API thì sao?</strong><p class="en">A DB transaction cannot roll back a remote API call. For cross-system consistency, consider idempotency, outbox, saga, compensation, retries, and event-driven patterns instead of relying only on local DB transactions.</p><p class="vi">DB transaction không thể rollback một external API call. Với consistency xuyên hệ thống, cần cân nhắc idempotency, outbox, saga, compensation, retry và event-driven thay vì chỉ dựa vào local DB transaction.</p></div>
+</section>
+
+
+<section id="core-recap">
+<h2>19. Core Concepts to Remember — Detailed Recap</h2>
+
+<div class="call good">
+  <span class="en">This section summarizes the most interview-important points in one place, with the exact mental model you should remember.</span>
+  <span class="vi">Phần này gom các ý quan trọng nhất khi đi interview vào một chỗ, theo đúng mental model bạn nên nhớ.</span>
+</div>
+
+<h3>19.1 Tại sao catch exception chưa chắc cứu được transaction?</h3>
+
+<pre><code>@Transactional
+public void processOrder() {
+
+    orderRepository.save(order); // A
+
+    try {
+        paymentService.processPayment(); // B
+    } catch (Exception e) {
+        log.error("Payment failed", e);
+    }
+
+    auditRepository.save(audit); // C
+}</code></pre>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>A developer often thinks:</p>
+    <pre><code>B throws exception
+    ↓
+catch handles it
+    ↓
+everything is OK
+    ↓
+commit</code></pre>
+    <p>But Spring transaction management is applied through a proxy around the transactional method.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Developer thường nghĩ:</p>
+    <pre><code>B throw exception
+    ↓
+catch xử lý rồi
+    ↓
+mọi thứ OK
+    ↓
+commit</code></pre>
+    <p>Nhưng Spring transaction nằm ở proxy/interceptor bên ngoài method transactional.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>Spring Proxy
+    |
+    | BEGIN T1
+    v
+
+processOrder()
+    |
+    A
+    |
+    B -> exception
+    |
+    catch
+    |
+    C
+    |
+    return
+    v
+
+Spring Proxy
+    |
+    | try COMMIT
+    v</code></pre></div>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>If an inner transactional scope already marked the shared transaction as:</p>
+    <pre><code>rollbackOnly = true</code></pre>
+    <p>then the outer transaction cannot really commit, even though the outer method returned normally.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Nếu inner transactional scope đã đánh dấu transaction dùng chung là:</p>
+    <pre><code>rollbackOnly = true</code></pre>
+    <p>thì outer transaction không thể commit thật sự, dù outer method return bình thường.</p>
+  </div>
+</div>
+
+<div class="call bad">
+  <span class="en">Typical result: Spring rolls back T1 and may throw <code>UnexpectedRollbackException</code>.</span>
+  <span class="vi">Kết quả thường thấy: Spring rollback T1 và có thể throw <code>UnexpectedRollbackException</code>.</span>
+</div>
+
+<pre><code>UnexpectedRollbackException:
+Transaction rolled back because it has been marked as rollback-only</code></pre>
+
+<h3>19.2 NESTED khác REQUIRED ở đâu?</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>For this requirement:</p>
+    <pre><code>A stays
+B rolls back
+C continues</code></pre>
+    <p>you need a rollback boundary specifically around B.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Với requirement:</p>
+    <pre><code>A giữ lại
+B rollback
+C tiếp tục</code></pre>
+    <p>bạn cần một rollback boundary riêng quanh B.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>BEGIN T1
+
+A
+
+SAVEPOINT S1
+
+B
+
+B fails
+
+ROLLBACK TO S1
+
+C
+
+COMMIT T1</code></pre></div>
+
+<pre><code>Propagation.NESTED</code></pre>
+
+<pre><code>@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @Transactional
+    public void processOrder() {
+
+        // A
+        createOrder();
+
+        try {
+            // B
+            paymentService.processPayment();
+        } catch (Exception e) {
+            System.out.println("Payment failed");
+        }
+
+        // C
+        createAudit();
+    }
+}</code></pre>
+
+<pre><code>@Service
+public class PaymentService {
+
+    @Transactional(propagation = Propagation.NESTED)
+    public void processPayment() {
+
+        createPayment();
+
+        throw new RuntimeException("Payment failed");
+    }
+}</code></pre>
+
+<div class="diagram"><pre><code>BEGIN T1
+   |
+   +-- A
+   |
+   +-- SAVEPOINT S1
+   |       |
+   |       +-- B
+   |       |
+   |       X B fails
+   |
+   +-- ROLLBACK TO S1
+   |
+   +-- C
+   |
+COMMIT T1</code></pre></div>
+
+<div class="memory">A ✅ commit &nbsp;&nbsp; B ❌ rollback &nbsp;&nbsp; C ✅ commit</div>
+
+<h3>19.3 REQUIRED vs NESTED vs REQUIRES_NEW</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Propagation</th>
+      <th class="en">If outer transaction exists</th>
+      <th class="vi">Nếu đã có outer transaction</th>
+      <th class="en">When B fails</th>
+      <th class="vi">Khi B fail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>REQUIRED</strong></td>
+      <td class="en">Join current transaction</td>
+      <td class="vi">Join transaction hiện tại</td>
+      <td class="en">Can cause the whole transaction to roll back</td>
+      <td class="vi">Có thể làm toàn bộ transaction rollback</td>
+    </tr>
+    <tr>
+      <td><strong>NESTED</strong></td>
+      <td class="en">Create a savepoint inside the same physical transaction</td>
+      <td class="vi">Tạo savepoint trong cùng physical transaction</td>
+      <td class="en">Can roll back only B to the savepoint</td>
+      <td class="vi">Có thể rollback riêng phần B</td>
+    </tr>
+    <tr>
+      <td><strong>REQUIRES_NEW</strong></td>
+      <td class="en">Suspend outer transaction and create a new transaction</td>
+      <td class="vi">Suspend outer transaction và tạo transaction mới</td>
+      <td class="en">Roll back only B's independent transaction</td>
+      <td class="vi">Rollback riêng transaction độc lập của B</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>REQUIRED</h4>
+<div class="diagram"><pre><code>T1
++-------------------------+
+| A                       |
+| B                       |
+| C                       |
++-------------------------+
+
+B fails
+  ↓
+
+rollback whole T1
+
+A ❌
+B ❌
+C ❌</code></pre></div>
+
+<h4>NESTED</h4>
+<div class="diagram"><pre><code>T1
++-----------------------------+
+| A                           |
+|                             |
+| SAVEPOINT                   |
+|    +---------+              |
+|    | B       |              |
+|    +---------+              |
+|         ↑                   |
+| rollback B                  |
+|                             |
+| C                           |
++-----------------------------+
+
+COMMIT T1
+
+A ✅
+B ❌
+C ✅</code></pre></div>
+
+<h4>REQUIRES_NEW</h4>
+<div class="diagram"><pre><code>BEGIN T1
+
+A
+
+    suspend T1
+
+    BEGIN T2
+
+        B
+
+        B fails
+
+    ROLLBACK T2
+
+    resume T1
+
+C
+
+COMMIT T1
+
+Result:
+A ✅
+B ❌
+C ✅</code></pre></div>
+
+<div class="call warn">
+  <span class="en">The final result can look similar between NESTED and REQUIRES_NEW, but the transaction architecture is completely different.</span>
+  <span class="vi">Kết quả cuối có thể giống nhau giữa NESTED và REQUIRES_NEW, nhưng kiến trúc transaction hoàn toàn khác nhau.</span>
+</div>
+
+<h3>19.4 NESTED vs REQUIRES_NEW — the critical difference</h3>
+
+<h4>NESTED = one physical DB transaction</h4>
+
+<div class="diagram"><pre><code>T1
+ ├── A
+ │
+ ├── SAVEPOINT
+ │      └── B
+ │
+ └── C</code></pre></div>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>There is still only <strong>one physical transaction</strong>. The nested scope uses a savepoint.</p>
+    <p>If the outer transaction later fails, everything inside T1 rolls back.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Vẫn chỉ có <strong>một physical transaction</strong>. Nested scope chỉ dùng savepoint.</p>
+    <p>Nếu outer transaction fail về sau thì toàn bộ T1 rollback.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>A
+B succeeds
+C
+D fails
+
+ROLLBACK T1
+
+Final:
+A ❌
+B ❌
+C ❌</code></pre></div>
+
+<h4>REQUIRES_NEW = independent T2</h4>
+
+<div class="diagram"><pre><code>T1
+├── A
+│
+│   suspend T1
+│
+│   T2
+│   └── B
+│
+├── resume T1
+│
+└── C</code></pre></div>
+
+<pre><code>@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void processPayment() {
+    ...
+}</code></pre>
+
+<div class="diagram"><pre><code>T2 COMMIT ✅
+
+then later...
+
+C fails
+T1 ROLLBACK
+
+Final:
+A ❌ rollback
+B ✅ still committed
+C ❌ rollback</code></pre></div>
+
+<div class="call good">
+  <span class="en">Why? Because B already committed in an independent transaction T2.</span>
+  <span class="vi">Vì sao? Vì B đã commit trong transaction T2 độc lập.</span>
+</div>
+
+<h3>19.5 Cách nhớ rất dễ</h3>
+
+<div class="memory">
+<pre><code>REQUIRED
+"Cho tôi dùng chung transaction với anh."
+
+NESTED
+"Cho tôi dùng chung transaction với anh,
+nhưng đặt một savepoint cho tôi."
+
+REQUIRES_NEW
+"Tạm dừng transaction của anh,
+tôi tự mở transaction riêng."</code></pre>
+</div>
+
+<h3>19.6 Spring JPA: cẩn thận với NESTED</h3>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>Spring exposes <code>Propagation.NESTED</code>, but actual nested-transaction behavior depends on the transaction manager and underlying database/resource support.</p>
+    <p>JDBC-oriented transaction managers have direct savepoint semantics. JPA/Hibernate setups need to be verified carefully.</p>
+  </div>
+
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Spring có <code>Propagation.NESTED</code>, nhưng nested transaction thực tế phụ thuộc vào transaction manager và khả năng của database/resource phía dưới.</p>
+    <p>JDBC transaction manager có savepoint semantics trực tiếp hơn. Với JPA/Hibernate cần kiểm tra kỹ.</p>
+  </div>
+</div>
+
+<div class="diagram"><pre><code>Spring Boot
+Spring Data JPA
+Hibernate
+JpaTransactionManager
+
+DO NOT automatically assume:
+
+@Transactional(propagation = Propagation.NESTED)
+
+behaves exactly like plain JDBC SAVEPOINT
+in every setup.</code></pre></div>
+
+<div class="call warn">
+  <span class="en">In many JPA projects, if the business requirement is truly “B must roll back independently from A and C”, REQUIRES_NEW is often easier to reason about and more predictable.</span>
+  <span class="vi">Trong nhiều project JPA, nếu business requirement thực sự là “B phải rollback độc lập với A và C”, REQUIRES_NEW thường dễ hiểu và predictable hơn.</span>
+</div>
+
+<h3>19.7 Important defaults of @Transactional</h3>
+
+<pre><code>@Transactional</code></pre>
+
+<div class="grid2">
+  <div class="card en">
+    <div class="lab">English</div>
+    <p>Conceptually, the important defaults are:</p>
+  </div>
+  <div class="card vi">
+    <div class="lab">Tiếng Việt</div>
+    <p>Về mặt ý tưởng, các default quan trọng là:</p>
+  </div>
+</div>
+
+<pre><code>@Transactional(
+    propagation = Propagation.REQUIRED,
+    isolation = Isolation.DEFAULT,
+    readOnly = false
+)</code></pre>
+
+<table>
+  <thead>
+    <tr>
+      <th class="en">Case</th>
+      <th class="vi">Trường hợp</th>
+      <th class="en">Default behavior</th>
+      <th class="vi">Behavior mặc định</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>RuntimeException</code></td>
+      <td><code>RuntimeException</code></td>
+      <td class="en">Rollback</td>
+      <td class="vi">Rollback</td>
+    </tr>
+    <tr>
+      <td><code>Error</code></td>
+      <td><code>Error</code></td>
+      <td class="en">Rollback</td>
+      <td class="vi">Rollback</td>
+    </tr>
+    <tr>
+      <td class="en">Checked exception</td>
+      <td class="vi">Checked exception</td>
+      <td class="en">No automatic rollback by default</td>
+      <td class="vi">Mặc định không tự động rollback</td>
+    </tr>
+  </tbody>
+</table>
+
+<pre><code>throw new RuntimeException();
+// default -> rollback</code></pre>
+
+<pre><code>throw new IOException();
+// checked exception
+// default rollback rule is different</code></pre>
+
+<pre><code>@Transactional(rollbackFor = Exception.class)
+public void process() throws Exception {
+    ...
+}</code></pre>
+
+<h3>19.8 Senior Java interview — concise answer</h3>
+
+<div class="card en">
+  <div class="lab">English</div>
+  <p>The default propagation of Spring <code>@Transactional</code> is <code>REQUIRED</code>. If a caller already has a transaction, the callee joins it; otherwise Spring creates a new one. Because outer and inner REQUIRED scopes usually participate in the same physical transaction, an inner failure can mark the shared transaction rollback-only. Therefore simply catching the exception does not guarantee that A and C will commit.</p>
+  <p>If the requirement is to roll back only B but keep A and continue C, I need another transaction boundary. I can use savepoint/NESTED if the transaction manager supports it, or REQUIRES_NEW if B must run in a completely independent transaction.</p>
+</div>
+
+<div class="card vi" style="margin-top:14px">
+  <div class="lab">Tiếng Việt</div>
+  <p>Default propagation của Spring <code>@Transactional</code> là <code>REQUIRED</code>. Nếu caller đã có transaction thì method được gọi join vào transaction đó; nếu chưa có thì Spring tạo transaction mới. Vì outer và inner REQUIRED thường cùng tham gia một physical transaction, failure ở inner scope có thể mark transaction dùng chung thành rollback-only. Do đó chỉ catch exception không đảm bảo A và C sẽ commit.</p>
+  <p>Nếu requirement là rollback riêng B nhưng giữ A và tiếp tục C, tôi cần transaction boundary khác. Có thể dùng savepoint/NESTED nếu transaction manager hỗ trợ, hoặc REQUIRES_NEW nếu B cần transaction hoàn toàn độc lập.</p>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<div class="footer">Spring Transaction Propagation — bilingual Java/Spring/JPA study page</div>
+
+<script>
+const buttons=document.querySelectorAll('.switch button');
+buttons.forEach(btn=>btn.addEventListener('click',()=>{
+  buttons.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.body.classList.remove('en-only','vi-only');
+  if(btn.dataset.mode==='en') document.body.classList.add('en-only');
+  if(btn.dataset.mode==='vi') document.body.classList.add('vi-only');
+}));
+</script>
+</body>
+</html>
