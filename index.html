@@ -27,6 +27,7 @@
       --records: #7c2d12;
       --behavior: #a16207;
       --testing: #2563eb;
+      --caching: #0e7490;
       --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
       --radius: 8px;
     }
@@ -487,6 +488,7 @@
         <button class="filter-btn" type="button" data-filter="backend">Backend</button>
         <button class="filter-btn" type="button" data-filter="db">DB</button>
         <button class="filter-btn" type="button" data-filter="kafka">Kafka</button>
+        <button class="filter-btn" type="button" data-filter="caching">Caching</button>
         <button class="filter-btn" type="button" data-filter="microservice">Microservice</button>
         <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
         <button class="filter-btn" type="button" data-filter="testing">Testing</button>
@@ -1106,9 +1108,9 @@
         title: "Caching Patterns and Anti-Stampede",
         summary: "Senior Java system design guide for caching fundamentals, cache-aside, TTL, Redis failure behavior, anti-stampede techniques, and production cache architecture.",
         file: "caching-pattern-system-design.html",
-        category: "Design",
-        filter: "architecture",
-        accent: "#b45309",
+        category: "Caching",
+        filter: "caching",
+        accent: "var(--caching)",
         tags: ["system design", "caching", "redis", "cache aside", "ttl", "anti-stampede", "cache stampede", "database protection", "senior"]
       },
       {
