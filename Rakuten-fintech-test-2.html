@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rakuten Fintech Test</title>
+  <style>
+    :root {
+      --bg: #141618;
+      --panel: #202327;
+      --panel-2: #292d32;
+      --text: #edf0f2;
+      --muted: #aeb7c0;
+      --line: #3a4047;
+      --accent: #ffd166;
+      --accent-2: #2ec4b6;
+      --danger: #ef476f;
+      --code: #101215;
+      --blue: #4dabf7;
+      --green: #72d572;
+      --orange: #f6a43a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: #1b1e22;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .topbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .score {
+      min-width: 120px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-align: center;
+      color: var(--accent);
+      background: #181b1f;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 20px 48px;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 10px;
+      background: var(--panel);
+      font-size: 13px;
+    }
+
+    nav a:hover {
+      border-color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .section-title {
+      margin: 24px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      color: var(--accent);
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .question {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .question-head {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      background: #24282d;
+    }
+
+    .question h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      color: #111;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .question-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr);
+      gap: 0;
+    }
+
+    .code-pane,
+    .answer-pane {
+      padding: 16px;
+    }
+
+    .code-pane {
+      border-right: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(255, 209, 102, .08) 0 1px, transparent 1px 100%),
+        var(--panel);
+      background-size: 42px 42px;
+    }
+
+    pre {
+      margin: 0;
+      overflow-x: auto;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--code);
+      color: #e8edf2;
+      border: 1px solid #30363d;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    .prompt {
+      color: var(--muted);
+      margin: 12px 0 0;
+      font-weight: 650;
+    }
+
+    .answer {
+      border-left: 4px solid var(--accent-2);
+      padding: 10px 12px;
+      background: var(--panel-2);
+      border-radius: 6px;
+      font-weight: 750;
+    }
+
+    .answer strong {
+      color: var(--accent);
+    }
+
+    .explain {
+      margin: 12px 0;
+      color: var(--text);
+    }
+
+    .terms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .term {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--muted);
+      background: #191c20;
+      font-size: 13px;
+    }
+
+    .term b {
+      color: var(--accent-2);
+    }
+
+    .solution {
+      margin-top: 12px;
+    }
+
+    .solution summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .glossary {
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #1b1f23;
+    }
+
+    .glossary h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .glossary-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 18px;
+      margin: 0;
+    }
+
+    .glossary-list div {
+      padding: 8px 0;
+      border-bottom: 1px solid #2e343a;
+    }
+
+    .glossary-list dt {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .glossary-list dd {
+      margin: 2px 0 0;
+      color: var(--muted);
+    }
+
+    .kw-blue { color: var(--blue); }
+    .kw-purple { color: #c678dd; }
+    .kw-orange { color: var(--orange); }
+    .kw-green { color: var(--green); }
+    .kw-red { color: var(--danger); }
+
+    @media (max-width: 840px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .score {
+        width: 100%;
+      }
+
+      .question-body {
+        grid-template-columns: 1fr;
+      }
+
+      .code-pane {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .glossary-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>Rakuten Fintech Test</h1>
+        <p class="subtitle">Questions converted from your test screenshots, with English answers and Vietnamese technical-term translations.</p>
+      </div>
+      <div class="score">18 Answered + 1 Pending</div>
+    </div>
+  </header>
+
+  <main>
+    <nav aria-label="Question navigation">
+      <a href="#t1">Test Q1</a>
+      <a href="#t2">Test Q2</a>
+      <a href="#t3">Test Q3 Pending</a>
+      <a href="#t4">Test Q4</a>
+      <a href="#t5">Test Q5</a>
+      <a href="#q1">Field Hiding</a>
+      <a href="#q2">RuntimeException</a>
+      <a href="#q3">Parallel Counter</a>
+      <a href="#q4">synchronized(this)</a>
+      <a href="#q5">Static Counter</a>
+      <a href="#q6">Static Init</a>
+      <a href="#q7">@NotNull</a>
+      <a href="#q8">Debug Logging</a>
+      <a href="#q9">Stack Trace</a>
+      <a href="#q10">Path Traversal</a>
+      <a href="#q11">N+1 Query</a>
+      <a href="#q12">equals()</a>
+      <a href="#q13">Most Frequent</a>
+      <a href="#q14">Concatenated Substring</a>
+    </nav>
+
+    <h2 class="section-title">First 5 Test Questions</h2>
+    <section class="grid">
+      <article class="question" id="t1">
+        <div class="question-head">
+          <h2>Test Q1. Constructor Order</h2>
+          <span class="tag">Answer: C</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> Parent {
+    Parent() {
+        System.out.println(<span class="kw-green">"P"</span>);
+    }
+}
+
+<span class="kw-purple">class</span> Child <span class="kw-purple">extends</span> Parent {
+    Child() {
+        System.out.println(<span class="kw-green">"C"</span>);
+    }
+}
+
+<span class="kw-purple">new</span> Child();</code></pre>
+            <p class="prompt">What is printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>C: P C</strong></div>
+            <p class="explain">When a child object is created, Java calls the parent constructor first, then the child constructor. The parent constructor prints <code>P</code>, then the child constructor prints <code>C</code>.</p>
+            <div class="terms">
+              <span class="term"><b>constructor</b>: hàm khởi tạo</span>
+              <span class="term"><b>parent class</b>: lớp cha</span>
+              <span class="term"><b>child class</b>: lớp con</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="t2">
+        <div class="question-head">
+          <h2>Test Q2. return in finally</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">public int</span> test() {
+    <span class="kw-purple">try</span> {
+        <span class="kw-purple">return</span> 1;
+    } <span class="kw-purple">finally</span> {
+        <span class="kw-purple">return</span> 2;
+    }
+}
+
+System.out.println(test());</code></pre>
+            <p class="prompt">What is printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: 2</strong></div>
+            <p class="explain">The <code>finally</code> block runs after the <code>try</code> block. A return inside <code>finally</code> overrides the earlier return from <code>try</code>, so the method returns <code>2</code>.</p>
+            <div class="terms">
+              <span class="term"><b>finally block</b>: khối finally luôn chạy</span>
+              <span class="term"><b>override return</b>: ghi đè giá trị trả về</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="t3">
+        <div class="question-head">
+          <h2>Test Q3. Pending Content</h2>
+          <span class="tag">Pending</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code>// Question 3 content is missing from the current chat.
+// Send the image or text again and this card can be completed.</code></pre>
+            <p class="prompt">Question 3 is not available yet.</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Status: <strong>Waiting for question 3</strong></div>
+            <p class="explain">The original note says the content of question 3 is no longer visible. This placeholder keeps the first-five-question structure intact.</p>
+            <div class="terms">
+              <span class="term"><b>pending</b>: đang chờ bổ sung</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="t4">
+        <div class="question-head">
+          <h2>Test Q4. Static Method Hiding</h2>
+          <span class="tag">Answer: A</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> A {
+    <span class="kw-purple">static void</span> run() {
+        System.out.println(<span class="kw-green">"A"</span>);
+    }
+}
+
+<span class="kw-purple">class</span> B <span class="kw-purple">extends</span> A {
+    <span class="kw-purple">static void</span> run() {
+        System.out.println(<span class="kw-green">"B"</span>);
+    }
+}
+
+<span class="kw-purple">public class</span> Main {
+    <span class="kw-purple">public static void</span> main(String[] args) {
+        A a = <span class="kw-purple">new</span> B();
+        a.run();
+    }
+}</code></pre>
+            <p class="prompt">What is printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>A: A</strong></div>
+            <p class="explain">Static methods are hidden, not overridden. The method call is resolved using the reference type <code>A</code>, so <code>A.run()</code> is called.</p>
+            <div class="terms">
+              <span class="term"><b>static method hiding</b>: che khuất phương thức static</span>
+              <span class="term"><b>overriding</b>: ghi đè phương thức</span>
+              <span class="term"><b>reference type</b>: kiểu tham chiếu</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="t5">
+        <div class="question-head">
+          <h2>Test Q5. Field Hiding</h2>
+          <span class="tag">Answer: A</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> A {
+    <span class="kw-orange">int</span> x = 1;
+}
+
+<span class="kw-purple">class</span> B <span class="kw-purple">extends</span> A {
+    <span class="kw-orange">int</span> x = 2;
+}
+
+A obj = <span class="kw-purple">new</span> B();
+System.out.println(obj.x);</code></pre>
+            <p class="prompt">What is printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>A: 1</strong></div>
+            <p class="explain">Instance fields are resolved by reference type, not runtime object type. Since <code>obj</code> is declared as <code>A</code>, Java reads <code>A.x</code>.</p>
+            <div class="terms">
+              <span class="term"><b>field hiding</b>: che khuất biến field</span>
+              <span class="term"><b>runtime object type</b>: kiểu object lúc chạy</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <h2 class="section-title">Questions From Screenshots</h2>
+    <section class="grid">
+      <article class="question" id="q1">
+        <div class="question-head">
+          <h2>1. Field Hiding</h2>
+          <span class="tag">Answer: A</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> <span class="kw-blue">A</span> { <span class="kw-orange">int</span> <span class="kw-red">x</span> = 1; }
+<span class="kw-purple">class</span> <span class="kw-blue">B</span> <span class="kw-purple">extends</span> <span class="kw-blue">A</span> { <span class="kw-orange">int</span> <span class="kw-red">x</span> = 2; }
+
+A obj = <span class="kw-purple">new</span> B();
+System.out.println(obj.x);</code></pre>
+            <p class="prompt">What is printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>A: 1</strong></div>
+            <p class="explain">Fields are not polymorphic in Java. Field access is resolved by the reference type, and the reference type here is <code>A</code>.</p>
+            <div class="terms">
+              <span class="term"><b>field hiding</b>: che khuất biến field</span>
+              <span class="term"><b>polymorphic</b>: đa hình</span>
+              <span class="term"><b>reference type</b>: kiểu tham chiếu</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q2">
+        <div class="question-head">
+          <h2>2. Runtime Exception Type</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> InvalidAgeException <span class="kw-purple">extends</span> RuntimeException {}
+
+<span class="kw-purple">void</span> check(<span class="kw-orange">int</span> age) {
+    <span class="kw-purple">if</span> (age &lt; 18) <span class="kw-purple">throw new</span> InvalidAgeException();
+}</code></pre>
+            <p class="prompt">What type of exception is thrown?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: Unchecked exception</strong></div>
+            <p class="explain">Any exception that extends <code>RuntimeException</code> is an unchecked exception. It does not need to be caught or declared.</p>
+            <div class="terms">
+              <span class="term"><b>unchecked exception</b>: ngoại lệ không bắt buộc xử lý</span>
+              <span class="term"><b>checked exception</b>: ngoại lệ bắt buộc xử lý</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q3">
+        <div class="question-head">
+          <h2>3. Parallel Counter Race Condition</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> Counter {
+    <span class="kw-purple">private</span> <span class="kw-orange">int</span> value = 0;
+    <span class="kw-purple">public void</span> inc() { value++; }
+    <span class="kw-purple">public int</span> get() { <span class="kw-purple">return</span> value; }
+}
+
+Counter c = <span class="kw-purple">new</span> Counter();
+IntStream.range(0, 1000).parallel().forEach(i -&gt; c.inc());
+System.out.println(c.get());</code></pre>
+            <p class="prompt">What is the most likely output?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Best answer: <strong>B: Always &lt; 1000</strong></div>
+            <p class="explain">The intended point is that <code>value++</code> is not atomic, so parallel calls can lose updates. Strictly, the result is nondeterministic and could occasionally be 1000, but it is usually less than 1000.</p>
+            <div class="terms">
+              <span class="term"><b>race condition</b>: lỗi tranh chấp luồng</span>
+              <span class="term"><b>atomic</b>: nguyên tử, không bị chia nhỏ</span>
+              <span class="term"><b>lost update</b>: mất cập nhật</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q4">
+        <div class="question-head">
+          <h2>4. synchronized(this)</h2>
+          <span class="tag">Answer: C</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">public void</span> add(<span class="kw-orange">int</span> x) {
+    <span class="kw-purple">synchronized</span> (<span class="kw-purple">this</span>) {
+        total += x;
+    }
+}</code></pre>
+            <p class="prompt">What does <code>synchronized(this)</code> guarantee?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>C: Only one thread can access the block for this instance</strong></div>
+            <p class="explain"><code>synchronized(this)</code> locks the current object instance. Other threads using the same instance must wait before entering code synchronized on that same monitor.</p>
+            <div class="terms">
+              <span class="term"><b>synchronized</b>: đồng bộ hóa</span>
+              <span class="term"><b>instance</b>: thể hiện đối tượng</span>
+              <span class="term"><b>monitor lock</b>: khóa monitor</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q5">
+        <div class="question-head">
+          <h2>5. Static Shared Counter</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> UserService {
+    <span class="kw-purple">private static</span> <span class="kw-orange">int</span> count = 0;
+    <span class="kw-purple">public void</span> register() { count++; }
+    <span class="kw-purple">public int</span> getCount() { <span class="kw-purple">return</span> count; }
+}</code></pre>
+            <p class="prompt">If 10 threads call <code>register()</code> concurrently, what is true?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: count may be &lt; 10</strong></div>
+            <p class="explain"><code>count</code> is static, so it is shared by all instances. But <code>count++</code> is not thread-safe, so concurrent updates can be lost.</p>
+            <div class="terms">
+              <span class="term"><b>static</b>: thuộc về class, dùng chung</span>
+              <span class="term"><b>thread-safe</b>: an toàn luồng</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q6">
+        <div class="question-head">
+          <h2>6. Static Initialization</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> A {
+    <span class="kw-purple">static</span> <span class="kw-orange">int</span> x = init();
+
+    <span class="kw-purple">static</span> <span class="kw-orange">int</span> init() {
+        System.out.println(<span class="kw-green">"init"</span>);
+        <span class="kw-purple">return</span> 10;
+    }
+}</code></pre>
+            <p class="prompt">When is <code>"init"</code> printed?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: Only once when class A is loaded</strong></div>
+            <p class="explain">Static fields are initialized during class initialization, once per class loading. Creating more objects or reading <code>x</code> later does not call <code>init()</code> again.</p>
+            <div class="terms">
+              <span class="term"><b>static initialization</b>: khởi tạo static</span>
+              <span class="term"><b>class loaded</b>: class được nạp vào JVM</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q7">
+        <div class="question-head">
+          <h2>7. Bean Validation @NotNull</h2>
+          <span class="tag">Answer: C</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> User {
+    @NotNull
+    <span class="kw-purple">private</span> String name;
+}</code></pre>
+            <p class="prompt">What happens when validating a User with <code>name = null</code>?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>C: A constraint violation is returned</strong></div>
+            <p class="explain">Bean Validation returns a set of <code>ConstraintViolation</code> objects when validation fails. A plain invalid field normally does not throw <code>ValidationException</code>.</p>
+            <div class="terms">
+              <span class="term"><b>constraint violation</b>: vi phạm ràng buộc</span>
+              <span class="term"><b>Bean Validation</b>: cơ chế kiểm tra dữ liệu Java Bean</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q8">
+        <div class="question-head">
+          <h2>8. Debug Logging Concatenation</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code>log.debug(<span class="kw-green">"User: "</span> + user.getName() + <span class="kw-green">" logged in"</span>);</code></pre>
+            <p class="prompt">If DEBUG is disabled, what happens?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: String concatenation still happens</strong></div>
+            <p class="explain">Java evaluates method arguments before calling the method, so <code>user.getName()</code> and string concatenation still happen even if the logger discards the debug message.</p>
+            <div class="terms">
+              <span class="term"><b>string concatenation</b>: nối chuỗi</span>
+              <span class="term"><b>parameterized logging</b>: log dùng tham số</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q9">
+        <div class="question-head">
+          <h2>9. Swallowed Exception</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">try</span> {
+    risky();
+} <span class="kw-purple">catch</span> (Exception e) {
+    log.error(<span class="kw-green">"Failed"</span>);
+}</code></pre>
+            <p class="prompt">What is the hidden issue?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: Exception is swallowed without stacktrace</strong></div>
+            <p class="explain">The code catches the exception but logs only a message. The stack trace is lost. Prefer <code>log.error("Failed", e)</code> or rethrow when needed.</p>
+            <div class="terms">
+              <span class="term"><b>swallowed exception</b>: nuốt ngoại lệ</span>
+              <span class="term"><b>stack trace</b>: vết stack, dấu vết lỗi</span>
+              <span class="term"><b>rethrow</b>: ném lại ngoại lệ</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q10">
+        <div class="question-head">
+          <h2>10. Path Traversal</h2>
+          <span class="tag">Answer: C</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code>String file = <span class="kw-green">"/data/"</span> + input;
+Files.readString(Path.of(file));</code></pre>
+            <p class="prompt">If <code>input = "../etc/passwd"</code>, what happens?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>C: Potential path traversal vulnerability</strong></div>
+            <p class="explain">The input can produce <code>/data/../etc/passwd</code>, which may escape the intended directory. Java does not automatically sanitize this path.</p>
+            <div class="terms">
+              <span class="term"><b>path traversal</b>: vượt đường dẫn thư mục</span>
+              <span class="term"><b>vulnerability</b>: lỗ hổng bảo mật</span>
+              <span class="term"><b>sanitize</b>: làm sạch, kiểm tra input</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q11">
+        <div class="question-head">
+          <h2>11. N+1 Query Problem</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">public</span> List&lt;String&gt; getNames(List&lt;User&gt; users) {
+    List&lt;String&gt; result = <span class="kw-purple">new</span> ArrayList&lt;&gt;();
+    <span class="kw-purple">for</span> (User u : users) {
+        result.add(u.getProfile().getName());
+    }
+    <span class="kw-purple">return</span> result;
+}</code></pre>
+            <p class="prompt">Assume <code>getProfile()</code> triggers a DB call. What is the issue?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: N+1 query problem</strong></div>
+            <p class="explain">After loading N users, the loop may execute one extra query per user to load profiles. Use fetch join, entity graph, or batch loading.</p>
+            <div class="terms">
+              <span class="term"><b>N+1 query</b>: lỗi truy vấn N+1</span>
+              <span class="term"><b>fetch join</b>: join để tải dữ liệu liên quan</span>
+              <span class="term"><b>batch loading</b>: tải theo lô</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q12">
+        <div class="question-head">
+          <h2>12. equals() Signature</h2>
+          <span class="tag">Answer: B</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">class</span> User {
+    <span class="kw-purple">private</span> String name;
+    <span class="kw-purple">public boolean</span> equals(User u) {
+        <span class="kw-purple">return</span> <span class="kw-purple">this</span>.name.equals(u.name);
+    }
+}</code></pre>
+            <p class="prompt">What is the issue?</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct answer: <strong>B: equals must override Object.equals(Object)</strong></div>
+            <p class="explain"><code>equals(User)</code> overloads the method but does not override <code>equals(Object)</code>. Collections and frameworks expect the Object signature, and <code>hashCode()</code> should be overridden too.</p>
+            <div class="terms">
+              <span class="term"><b>override</b>: ghi đè</span>
+              <span class="term"><b>overload</b>: nạp chồng</span>
+              <span class="term"><b>hashCode</b>: mã băm</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q13">
+        <div class="question-head">
+          <h2>13. findMostFrequent(int[] nums)</h2>
+          <span class="tag">Coding</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">public static</span> List&lt;Map.Entry&lt;Integer, Integer&gt;&gt;
+findMostFrequent(<span class="kw-orange">int</span>[] nums)</code></pre>
+            <p class="prompt">Return the most frequent number-frequency pairs, sorted by frequency descending.</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct approach: <strong>HashMap frequency count</strong></div>
+            <p class="explain">Count every number, track the maximum frequency, then return entries whose frequency equals that maximum.</p>
+            <details class="solution">
+              <summary>Show Java solution</summary>
+<pre><code><span class="kw-purple">public static</span> List&lt;Map.Entry&lt;Integer, Integer&gt;&gt; findMostFrequent(<span class="kw-orange">int</span>[] nums) {
+    Map&lt;Integer, Integer&gt; freq = <span class="kw-purple">new</span> HashMap&lt;&gt;();
+    <span class="kw-orange">int</span> maxFreq = 0;
+
+    <span class="kw-purple">for</span> (<span class="kw-orange">int</span> num : nums) {
+        <span class="kw-orange">int</span> count = freq.getOrDefault(num, 0) + 1;
+        freq.put(num, count);
+        maxFreq = Math.max(maxFreq, count);
+    }
+
+    List&lt;Map.Entry&lt;Integer, Integer&gt;&gt; result = <span class="kw-purple">new</span> ArrayList&lt;&gt;();
+    <span class="kw-purple">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : freq.entrySet()) {
+        <span class="kw-purple">if</span> (entry.getValue() == maxFreq) {
+            result.add(<span class="kw-purple">new</span> AbstractMap.SimpleEntry&lt;&gt;(entry.getKey(), entry.getValue()));
+        }
+    }
+
+    result.sort((a, b) -&gt; {
+        <span class="kw-orange">int</span> byFrequency = Integer.compare(b.getValue(), a.getValue());
+        <span class="kw-purple">if</span> (byFrequency != 0) <span class="kw-purple">return</span> byFrequency;
+        <span class="kw-purple">return</span> Integer.compare(a.getKey(), b.getKey());
+    });
+
+    <span class="kw-purple">return</span> result;
+}</code></pre>
+            </details>
+            <div class="terms">
+              <span class="term"><b>frequency</b>: tần suất</span>
+              <span class="term"><b>HashMap</b>: bảng băm key-value</span>
+              <span class="term"><b>time complexity</b>: độ phức tạp thời gian</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="question" id="q14">
+        <div class="question-head">
+          <h2>14. Concatenated Substring</h2>
+          <span class="tag">Coding</span>
+        </div>
+        <div class="question-body">
+          <div class="code-pane">
+<pre><code><span class="kw-purple">public</span> List&lt;Integer&gt; findSubstring(String s, String[] words)</code></pre>
+            <p class="prompt">Return all starting indices where a substring is a concatenation of every word exactly once.</p>
+          </div>
+          <div class="answer-pane">
+            <div class="answer">Correct approach: <strong>Sliding window by word length</strong></div>
+            <p class="explain">Because all words have the same length, scan each offset modulo word length and maintain counts inside a moving window.</p>
+            <details class="solution">
+              <summary>Show Java solution</summary>
+<pre><code><span class="kw-purple">public</span> List&lt;Integer&gt; findSubstring(String s, String[] words) {
+    List&lt;Integer&gt; result = <span class="kw-purple">new</span> ArrayList&lt;&gt;();
+    <span class="kw-purple">if</span> (s == <span class="kw-purple">null</span> || words == <span class="kw-purple">null</span> || words.length == 0) <span class="kw-purple">return</span> result;
+
+    <span class="kw-orange">int</span> wordLen = words[0].length();
+    <span class="kw-orange">int</span> wordCount = words.length;
+    <span class="kw-orange">int</span> totalLen = wordLen * wordCount;
+    <span class="kw-purple">if</span> (wordLen == 0 || s.length() &lt; totalLen) <span class="kw-purple">return</span> result;
+
+    Map&lt;String, Integer&gt; required = <span class="kw-purple">new</span> HashMap&lt;&gt;();
+    <span class="kw-purple">for</span> (String word : words) {
+        required.put(word, required.getOrDefault(word, 0) + 1);
+    }
+
+    <span class="kw-purple">for</span> (<span class="kw-orange">int</span> offset = 0; offset &lt; wordLen; offset++) {
+        Map&lt;String, Integer&gt; window = <span class="kw-purple">new</span> HashMap&lt;&gt;();
+        <span class="kw-orange">int</span> left = offset;
+        <span class="kw-orange">int</span> matched = 0;
+
+        <span class="kw-purple">for</span> (<span class="kw-orange">int</span> right = offset; right + wordLen &lt;= s.length(); right += wordLen) {
+            String word = s.substring(right, right + wordLen);
+            <span class="kw-purple">if</span> (!required.containsKey(word)) {
+                window.clear();
+                matched = 0;
+                left = right + wordLen;
+                <span class="kw-purple">continue</span>;
+            }
+
+            window.put(word, window.getOrDefault(word, 0) + 1);
+            matched++;
+
+            <span class="kw-purple">while</span> (window.get(word) &gt; required.get(word)) {
+                String leftWord = s.substring(left, left + wordLen);
+                window.put(leftWord, window.get(leftWord) - 1);
+                matched--;
+                left += wordLen;
+            }
+
+            <span class="kw-purple">if</span> (matched == wordCount) {
+                result.add(left);
+                String leftWord = s.substring(left, left + wordLen);
+                window.put(leftWord, window.get(leftWord) - 1);
+                matched--;
+                left += wordLen;
+            }
+        }
+    }
+
+    <span class="kw-purple">return</span> result;
+}</code></pre>
+            </details>
+            <div class="terms">
+              <span class="term"><b>concatenation</b>: phép nối chuỗi</span>
+              <span class="term"><b>permutation</b>: hoán vị</span>
+              <span class="term"><b>sliding window</b>: cửa sổ trượt</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="glossary" id="glossary">
+      <h2>Technical Glossary</h2>
+      <dl class="glossary-list">
+        <div><dt>field hiding</dt><dd>che khuất biến field</dd></div>
+        <div><dt>polymorphism</dt><dd>tính đa hình</dd></div>
+        <div><dt>constructor</dt><dd>hàm khởi tạo</dd></div>
+        <div><dt>parent class</dt><dd>lớp cha</dd></div>
+        <div><dt>child class</dt><dd>lớp con</dd></div>
+        <div><dt>finally block</dt><dd>khối finally luôn chạy sau try/catch</dd></div>
+        <div><dt>static method hiding</dt><dd>che khuất phương thức static</dd></div>
+        <div><dt>unchecked exception</dt><dd>ngoại lệ không bắt buộc xử lý</dd></div>
+        <div><dt>checked exception</dt><dd>ngoại lệ bắt buộc xử lý</dd></div>
+        <div><dt>race condition</dt><dd>lỗi tranh chấp luồng</dd></div>
+        <div><dt>thread-safe</dt><dd>an toàn luồng</dd></div>
+        <div><dt>atomic operation</dt><dd>thao tác nguyên tử</dd></div>
+        <div><dt>synchronized</dt><dd>đồng bộ hóa</dd></div>
+        <div><dt>constraint violation</dt><dd>vi phạm ràng buộc</dd></div>
+        <div><dt>string concatenation</dt><dd>nối chuỗi</dd></div>
+        <div><dt>stack trace</dt><dd>dấu vết lỗi theo stack</dd></div>
+        <div><dt>path traversal</dt><dd>vượt đường dẫn thư mục</dd></div>
+        <div><dt>vulnerability</dt><dd>lỗ hổng bảo mật</dd></div>
+        <div><dt>N+1 query problem</dt><dd>lỗi truy vấn N+1</dd></div>
+        <div><dt>override</dt><dd>ghi đè phương thức</dd></div>
+        <div><dt>overload</dt><dd>nạp chồng phương thức</dd></div>
+        <div><dt>sliding window</dt><dd>cửa sổ trượt</dd></div>
+        <div><dt>permutation</dt><dd>hoán vị</dd></div>
+      </dl>
+    </section>
+  </main>
+</body>
+</html>
