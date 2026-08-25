@@ -22,7 +22,7 @@
       --kafka: #4338ca;
       --microservice: #be123c;
       --jvm: #9333ea;
-      --ops: #7c3aed;
+      --devops: #7c3aed;
       --monitoring: #0f766e;
       --senior: #be123c;
       --records: #7c2d12;
@@ -496,7 +496,7 @@
         <button class="filter-btn" type="button" data-filter="microservice">Microservice</button>
         <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
         <button class="filter-btn" type="button" data-filter="testing">Testing</button>
-        <button class="filter-btn" type="button" data-filter="ops">Ops</button>
+        <button class="filter-btn" type="button" data-filter="devops">DevOps</button>
         <button class="filter-btn" type="button" data-filter="architecture">Design</button>
       </div>
 
@@ -958,6 +958,16 @@
         tags: ["rakuten", "fintech", "test", "interview record", "java", "concurrency", "validation", "security", "database", "coding"]
       },
       {
+        id: "rakuten-senior-java-backend-interview-collection",
+        title: "Rakuten Senior Java Backend Interview Collection",
+        summary: "Senior Java backend interview preparation collection with three rounds covering core Java, Spring, database, DevOps, system design, architecture, security, leadership, and future technologies.",
+        file: "Rakuten_senior_java_backend_interview_collection.html",
+        category: "Interview Records",
+        filter: "records",
+        accent: "var(--records)",
+        tags: ["rakuten", "senior", "java", "backend", "interview record", "spring", "database", "devops", "system design", "leadership"]
+      },
+      {
         id: "behavior-interview-master-guide",
         title: "Senior Behavioral Interview Master Guide",
         summary: "Comprehensive behavioral interview guide for senior engineers covering strengths, weaknesses, career goals, leaving a company, salary, situational questions, leadership, culture fit, Agile/Scrum, and questions for the interviewer.",
@@ -1172,8 +1182,8 @@
         title: "Spring Actuator, Prometheus and Grafana",
         summary: "Actuator, Micrometer, Prometheus, Grafana dashboards, alerts, JVM troubleshooting, latency, CPU, and DB pool checks.",
         file: "spring_actuator_prometheus_grafana_monitoring_en_vn.html",
-        category: "Ops",
-        filter: "ops",
+        category: "DevOps",
+        filter: "devops",
         accent: "var(--monitoring)",
         tags: ["spring", "actuator", "prometheus", "grafana", "monitoring", "jvm", "alert"]
       },
@@ -1182,10 +1192,20 @@
         title: "End-to-End CI/CD for Java Spring Boot",
         summary: "Production-oriented CI/CD guide for Java Spring Boot microservices using Jenkins, Docker, Kubernetes, Linux commands, Maven, Git, Dockerfiles, deployment, and pipeline practices.",
         file: "cicd-java-springboot-jenkins-docker-kubernetes.html",
-        category: "Ops",
-        filter: "ops",
-        accent: "var(--ops)",
+        category: "DevOps",
+        filter: "devops",
+        accent: "var(--devops)",
         tags: ["ci/cd", "jenkins", "docker", "kubernetes", "spring boot", "java", "maven", "git", "devops"]
+      },
+      {
+        id: "docker-kubernetes-deep-dive",
+        title: "Docker and Kubernetes Deep Dive",
+        summary: "Deep dive into Docker internals, images, layers, networking, Compose, Kubernetes components, Pods, deployments, services, ingress, storage, autoscaling, health checks, rollout strategies, observability, and production microservice operations.",
+        file: "docker_kubernetes_deep_dive.html",
+        category: "DevOps",
+        filter: "devops",
+        accent: "var(--devops)",
+        tags: ["devops", "docker", "kubernetes", "containers", "microservices", "networking", "deployment", "ingress", "autoscaling", "observability"]
       },
       {
         id: "ai-sdlc-slide-deck",

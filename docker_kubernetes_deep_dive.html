@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>Docker + Kubernetes Deep Dive: Internals, Networking, and Microservices</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #11182c;
+    --panel-2: #151e35;
+    --text: #e9eef9;
+    --muted: #a9b5ce;
+    --line: #2a3654;
+    --accent: #6ea8fe;
+    --accent-2: #8fbaff;
+    --code: #0a0f1c;
+    --good: #8fd4b4;
+    --warn: #ffd08a;
+    --bad: #ff9a9a;
+    --shadow: 0 16px 45px rgba(0,0,0,.28);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 15% 0%, #16223e 0, var(--bg) 33rem);
+    color: var(--text);
+    line-height: 1.62;
+  }
+  a { color: var(--accent-2); }
+  code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+  .layout { display: grid; grid-template-columns: 292px minmax(0, 1fr); min-height: 100vh; }
+  aside {
+    position: sticky; top: 0; height: 100vh; overflow: auto;
+    border-right: 1px solid var(--line); background: rgba(9,14,28,.92);
+    backdrop-filter: blur(14px); padding: 24px 18px 34px;
+  }
+  .brand { font-weight: 850; font-size: 19px; letter-spacing: -.02em; margin-bottom: 4px; }
+  .brand span { color: var(--accent); }
+  .side-note { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+  .search {
+    width: 100%; border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+    color: var(--text); padding: 11px 12px; outline: none; margin-bottom: 13px;
+  }
+  nav a {
+    display: block; text-decoration: none; color: #c7d2ea; border-radius: 9px;
+    padding: 7px 9px; font-size: 13px; margin: 2px 0; transition: .18s ease;
+  }
+  nav a:hover, nav a.active { background: #182442; color: white; }
+  main { min-width: 0; padding: 42px clamp(22px, 4vw, 66px) 100px; }
+  .hero {
+    max-width: 1180px; margin: 0 auto 26px; padding: clamp(28px,5vw,56px);
+    border: 1px solid var(--line); border-radius: 28px; background: linear-gradient(150deg,#121b31,#0e1528);
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .hero:after { content:""; position:absolute; width:340px; height:340px; border-radius:50%; right:-160px; top:-170px; background:rgba(110,168,254,.11); }
+  .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .16em; font-size: 12px; font-weight: 800; }
+  h1 { font-size: clamp(34px,6vw,64px); line-height: 1.02; letter-spacing: -.04em; margin: 10px 0 18px; max-width: 900px; }
+  .lead { color: #c4cee3; font-size: clamp(16px,2vw,20px); max-width: 900px; }
+  .hero-grid { display:grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 24px; }
+  .hero-chip { border:1px solid var(--line); padding:13px; border-radius:12px; background:#0d1426; font-size:13px; color:#cbd5e8; }
+  .hero-chip b { display:block; color:white; font-size:15px; margin-bottom:2px; }
+  article { max-width: 1180px; margin: 0 auto; }
+  section.topic {
+    border: 1px solid var(--line); background: rgba(17,24,44,.84); border-radius: var(--radius);
+    padding: clamp(22px,4vw,38px); margin: 18px 0; box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  }
+  h2 { margin: 0 0 18px; font-size: clamp(26px,3vw,38px); line-height:1.15; letter-spacing:-.025em; }
+  h3 { margin-top: 28px; color: #f4f7ff; font-size: 21px; }
+  h4 { margin: 20px 0 6px; color: #dce6fb; }
+  p { margin: 9px 0 14px; }
+  .muted { color: var(--muted); }
+  .kicker { color: var(--accent); font-weight:800; letter-spacing:.08em; font-size:12px; text-transform:uppercase; }
+  .grid2, .grid3, .grid4 { display:grid; gap:14px; }
+  .grid2 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .grid3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .grid4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .card { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: var(--panel-2); }
+  .card h3, .card h4 { margin-top: 0; }
+  .card b { color: #fff; }
+  .tag { display:inline-block; border:1px solid #39517b; background:#17233f; color:#cbdcff; border-radius:999px; padding:4px 9px; font-size:12px; margin:2px 3px 2px 0; }
+  .callout { border-left: 4px solid var(--accent); background: #101a31; padding: 13px 16px; border-radius: 8px 12px 12px 8px; margin: 14px 0; }
+  .callout.good { border-left-color: var(--good); }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.bad { border-left-color: var(--bad); }
+  pre {
+    position: relative; overflow: auto; border:1px solid #263352; background:var(--code); border-radius:14px;
+    padding:18px; color:#dce7fa; font-size:13px; line-height:1.58; margin:14px 0;
+  }
+  .copy { float:right; border:1px solid var(--line); background:#15203a; color:#d8e4fb; border-radius:8px; padding:5px 8px; cursor:pointer; font-size:11px; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; }
+  th, td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }
+  th { color:#fff; background:#131c31; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .diagram { border:1px solid var(--line); border-radius:16px; padding:14px; background:#0b1223; margin:16px 0; overflow:auto; }
+  .diagram-title { display:flex; justify-content:space-between; gap:12px; align-items:center; margin:0 0 10px; font-size:13px; color:#c4cee4; }
+  svg { width:100%; min-width:720px; height:auto; display:block; }
+  svg text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; fill:#e9eef9; font-size:13px; }
+  svg .small { font-size:11px; fill:#a9b5ce; }
+  svg .box { fill:#141e35; stroke:#3a4d72; stroke-width:1.3; rx:11; }
+  svg .box2 { fill:#172541; stroke:#5875a7; stroke-width:1.3; rx:11; }
+  svg .line { stroke:#86b3ff; stroke-width:1.8; fill:none; }
+  svg .dash { stroke:#7283a6; stroke-width:1.3; stroke-dasharray:5 5; fill:none; }
+  svg .lane { stroke:#2f3d5c; stroke-width:1; stroke-dasharray:4 5; }
+  .steps { counter-reset: step; display:grid; gap:10px; }
+  .step { counter-increment: step; display:grid; grid-template-columns:40px 1fr; gap:12px; align-items:start; padding:12px; background:#111a2f; border:1px solid var(--line); border-radius:12px; }
+  .step:before { content:counter(step); display:grid; place-items:center; width:34px; height:34px; border-radius:10px; background:#263b64; color:#fff; font-weight:850; }
+  details { border:1px solid var(--line); border-radius:12px; margin:9px 0; background:#10182c; }
+  summary { cursor:pointer; padding:13px 15px; font-weight:750; color:#eef3ff; }
+  details > div { padding:0 15px 15px; }
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0; }
+  .flow .node { border:1px solid #3b4d73; background:#15213b; padding:8px 11px; border-radius:10px; font-size:13px; }
+  .flow .arrow { color:var(--accent); font-weight:900; }
+  .pill-row { display:flex; flex-wrap:wrap; gap:7px; }
+  .check li { margin:5px 0; }
+  .two-col-list { columns: 2; column-gap: 34px; }
+  .legend { display:flex; flex-wrap:wrap; gap:8px; color:var(--muted); font-size:12px; margin-top:8px; }
+  .legend span { border:1px solid var(--line); padding:4px 8px; border-radius:999px; }
+  .footer { max-width:1180px; margin:30px auto; color:#91a0bd; font-size:12px; text-align:center; }
+  .hidden-by-search { display:none !important; }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { position:relative; height:auto; border-right:0; border-bottom:1px solid var(--line); }
+    nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px 6px; }
+    .grid4, .grid3 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .hero-grid { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width: 640px) {
+    main { padding:24px 14px 70px; }
+    .grid2,.grid3,.grid4,.hero-grid { grid-template-columns:1fr; }
+    .two-col-list { columns:1; }
+    nav { grid-template-columns:1fr; }
+  }
+  @media print {
+    :root { --bg:#fff; --panel:#fff; --panel-2:#fff; --text:#111; --muted:#444; --line:#bbb; --code:#f6f6f6; }
+    body { background:#fff; }
+    aside { display:none; }
+    .layout { display:block; }
+    main { padding:0; }
+    section.topic, .hero { break-inside:avoid-page; box-shadow:none; }
+    .copy { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Docker <span>+</span> Kubernetes</div>
+  <div class="side-note">Internals, networking, microservices, sequences, production patterns</div>
+  <input id="search" class="search" placeholder="Filter topics..." aria-label="Filter topics" />
+  <nav id="toc">
+    <a href="#mental-model">01. Mental model</a>
+    <a href="#docker-components">02. Docker components</a>
+    <a href="#docker-run-internals">03. docker run internals</a>
+    <a href="#docker-images">04. Images and layers</a>
+    <a href="#docker-isolation">05. Namespaces and cgroups</a>
+    <a href="#docker-storage">06. Docker storage</a>
+    <a href="#docker-networking">07. Docker networking</a>
+    <a href="#docker-compose">08. Docker Compose</a>
+    <a href="#docker-sequences">09. Docker sequences</a>
+    <a href="#k8s-mental-model">10. Kubernetes mental model</a>
+    <a href="#k8s-components">11. Kubernetes components</a>
+    <a href="#reconciliation">12. Reconciliation loop</a>
+    <a href="#pod-internals">13. Pod internals</a>
+    <a href="#cri-cni-csi">14. CRI, CNI, CSI</a>
+    <a href="#k8s-networking">15. Kubernetes networking</a>
+    <a href="#service-discovery">16. Service discovery</a>
+    <a href="#external-traffic">17. External traffic</a>
+    <a href="#workloads">18. Workload controllers</a>
+    <a href="#config-security">19. Config and security</a>
+    <a href="#k8s-storage">20. Kubernetes storage</a>
+    <a href="#resources-autoscaling">21. Resources and autoscaling</a>
+    <a href="#health-selfhealing">22. Health and self-healing</a>
+    <a href="#scheduling">23. Scheduling</a>
+    <a href="#microservices">24. Microservices on Kubernetes</a>
+    <a href="#microservice-sequence">25. Checkout sequence</a>
+    <a href="#deployment-strategies">26. Deployment strategies</a>
+    <a href="#failure-scenarios">27. Failure scenarios</a>
+    <a href="#observability">28. Observability</a>
+    <a href="#cicd">29. CI/CD flow</a>
+    <a href="#examples">30. Complete manifests</a>
+    <a href="#troubleshooting">31. Troubleshooting</a>
+    <a href="#comparison">32. Docker vs Kubernetes</a>
+    <a href="#interview">33. Senior interview summary</a>
+    <a href="#glossary">34. Glossary</a>
+    <a href="#sources">35. Official sources</a>
+  </nav>
+</aside>
+<main>
+<header class="hero">
+  <div class="eyebrow">Deep technical study guide</div>
+  <h1>Docker + Kubernetes, from process isolation to production microservices</h1>
+  <p class="lead">The goal is not to memorize commands. The goal is to understand what happens inside Linux, inside Docker Engine, inside a Kubernetes cluster, and on the network when one microservice talks to another.</p>
+  <div class="hero-grid">
+    <div class="hero-chip"><b>Docker internals</b>dockerd, containerd, runc, namespaces, cgroups</div>
+    <div class="hero-chip"><b>Networking</b>veth, bridge, DNS, NAT, CNI, Service, EndpointSlice</div>
+    <div class="hero-chip"><b>Kubernetes control</b>API server, etcd, scheduler, controllers, kubelet</div>
+    <div class="hero-chip"><b>Microservices</b>discovery, scaling, rollout, failure handling, observability</div>
+  </div>
+</header>
+<article>
+
+<section id="mental-model" class="topic" data-topic="mental model container vm docker kubernetes">
+  <div class="kicker">01 - Start here</div>
+  <h2>The mental model: containers are isolated processes, not tiny virtual machines</h2>
+  <p>A container normally runs as one or more ordinary Linux processes on the host kernel. Isolation is created by kernel primitives. Docker packages and manages those primitives. Kubernetes does not replace Docker's low-level container concept; Kubernetes orchestrates large numbers of containers through a container runtime.</p>
+  <div class="grid2">
+    <div class="card"><h3>Virtual machine</h3><p>Hypervisor provides virtual hardware. Each VM usually boots a full guest OS and its own kernel.</p><div class="pill-row"><span class="tag">Guest kernel</span><span class="tag">Virtual hardware</span><span class="tag">Strong boundary</span></div></div>
+    <div class="card"><h3>Container</h3><p>Processes share the host kernel but receive isolated views of PID, network, filesystem, hostname and other resources.</p><div class="pill-row"><span class="tag">Shared kernel</span><span class="tag">Namespaces</span><span class="tag">cgroups</span></div></div>
+  </div>
+  <div class="diagram">
+    <div class="diagram-title"><b>Illustration: VM vs container</b><span>Why containers start faster</span></div>
+    <svg viewBox="0 0 1000 380" role="img" aria-label="VM versus container architecture">
+      <rect class="box2" x="35" y="35" width="440" height="310" rx="18"/><text x="55" y="66" font-weight="800">Virtual machines</text>
+      <rect class="box" x="65" y="95" width="165" height="110"/><text x="115" y="125" text-anchor="middle">App A</text><text class="small" x="115" y="150" text-anchor="middle">Guest libraries</text><text class="small" x="115" y="172" text-anchor="middle">Guest kernel</text>
+      <rect class="box" x="280" y="95" width="165" height="110"/><text x="330" y="125" text-anchor="middle">App B</text><text class="small" x="330" y="150" text-anchor="middle">Guest libraries</text><text class="small" x="330" y="172" text-anchor="middle">Guest kernel</text>
+      <rect class="box" x="65" y="230" width="380" height="45"/><text x="255" y="258" text-anchor="middle">Hypervisor</text>
+      <rect class="box" x="65" y="290" width="380" height="35"/><text class="small" x="255" y="313" text-anchor="middle">Host OS + hardware</text>
+      <rect class="box2" x="525" y="35" width="440" height="310" rx="18"/><text x="545" y="66" font-weight="800">Containers</text>
+      <rect class="box" x="555" y="95" width="165" height="100"/><text x="638" y="127" text-anchor="middle">App A</text><text class="small" x="638" y="153" text-anchor="middle">App libraries</text>
+      <rect class="box" x="770" y="95" width="165" height="100"/><text x="853" y="127" text-anchor="middle">App B</text><text class="small" x="853" y="153" text-anchor="middle">App libraries</text>
+      <rect class="box" x="555" y="220" width="380" height="45"/><text x="745" y="248" text-anchor="middle">Container runtime / Docker Engine</text>
+      <rect class="box" x="555" y="280" width="380" height="45"/><text x="745" y="308" text-anchor="middle">Host kernel + hardware</text>
+    </svg>
+  </div>
+  <div class="callout"><b>Critical relationship:</b> you can build an OCI-compatible image with Docker, push it to a registry, and run it on Kubernetes nodes using containerd or CRI-O. Kubernetes does not require the Docker daemon to be present on worker nodes.</div>
+</section>
+
+<section id="docker-components" class="topic" data-topic="docker components cli dockerd api containerd runc registry image container volume network">
+  <div class="kicker">02 - Docker architecture</div>
+  <h2>Docker components and what each one owns</h2>
+  <div class="grid3">
+    <div class="card"><h3>Docker CLI</h3><p><code>docker build</code>, <code>docker run</code>, <code>docker ps</code>. The CLI is a client. It sends requests to Docker Engine's API.</p></div>
+    <div class="card"><h3>dockerd</h3><p>The long-running Docker daemon. It manages high-level Docker objects: images, containers, networks, volumes and API requests.</p></div>
+    <div class="card"><h3>Docker API</h3><p>HTTP API, commonly exposed locally through a Unix socket. Remote access is possible but must be secured.</p></div>
+    <div class="card"><h3>containerd</h3><p>Container lifecycle and image management layer used by Docker Engine. It manages tasks, images and low-level runtime integration.</p></div>
+    <div class="card"><h3>runc</h3><p>OCI runtime that creates the actual containerized process according to an OCI runtime specification.</p></div>
+    <div class="card"><h3>Registry</h3><p>Stores image manifests, metadata and content-addressed layers. Docker Hub and private registries are examples.</p></div>
+  </div>
+  <table>
+    <thead><tr><th>Object</th><th>What it means</th><th>Typical lifetime</th></tr></thead>
+    <tbody>
+      <tr><td>Image</td><td>Immutable template composed from layers plus metadata.</td><td>Until removed from local cache/registry.</td></tr>
+      <tr><td>Container</td><td>Runtime instance of an image with a writable layer and isolated process environment.</td><td>Start, stop, restart, remove.</td></tr>
+      <tr><td>Volume</td><td>Docker-managed persistent data outside the container writable layer.</td><td>Independent from container lifecycle.</td></tr>
+      <tr><td>Network</td><td>Connectivity domain managed by a network driver.</td><td>Independent object; containers attach/detach.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout bad"><b>Security:</b> access to the Docker daemon socket is highly privileged. Treat membership in the Docker administration path as effectively host-level control unless you deliberately use a constrained/rootless architecture.</div>
+</section>
+
+<section id="docker-run-internals" class="topic" data-topic="docker run internals dockerd containerd runc shim namespaces cgroups rootfs">
+  <div class="kicker">03 - Docker internals</div>
+  <h2>What really happens when you run <code>docker run</code></h2>
+  <div class="steps">
+    <div class="step"><div><b>CLI sends an API request.</b><br><span class="muted">The CLI resolves flags such as image name, ports, volumes, environment variables and resource limits, then talks to the daemon.</span></div></div>
+    <div class="step"><div><b>dockerd resolves the image.</b><br><span class="muted">If image content is not present locally, the engine pulls the manifest and required layers from a registry.</span></div></div>
+    <div class="step"><div><b>Runtime creates a container filesystem view.</b><br><span class="muted">Read-only image layers are combined with a writable container layer or snapshot.</span></div></div>
+    <div class="step"><div><b>Isolation and limits are prepared.</b><br><span class="muted">Linux namespaces, cgroups, capabilities, seccomp/AppArmor/SELinux configuration and mount points are prepared according to configuration.</span></div></div>
+    <div class="step"><div><b>Networking is attached.</b><br><span class="muted">A network namespace and interfaces are created. For bridge networking, a veth pair connects the container namespace to a host bridge.</span></div></div>
+    <div class="step"><div><b>containerd invokes an OCI runtime such as runc.</b><br><span class="muted">runc asks the kernel to create the isolated process. A shim remains involved in lifecycle and I/O management after the initial creation.</span></div></div>
+    <div class="step"><div><b>The configured process becomes PID 1 inside the container namespace.</b><br><span class="muted">It is still a host process with a normal host PID, but it sees a different PID namespace.</span></div></div>
+  </div>
+  <div class="diagram">
+    <div class="diagram-title"><b>Sequence: docker run nginx</b><span>Control path to the Linux kernel</span></div>
+    <svg viewBox="0 0 1120 610" role="img" aria-label="docker run sequence diagram">
+      <defs><marker id="ar1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <g><rect class="box2" x="30" y="20" width="130" height="42"/><text x="95" y="46" text-anchor="middle">Docker CLI</text><rect class="box2" x="220" y="20" width="130" height="42"/><text x="285" y="46" text-anchor="middle">dockerd</text><rect class="box2" x="410" y="20" width="130" height="42"/><text x="475" y="46" text-anchor="middle">containerd</text><rect class="box2" x="600" y="20" width="130" height="42"/><text x="665" y="46" text-anchor="middle">runc</text><rect class="box2" x="790" y="20" width="130" height="42"/><text x="855" y="46" text-anchor="middle">Linux kernel</text><rect class="box2" x="970" y="20" width="120" height="42"/><text x="1030" y="46" text-anchor="middle">Process</text></g>
+      <g><line class="lane" x1="95" y1="65" x2="95" y2="580"/><line class="lane" x1="285" y1="65" x2="285" y2="580"/><line class="lane" x1="475" y1="65" x2="475" y2="580"/><line class="lane" x1="665" y1="65" x2="665" y2="580"/><line class="lane" x1="855" y1="65" x2="855" y2="580"/><line class="lane" x1="1030" y1="65" x2="1030" y2="580"/></g>
+      <line class="line" x1="95" y1="105" x2="280" y2="105" marker-end="url(#ar1)"/><text class="small" x="185" y="95" text-anchor="middle">1. POST create/run request</text>
+      <line class="line" x1="285" y1="160" x2="470" y2="160" marker-end="url(#ar1)"/><text class="small" x="378" y="150" text-anchor="middle">2. image + container lifecycle</text>
+      <line class="line" x1="475" y1="220" x2="660" y2="220" marker-end="url(#ar1)"/><text class="small" x="568" y="210" text-anchor="middle">3. OCI bundle/spec</text>
+      <line class="line" x1="665" y1="285" x2="850" y2="285" marker-end="url(#ar1)"/><text class="small" x="758" y="275" text-anchor="middle">4. namespaces, cgroups, mounts</text>
+      <line class="line" x1="855" y1="350" x2="1025" y2="350" marker-end="url(#ar1)"/><text class="small" x="940" y="340" text-anchor="middle">5. start process</text>
+      <line class="line" x1="1030" y1="415" x2="860" y2="415" marker-end="url(#ar1)"/><text class="small" x="945" y="405" text-anchor="middle">6. running + exit status later</text>
+      <line class="line" x1="475" y1="480" x2="290" y2="480" marker-end="url(#ar1)"/><text class="small" x="382" y="470" text-anchor="middle">7. runtime state</text>
+      <line class="line" x1="285" y1="535" x2="100" y2="535" marker-end="url(#ar1)"/><text class="small" x="192" y="525" text-anchor="middle">8. response / attach I/O</text>
+    </svg>
+  </div>
+</section>
+
+<section id="docker-images" class="topic" data-topic="docker images layers overlayfs registry manifest digest buildkit dockerfile multi stage">
+  <div class="kicker">04 - Images</div>
+  <h2>Images, layers, copy-on-write and registries</h2>
+  <p>An image is not one giant archive copied for every container. It is a set of content-addressed filesystem layers plus metadata. Multiple images and containers can share the same immutable layer content.</p>
+  <div class="grid3">
+    <div class="card"><h3>Layer</h3><p>A filesystem delta produced by a build step. Content is addressed by digest, so identical content can be reused.</p></div>
+    <div class="card"><h3>Manifest</h3><p>Describes image configuration and references layers. Multi-platform indexes can point to architecture-specific manifests.</p></div>
+    <div class="card"><h3>Writable layer</h3><p>A running container gets a writable top layer/snapshot. Writes do not mutate the underlying image.</p></div>
+  </div>
+  <h3>Overlay filesystem mental model</h3>
+  <div class="flow"><span class="node">base image layer</span><span class="arrow">+</span><span class="node">runtime/JDK layer</span><span class="arrow">+</span><span class="node">application layer</span><span class="arrow">+</span><span class="node">container writable layer</span><span class="arrow">=&gt;</span><span class="node">merged root filesystem</span></div>
+  <div class="callout"><b>Important:</b> on modern Docker Engine installations the exact image storage backend may be containerd's image store/snapshotters rather than the older classic graph-driver model. The conceptual rule is unchanged: immutable shared image content plus a writable container view.</div>
+  <h3>Production-friendly Java Dockerfile</h3>
+  <pre><button class="copy">Copy</button><code># syntax=docker/dockerfile:1
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /src
+COPY . .
+RUN ./mvnw -q -DskipTests package
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+RUN useradd -r -u 10001 appuser
+COPY --from=build /src/target/app.jar /app/app.jar
+USER 10001
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]</code></pre>
+  <div class="grid2">
+    <div class="card"><h3>Good build habits</h3><ul><li>Use a small trusted base image.</li><li>Pin critical dependencies or use digest policies where appropriate.</li><li>Use multi-stage builds.</li><li>Keep build context small with <code>.dockerignore</code>.</li><li>Run as non-root.</li><li>Do not bake secrets into layers.</li></ul></div>
+    <div class="card"><h3>Why layer order matters</h3><p>Docker/BuildKit can reuse unchanged build cache. Put slowly-changing dependency steps before frequently-changing source code when your build system allows it.</p></div>
+  </div>
+</section>
+
+<section id="docker-isolation" class="topic" data-topic="namespaces cgroups pid net mount uts ipc user cgroup capabilities seccomp security isolation">
+  <div class="kicker">05 - Linux isolation</div>
+  <h2>Namespaces isolate what a process can see; cgroups control what it can consume</h2>
+  <table>
+    <thead><tr><th>Primitive</th><th>Purpose</th><th>Container effect</th></tr></thead>
+    <tbody>
+      <tr><td>PID namespace</td><td>Process ID isolation</td><td>Container has its own process tree; its main process can appear as PID 1 inside.</td></tr>
+      <tr><td>Network namespace</td><td>Interfaces, routes, ports, firewall context</td><td>Container can have its own <code>eth0</code>, IP, routes and localhost.</td></tr>
+      <tr><td>Mount namespace</td><td>Filesystem mount view</td><td>Container sees its rootfs and mounted volumes.</td></tr>
+      <tr><td>UTS namespace</td><td>Hostname/domain isolation</td><td>Container can have its own hostname.</td></tr>
+      <tr><td>IPC namespace</td><td>Shared memory/semaphore isolation</td><td>Limits IPC visibility between workloads.</td></tr>
+      <tr><td>User namespace</td><td>UID/GID mapping</td><td>Container root can be mapped to an unprivileged host ID when configured.</td></tr>
+      <tr><td>cgroups</td><td>Resource accounting and limits</td><td>CPU, memory and other resources can be constrained and measured.</td></tr>
+    </tbody>
+  </table>
+  <h3>Resource example</h3>
+  <pre><button class="copy">Copy</button><code>docker run --memory=512m --cpus=1.5 my-api:1.0</code></pre>
+  <p>The application may believe it runs on a normal Linux environment, but the kernel applies cgroup constraints. If memory usage exceeds the cgroup limit, the workload can be killed by the kernel's OOM behavior rather than gracefully receiving unlimited memory.</p>
+  <div class="callout warn"><b>PID 1 behavior:</b> the main process in a container should handle termination signals correctly and reap child processes. This matters for clean shutdown and rolling deployments.</div>
+</section>
+
+<section id="docker-storage" class="topic" data-topic="docker storage volume bind mount tmpfs persistent database">
+  <div class="kicker">06 - Docker data</div>
+  <h2>Container writable layers are disposable; persistent state should live elsewhere</h2>
+  <table>
+    <thead><tr><th>Storage</th><th>Best for</th><th>Risk / note</th></tr></thead>
+    <tbody>
+      <tr><td>Container writable layer</td><td>Temporary runtime files</td><td>Coupled to container lifecycle; not a durable database strategy.</td></tr>
+      <tr><td>Named volume</td><td>Persistent app data managed by Docker</td><td>Easier lifecycle than host-path coupling.</td></tr>
+      <tr><td>Bind mount</td><td>Development source code, explicit host paths</td><td>Tightly couples container to host filesystem layout and permissions.</td></tr>
+      <tr><td>tmpfs</td><td>Ephemeral in-memory data</td><td>Disappears on stop/restart and consumes memory.</td></tr>
+    </tbody>
+  </table>
+  <pre><button class="copy">Copy</button><code># Named volume
+docker volume create pgdata
+docker run -v pgdata:/var/lib/postgresql/data postgres:17
+
+# Bind mount (development)
+docker run -v "$PWD":/workspace my-dev-image</code></pre>
+</section>
+
+<section id="docker-networking" class="topic" data-topic="docker network bridge veth dns nat masquerade port publish host overlay container communication">
+  <div class="kicker">07 - Docker networking</div>
+  <h2>How Docker containers communicate</h2>
+  <h3>Case A: container to container on a user-defined bridge</h3>
+  <p>Each container gets a network namespace. Docker attaches a virtual Ethernet pair: one end inside the container, the other end on the host side. Host-side interfaces attach to a software bridge. On a user-defined bridge, Docker provides embedded DNS so containers can resolve each other by name.</p>
+  <div class="diagram">
+    <div class="diagram-title"><b>Packet path: api calls db</b><span>Same Docker host</span></div>
+    <svg viewBox="0 0 1080 390" role="img" aria-label="Docker bridge network packet flow">
+      <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <rect class="box2" x="40" y="55" width="270" height="235"/><text x="175" y="84" text-anchor="middle" font-weight="800">Container: api</text><rect class="box" x="75" y="110" width="200" height="55"/><text x="175" y="143" text-anchor="middle">process :8080</text><rect class="box" x="75" y="195" width="200" height="55"/><text x="175" y="228" text-anchor="middle">eth0 172.20.0.2</text>
+      <rect class="box2" x="405" y="115" width="270" height="120"/><text x="540" y="145" text-anchor="middle" font-weight="800">Host network namespace</text><rect class="box" x="440" y="165" width="200" height="45"/><text x="540" y="193" text-anchor="middle">bridge br-xxxx</text>
+      <rect class="box2" x="770" y="55" width="270" height="235"/><text x="905" y="84" text-anchor="middle" font-weight="800">Container: db</text><rect class="box" x="805" y="110" width="200" height="55"/><text x="905" y="143" text-anchor="middle">postgres :5432</text><rect class="box" x="805" y="195" width="200" height="55"/><text x="905" y="228" text-anchor="middle">eth0 172.20.0.3</text>
+      <line class="line" x1="275" y1="222" x2="438" y2="190" marker-end="url(#ar2)"/><text class="small" x="350" y="190">veth</text>
+      <line class="line" x1="640" y1="190" x2="803" y2="222" marker-end="url(#ar2)"/><text class="small" x="725" y="190">veth</text>
+      <text class="small" x="540" y="325" text-anchor="middle">DNS name "db" resolves to the current container address on a user-defined network.</text>
+    </svg>
+  </div>
+  <h3>Case B: container calls the internet</h3>
+  <div class="flow"><span class="node">container eth0</span><span class="arrow">-&gt;</span><span class="node">veth</span><span class="arrow">-&gt;</span><span class="node">Docker bridge</span><span class="arrow">-&gt;</span><span class="node">host netfilter / masquerade</span><span class="arrow">-&gt;</span><span class="node">host NIC</span><span class="arrow">-&gt;</span><span class="node">internet</span></div>
+  <p>Masquerading typically rewrites the source address so external systems see the Docker host address rather than the private container address. Connection tracking lets return traffic be mapped back.</p>
+  <h3>Case C: external client reaches a published port</h3>
+  <div class="flow"><span class="node">client</span><span class="arrow">-&gt;</span><span class="node">HostIP:8080</span><span class="arrow">-&gt;</span><span class="node">DNAT / forwarding rule</span><span class="arrow">-&gt;</span><span class="node">containerIP:8080</span></div>
+  <pre><button class="copy">Copy</button><code>docker network create app-net
+
+docker run -d --name db  --network app-net postgres:17
+docker run -d --name api --network app-net -p 8080:8080 my-api:1.0
+
+# Inside api, connect to:
+# db:5432</code></pre>
+  <div class="grid3">
+    <div class="card"><h3>bridge</h3><p>Most common single-host Docker network. User-defined bridge gives name-based service discovery.</p></div>
+    <div class="card"><h3>host</h3><p>Removes normal network namespace separation and uses the host network directly. Fewer abstractions, less isolation.</p></div>
+    <div class="card"><h3>overlay</h3><p>Multi-host Docker/Swarm networking. Provides a distributed virtual network across Docker daemons.</p></div>
+  </div>
+  <div class="callout"><b>Embedded DNS:</b> containers on a custom Docker network use Docker's embedded DNS service for container-name resolution. Do not hard-code container IPs because IPs can change after recreation.</div>
+</section>
+
+<section id="docker-compose" class="topic" data-topic="docker compose microservices local development service network depends healthcheck">
+  <div class="kicker">08 - Local multi-container apps</div>
+  <h2>Docker Compose: a small microservice topology on one developer machine</h2>
+  <pre><button class="copy">Copy</button><code>services:
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [backend]
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: example
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend]
+
+  redis:
+    image: redis:8
+    networks: [backend]
+
+networks:
+  backend:
+
+volumes:
+  pgdata:</code></pre>
+  <div class="callout warn"><b>Compose is not Kubernetes.</b> Compose is excellent for local or simple multi-container deployment. Kubernetes adds cluster-wide scheduling, reconciliation, service abstraction, automated replacement, autoscaling, controlled rollout and much more.</div>
+</section>
+
+<section id="docker-sequences" class="topic" data-topic="docker sequence image pull published port dns request">
+  <div class="kicker">09 - Docker request sequences</div>
+  <h2>Three sequences worth memorizing</h2>
+  <details open><summary>Image pull</summary><div><div class="flow"><span class="node">docker CLI</span><span class="arrow">-&gt;</span><span class="node">dockerd</span><span class="arrow">-&gt;</span><span class="node">registry auth</span><span class="arrow">-&gt;</span><span class="node">manifest/index</span><span class="arrow">-&gt;</span><span class="node">missing blobs</span><span class="arrow">-&gt;</span><span class="node">local content store</span></div></div></details>
+  <details open><summary>Service-name call on a user-defined bridge</summary><div><div class="flow"><span class="node">api asks DNS for db</span><span class="arrow">-&gt;</span><span class="node">Docker embedded DNS</span><span class="arrow">-&gt;</span><span class="node">db container IP</span><span class="arrow">-&gt;</span><span class="node">bridge forwards packet</span><span class="arrow">-&gt;</span><span class="node">db:5432</span></div></div></details>
+  <details open><summary>Published port</summary><div><div class="flow"><span class="node">browser</span><span class="arrow">-&gt;</span><span class="node">host:8080</span><span class="arrow">-&gt;</span><span class="node">host forwarding/NAT</span><span class="arrow">-&gt;</span><span class="node">container:8080</span><span class="arrow">-&gt;</span><span class="node">application</span></div></div></details>
+</section>
+
+<section id="k8s-mental-model" class="topic" data-topic="kubernetes desired state declarative orchestrator cluster pod node control plane">
+  <div class="kicker">10 - Kubernetes</div>
+  <h2>Kubernetes mental model: desired state + continuous reconciliation</h2>
+  <p>You do not normally tell Kubernetes, "start process X on machine Y and never move it." You declare an object such as a Deployment: "I want three healthy replicas of image X, each with these resource limits and labels." Kubernetes continuously works to make actual state match desired state.</p>
+  <div class="grid3">
+    <div class="card"><h3>Desired state</h3><p>Stored as API objects: Deployment, Service, ConfigMap, Secret, StatefulSet, Job, and others.</p></div>
+    <div class="card"><h3>Observed state</h3><p>Controllers and node agents observe Pods, Nodes, endpoints, health and resource state.</p></div>
+    <div class="card"><h3>Reconciliation</h3><p>Control loops compare desired vs actual and take corrective actions.</p></div>
+  </div>
+  <div class="callout"><b>The API is the center of Kubernetes.</b> Almost every control-plane component communicates through the API server rather than directly modifying etcd or another component's memory.</div>
+</section>
+
+<section id="k8s-components" class="topic" data-topic="kubernetes architecture apiserver etcd scheduler controller manager kubelet kube proxy runtime coredns control plane node">
+  <div class="kicker">11 - Cluster architecture</div>
+  <h2>Kubernetes components: who does what</h2>
+  <div class="diagram">
+    <div class="diagram-title"><b>Illustration: control plane and worker nodes</b><span>Reference architecture</span></div>
+    <svg viewBox="0 0 1180 620" role="img" aria-label="Kubernetes cluster architecture">
+      <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <rect class="box2" x="25" y="35" width="1130" height="235" rx="18"/><text x="50" y="68" font-weight="800">Control plane</text>
+      <rect class="box" x="65" y="105" width="190" height="70"/><text x="160" y="137" text-anchor="middle">kube-apiserver</text><text class="small" x="160" y="157" text-anchor="middle">HTTP API + auth + admission</text>
+      <rect class="box" x="335" y="105" width="190" height="70"/><text x="430" y="137" text-anchor="middle">etcd</text><text class="small" x="430" y="157" text-anchor="middle">cluster state store</text>
+      <rect class="box" x="605" y="105" width="220" height="70"/><text x="715" y="137" text-anchor="middle">kube-scheduler</text><text class="small" x="715" y="157" text-anchor="middle">bind pending Pods to Nodes</text>
+      <rect class="box" x="905" y="105" width="210" height="70"/><text x="1010" y="137" text-anchor="middle">controller-manager</text><text class="small" x="1010" y="157" text-anchor="middle">reconciliation loops</text>
+      <line class="line" x1="255" y1="140" x2="330" y2="140" marker-end="url(#ar3)"/><line class="line" x1="605" y1="190" x2="250" y2="190" marker-end="url(#ar3)"/><line class="line" x1="905" y1="210" x2="250" y2="210" marker-end="url(#ar3)"/>
+      <rect class="box2" x="25" y="315" width="545" height="270" rx="18"/><text x="50" y="347" font-weight="800">Worker Node A</text>
+      <rect class="box" x="60" y="385" width="145" height="65"/><text x="132" y="414" text-anchor="middle">kubelet</text><text class="small" x="132" y="434" text-anchor="middle">node agent</text>
+      <rect class="box" x="225" y="385" width="145" height="65"/><text x="297" y="414" text-anchor="middle">containerd</text><text class="small" x="297" y="434" text-anchor="middle">CRI runtime</text>
+      <rect class="box" x="390" y="385" width="145" height="65"/><text x="462" y="414" text-anchor="middle">network data plane</text><text class="small" x="462" y="434" text-anchor="middle">CNI / kube-proxy*</text>
+      <rect class="box" x="80" y="495" width="200" height="58"/><text x="180" y="529" text-anchor="middle">Pod: order-service</text>
+      <rect class="box" x="315" y="495" width="200" height="58"/><text x="415" y="529" text-anchor="middle">Pod: inventory-service</text>
+      <rect class="box2" x="610" y="315" width="545" height="270" rx="18"/><text x="635" y="347" font-weight="800">Worker Node B</text>
+      <rect class="box" x="645" y="385" width="145" height="65"/><text x="717" y="414" text-anchor="middle">kubelet</text><text class="small" x="717" y="434" text-anchor="middle">node agent</text>
+      <rect class="box" x="810" y="385" width="145" height="65"/><text x="882" y="414" text-anchor="middle">containerd</text><text class="small" x="882" y="434" text-anchor="middle">CRI runtime</text>
+      <rect class="box" x="975" y="385" width="145" height="65"/><text x="1047" y="414" text-anchor="middle">network data plane</text><text class="small" x="1047" y="434" text-anchor="middle">CNI / kube-proxy*</text>
+      <rect class="box" x="665" y="495" width="200" height="58"/><text x="765" y="529" text-anchor="middle">Pod: order-service</text>
+      <rect class="box" x="900" y="495" width="200" height="58"/><text x="1000" y="529" text-anchor="middle">Pod: payment-service</text>
+      <line class="dash" x1="160" y1="270" x2="132" y2="382"/><line class="dash" x1="160" y1="270" x2="717" y2="382"/>
+      <text class="small" x="1150" y="607" text-anchor="end">* kube-proxy can be replaced by another implementation.</text>
+    </svg>
+  </div>
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th><th>Key interaction</th></tr></thead>
+    <tbody>
+      <tr><td>kube-apiserver</td><td>Front door for Kubernetes API; validation, authentication/authorization, admission and object operations.</td><td>Reads/writes cluster state through etcd.</td></tr>
+      <tr><td>etcd</td><td>Consistent highly available key-value backing store.</td><td>Back up carefully; control plane depends on it.</td></tr>
+      <tr><td>kube-scheduler</td><td>Finds unscheduled Pods and chooses suitable Nodes.</td><td>Watches API; writes binding decision through API.</td></tr>
+      <tr><td>kube-controller-manager</td><td>Runs core controllers such as Deployment/ReplicaSet-related control loops, node/controller logic and others.</td><td>Watches API objects and creates/updates dependent objects.</td></tr>
+      <tr><td>kubelet</td><td>Node agent ensuring PodSpecs assigned to its node are actually running and healthy.</td><td>Calls container runtime via CRI.</td></tr>
+      <tr><td>Container runtime</td><td>Pulls images, creates Pod sandboxes and starts/stops containers.</td><td>containerd or CRI-O are common examples.</td></tr>
+      <tr><td>kube-proxy (optional)</td><td>Implements Service virtual IP traffic routing on nodes when used.</td><td>Watches Services and EndpointSlices.</td></tr>
+      <tr><td>CoreDNS</td><td>Cluster DNS service.</td><td>Resolves Service and Pod-related DNS names.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="reconciliation" class="topic" data-topic="reconciliation kubectl apply api etcd deployment replicaset scheduler kubelet desired actual state">
+  <div class="kicker">12 - Control loops</div>
+  <h2>How a Deployment becomes running Pods</h2>
+  <div class="diagram">
+    <div class="diagram-title"><b>Sequence: kubectl apply deployment.yaml</b><span>From YAML to a running process</span></div>
+    <svg viewBox="0 0 1180 790" role="img" aria-label="Kubernetes deployment creation sequence">
+      <defs><marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <g><rect class="box2" x="20" y="18" width="120" height="40"/><text x="80" y="43" text-anchor="middle">kubectl</text><rect class="box2" x="170" y="18" width="130" height="40"/><text x="235" y="43" text-anchor="middle">API server</text><rect class="box2" x="330" y="18" width="105" height="40"/><text x="382" y="43" text-anchor="middle">etcd</text><rect class="box2" x="465" y="18" width="165" height="40"/><text x="547" y="43" text-anchor="middle">controllers</text><rect class="box2" x="660" y="18" width="125" height="40"/><text x="722" y="43" text-anchor="middle">scheduler</text><rect class="box2" x="815" y="18" width="115" height="40"/><text x="872" y="43" text-anchor="middle">kubelet</text><rect class="box2" x="960" y="18" width="110" height="40"/><text x="1015" y="43" text-anchor="middle">runtime</text><rect class="box2" x="1090" y="18" width="75" height="40"/><text x="1127" y="43" text-anchor="middle">CNI</text></g>
+      <g><line class="lane" x1="80" y1="60" x2="80" y2="760"/><line class="lane" x1="235" y1="60" x2="235" y2="760"/><line class="lane" x1="382" y1="60" x2="382" y2="760"/><line class="lane" x1="547" y1="60" x2="547" y2="760"/><line class="lane" x1="722" y1="60" x2="722" y2="760"/><line class="lane" x1="872" y1="60" x2="872" y2="760"/><line class="lane" x1="1015" y1="60" x2="1015" y2="760"/><line class="lane" x1="1127" y1="60" x2="1127" y2="760"/></g>
+      <line class="line" x1="80" y1="95" x2="230" y2="95" marker-end="url(#ar4)"/><text class="small" x="155" y="85" text-anchor="middle">1. apply Deployment</text>
+      <line class="line" x1="235" y1="145" x2="377" y2="145" marker-end="url(#ar4)"/><text class="small" x="305" y="135" text-anchor="middle">2. persist object</text>
+      <line class="line" x1="235" y1="210" x2="542" y2="210" marker-end="url(#ar4)"/><text class="small" x="390" y="200" text-anchor="middle">3. watch event</text>
+      <line class="line" x1="547" y1="260" x2="240" y2="260" marker-end="url(#ar4)"/><text class="small" x="393" y="250" text-anchor="middle">4. create ReplicaSet + Pods</text>
+      <line class="line" x1="235" y1="325" x2="717" y2="325" marker-end="url(#ar4)"/><text class="small" x="475" y="315" text-anchor="middle">5. unscheduled Pod appears</text>
+      <line class="line" x1="722" y1="375" x2="240" y2="375" marker-end="url(#ar4)"/><text class="small" x="480" y="365" text-anchor="middle">6. bind Pod to Node</text>
+      <line class="line" x1="235" y1="440" x2="867" y2="440" marker-end="url(#ar4)"/><text class="small" x="550" y="430" text-anchor="middle">7. kubelet sees assigned PodSpec</text>
+      <line class="line" x1="872" y1="495" x2="1010" y2="495" marker-end="url(#ar4)"/><text class="small" x="940" y="485" text-anchor="middle">8. CRI: sandbox + image + container</text>
+      <line class="line" x1="1015" y1="555" x2="1122" y2="555" marker-end="url(#ar4)"/><text class="small" x="1068" y="545" text-anchor="middle">9. configure pod network</text>
+      <line class="line" x1="1127" y1="610" x2="1020" y2="610" marker-end="url(#ar4)"/><text class="small" x="1072" y="600" text-anchor="middle">10. Pod IP ready</text>
+      <line class="line" x1="1015" y1="665" x2="877" y2="665" marker-end="url(#ar4)"/><text class="small" x="945" y="655" text-anchor="middle">11. start containers</text>
+      <line class="line" x1="872" y1="720" x2="240" y2="720" marker-end="url(#ar4)"/><text class="small" x="555" y="710" text-anchor="middle">12. report status / readiness</text>
+    </svg>
+  </div>
+  <div class="callout good"><b>Self-healing comes from control loops.</b> Kubernetes is not magical because it prevents failures. It is useful because it continuously detects many kinds of mismatch and creates replacement resources to restore desired state.</div>
+</section>
+
+<section id="pod-internals" class="topic" data-topic="pod internals pause container shared network namespace localhost volumes sidecar init container">
+  <div class="kicker">13 - Pod internals</div>
+  <h2>A Pod is the scheduling unit; its containers share important namespaces</h2>
+  <p>A Pod can contain one or more containers that are intentionally co-located. The containers in a normal Pod share the same network namespace, so they share one Pod IP and can communicate through <code>localhost</code>. They can also share explicitly mounted volumes.</p>
+  <div class="diagram">
+    <div class="diagram-title"><b>Illustration: one Pod with app + sidecar</b><span>Shared network namespace</span></div>
+    <svg viewBox="0 0 900 390" role="img" aria-label="Pod shared namespaces">
+      <rect class="box2" x="55" y="35" width="790" height="310" rx="18"/><text x="80" y="70" font-weight="800">Pod: order-service-7c98...</text>
+      <rect class="box" x="95" y="105" width="300" height="110"/><text x="245" y="138" text-anchor="middle">Application container</text><text class="small" x="245" y="164" text-anchor="middle">Spring Boot :8080</text><text class="small" x="245" y="186" text-anchor="middle">process namespace may differ</text>
+      <rect class="box" x="505" y="105" width="300" height="110"/><text x="655" y="138" text-anchor="middle">Sidecar container</text><text class="small" x="655" y="164" text-anchor="middle">proxy / agent</text><text class="small" x="655" y="186" text-anchor="middle">calls localhost:8080</text>
+      <rect class="box" x="95" y="245" width="710" height="68"/><text x="450" y="275" text-anchor="middle">Shared Pod network namespace - Pod IP 10.244.2.18</text><text class="small" x="450" y="297" text-anchor="middle">lo + eth0 + routes; managed by sandbox/CNI</text>
+    </svg>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3>Init container</h3><p>Runs before regular app containers and must finish successfully. Useful for setup/migrations only when carefully designed.</p></div>
+    <div class="card"><h3>Sidecar</h3><p>Long-lived helper container, for example a proxy, log shipper or local agent. Adds operational cost and resource usage.</p></div>
+    <div class="card"><h3>Pod sandbox</h3><p>The runtime creates the Pod-level environment used to hold shared namespaces, typically involving an infrastructure/pause container concept.</p></div>
+  </div>
+</section>
+
+<section id="cri-cni-csi" class="topic" data-topic="CRI CNI CSI container runtime network storage interfaces gRPC containerd kubelet">
+  <div class="kicker">14 - Plugin boundaries</div>
+  <h2>CRI, CNI and CSI: three interfaces that explain a large part of Kubernetes internals</h2>
+  <table>
+    <thead><tr><th>Interface</th><th>Who calls it</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr><td>CRI - Container Runtime Interface</td><td>kubelet -&gt; runtime over gRPC</td><td>Pod sandboxes, containers, images, exec/log/status operations.</td></tr>
+      <tr><td>CNI - Container Network Interface</td><td>Runtime / node networking integration</td><td>Pod interfaces, IP assignment, routes and often NetworkPolicy implementation depending on plugin.</td></tr>
+      <tr><td>CSI - Container Storage Interface</td><td>Kubernetes storage controllers / node integration</td><td>Provision, attach, mount and lifecycle of persistent volumes through storage drivers.</td></tr>
+    </tbody>
+  </table>
+  <div class="flow"><span class="node">kubelet</span><span class="arrow">-- CRI/gRPC --&gt;</span><span class="node">containerd</span><span class="arrow">-&gt;</span><span class="node">OCI runtime</span><span class="arrow">-&gt;</span><span class="node">Linux kernel</span></div>
+  <div class="callout"><b>Docker vs Kubernetes runtime:</b> Kubernetes removed the old built-in Docker integration known as dockershim. Current Kubernetes nodes use a CRI-compatible runtime. Docker Engine can still be integrated through an adapter, but containerd or CRI-O are more direct choices.</div>
+</section>
+
+<section id="k8s-networking" class="topic" data-topic="kubernetes networking pod to pod CNI IP route overlay service kube proxy nftables iptables endpoint slice">
+  <div class="kicker">15 - Kubernetes networking</div>
+  <h2>Four networking problems Kubernetes must solve</h2>
+  <ol>
+    <li><b>Container to container inside one Pod:</b> use <code>localhost</code> because containers share the Pod network namespace.</li>
+    <li><b>Pod to Pod:</b> each Pod gets a unique cluster IP and should be reachable across nodes according to the cluster network model.</li>
+    <li><b>Pod to Service:</b> clients target a stable Service address/name while backing Pods can change.</li>
+    <li><b>External to Service:</b> LoadBalancer, Gateway or Ingress-style components bring outside traffic into the cluster.</li>
+  </ol>
+  <h3>Pod-to-Pod across two nodes</h3>
+  <p>The exact packet path depends on the CNI implementation. Some route Pod CIDRs directly, some use overlays/tunnels, and some use eBPF-based data planes. The Kubernetes contract is more important than memorizing one vendor-specific path.</p>
+  <div class="diagram">
+    <div class="diagram-title"><b>Conceptual packet path</b><span>Pod A on Node A to Pod B on Node B</span></div>
+    <svg viewBox="0 0 1100 400" role="img" aria-label="Kubernetes pod to pod networking">
+      <defs><marker id="ar5" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <rect class="box2" x="35" y="45" width="430" height="270" rx="18"/><text x="60" y="78" font-weight="800">Node A</text><rect class="box" x="75" y="115" width="220" height="100"/><text x="185" y="148" text-anchor="middle">Pod A</text><text class="small" x="185" y="173" text-anchor="middle">10.244.1.10</text><text class="small" x="185" y="195" text-anchor="middle">eth0 - Pod netns</text><rect class="box" x="320" y="115" width="110" height="100"/><text x="375" y="154" text-anchor="middle">CNI</text><text class="small" x="375" y="178" text-anchor="middle">route / overlay</text>
+      <rect class="box2" x="635" y="45" width="430" height="270" rx="18"/><text x="660" y="78" font-weight="800">Node B</text><rect class="box" x="805" y="115" width="220" height="100"/><text x="915" y="148" text-anchor="middle">Pod B</text><text class="small" x="915" y="173" text-anchor="middle">10.244.2.25</text><text class="small" x="915" y="195" text-anchor="middle">eth0 - Pod netns</text><rect class="box" x="670" y="115" width="110" height="100"/><text x="725" y="154" text-anchor="middle">CNI</text><text class="small" x="725" y="178" text-anchor="middle">route / overlay</text>
+      <line class="line" x1="295" y1="165" x2="315" y2="165" marker-end="url(#ar5)"/><line class="line" x1="430" y1="165" x2="665" y2="165" marker-end="url(#ar5)"/><line class="line" x1="780" y1="165" x2="800" y2="165" marker-end="url(#ar5)"/>
+      <text class="small" x="550" y="145" text-anchor="middle">physical network or encapsulated overlay</text>
+      <text class="small" x="550" y="350" text-anchor="middle">No application-level proxy is required merely for Pod A to reach Pod B.</text>
+    </svg>
+  </div>
+  <h3>Service virtual IP path</h3>
+  <div class="flow"><span class="node">client Pod</span><span class="arrow">-&gt;</span><span class="node">Service ClusterIP:port</span><span class="arrow">-&gt;</span><span class="node">node service data plane</span><span class="arrow">-&gt;</span><span class="node">EndpointSlice backend</span><span class="arrow">-&gt;</span><span class="node">Pod IP:targetPort</span></div>
+  <p>With kube-proxy, node rules are programmed from Service and EndpointSlice state. Current Kubernetes supports iptables and nftables modes on Linux; IPVS is deprecated in recent releases. Some CNI implementations replace kube-proxy functionality with their own data plane.</p>
+</section>
+
+<section id="service-discovery" class="topic" data-topic="service discovery CoreDNS ClusterIP EndpointSlice dns kubernetes service pod communication microservice">
+  <div class="kicker">16 - Service discovery</div>
+  <h2>How one microservice finds another without knowing Pod IPs</h2>
+  <p>Suppose <code>order-service</code> needs to call <code>inventory-service</code>. The inventory Deployment may have five Pods today and twelve Pods during a sale. Those Pod IPs are ephemeral. The caller should use the stable Service identity.</p>
+  <div class="steps">
+    <div class="step"><div><b>Application calls <code>http://inventory-service:8080</code>.</b><br><span class="muted">Within the same namespace, the short Service name is usually enough.</span></div></div>
+    <div class="step"><div><b>DNS resolution goes to CoreDNS.</b><br><span class="muted">CoreDNS returns the Service ClusterIP for a normal ClusterIP Service.</span></div></div>
+    <div class="step"><div><b>The connection targets the virtual Service IP.</b><br><span class="muted">This IP is not usually a process listening on one physical machine.</span></div></div>
+    <div class="step"><div><b>Node data plane picks a healthy backend endpoint.</b><br><span class="muted">kube-proxy rules or an alternative implementation maps the Service to one Pod endpoint.</span></div></div>
+    <div class="step"><div><b>CNI networking carries the packet to the destination Pod.</b><br><span class="muted">The Pod may be on the same node or another node.</span></div></div>
+  </div>
+  <div class="diagram">
+    <div class="diagram-title"><b>Sequence: order-service calls inventory-service</b><span>DNS + Service + EndpointSlice</span></div>
+    <svg viewBox="0 0 1100 600" role="img" aria-label="Kubernetes service discovery sequence">
+      <defs><marker id="ar6" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <g><rect class="box2" x="35" y="20" width="150" height="42"/><text x="110" y="46" text-anchor="middle">Order Pod</text><rect class="box2" x="255" y="20" width="140" height="42"/><text x="325" y="46" text-anchor="middle">CoreDNS</text><rect class="box2" x="465" y="20" width="150" height="42"/><text x="540" y="46" text-anchor="middle">Service VIP</text><rect class="box2" x="685" y="20" width="160" height="42"/><text x="765" y="46" text-anchor="middle">Service data plane</text><rect class="box2" x="915" y="20" width="150" height="42"/><text x="990" y="46" text-anchor="middle">Inventory Pod</text></g>
+      <g><line class="lane" x1="110" y1="64" x2="110" y2="560"/><line class="lane" x1="325" y1="64" x2="325" y2="560"/><line class="lane" x1="540" y1="64" x2="540" y2="560"/><line class="lane" x1="765" y1="64" x2="765" y2="560"/><line class="lane" x1="990" y1="64" x2="990" y2="560"/></g>
+      <line class="line" x1="110" y1="110" x2="320" y2="110" marker-end="url(#ar6)"/><text class="small" x="215" y="100" text-anchor="middle">1. DNS: inventory-service?</text>
+      <line class="line" x1="325" y1="165" x2="115" y2="165" marker-end="url(#ar6)"/><text class="small" x="220" y="155" text-anchor="middle">2. 10.96.42.20</text>
+      <line class="line" x1="110" y1="230" x2="535" y2="230" marker-end="url(#ar6)"/><text class="small" x="325" y="220" text-anchor="middle">3. TCP SYN to 10.96.42.20:8080</text>
+      <line class="line" x1="540" y1="290" x2="760" y2="290" marker-end="url(#ar6)"/><text class="small" x="650" y="280" text-anchor="middle">4. match Service rules</text>
+      <line class="line" x1="765" y1="350" x2="985" y2="350" marker-end="url(#ar6)"/><text class="small" x="875" y="340" text-anchor="middle">5. select endpoint 10.244.2.25</text>
+      <line class="line" x1="990" y1="425" x2="115" y2="425" marker-end="url(#ar6)"/><text class="small" x="550" y="415" text-anchor="middle">6. HTTP response follows connection path</text>
+      <text class="small" x="550" y="515" text-anchor="middle">EndpointSlice objects track the current ready backend addresses for the Service.</text>
+    </svg>
+  </div>
+  <div class="callout good"><b>Best practice:</b> application code should depend on logical service names, not Pod IPs. Add timeouts, bounded retries with backoff/jitter, connection pools and idempotency where retries can repeat an operation.</div>
+</section>
+
+<section id="external-traffic" class="topic" data-topic="external traffic ingress gateway api loadbalancer nodeport tls routing kubernetes">
+  <div class="kicker">17 - North-south traffic</div>
+  <h2>How an internet request reaches a microservice</h2>
+  <div class="diagram">
+    <div class="diagram-title"><b>Typical production path</b><span>External client to Pod</span></div>
+    <svg viewBox="0 0 1180 310" role="img" aria-label="External Kubernetes traffic flow">
+      <defs><marker id="ar7" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <g><rect class="box" x="25" y="110" width="135" height="70"/><text x="92" y="140" text-anchor="middle">Client</text><text class="small" x="92" y="161" text-anchor="middle">mobile / browser</text><rect class="box" x="205" y="110" width="135" height="70"/><text x="272" y="140" text-anchor="middle">DNS / CDN</text><text class="small" x="272" y="161" text-anchor="middle">optional edge</text><rect class="box" x="385" y="110" width="150" height="70"/><text x="460" y="140" text-anchor="middle">External LB</text><text class="small" x="460" y="161" text-anchor="middle">cloud / bare-metal</text><rect class="box2" x="580" y="95" width="170" height="100"/><text x="665" y="132" text-anchor="middle">Gateway / Ingress</text><text class="small" x="665" y="155" text-anchor="middle">TLS + host/path routing</text><text class="small" x="665" y="176" text-anchor="middle">controller/data plane</text><rect class="box" x="795" y="110" width="135" height="70"/><text x="862" y="140" text-anchor="middle">Service</text><text class="small" x="862" y="161" text-anchor="middle">ClusterIP</text><rect class="box" x="975" y="80" width="170" height="55"/><text x="1060" y="113" text-anchor="middle">Pod A</text><rect class="box" x="975" y="165" width="170" height="55"/><text x="1060" y="198" text-anchor="middle">Pod B</text></g>
+      <line class="line" x1="160" y1="145" x2="200" y2="145" marker-end="url(#ar7)"/><line class="line" x1="340" y1="145" x2="380" y2="145" marker-end="url(#ar7)"/><line class="line" x1="535" y1="145" x2="575" y2="145" marker-end="url(#ar7)"/><line class="line" x1="750" y1="145" x2="790" y2="145" marker-end="url(#ar7)"/><line class="line" x1="930" y1="145" x2="970" y2="110" marker-end="url(#ar7)"/><line class="line" x1="930" y1="145" x2="970" y2="192" marker-end="url(#ar7)"/>
+    </svg>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3>ClusterIP</h3><p>Internal stable virtual IP. Default Service type.</p></div>
+    <div class="card"><h3>NodePort</h3><p>Exposes a fixed port on node addresses. Often used as a building block rather than the final public architecture.</p></div>
+    <div class="card"><h3>LoadBalancer</h3><p>Requests an external load balancer from supported infrastructure/controller integration.</p></div>
+  </div>
+  <div class="callout"><b>Gateway API vs Ingress:</b> Ingress is still widely used for HTTP/HTTPS routing. Gateway API is the newer, more expressive direction for many use cases and separates infrastructure and route ownership more cleanly.</div>
+</section>
+
+<section id="workloads" class="topic" data-topic="deployment replicaset statefulset daemonset job cronjob kubernetes workloads controllers">
+  <div class="kicker">18 - Workloads</div>
+  <h2>Choose a controller based on workload behavior</h2>
+  <table>
+    <thead><tr><th>Resource</th><th>Use it for</th><th>Important behavior</th></tr></thead>
+    <tbody>
+      <tr><td>Deployment</td><td>Stateless API, web service, worker where replicas are interchangeable</td><td>Manages ReplicaSets and rolling updates.</td></tr>
+      <tr><td>ReplicaSet</td><td>Replica count implementation under Deployment</td><td>Usually not managed directly.</td></tr>
+      <tr><td>StatefulSet</td><td>Stateful systems needing stable identity or ordered lifecycle</td><td>Stable Pod names and storage associations.</td></tr>
+      <tr><td>DaemonSet</td><td>Node-local agents: logging, monitoring, networking</td><td>Typically one Pod per matching node.</td></tr>
+      <tr><td>Job</td><td>Finite batch task</td><td>Completes successfully rather than running forever.</td></tr>
+      <tr><td>CronJob</td><td>Scheduled Jobs</td><td>Creates Jobs on a time schedule.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Do not run a database as a Deployment just because it works in a demo.</b> Stateful systems require careful storage, replication, quorum, backup, recovery and topology design. Managed databases are often the safer production choice.</div>
+</section>
+
+<section id="config-security" class="topic" data-topic="configmap secret serviceaccount rbac networkpolicy security context least privilege kubernetes">
+  <div class="kicker">19 - Configuration and security</div>
+  <h2>Separate code, configuration, identity and authorization</h2>
+  <div class="grid2">
+    <div class="card"><h3>ConfigMap</h3><p>Non-secret configuration such as feature flags, hostnames or application settings.</p></div>
+    <div class="card"><h3>Secret</h3><p>Sensitive values. Base64 encoding in a Kubernetes Secret is not encryption by itself. Use encryption at rest, external secret stores and access controls where appropriate.</p></div>
+    <div class="card"><h3>ServiceAccount + RBAC</h3><p>Workload identity and API authorization. Give a service only the permissions it needs.</p></div>
+    <div class="card"><h3>NetworkPolicy</h3><p>L3/L4 traffic policy, enforced only if the installed network implementation supports it.</p></div>
+  </div>
+  <h3>SecurityContext example</h3>
+  <pre><button class="copy">Copy</button><code>securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  seccompProfile:
+    type: RuntimeDefault
+containers:
+  - name: app
+    image: registry.example.com/order-service:1.4.2
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]</code></pre>
+  <ul class="check">
+    <li>Use non-root images where practical.</li>
+    <li>Drop Linux capabilities you do not need.</li>
+    <li>Do not mount host paths or privileged mode casually.</li>
+    <li>Restrict egress as well as ingress for sensitive namespaces.</li>
+    <li>Scan images and sign/verify supply-chain artifacts if your platform supports it.</li>
+    <li>Keep Kubernetes and node OS patch levels within supported security policy.</li>
+  </ul>
+</section>
+
+<section id="k8s-storage" class="topic" data-topic="persistent volume claim pvc pv storageclass csi statefulset kubernetes storage">
+  <div class="kicker">20 - Storage</div>
+  <h2>Kubernetes storage: decouple a Pod from a physical disk</h2>
+  <div class="flow"><span class="node">Pod</span><span class="arrow">uses</span><span class="node">PVC</span><span class="arrow">bound to</span><span class="node">PV</span><span class="arrow">provisioned by</span><span class="node">StorageClass / CSI driver</span><span class="arrow">-&gt;</span><span class="node">cloud disk / SAN / storage backend</span></div>
+  <table>
+    <thead><tr><th>Object</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>PersistentVolumeClaim (PVC)</td><td>Workload request for storage size, access mode and class.</td></tr>
+      <tr><td>PersistentVolume (PV)</td><td>Cluster storage resource bound to a claim.</td></tr>
+      <tr><td>StorageClass</td><td>Defines a provisioning class and parameters.</td></tr>
+      <tr><td>CSI driver</td><td>Vendor-neutral integration for provisioning/attaching/mounting storage.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>Key distinction:</b> a Pod is replaceable. A persistent volume exists independently from the identity of a particular ephemeral Pod, subject to reclaim policy and storage backend behavior.</div>
+</section>
+
+<section id="resources-autoscaling" class="topic" data-topic="requests limits HPA autoscaling metrics CPU memory kubernetes resources QoS">
+  <div class="kicker">21 - Capacity</div>
+  <h2>Requests, limits and autoscaling</h2>
+  <div class="grid2">
+    <div class="card"><h3>Request</h3><p>Amount of resource the scheduler uses when deciding whether a Pod fits on a node. CPU-based HPA utilization also depends on configured CPU requests.</p></div>
+    <div class="card"><h3>Limit</h3><p>Upper bound enforced by runtime/kernel behavior. CPU can be throttled. Memory pressure can result in OOM termination.</p></div>
+  </div>
+  <pre><button class="copy">Copy</button><code>resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "768Mi"</code></pre>
+  <h3>Horizontal Pod Autoscaler loop</h3>
+  <div class="flow"><span class="node">metrics source</span><span class="arrow">-&gt;</span><span class="node">HPA controller</span><span class="arrow">compares target</span><span class="node">desired replicas</span><span class="arrow">-&gt;</span><span class="node">Deployment</span><span class="arrow">-&gt;</span><span class="node">more/fewer Pods</span></div>
+  <pre><button class="copy">Copy</button><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-service
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60</code></pre>
+  <div class="callout warn"><b>HPA is not instant.</b> During traffic spikes, new Pods need scheduling, image availability, startup and readiness. For flash-sale systems, combine autoscaling with headroom, fast startup, queue-based load leveling, rate limiting and capacity planning.</div>
+</section>
+
+<section id="health-selfhealing" class="topic" data-topic="liveness readiness startup probes self healing pod crash node failure PDB termination">
+  <div class="kicker">22 - Reliability</div>
+  <h2>Health probes and self-healing are different mechanisms</h2>
+  <table>
+    <thead><tr><th>Probe</th><th>Question</th><th>If it fails</th></tr></thead>
+    <tbody>
+      <tr><td>startupProbe</td><td>Has this slow application finished starting?</td><td>Protects startup from premature liveness failures.</td></tr>
+      <tr><td>readinessProbe</td><td>Should this Pod receive traffic now?</td><td>Pod is removed from ready Service endpoints.</td></tr>
+      <tr><td>livenessProbe</td><td>Is this process stuck in a way a restart can fix?</td><td>Kubelet restarts the container after threshold conditions.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout bad"><b>Common mistake:</b> make liveness depend on every downstream dependency. If the database has a temporary issue, restarting every application Pod can turn one dependency incident into a cluster-wide restart storm.</div>
+  <h3>Graceful shutdown</h3>
+  <div class="flow"><span class="node">Pod terminating</span><span class="arrow">-&gt;</span><span class="node">stop sending new traffic</span><span class="arrow">-&gt;</span><span class="node">SIGTERM</span><span class="arrow">-&gt;</span><span class="node">finish in-flight requests</span><span class="arrow">-&gt;</span><span class="node">exit before grace period</span></div>
+  <h3>PodDisruptionBudget</h3>
+  <p>A PDB limits how many replicas can be unavailable during voluntary disruptions such as a node drain. It does not prevent every involuntary failure, and it does not replace a good replica/topology design.</p>
+</section>
+
+<section id="scheduling" class="topic" data-topic="scheduler affinity anti affinity topology spread taint toleration node selector priority kubernetes">
+  <div class="kicker">23 - Placement</div>
+  <h2>How Kubernetes decides where a Pod runs</h2>
+  <p>The scheduler filters and scores candidate nodes based on resource requests and placement constraints. Production design should avoid concentrating all replicas in one failure domain.</p>
+  <div class="grid3">
+    <div class="card"><h3>nodeSelector / affinity</h3><p>Place workloads on nodes matching labels or richer node/pod relationships.</p></div>
+    <div class="card"><h3>anti-affinity / topology spread</h3><p>Spread replicas across nodes or zones so one failure does not remove every replica.</p></div>
+    <div class="card"><h3>taints / tolerations</h3><p>Keep general workloads away from special nodes unless explicitly allowed.</p></div>
+  </div>
+  <pre><button class="copy">Copy</button><code>topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: order-service</code></pre>
+</section>
+
+<section id="microservices" class="topic" data-topic="microservices kubernetes architecture order product inventory payment redis kafka database service mesh gateway">
+  <div class="kicker">24 - Production architecture</div>
+  <h2>How Kubernetes fits a real microservice system</h2>
+  <div class="diagram">
+    <div class="diagram-title"><b>Reference architecture: e-commerce microservices</b><span>Stateless compute on Kubernetes, durable state in specialized systems</span></div>
+    <svg viewBox="0 0 1200 690" role="img" aria-label="E-commerce microservices on Kubernetes">
+      <defs><marker id="ar8" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <rect class="box2" x="25" y="25" width="1150" height="470" rx="20"/><text x="50" y="58" font-weight="800">Kubernetes cluster</text>
+      <rect class="box" x="70" y="105" width="175" height="70"/><text x="157" y="135" text-anchor="middle">Gateway / Ingress</text><text class="small" x="157" y="157" text-anchor="middle">TLS + routing</text>
+      <rect class="box" x="300" y="95" width="180" height="90"/><text x="390" y="128" text-anchor="middle">api-gateway</text><text class="small" x="390" y="150" text-anchor="middle">Deployment + Service</text><text class="small" x="390" y="170" text-anchor="middle">HPA + PDB</text>
+      <rect class="box" x="550" y="80" width="185" height="90"/><text x="642" y="113" text-anchor="middle">product-service</text><text class="small" x="642" y="138" text-anchor="middle">Deployment + Service</text>
+      <rect class="box" x="550" y="205" width="185" height="90"/><text x="642" y="238" text-anchor="middle">order-service</text><text class="small" x="642" y="263" text-anchor="middle">Deployment + Service</text>
+      <rect class="box" x="820" y="80" width="185" height="90"/><text x="912" y="113" text-anchor="middle">inventory-service</text><text class="small" x="912" y="138" text-anchor="middle">Deployment + Service</text>
+      <rect class="box" x="820" y="205" width="185" height="90"/><text x="912" y="238" text-anchor="middle">payment-service</text><text class="small" x="912" y="263" text-anchor="middle">Deployment + Service</text>
+      <rect class="box" x="550" y="335" width="185" height="90"/><text x="642" y="368" text-anchor="middle">worker-service</text><text class="small" x="642" y="393" text-anchor="middle">async consumer</text>
+      <rect class="box" x="820" y="335" width="185" height="90"/><text x="912" y="368" text-anchor="middle">observability agents</text><text class="small" x="912" y="393" text-anchor="middle">metrics / logs / traces</text>
+      <line class="line" x1="245" y1="140" x2="295" y2="140" marker-end="url(#ar8)"/><line class="line" x1="480" y1="140" x2="545" y2="125" marker-end="url(#ar8)"/><line class="line" x1="480" y1="150" x2="545" y2="245" marker-end="url(#ar8)"/><line class="line" x1="735" y1="245" x2="815" y2="130" marker-end="url(#ar8)"/><line class="line" x1="735" y1="255" x2="815" y2="250" marker-end="url(#ar8)"/><line class="line" x1="642" y1="295" x2="642" y2="330" marker-end="url(#ar8)"/>
+      <rect class="box2" x="25" y="535" width="1150" height="125" rx="18"/><text x="50" y="565" font-weight="800">Durable / shared infrastructure</text>
+      <rect class="box" x="90" y="585" width="180" height="50"/><text x="180" y="615" text-anchor="middle">PostgreSQL / SQL</text><rect class="box" x="330" y="585" width="180" height="50"/><text x="420" y="615" text-anchor="middle">Redis cache</text><rect class="box" x="570" y="585" width="180" height="50"/><text x="660" y="615" text-anchor="middle">Kafka / message bus</text><rect class="box" x="810" y="585" width="180" height="50"/><text x="900" y="615" text-anchor="middle">Object storage</text><rect class="box" x="1015" y="585" width="120" height="50"/><text x="1075" y="615" text-anchor="middle">Secrets</text>
+      <line class="dash" x1="642" y1="425" x2="660" y2="580"/><line class="dash" x1="912" y1="295" x2="180" y2="580"/><line class="dash" x1="642" y1="170" x2="420" y2="580"/>
+    </svg>
+  </div>
+  <h3>Recommended unit per microservice</h3>
+  <div class="grid4">
+    <div class="card"><b>Deployment</b><p>Runs interchangeable service Pods.</p></div>
+    <div class="card"><b>Service</b><p>Stable internal identity.</p></div>
+    <div class="card"><b>Config + Secret</b><p>Runtime settings and credentials.</p></div>
+    <div class="card"><b>Resources + probes</b><p>Scheduling, safety and traffic readiness.</p></div>
+    <div class="card"><b>HPA</b><p>Scale replicas from demand metrics.</p></div>
+    <div class="card"><b>PDB</b><p>Protect availability during voluntary maintenance.</p></div>
+    <div class="card"><b>NetworkPolicy</b><p>Restrict east-west traffic.</p></div>
+    <div class="card"><b>Telemetry</b><p>Metrics, structured logs and distributed tracing.</p></div>
+  </div>
+  <h3>Synchronous vs asynchronous communication</h3>
+  <table>
+    <thead><tr><th>Style</th><th>Good for</th><th>Main risks</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP/gRPC synchronous</td><td>Immediate query/command that needs a response now</td><td>Cascading latency, retry storms, dependency coupling.</td></tr>
+      <tr><td>Kafka/queue/event asynchronous</td><td>Decoupled processing, spikes, fan-out, eventual workflows</td><td>Duplicates, ordering, eventual consistency, replay, schema evolution.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout good"><b>Microservice reliability rule:</b> every remote call can fail, timeout, duplicate, arrive late or return partial information. Kubernetes handles infrastructure placement; your application must still design distributed-system correctness.</div>
+</section>
+
+<section id="microservice-sequence" class="topic" data-topic="checkout sequence microservices order inventory payment idempotency event outbox saga kubernetes">
+  <div class="kicker">25 - Example sequence</div>
+  <h2>Checkout sequence: what happens from user request to events</h2>
+  <div class="diagram">
+    <div class="diagram-title"><b>Sequence: place order</b><span>One possible design; adjust transaction boundaries to business rules</span></div>
+    <svg viewBox="0 0 1200 820" role="img" aria-label="Microservice checkout sequence diagram">
+      <defs><marker id="ar9" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#86b3ff"/></marker></defs>
+      <g><rect class="box2" x="20" y="20" width="120" height="40"/><text x="80" y="45" text-anchor="middle">Client</text><rect class="box2" x="165" y="20" width="145" height="40"/><text x="237" y="45" text-anchor="middle">API Gateway</text><rect class="box2" x="335" y="20" width="150" height="40"/><text x="410" y="45" text-anchor="middle">Order Service</text><rect class="box2" x="510" y="20" width="165" height="40"/><text x="592" y="45" text-anchor="middle">Inventory Service</text><rect class="box2" x="700" y="20" width="155" height="40"/><text x="777" y="45" text-anchor="middle">Payment Service</text><rect class="box2" x="880" y="20" width="125" height="40"/><text x="942" y="45" text-anchor="middle">Order DB</text><rect class="box2" x="1030" y="20" width="145" height="40"/><text x="1102" y="45" text-anchor="middle">Event Bus</text></g>
+      <g><line class="lane" x1="80" y1="62" x2="80" y2="790"/><line class="lane" x1="237" y1="62" x2="237" y2="790"/><line class="lane" x1="410" y1="62" x2="410" y2="790"/><line class="lane" x1="592" y1="62" x2="592" y2="790"/><line class="lane" x1="777" y1="62" x2="777" y2="790"/><line class="lane" x1="942" y1="62" x2="942" y2="790"/><line class="lane" x1="1102" y1="62" x2="1102" y2="790"/></g>
+      <line class="line" x1="80" y1="105" x2="232" y2="105" marker-end="url(#ar9)"/><text class="small" x="155" y="95" text-anchor="middle">1. POST /orders + idempotency key</text>
+      <line class="line" x1="237" y1="160" x2="405" y2="160" marker-end="url(#ar9)"/><text class="small" x="320" y="150" text-anchor="middle">2. authenticated request</text>
+      <line class="line" x1="410" y1="220" x2="587" y2="220" marker-end="url(#ar9)"/><text class="small" x="498" y="210" text-anchor="middle">3. reserve stock</text>
+      <line class="line" x1="592" y1="275" x2="415" y2="275" marker-end="url(#ar9)"/><text class="small" x="503" y="265" text-anchor="middle">4. reservationId</text>
+      <line class="line" x1="410" y1="335" x2="772" y2="335" marker-end="url(#ar9)"/><text class="small" x="590" y="325" text-anchor="middle">5. authorize payment</text>
+      <line class="line" x1="777" y1="390" x2="415" y2="390" marker-end="url(#ar9)"/><text class="small" x="595" y="380" text-anchor="middle">6. payment authorization</text>
+      <line class="line" x1="410" y1="450" x2="937" y2="450" marker-end="url(#ar9)"/><text class="small" x="675" y="440" text-anchor="middle">7. transaction: order + outbox event</text>
+      <line class="line" x1="942" y1="505" x2="415" y2="505" marker-end="url(#ar9)"/><text class="small" x="675" y="495" text-anchor="middle">8. committed</text>
+      <line class="line" x1="942" y1="565" x2="1097" y2="565" marker-end="url(#ar9)"/><text class="small" x="1020" y="555" text-anchor="middle">9. outbox publisher emits</text>
+      <line class="line" x1="410" y1="630" x2="242" y2="630" marker-end="url(#ar9)"/><text class="small" x="325" y="620" text-anchor="middle">10. 201 Created</text>
+      <line class="line" x1="237" y1="685" x2="85" y2="685" marker-end="url(#ar9)"/><text class="small" x="160" y="675" text-anchor="middle">11. orderId + status</text>
+      <text class="small" x="600" y="750" text-anchor="middle">If later steps fail, use compensation/state transitions rather than pretending there is one ACID transaction across services.</text>
+    </svg>
+  </div>
+  <h3>Why this is hard</h3>
+  <ul>
+    <li><b>Retry safety:</b> if the client times out after the server committed, retry must not create a second order. Use an idempotency key.</li>
+    <li><b>Inventory race:</b> stock reservation must be concurrency-safe at the inventory source of truth.</li>
+    <li><b>Payment uncertainty:</b> a timeout does not always mean payment failed; query provider state using a stable transaction ID.</li>
+    <li><b>Event atomicity:</b> an outbox pattern prevents "DB committed but event publishing was lost".</li>
+    <li><b>Compensation:</b> distributed workflows commonly use Saga-like state machines rather than cross-service database transactions.</li>
+  </ul>
+</section>
+
+<section id="deployment-strategies" class="topic" data-topic="rolling update deployment canary blue green rollout readiness max surge max unavailable kubernetes">
+  <div class="kicker">26 - Deployments</div>
+  <h2>Rolling updates, canary and blue-green</h2>
+  <h3>Rolling update sequence</h3>
+  <div class="flow"><span class="node">Deployment v1: 6 Pods</span><span class="arrow">-&gt;</span><span class="node">create v2 Pod</span><span class="arrow">-&gt;</span><span class="node">v2 ready</span><span class="arrow">-&gt;</span><span class="node">terminate v1 Pod</span><span class="arrow">-&gt;</span><span class="node">repeat</span><span class="arrow">-&gt;</span><span class="node">all v2</span></div>
+  <pre><button class="copy">Copy</button><code>strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+minReadySeconds: 5</code></pre>
+  <table>
+    <thead><tr><th>Strategy</th><th>How it works</th><th>When useful</th></tr></thead>
+    <tbody>
+      <tr><td>Rolling</td><td>Gradually replace old replicas with new ones.</td><td>Default general-purpose deployment.</td></tr>
+      <tr><td>Canary</td><td>Send a small portion of traffic to the new version and observe metrics.</td><td>High-risk releases, progressive delivery.</td></tr>
+      <tr><td>Blue-green</td><td>Maintain old and new environments, then switch traffic.</td><td>Fast rollback, enough spare capacity available.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>Readiness is central to safe rollout.</b> A container being started is not enough. Traffic should reach a new version only after it is genuinely able to serve requests.</div>
+</section>
+
+<section id="failure-scenarios" class="topic" data-topic="failure scenarios crashloop imagepullbackoff oomkill node failure dns network latency database unavailable kubernetes production">
+  <div class="kicker">27 - Production failure thinking</div>
+  <h2>Failure scenarios and what should happen</h2>
+  <table>
+    <thead><tr><th>Failure</th><th>Expected Kubernetes behavior</th><th>Application / platform responsibility</th></tr></thead>
+    <tbody>
+      <tr><td>App process crashes</td><td>Kubelet restarts container according to Pod restart behavior; repeated failures become backoff.</td><td>Inspect logs, exit code, startup dependencies and memory.</td></tr>
+      <tr><td>Pod becomes unready</td><td>Service stops routing new traffic to that unready endpoint after state propagates.</td><td>Readiness should reflect ability to serve, not every optional dependency.</td></tr>
+      <tr><td>Node dies</td><td>Control plane detects node health change; controllers eventually create replacement Pods elsewhere.</td><td>Have enough replicas, capacity and multi-zone placement.</td></tr>
+      <tr><td>Image cannot pull</td><td>Pod cannot start; image pull backoff/events show failure.</td><td>Fix registry auth, image reference, network, rate limits or architecture mismatch.</td></tr>
+      <tr><td>Memory limit exceeded</td><td>Container can be OOM-killed and restarted.</td><td>Fix leak/heap sizing, requests/limits and load behavior.</td></tr>
+      <tr><td>Dependency timeout</td><td>Kubernetes does not automatically make business request correct.</td><td>Timeout budget, retry policy, circuit breaking, idempotency, fallback.</td></tr>
+      <tr><td>DNS issue</td><td>Service name resolution can fail even when Pods are healthy.</td><td>Observe CoreDNS, node DNS paths, network policy and resolver behavior.</td></tr>
+      <tr><td>Database unavailable</td><td>Pods may remain running but requests can fail.</td><td>Connection pool limits, backpressure, graceful degradation, failover design.</td></tr>
+      <tr><td>Traffic spike</td><td>HPA may add Pods after metrics and startup delay.</td><td>Pre-scale, queue, rate-limit, cache, tune startup and provision node capacity.</td></tr>
+    </tbody>
+  </table>
+  <h3>Node failure sequence</h3>
+  <div class="flow"><span class="node">Node stops heartbeats</span><span class="arrow">-&gt;</span><span class="node">control plane marks unhealthy</span><span class="arrow">-&gt;</span><span class="node">Pods become unavailable</span><span class="arrow">-&gt;</span><span class="node">controllers create replacements</span><span class="arrow">-&gt;</span><span class="node">scheduler places new Pods</span><span class="arrow">-&gt;</span><span class="node">Services use new ready endpoints</span></div>
+</section>
+
+<section id="observability" class="topic" data-topic="observability metrics logs traces open telemetry prometheus grafana correlation id sli slo kubernetes microservices">
+  <div class="kicker">28 - Operability</div>
+  <h2>Observability: you need to see both Kubernetes and the application</h2>
+  <div class="grid3">
+    <div class="card"><h3>Metrics</h3><p>Request rate, error rate, latency percentiles, saturation, CPU, memory, queue lag, HPA decisions, Pod restarts.</p></div>
+    <div class="card"><h3>Logs</h3><p>Structured logs with timestamp, service, version, Pod, trace/correlation ID and business-safe context.</p></div>
+    <div class="card"><h3>Traces</h3><p>Follow one request across Gateway -&gt; order -&gt; inventory -&gt; payment -&gt; database/message broker.</p></div>
+  </div>
+  <h3>Golden signals</h3>
+  <div class="pill-row"><span class="tag">Latency</span><span class="tag">Traffic</span><span class="tag">Errors</span><span class="tag">Saturation</span></div>
+  <div class="callout"><b>Do not debug only with <code>kubectl logs</code>.</b> Centralize telemetry. Production incidents often involve multiple Pods and multiple services, and the original failing Pod may already be gone.</div>
+</section>
+
+<section id="cicd" class="topic" data-topic="cicd docker build registry kubernetes deployment gitops helm kustomize image scan rollback">
+  <div class="kicker">29 - Delivery pipeline</div>
+  <h2>From Git commit to production</h2>
+  <div class="flow"><span class="node">commit</span><span class="arrow">-&gt;</span><span class="node">unit/integration tests</span><span class="arrow">-&gt;</span><span class="node">build image</span><span class="arrow">-&gt;</span><span class="node">scan + sign</span><span class="arrow">-&gt;</span><span class="node">push registry</span><span class="arrow">-&gt;</span><span class="node">update manifest</span><span class="arrow">-&gt;</span><span class="node">deploy</span><span class="arrow">-&gt;</span><span class="node">verify SLO</span></div>
+  <h3>Important principle: deploy by immutable image reference</h3>
+  <p>Avoid relying on mutable tags alone for critical production rollouts. A digest or an immutable release tag makes it clear exactly what binary content is running.</p>
+  <h3>Typical tools</h3>
+  <div class="pill-row"><span class="tag">Docker/BuildKit</span><span class="tag">OCI Registry</span><span class="tag">Helm</span><span class="tag">Kustomize</span><span class="tag">Argo CD / Flux</span><span class="tag">Prometheus</span><span class="tag">OpenTelemetry</span></div>
+</section>
+
+<section id="examples" class="topic" data-topic="kubernetes yaml example deployment service configmap hpa pdb networkpolicy ingress complete manifest">
+  <div class="kicker">30 - Complete example</div>
+  <h2>A practical microservice manifest set</h2>
+  <p>This is intentionally compact. In a real repository, split resources into files or use Helm/Kustomize and apply environment-specific policy.</p>
+  <pre><button class="copy">Copy</button><code>apiVersion: v1
+kind: Namespace
+metadata:
+  name: commerce
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-config
+  namespace: commerce
+data:
+  INVENTORY_URL: http://inventory-service:8080
+  PAYMENT_URL: http://payment-service:8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: commerce
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      serviceAccountName: order-service
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: app
+          image: registry.example.com/order-service:1.4.2
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: order-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: commerce
+spec:
+  selector:
+    app: order-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-service
+  namespace: commerce
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-service
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: order-service
+  namespace: commerce
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: order-service
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-service
+  namespace: commerce
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: order-ingress
+  namespace: commerce
+spec:
+  podSelector:
+    matchLabels:
+      app: order-service
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8080</code></pre>
+  <div class="callout warn"><b>NetworkPolicy nuance:</b> the API object can exist even if your network plugin does not enforce NetworkPolicy. Validate what your CNI actually supports.</div>
+</section>
+
+<section id="troubleshooting" class="topic" data-topic="troubleshooting docker kubectl commands logs inspect exec describe events dns network curl nslookup tcpdump">
+  <div class="kicker">31 - Troubleshooting</div>
+  <h2>Debug from the outside inward</h2>
+  <h3>Docker</h3>
+  <pre><button class="copy">Copy</button><code>docker ps -a
+docker inspect &lt;container&gt;
+docker logs --tail 200 &lt;container&gt;
+docker stats
+docker network inspect &lt;network&gt;
+docker exec -it &lt;container&gt; sh
+docker image inspect &lt;image&gt;</code></pre>
+  <h3>Kubernetes</h3>
+  <pre><button class="copy">Copy</button><code>kubectl get pods -A -o wide
+kubectl describe pod &lt;pod&gt; -n &lt;ns&gt;
+kubectl logs &lt;pod&gt; -n &lt;ns&gt; --previous
+kubectl get events -n &lt;ns&gt; --sort-by=.lastTimestamp
+kubectl get svc,endpointslices -n &lt;ns&gt;
+kubectl get deploy,rs,pod -n &lt;ns&gt;
+kubectl top pod -n &lt;ns&gt;
+kubectl top node
+kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- sh
+kubectl rollout status deploy/&lt;name&gt; -n &lt;ns&gt;
+kubectl rollout history deploy/&lt;name&gt; -n &lt;ns&gt;</code></pre>
+  <h3>Network debugging checklist</h3>
+  <ol>
+    <li>Can the process listen on the expected port inside the Pod?</li>
+    <li>Is readiness passing?</li>
+    <li>Does the Service selector match the Pod labels?</li>
+    <li>Does the EndpointSlice contain the expected ready Pod IPs?</li>
+    <li>Can DNS resolve the Service name?</li>
+    <li>Does NetworkPolicy permit traffic?</li>
+    <li>Is the CNI healthy on both nodes?</li>
+    <li>If external traffic fails, is Gateway/Ingress/LB configuration correct?</li>
+  </ol>
+  <div class="callout"><b>Best debugging habit:</b> identify the exact boundary where the request stops. DNS? Service endpoint selection? CNI routing? TCP connect? TLS? Application handler? Database? This is much faster than randomly restarting Pods.</div>
+</section>
+
+<section id="comparison" class="topic" data-topic="docker vs kubernetes compose responsibility comparison">
+  <div class="kicker">32 - Responsibility map</div>
+  <h2>Docker vs Kubernetes: where responsibility changes</h2>
+  <table>
+    <thead><tr><th>Question</th><th>Docker / runtime side</th><th>Kubernetes side</th></tr></thead>
+    <tbody>
+      <tr><td>How is the application packaged?</td><td>Container image / OCI image</td><td>References image in PodSpec</td></tr>
+      <tr><td>How is a process isolated?</td><td>Runtime + kernel namespaces/cgroups</td><td>Asks CRI runtime to create the Pod/containers</td></tr>
+      <tr><td>Where does it run?</td><td>One chosen Docker host</td><td>Scheduler selects a worker node</td></tr>
+      <tr><td>What if it crashes?</td><td>Container restart policy can restart locally</td><td>Controllers/kubelet maintain desired workload state across cluster</td></tr>
+      <tr><td>How do services find each other?</td><td>User-defined Docker network DNS</td><td>Service + CoreDNS + EndpointSlice</td></tr>
+      <tr><td>How does traffic reach replicas?</td><td>Manual/Compose/Swarm networking depending setup</td><td>Service virtual IP / Gateway / Ingress / LB</td></tr>
+      <tr><td>How do replicas scale?</td><td>Manual or other Docker orchestration</td><td>Deployment + HPA and cluster capacity mechanisms</td></tr>
+      <tr><td>How are rolling updates controlled?</td><td>Usually external tooling/orchestrator</td><td>Deployment controller and rollout strategy</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="interview" class="topic" data-topic="senior interview docker kubernetes questions answers summary">
+  <div class="kicker">33 - Senior engineer summary</div>
+  <h2>How to explain Docker and Kubernetes in an interview</h2>
+  <details open><summary>"What happens internally when a Docker container starts?"</summary><div><p>The Docker CLI sends an API request to dockerd. Docker resolves image content and asks containerd to manage the container lifecycle. An OCI runtime such as runc creates the isolated process using kernel namespaces, cgroups, filesystem mounts and security configuration. Docker also attaches networking, typically using a network namespace and veth pair. The application is still a host process sharing the host kernel.</p></div></details>
+  <details open><summary>"How do two Kubernetes microservices communicate?"</summary><div><p>The caller uses a stable Kubernetes Service DNS name, not Pod IPs. CoreDNS resolves that name to the Service ClusterIP. kube-proxy or an alternative data plane maps the virtual Service address to one ready backend endpoint from EndpointSlice state. CNI networking routes the packet to the destination Pod, even if it runs on another node.</p></div></details>
+  <details open><summary>"What happens after kubectl apply?"</summary><div><p>The request reaches kube-apiserver, passes validation/authn/authz/admission, and the desired object is persisted to etcd. Controllers observe the new desired state and create subordinate objects. The scheduler assigns pending Pods to nodes. Kubelet on the chosen node calls the CRI runtime to create the Pod sandbox, attach networking, pull images and start containers. Status and readiness flow back through the API.</p></div></details>
+  <details open><summary>"Does Kubernetes use Docker?"</summary><div><p>Kubernetes runs OCI-compatible container images, but modern nodes normally use a CRI-compatible runtime such as containerd or CRI-O. The old direct Docker integration, dockershim, was removed. Docker remains commonly used by developers and CI systems to build images.</p></div></details>
+  <details open><summary>"Why does Kubernetes need a Service if Pods already have IPs?"</summary><div><p>Pods are ephemeral; replica count and Pod IPs change. A Service gives callers a stable logical identity and a stable virtual address while the control plane continually updates the set of healthy backend endpoints.</p></div></details>
+  <details open><summary>"What does Kubernetes not solve for microservices?"</summary><div><p>It does not automatically solve business transaction consistency, idempotency, retry correctness, schema evolution, data ownership, distributed tracing, application-level authorization or dependency failure semantics. It provides orchestration primitives; distributed-system design is still your responsibility.</p></div></details>
+</section>
+
+<section id="glossary" class="topic" data-topic="glossary docker kubernetes terms definitions">
+  <div class="kicker">34 - Glossary</div>
+  <h2>Important terms</h2>
+  <div class="grid3">
+    <div class="card"><b>OCI</b><p>Open standards around container image/runtime formats.</p></div>
+    <div class="card"><b>CRI</b><p>Kubernetes runtime interface between kubelet and container runtime.</p></div>
+    <div class="card"><b>CNI</b><p>Container networking integration used for Pod networking.</p></div>
+    <div class="card"><b>CSI</b><p>Container storage integration for persistent storage drivers.</p></div>
+    <div class="card"><b>Pod</b><p>Smallest schedulable Kubernetes workload unit.</p></div>
+    <div class="card"><b>Node</b><p>Worker machine that runs Pods.</p></div>
+    <div class="card"><b>ClusterIP</b><p>Virtual internal address assigned to a Service.</p></div>
+    <div class="card"><b>EndpointSlice</b><p>Scalable representation of current Service backend endpoints.</p></div>
+    <div class="card"><b>Reconciliation</b><p>Control loop moving observed state toward desired state.</p></div>
+    <div class="card"><b>Namespace</b><p>Kubernetes logical scope; unrelated to Linux namespaces even though the word is the same.</p></div>
+    <div class="card"><b>Linux namespace</b><p>Kernel isolation primitive used by containers.</p></div>
+    <div class="card"><b>cgroup</b><p>Kernel resource accounting/limit mechanism.</p></div>
+    <div class="card"><b>Service mesh</b><p>Optional traffic layer for mTLS, routing and telemetry; not required for basic Kubernetes service communication.</p></div>
+    <div class="card"><b>HPA</b><p>Controller/API that changes replica count based on metrics.</p></div>
+    <div class="card"><b>PDB</b><p>Availability budget for voluntary disruptions.</p></div>
+  </div>
+</section>
+
+<section id="sources" class="topic" data-topic="official sources docker kubernetes documentation references">
+  <div class="kicker">35 - References</div>
+  <h2>Official documentation used to cross-check this guide</h2>
+  <p class="muted">Concepts are intentionally version-aware but mostly version-neutral. The guide was reviewed against official Docker and Kubernetes documentation available in August 2026.</p>
+  <ul>
+    <li><a href="https://docs.docker.com/engine/" target="_blank" rel="noreferrer">Docker Engine</a></li>
+    <li><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noreferrer">Docker networking overview</a></li>
+    <li><a href="https://docs.docker.com/engine/network/drivers/bridge/" target="_blank" rel="noreferrer">Docker bridge network driver</a></li>
+    <li><a href="https://docs.docker.com/engine/security/" target="_blank" rel="noreferrer">Docker Engine security</a></li>
+    <li><a href="https://docs.docker.com/engine/daemon/alternative-runtimes/" target="_blank" rel="noreferrer">Docker alternative runtimes / containerd + runc</a></li>
+    <li><a href="https://docs.docker.com/engine/storage/containerd/" target="_blank" rel="noreferrer">Docker containerd image store</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/architecture/" target="_blank" rel="noreferrer">Kubernetes cluster architecture</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/services-networking/" target="_blank" rel="noreferrer">Kubernetes Services, load balancing and networking</a></li>
+    <li><a href="https://kubernetes.io/docs/reference/networking/virtual-ips/" target="_blank" rel="noreferrer">Kubernetes Service virtual IPs and proxies</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/containers/cri/" target="_blank" rel="noreferrer">Kubernetes Container Runtime Interface</a></li>
+    <li><a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/" target="_blank" rel="noreferrer">Kubernetes container runtimes</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/" target="_blank" rel="noreferrer">Horizontal Pod Autoscaling</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/workloads/pods/disruptions/" target="_blank" rel="noreferrer">Pod disruptions and PodDisruptionBudget</a></li>
+    <li><a href="https://kubernetes.io/docs/concepts/services-networking/ingress/" target="_blank" rel="noreferrer">Kubernetes Ingress</a></li>
+  </ul>
+  <div class="callout"><b>Version note:</b> Kubernetes networking evolves. For example, recent Kubernetes documentation marks nftables mode stable and IPVS proxy mode deprecated. Always check the documentation for the exact Kubernetes version and CNI used by your cluster before applying low-level tuning.</div>
+</section>
+
+</article>
+<div class="footer">Docker + Kubernetes Deep Dive - self-contained HTML study guide</div>
+</main>
+</div>
+<script>
+  const search = document.getElementById('search');
+  const topics = [...document.querySelectorAll('section.topic')];
+  const links = [...document.querySelectorAll('#toc a')];
+
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    topics.forEach(s => {
+      const hay = (s.dataset.topic + ' ' + s.innerText).toLowerCase();
+      s.classList.toggle('hidden-by-search', q && !hay.includes(q));
+    });
+  });
+
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code').innerText;
+      try {
+        await navigator.clipboard.writeText(code);
+        const old = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => btn.textContent = old, 1000);
+      } catch (e) {
+        btn.textContent = 'Select text';
+      }
+    });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.filter(e => e.isIntersecting).forEach(e => {
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, {rootMargin:'-25% 0px -65% 0px'});
+  topics.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
