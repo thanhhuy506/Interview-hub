@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Filter, Interceptor, AOP & Reflection</title>
+<style>
+:root{--bg:#f6f8fb;--panel:#fff;--soft:#eef3f8;--text:#17212b;--muted:#64748b;--line:#d8e0e8;--accent:#2f5f8f;--green:#2d6a4f;--code:#0f1720}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}.wrap{max-width:1180px;margin:auto;padding:34px 22px 60px}.hero{padding:10px 0 30px;border-bottom:1px solid var(--line)}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(34px,5vw,58px);line-height:1.04;letter-spacing:-.04em;margin:8px 0 12px}h2{font-size:28px;margin:0 0 10px;letter-spacing:-.02em}h3{font-size:18px;margin:0 0 10px}.lead,.intro{color:var(--muted);max-width:930px}.lead{font-size:17px;margin-bottom:0}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}nav a{padding:8px 11px;border:1px solid var(--line);background:var(--panel);border-radius:9px;color:var(--text);text-decoration:none;font-size:13px;font-weight:700}section{padding:34px 0;border-bottom:1px solid var(--line)}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--soft);color:var(--accent);font-size:11px;font-weight:800;margin-bottom:10px}.card p,.stack p{color:var(--muted);font-size:14px}.stack p{margin:0 0 8px}.flow{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 0 14px}.node{min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;font-weight:800}.node span{display:block;color:var(--muted);font-size:12px;font-weight:600;margin-top:4px}.arrow{color:var(--muted);font-size:20px}.note{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 16px}.note p{margin:0;color:var(--muted)}pre{margin:0;background:var(--code);color:#e5edf5;border-radius:14px;padding:16px;overflow:auto;border:1px solid #263444;line-height:1.55;font-size:13px}code{font-family:"SFMono-Regular",Consolas,monospace}.diagram{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;overflow-x:auto}svg{display:block;width:100%;min-width:980px;height:auto}.headbox{fill:#eef3f8;stroke:#d8e0e8;stroke-width:1.2}.seq-head{fill:#17212b;font-size:14px;font-weight:800;text-anchor:middle}.life{stroke:#c9d3dd;stroke-width:1.4;stroke-dasharray:5 6}.call{stroke:#2f5f8f;stroke-width:2;fill:none}.ret{stroke:#2d6a4f;stroke-width:2;fill:none;stroke-dasharray:5 4}.label{fill:#17212b;font-size:12.5px}.small{fill:#64748b;font-size:11.5px}.phase{fill:#eef3f8;stroke:#d8e0e8}.phase-text{fill:#2f5f8f;font-size:11px;font-weight:800;text-anchor:middle}.matrix{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft);font-size:13px}td{font-size:14px}.rules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.rules div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;font-weight:800}.rules span{display:block;color:var(--muted);font-size:12px;font-weight:600;margin-top:4px}.interview{background:linear-gradient(135deg,var(--soft),var(--panel));border:1px solid var(--line);border-radius:18px;padding:20px}.footer{padding-top:26px;color:var(--muted);font-size:13px}@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.rules{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.wrap{padding:22px 14px 42px}.grid4,.rules{grid-template-columns:1fr}}
+
+.example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}.example{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}.example-head{padding:13px 16px;background:var(--soft);border-bottom:1px solid var(--line)}.example-head strong{display:block;font-size:14px}.example-head span{display:block;margin-top:3px;color:var(--muted);font-size:12px}.example pre{border:0;border-radius:0}.usecase{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}.usecase:last-child{border-bottom:0}.usecase strong{font-size:14px}.usecase span{color:var(--muted);font-size:14px}.mini-flow{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:10px 0}.mini-box{min-width:150px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;text-align:center;font-size:13px;font-weight:800}.mini-box small{display:block;margin-top:4px;color:var(--muted);font-weight:600}.subsection{margin-top:30px}.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.pill{padding:6px 9px;border:1px solid var(--line);background:var(--panel);border-radius:999px;font-size:12px;font-weight:750}.warning{border-left-color:#9a6b1f}.good-note{border-left-color:var(--green)}.decision{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}.decision .card h3{font-size:15px}.decision code{font-size:12px}.code-note{padding:10px 14px;background:var(--panel);border-top:1px solid var(--line);color:var(--muted);font-size:12px}.compact-table table{min-width:760px}.compact-table td,.compact-table th{padding:10px 12px}.keyword{color:var(--accent);font-weight:800}.section-kicker{font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}@media(max-width:900px){.example-grid,.decision{grid-template-columns:1fr}.usecase{grid-template-columns:1fr;gap:3px}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<div class="eyebrow">Spring request lifecycle - practical engineering guide</div>
+<h1>Filter vs Interceptor vs Spring AOP vs Java Reflection</h1>
+<p class="lead">Understand where each mechanism runs, what it can see, when to use it, and how a request moves from HTTP into Spring MVC and then through Spring proxies to the Service layer.</p>
+<nav><a href="#big-picture">Big picture</a><a href="#sequence">Sequence</a><a href="#filter">Filter</a><a href="#interceptor">Interceptor</a><a href="#reflection">Reflection</a><a href="#aop">Spring AOP</a><a href="#pitfalls">Pitfalls</a><a href="#comparison">Comparison</a><a href="#interview-qa">Interview Q&amp;A</a></nav>
+</header>
+
+<section id="big-picture">
+<h2>1. Big picture</h2>
+<p class="intro">These concepts solve different problems at different layers. Filter is HTTP/Servlet infrastructure, Interceptor belongs to Spring MVC, Spring AOP works around Spring bean method calls, and Reflection is a Java runtime capability.</p>
+<div class="flow"><div class="node">Client<span>HTTP request</span></div><div class="arrow">-></div><div class="node">Filter<span>Servlet layer</span></div><div class="arrow">-></div><div class="node">DispatcherServlet<span>Spring MVC</span></div><div class="arrow">-></div><div class="node">Interceptor<span>Handler layer</span></div><div class="arrow">-></div><div class="node">Controller<span>Endpoint</span></div><div class="arrow">-></div><div class="node">AOP Proxy<span>Method advice</span></div><div class="arrow">-></div><div class="node">Service<span>Business logic</span></div></div>
+<div class="grid4"><div class="card"><span class="tag">HTTP</span><h3>Filter</h3><p>JWT, CORS, headers, request ID, tracing and request logging.</p></div><div class="card"><span class="tag">MVC</span><h3>Interceptor</h3><p>Controller-aware logging, HandlerMethod and endpoint rules.</p></div><div class="card"><span class="tag">METHOD</span><h3>Spring AOP</h3><p>Transaction, audit, execution timing, caching and authorization.</p></div><div class="card"><span class="tag">RUNTIME</span><h3>Reflection</h3><p>Inspect classes, methods, fields, constructors and annotations at runtime.</p></div></div>
+</section>
+
+<section id="sequence">
+<h2>2. Full request sequence diagram</h2>
+<p class="intro">This is a simplified but accurate Spring MVC request flow. The DispatcherServlet coordinates HandlerMapping, Interceptors, Controller execution and response processing. Solid blue arrows are calls; dashed green arrows are returns.</p>
+<div class="diagram">
+<svg viewBox="0 0 1180 840" role="img" aria-label="Spring MVC request sequence">
+<defs>
+<marker id="ca2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2f5f8f"/></marker>
+<marker id="ra2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2d6a4f"/></marker>
+</defs>
+<rect class="headbox" x="20" y="20" width="115" height="44" rx="10"/><text class="seq-head" x="77" y="48">Client</text>
+<rect class="headbox" x="160" y="20" width="115" height="44" rx="10"/><text class="seq-head" x="217" y="48">Filter</text>
+<rect class="headbox" x="300" y="20" width="150" height="44" rx="10"/><text class="seq-head" x="375" y="48">DispatcherServlet</text>
+<rect class="headbox" x="475" y="20" width="135" height="44" rx="10"/><text class="seq-head" x="542" y="48">Interceptor</text>
+<rect class="headbox" x="635" y="20" width="135" height="44" rx="10"/><text class="seq-head" x="702" y="48">Controller</text>
+<rect class="headbox" x="795" y="20" width="135" height="44" rx="10"/><text class="seq-head" x="862" y="48">AOP Proxy</text>
+<rect class="headbox" x="955" y="20" width="135" height="44" rx="10"/><text class="seq-head" x="1022" y="48">Service</text>
+<line class="life" x1="77" y1="64" x2="77" y2="800"/><line class="life" x1="217" y1="64" x2="217" y2="800"/><line class="life" x1="375" y1="64" x2="375" y2="800"/><line class="life" x1="542" y1="64" x2="542" y2="800"/><line class="life" x1="702" y1="64" x2="702" y2="800"/><line class="life" x1="862" y1="64" x2="862" y2="800"/><line class="life" x1="1022" y1="64" x2="1022" y2="800"/>
+<rect class="phase" x="18" y="86" width="115" height="24" rx="12"/><text class="phase-text" x="75" y="102">REQUEST IN</text>
+<line class="call" x1="77" y1="130" x2="217" y2="130" marker-end="url(#ca2)"/><text class="label" x="100" y="118">1. HTTP request</text>
+<line class="call" x1="217" y1="180" x2="375" y2="180" marker-end="url(#ca2)"/><text class="label" x="235" y="168">2. chain.doFilter()</text><text class="small" x="230" y="198">Filter before-logic has run</text>
+<line class="call" x1="375" y1="235" x2="542" y2="235" marker-end="url(#ca2)"/><text class="label" x="397" y="223">3. preHandle()</text><text class="small" x="397" y="253">HandlerMethod already resolved</text>
+<line class="ret" x1="542" y1="280" x2="375" y2="280" marker-end="url(#ra2)"/><text class="label" x="414" y="269">4. true</text>
+<line class="call" x1="375" y1="325" x2="702" y2="325" marker-end="url(#ca2)"/><text class="label" x="462" y="313">5. invoke Controller</text>
+<line class="call" x1="702" y1="375" x2="862" y2="375" marker-end="url(#ca2)"/><text class="label" x="725" y="363">6. service.createOrder()</text>
+<line class="call" x1="862" y1="425" x2="1022" y2="425" marker-end="url(#ca2)"/><text class="label" x="880" y="413">7. advice -> proceed()</text><text class="small" x="880" y="443">Proxy invokes target method</text>
+<rect class="phase" x="966" y="470" width="112" height="24" rx="12"/><text class="phase-text" x="1022" y="486">BUSINESS LOGIC</text>
+<line class="ret" x1="1022" y1="530" x2="862" y2="530" marker-end="url(#ra2)"/><text class="label" x="913" y="518">8. result</text>
+<line class="ret" x1="862" y1="575" x2="702" y2="575" marker-end="url(#ra2)"/><text class="label" x="720" y="563">9. AOP after logic + return</text>
+<line class="ret" x1="702" y1="620" x2="375" y2="620" marker-end="url(#ra2)"/><text class="label" x="470" y="608">10. Controller result</text>
+<line class="call" x1="375" y1="665" x2="542" y2="665" marker-end="url(#ca2)"/><text class="label" x="398" y="653">11. postHandle()</text>
+<line class="ret" x1="542" y1="700" x2="375" y2="700" marker-end="url(#ra2)"/><text class="small" x="414" y="689">return</text>
+<text class="small" x="390" y="727">12. render/write response</text>
+<line class="call" x1="375" y1="755" x2="542" y2="755" marker-end="url(#ca2)"/><text class="label" x="398" y="743">13. afterCompletion()</text>
+<line class="ret" x1="375" y1="790" x2="217" y2="790" marker-end="url(#ra2)"/><text class="label" x="240" y="778">14. return to Filter</text>
+<line class="ret" x1="217" y1="820" x2="77" y2="820" marker-end="url(#ra2)"/><text class="label" x="100" y="808">15. HTTP response</text>
+</svg>
+</div>
+<div class="note"><p><strong>Important:</strong> Reflection is not another box in this sequence. Spring may use reflection and cached metadata while resolving annotations, methods and handler information. Reflection is a runtime mechanism; Filter, Interceptor and AOP are execution mechanisms at specific layers.</p></div>
+</section>
+
+<section id="filter">
+<div class="section-kicker">HTTP / Servlet layer</div>
+<h2>3. Servlet Filter</h2>
+<p class="intro">Use a Filter when the concern belongs to the whole HTTP request rather than a specific Controller method. In Spring Boot, <code>OncePerRequestFilter</code> is the common base class.</p>
+<div class="grid2">
+<div class="card"><h3>Best use cases</h3><div class="stack"><p>Request ID / correlation ID</p><p>HTTP access logging and total request timing</p><p>Security headers and CORS-related infrastructure</p><p>Authentication filters inside Spring Security</p><p>Request/response wrappers</p></div></div>
+<pre><code>@Component
+public class RequestTimingFilter
+        extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
+
+        long start = System.nanoTime();
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            long ms = (System.nanoTime() - start) / 1_000_000;
+            log.info("{} {} -> {} in {} ms",
+                request.getMethod(),
+                request.getRequestURI(),
+                response.getStatus(),
+                ms);
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="subsection"><h3>More Filter code examples</h3><div class="example-grid">
+<div class="example"><div class="example-head"><strong>Case 1 - Request ID with MDC</strong><span>Attach one correlation ID to every log line in the request.</span></div><pre><code>@Component
+public class RequestIdFilter
+        extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
+
+        String requestId = request.getHeader("X-Request-Id");
+        if (requestId == null || requestId.isBlank()) {
+            requestId = UUID.randomUUID().toString();
+        }
+
+        MDC.put("requestId", requestId);
+        response.setHeader("X-Request-Id", requestId);
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            MDC.remove("requestId");
+        }
+    }
+}</code></pre><div class="code-note">Production value: easier tracing across Controller, Service and downstream logs.</div></div>
+
+<div class="example"><div class="example-head"><strong>Case 2 - Reject a request before MVC</strong><span>A Filter can stop processing before a Controller is selected.</span></div><pre><code>@Override
+protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain chain)
+        throws ServletException, IOException {
+
+    String tenantId = request.getHeader("X-Tenant-Id");
+
+    if (tenantId == null || tenantId.isBlank()) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.getWriter().write("Missing X-Tenant-Id");
+        return;
+    }
+
+    chain.doFilter(request, response);
+}</code></pre><div class="code-note">For real authentication and authorization, integrate with Spring Security rather than building ad-hoc security in a plain Filter.</div></div>
+</div></div>
+</section>
+
+<section id="interceptor">
+<div class="section-kicker">Spring MVC layer</div>
+<h2>4. HandlerInterceptor</h2>
+<p class="intro">Use an Interceptor when you care about the selected Spring MVC handler. It can inspect <code>HandlerMethod</code>, which gives you the Controller class, method and annotations.</p>
+<div class="grid2">
+<pre><code>@Component
+public class LoggingInterceptor
+        implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        if (handler instanceof HandlerMethod hm) {
+            log.info("Calling {}.{}",
+                hm.getBeanType().getSimpleName(),
+                hm.getMethod().getName());
+        }
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+        log.info("MVC request completed");
+    }
+}</code></pre>
+<div class="card"><h3>Lifecycle</h3><div class="usecase"><strong>preHandle()</strong><span>Before Controller invocation. Return <code>false</code> to stop the handler.</span></div><div class="usecase"><strong>postHandle()</strong><span>After a normal Controller return and before view rendering is fully complete.</span></div><div class="usecase"><strong>afterCompletion()</strong><span>After request completion. Good for cleanup and final timing.</span></div></div>
+</div>
+
+<div class="subsection"><h3>More Interceptor code examples</h3><div class="example-grid">
+<div class="example"><div class="example-head"><strong>Case 1 - Controller execution timing</strong><span>Measure MVC handler time without applying AOP to every Controller.</span></div><pre><code>@Override
+public boolean preHandle(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object handler) {
+
+    request.setAttribute("mvcStart", System.nanoTime());
+    return true;
+}
+
+@Override
+public void afterCompletion(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object handler,
+        Exception ex) {
+
+    Long start = (Long) request.getAttribute("mvcStart");
+    if (start != null) {
+        long ms = (System.nanoTime() - start) / 1_000_000;
+        log.info("Controller processing: {} ms", ms);
+    }
+}</code></pre></div>
+
+<div class="example"><div class="example-head"><strong>Case 2 - Read a custom Controller annotation</strong><span>Useful for endpoint-specific rules or metadata.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface InternalEndpoint {}
+
+@Override
+public boolean preHandle(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object handler) throws IOException {
+
+    if (!(handler instanceof HandlerMethod hm)) {
+        return true;
+    }
+
+    InternalEndpoint marker =
+        hm.getMethodAnnotation(InternalEndpoint.class);
+
+    if (marker != null && !isInternalNetwork(request)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        return false;
+    }
+
+    return true;
+}</code></pre><div class="code-note">For complex authorization, prefer Spring Security method or request authorization. This example shows the Interceptor capability.</div></div>
+</div></div>
+</section>
+
+<section id="reflection">
+<div class="section-kicker">Java runtime mechanism</div>
+<h2>5. Java Reflection - more than method.invoke()</h2>
+<p class="intro">Reflection allows Java code to discover structure at runtime instead of hard-coding every class and method at compile time. Frameworks use this heavily for metadata-driven behavior.</p>
+<div class="mini-flow"><div class="mini-box">Class metadata<small>Class, Method, Field</small></div><div class="arrow">-&gt;</div><div class="mini-box">Inspect<small>name, type, annotations</small></div><div class="arrow">-&gt;</div><div class="mini-box">Decide<small>framework behavior</small></div><div class="arrow">-&gt;</div><div class="mini-box">Invoke / map<small>runtime action</small></div></div>
+<div class="note"><p><strong>Key difference from AOP:</strong> Reflection gives you runtime inspection and invocation primitives. AOP gives you automatic before/after/around behavior around selected Spring bean calls.</p></div>
+
+<div class="subsection"><h3>Reflection example 1 - inspect methods and annotations</h3><div class="example-grid">
+<div class="example"><div class="example-head"><strong>Define runtime metadata</strong><span>A custom annotation survives into runtime because of RUNTIME retention.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Auditable {
+    String action();
+}
+
+public class PaymentService {
+
+    @Auditable(action = "PAYMENT")
+    public void pay() {
+        System.out.println("pay");
+    }
+}</code></pre></div>
+<div class="example"><div class="example-head"><strong>Discover annotation dynamically</strong><span>No direct call to PaymentService.pay() is required to read the metadata.</span></div><pre><code>Method method =
+    PaymentService.class.getMethod("pay");
+
+if (method.isAnnotationPresent(Auditable.class)) {
+    Auditable annotation =
+        method.getAnnotation(Auditable.class);
+
+    System.out.println(annotation.action());
+}</code></pre></div>
+</div></div>
+
+<div class="subsection"><h3>Reflection example 2 - create objects from constructors</h3><div class="grid2"><div class="card"><p>Frameworks often need to create an object when they only know its class at runtime. This is one idea behind DI containers, serializers and plugin loaders.</p></div><pre><code>Class&lt;?&gt; type = Class.forName(
+    "com.example.PaymentService"
+);
+
+Constructor&lt;?&gt; constructor =
+    type.getDeclaredConstructor();
+
+Object instance = constructor.newInstance();</code></pre></div></div>
+
+<div class="subsection"><h3>Reflection example 3 - a tiny generic object-to-map serializer</h3><p class="intro">This demonstrates why Reflection is useful for generic libraries: the same code can work with many classes without knowing their fields in advance.</p><div class="grid2"><pre><code>public Map&lt;String, Object&gt; toMap(Object object)
+        throws IllegalAccessException {
+
+    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+
+    for (Field field :
+            object.getClass().getDeclaredFields()) {
+
+        field.setAccessible(true);
+        Object value = field.get(object);
+        result.put(field.getName(), value);
+    }
+
+    return result;
+}</code></pre><div class="card"><h3>What happens</h3><div class="stack"><p>1. Read the runtime class.</p><p>2. Discover all declared fields.</p><p>3. Read each value dynamically.</p><p>4. Build a generic representation.</p></div><div class="note warning"><p>Real serializers are much more complex: inheritance, records, access rules, cycles, modules, dates and custom adapters all matter.</p></div></div></div></div>
+
+<div class="subsection"><h3>Reflection example 4 - generic Map to POJO mapper</h3><div class="example"><div class="example-head"><strong>Populate fields dynamically</strong><span>This is educational; production mapping libraries handle conversion and validation more safely.</span></div><pre><code>public &lt;T&gt; T fromMap(
+        Map&lt;String, Object&gt; values,
+        Class&lt;T&gt; type) throws Exception {
+
+    T object = type.getDeclaredConstructor().newInstance();
+
+    for (Map.Entry&lt;String, Object&gt; entry : values.entrySet()) {
+        try {
+            Field field = type.getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+            field.set(object, entry.getValue());
+        } catch (NoSuchFieldException ignored) {
+            // Ignore unknown properties in this demo.
+        }
+    }
+
+    return object;
+}</code></pre></div></div>
+
+<div class="subsection"><h3>Reflection example 5 - plugin loading with Class.forName()</h3><div class="grid2"><pre><code>public interface PaymentPlugin {
+    void execute();
+}
+
+String className = config.getPluginClass();
+
+Class&lt;?&gt; rawType = Class.forName(className);
+
+if (!PaymentPlugin.class.isAssignableFrom(rawType)) {
+    throw new IllegalArgumentException("Invalid plugin");
+}
+
+PaymentPlugin plugin =
+    (PaymentPlugin) rawType
+        .getDeclaredConstructor()
+        .newInstance();
+
+plugin.execute();</code></pre><div class="card"><h3>Why this matters</h3><p>The application can load an implementation selected by configuration instead of hard-coding every plugin class in a switch statement.</p><div class="pill-row"><span class="pill">Plugin systems</span><span class="pill">Drivers</span><span class="pill">Framework extensions</span></div></div></div></div>
+
+<div class="subsection"><h3>Reflection example 6 - mini dependency injection concept</h3><div class="example-grid"><div class="example"><div class="example-head"><strong>Marker annotation</strong><span>A simplified field injection example.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Inject {}
+
+public class OrderService {
+    @Inject
+    private PaymentService paymentService;
+}</code></pre></div><div class="example"><div class="example-head"><strong>Container logic</strong><span>Inspect fields, find @Inject, then assign dependencies.</span></div><pre><code>public void inject(Object bean,
+        Map&lt;Class&lt;?&gt;, Object&gt; registry) throws Exception {
+
+    for (Field field : bean.getClass().getDeclaredFields()) {
+        if (!field.isAnnotationPresent(Inject.class)) {
+            continue;
+        }
+
+        Object dependency = registry.get(field.getType());
+        field.setAccessible(true);
+        field.set(bean, dependency);
+    }
+}</code></pre></div></div><div class="note"><p>This is only a teaching example. Spring's real dependency injection supports scopes, proxies, qualifiers, constructors, lifecycle callbacks, circular dependency handling and much more.</p></div></div>
+
+<div class="subsection"><h3>Reflection example 7 - invoke a method whose name comes from configuration</h3><div class="grid2"><pre><code>String methodName = "recalculate";
+
+Method method =
+    BillingService.class.getMethod(
+        methodName,
+        Long.class
+    );
+
+Object result = method.invoke(
+    billingService,
+    1001L
+);</code></pre><div class="card"><h3>When it can make sense</h3><p>Dynamic command frameworks, test runners, plugin systems or metadata-driven platforms. Avoid this in normal business code if a direct method call or interface can solve the problem.</p></div></div></div>
+
+<div class="subsection"><h3>Reflection costs and risks</h3><div class="compact-table matrix"><table><thead><tr><th>Concern</th><th>Why it matters</th><th>Practical approach</th></tr></thead><tbody><tr><td>Compile-time safety</td><td>Wrong method names or types may fail only at runtime.</td><td>Prefer interfaces and normal calls when possible.</td></tr><tr><td>Performance</td><td>Repeated discovery is more expensive than direct calls.</td><td>Frameworks usually cache Method/Field metadata.</td></tr><tr><td>Encapsulation</td><td><code>setAccessible(true)</code> can bypass normal access boundaries.</td><td>Use only when justified; modern Java modules may restrict access.</td></tr><tr><td>Refactoring</td><td>String-based method or field names are harder for IDEs to track.</td><td>Keep reflective code isolated in infrastructure/framework layers.</td></tr></tbody></table></div></div>
+</section>
+
+<section id="aop">
+<div class="section-kicker">Spring bean / method layer</div>
+<h2>6. Spring AOP - practical cases</h2>
+<p class="intro">Spring AOP is useful when the same technical behavior must wrap many Spring bean methods without copying that code into every Service. Spring normally implements this with proxies.</p>
+<div class="mini-flow"><div class="mini-box">Caller<small>another Spring bean</small></div><div class="arrow">-&gt;</div><div class="mini-box">Proxy<small>advice chain</small></div><div class="arrow">-&gt;</div><div class="mini-box">Target method<small>business logic</small></div><div class="arrow">-&gt;</div><div class="mini-box">Proxy<small>after / exception logic</small></div></div>
+
+<div class="subsection"><h3>AOP advice types</h3><div class="compact-table matrix"><table><thead><tr><th>Advice</th><th>Runs when</th><th>Good for</th></tr></thead><tbody><tr><td><code>@Before</code></td><td>Before target method</td><td>Validation metadata, logging, authorization checks</td></tr><tr><td><code>@AfterReturning</code></td><td>Only after success</td><td>Success audit, result metrics</td></tr><tr><td><code>@AfterThrowing</code></td><td>When an exception escapes</td><td>Error audit or centralized method exception logging</td></tr><tr><td><code>@After</code></td><td>Finally-style after completion</td><td>Cleanup that does not need result control</td></tr><tr><td><code>@Around</code></td><td>Before and after, with control of invocation</td><td>Timing, retry, idempotency wrappers, custom policy</td></tr></tbody></table></div></div>
+
+<div class="subsection"><h3>AOP example 1 - execution time with a custom annotation</h3><div class="example-grid"><div class="example"><div class="example-head"><strong>Usage</strong><span>Only annotated methods are measured.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface TrackExecutionTime {}
+
+@Service
+public class OrderService {
+
+    @TrackExecutionTime
+    public Order createOrder() {
+        return processOrder();
+    }
+}</code></pre></div><div class="example"><div class="example-head"><strong>Aspect</strong><span>@Around gives access to before, after, result and exception paths.</span></div><pre><code>@Aspect
+@Component
+public class TimingAspect {
+
+    @Around("@annotation(TrackExecutionTime)")
+    public Object measure(ProceedingJoinPoint jp)
+            throws Throwable {
+
+        long start = System.nanoTime();
+        try {
+            return jp.proceed();
+        } finally {
+            long ms = (System.nanoTime() - start) / 1_000_000;
+            log.info("{} took {} ms",
+                jp.getSignature().toShortString(), ms);
+        }
+    }
+}</code></pre></div></div></div>
+
+<div class="subsection"><h3>AOP example 2 - audit business actions</h3><div class="example-grid"><div class="example"><div class="example-head"><strong>Business method</strong><span>The Service declares intent, not logging implementation.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface AuditAction {
+    String value();
+}
+
+@AuditAction("CANCEL_ORDER")
+public void cancelOrder(Long orderId) {
+    repository.cancel(orderId);
+}</code></pre></div><div class="example"><div class="example-head"><strong>Audit aspect</strong><span>Record success and failure centrally.</span></div><pre><code>@Around("@annotation(auditAction)")
+public Object audit(
+        ProceedingJoinPoint jp,
+        AuditAction auditAction) throws Throwable {
+
+    try {
+        Object result = jp.proceed();
+        auditService.record(
+            auditAction.value(), "SUCCESS"
+        );
+        return result;
+    } catch (Throwable ex) {
+        auditService.record(
+            auditAction.value(), "FAILED"
+        );
+        throw ex;
+    }
+}</code></pre><div class="code-note">Do not blindly log full method arguments. They may contain passwords, tokens, personal data or large payloads.</div></div></div></div>
+
+<div class="subsection"><h3>AOP example 3 - custom method authorization</h3><div class="example-grid"><div class="example"><div class="example-head"><strong>Annotation</strong><span>Express a policy close to the protected method.</span></div><pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface RequireRole {
+    String value();
+}
+
+@RequireRole("ADMIN")
+public void deleteUser(Long userId) {
+    repository.deleteById(userId);
+}</code></pre></div><div class="example"><div class="example-head"><strong>Before advice</strong><span>Reject before business logic executes.</span></div><pre><code>@Before("@annotation(requireRole)")
+public void authorize(RequireRole requireRole) {
+
+    String currentRole = securityContext.currentRole();
+
+    if (!requireRole.value().equals(currentRole)) {
+        throw new AccessDeniedException("Forbidden");
+    }
+}</code></pre><div class="code-note">In production, Spring Security method authorization such as @PreAuthorize is usually preferable to inventing a parallel security system.</div></div></div></div>
+
+<div class="subsection"><h3>AOP example 4 - centralized exception logging</h3><div class="grid2"><pre><code>@AfterThrowing(
+    pointcut = "execution(* com.example.service..*(..))",
+    throwing = "ex"
+)
+public void logFailure(
+        JoinPoint jp,
+        Throwable ex) {
+
+    log.error("Service failed: {}",
+        jp.getSignature().toShortString(),
+        ex);
+}</code></pre><div class="card"><h3>Good fit</h3><p>Cross-cutting technical observability across many Service methods. Be careful not to duplicate logs already written by global exception handlers or infrastructure.</p></div></div></div>
+
+<div class="subsection"><h3>AOP example 5 - retry wrapper</h3><div class="example"><div class="example-head"><strong>Educational @Around retry</strong><span>Shows control of target invocation. In real systems prefer a mature resilience library where appropriate.</span></div><pre><code>@Around("@annotation(RetryableOperation)")
+public Object retry(ProceedingJoinPoint jp)
+        throws Throwable {
+
+    int maxAttempts = 3;
+    Throwable last = null;
+
+    for (int attempt = 1; attempt &lt;= maxAttempts; attempt++) {
+        try {
+            return jp.proceed();
+        } catch (TransientException ex) {
+            last = ex;
+            if (attempt == maxAttempts) {
+                break;
+            }
+            Thread.sleep(100L * attempt);
+        }
+    }
+
+    throw last;
+}</code></pre><div class="code-note">Retries are safe only for operations designed to be retried. Consider idempotency, transaction boundaries, timeout budgets and backoff.</div></div></div>
+
+<div class="subsection"><h3>AOP example 6 - pointcut styles</h3><div class="example-grid"><div class="example"><div class="example-head"><strong>By package / method signature</strong><span>Apply to all public Service methods.</span></div><pre><code>@Around(
+  "execution(public * com.example.service..*(..))"
+)
+public Object aroundService(ProceedingJoinPoint jp)
+        throws Throwable {
+    return jp.proceed();
+}</code></pre></div><div class="example"><div class="example-head"><strong>By annotation</strong><span>More explicit and safer for targeted behavior.</span></div><pre><code>@Around("@annotation(TrackExecutionTime)")
+public Object aroundAnnotated(ProceedingJoinPoint jp)
+        throws Throwable {
+    return jp.proceed();
+}</code></pre></div></div><div class="note good-note"><p>For custom business infrastructure, annotation-based pointcuts are often easier to understand than one huge package-wide expression.</p></div></div>
+
+<div class="subsection"><h3>AOP example 7 - why @Transactional behaves like proxy logic</h3><div class="mini-flow"><div class="mini-box">Caller<small>orderService.placeOrder()</small></div><div class="arrow">-&gt;</div><div class="mini-box">Transaction Proxy<small>BEGIN</small></div><div class="arrow">-&gt;</div><div class="mini-box">OrderService<small>business code</small></div><div class="arrow">-&gt;</div><div class="mini-box">Transaction Proxy<small>COMMIT / ROLLBACK</small></div></div><pre><code>@Transactional
+public void placeOrder() {
+    orderRepository.save(order);
+    inventoryService.reserve(order);
+}
+
+// Conceptually, the proxy does something like:
+beginTransaction();
+try {
+    target.placeOrder();
+    commit();
+} catch (Throwable ex) {
+    rollback();
+    throw ex;
+}</code></pre><div class="note"><p>The real Spring transaction implementation is more sophisticated, but this proxy model explains why external calls, rollback rules and self-invocation matter.</p></div></div>
+
+<div class="subsection"><h3>JDK dynamic proxy vs class-based proxy</h3><div class="decision"><div class="card"><h3>JDK dynamic proxy</h3><p>Proxy implements an interface and delegates to the target implementation.</p><pre><code>PaymentService proxy
+    -> implements PaymentService
+    -> delegates to PaymentServiceImpl</code></pre></div><div class="card"><h3>Class-based proxy</h3><p>Spring can create a generated subclass-like proxy for a concrete class, subject to proxy limitations.</p><pre><code>PaymentService$$SpringCGLIB...
+    -> wraps / extends target behavior</code></pre></div></div></div>
+
+<h3 style="margin-top:30px">Proxy model and self-invocation trap</h3>
+<div class="diagram"><svg viewBox="0 0 980 455" role="img" aria-label="AOP self invocation sequence"><defs><marker id="pa3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2f5f8f"/></marker></defs><rect class="headbox" x="65" y="20" width="150" height="44" rx="10"/><text class="seq-head" x="140" y="48">External Bean</text><rect class="headbox" x="360" y="20" width="190" height="44" rx="10"/><text class="seq-head" x="455" y="48">PaymentService Proxy</text><rect class="headbox" x="690" y="20" width="190" height="44" rx="10"/><text class="seq-head" x="785" y="48">PaymentService target</text><line class="life" x1="140" y1="64" x2="140" y2="410"/><line class="life" x1="455" y1="64" x2="455" y2="410"/><line class="life" x1="785" y1="64" x2="785" y2="410"/><line class="call" x1="140" y1="120" x2="455" y2="120" marker-end="url(#pa3)"/><text class="label" x="220" y="108">1. paymentService.process()</text><line class="call" x1="455" y1="190" x2="785" y2="190" marker-end="url(#pa3)"/><text class="label" x="545" y="178">2. Proxy invokes target process()</text><path class="call" d="M785 255 C910 255 910 325 785 325" marker-end="url(#pa3)"/><text class="label" x="818" y="286">3. this.pay()</text><text class="small" x="650" y="360">The internal call stays on the target object.</text><text class="small" x="618" y="382">It does not cross the proxy again, so advice on pay() may not execute.</text></svg></div>
+<div class="example-grid" style="margin-top:18px"><div class="example"><div class="example-head"><strong>Problem</strong><span>Internal call does not re-enter the proxy.</span></div><pre><code>@Service
+public class PaymentService {
+
+    public void process() {
+        pay(); // effectively this.pay()
+    }
+
+    @Transactional
+    public void pay() {
+        // DB work
+    }
+}</code></pre></div><div class="example"><div class="example-head"><strong>Preferred fix</strong><span>Move the advised operation to another bean.</span></div><pre><code>@Service
+public class PaymentProcessor {
+
+    private final PaymentService paymentService;
+
+    public void process() {
+        paymentService.pay();
+        // external bean call crosses proxy
+    }
+}</code></pre></div></div>
+</section>
+
+<section id="pitfalls">
+<div class="section-kicker">Senior interview notes</div>
+<h2>7. Common mistakes and design rules</h2>
+<div class="grid2">
+<div class="card"><h3>Do not use Filter for Service logic</h3><p>A Filter only knows the HTTP request/response boundary. If you need behavior around <code>OrderService.createOrder()</code>, AOP is the more natural layer.</p></div>
+<div class="card"><h3>Do not use Interceptor as a universal AOP replacement</h3><p>An Interceptor only participates in Spring MVC requests. Scheduled jobs, message consumers and internal bean calls do not pass through it.</p></div>
+<div class="card"><h3>Do not use Reflection when a normal interface is enough</h3><p>Reflection trades compile-time safety for runtime flexibility. Keep it mainly in generic infrastructure, framework and extension code.</p></div>
+<div class="card"><h3>Do not forget AOP proxy boundaries</h3><p>Self-invocation, non-Spring-created objects and some method visibility/finality choices can prevent proxy advice from behaving as expected.</p></div>
+</div>
+<div class="note warning"><p><strong>Logging caution:</strong> Filter, Interceptor and AOP can all accidentally leak secrets if they log full headers, tokens, passwords, request bodies or method arguments. Production logging should mask sensitive fields and control payload size.</p></div>
+</section>
+
+<section id="comparison"><h2>8. Comparison table</h2><div class="matrix"><table><thead><tr><th>Feature</th><th>Filter</th><th>Interceptor</th><th>Spring AOP</th><th>Reflection</th></tr></thead><tbody><tr><td>Belongs to</td><td>Servlet API</td><td>Spring MVC</td><td>Spring</td><td>Java</td></tr><tr><td>Layer</td><td>HTTP / Servlet</td><td>MVC / Controller</td><td>Bean / method</td><td>Runtime / JVM</td></tr><tr><td>Requires HTTP</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr><tr><td>Knows Controller method</td><td>Normally no</td><td>Yes</td><td>If advising it</td><td>Can inspect it</td></tr><tr><td>Works with Service methods</td><td>No</td><td>No</td><td>Yes</td><td>Can inspect/invoke dynamically</td></tr><tr><td>Can stop HTTP request</td><td>Yes</td><td>Yes</td><td>Not its main role</td><td>No</td></tr><tr><td>Main mechanism</td><td>Filter chain</td><td>MVC handler chain</td><td>Proxy / advice</td><td>Runtime introspection</td></tr><tr><td>Typical use</td><td>JWT, CORS, headers, request ID</td><td>Controller logging, endpoint rules</td><td>Transaction, audit, timing, cache</td><td>Framework metadata, plugins, dynamic invocation</td></tr></tbody></table></div><div class="rules"><div>Filter<span>Whole HTTP request</span></div><div>Interceptor<span>Selected MVC Controller</span></div><div>Spring AOP<span>Spring bean method call</span></div><div>Reflection<span>Runtime metadata / dynamic invocation</span></div></div><div class="note"><p><strong>Fast decision:</strong> Need HTTP-wide behavior? Use Filter. Need the selected Controller method? Use Interceptor. Need reusable behavior around Service/bean methods? Use AOP. Need to discover or invoke unknown structure dynamically? Use Reflection.</p></div></section>
+
+<section id="interview-qa">
+<div class="section-kicker">Common Spring interview questions</div>
+<h2>9. Interview Q&amp;A</h2>
+<p class="intro">These two questions are common because they test whether you understand the Spring Web request lifecycle, not only how to write annotations.</p>
+
+<div class="subsection">
+<h3>Q1. How do you log before and after entering a Controller, besides Spring AOP?</h3>
+<div class="interview">
+<p><strong>Recommended answer:</strong> use a Spring MVC <code>HandlerInterceptor</code>. <code>preHandle()</code> runs before the selected Controller method. <code>postHandle()</code> runs after the Controller returns normally, and <code>afterCompletion()</code> runs when MVC request processing is complete. If I need logging around the entire HTTP request instead of specifically around Controller execution, I use a Servlet <code>Filter</code> or <code>OncePerRequestFilter</code>.</p>
+</div>
+
+<div class="mini-flow">
+<div class="mini-box">HTTP Request<small>GET /api/orders/10</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">Filter<small>whole HTTP lifecycle</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">DispatcherServlet<small>resolve handler</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">preHandle()<small>before Controller</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">OrderController<small>getOrder()</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">postHandle()<small>normal return</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">afterCompletion()<small>final cleanup/logging</small></div>
+</div>
+
+<div class="example-grid">
+<div class="example">
+<div class="example-head"><strong>Controller logging with HandlerInterceptor</strong><span>Best when you need the exact Controller class and method.</span></div>
+<pre><code>@Component
+public class ControllerLoggingInterceptor
+        implements HandlerInterceptor {
+
+    private static final String START_TIME = "startTime";
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        request.setAttribute(
+            START_TIME,
+            System.currentTimeMillis()
+        );
+
+        if (handler instanceof HandlerMethod hm) {
+            log.info("Before Controller: {}.{}",
+                hm.getBeanType().getSimpleName(),
+                hm.getMethod().getName());
+        }
+
+        return true;
+    }
+
+    @Override
+    public void postHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            ModelAndView modelAndView) {
+
+        if (handler instanceof HandlerMethod hm) {
+            log.info("Controller returned normally: {}.{}",
+                hm.getBeanType().getSimpleName(),
+                hm.getMethod().getName());
+        }
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+
+        Long start = (Long) request.getAttribute(START_TIME);
+
+        if (start != null) {
+            long duration =
+                System.currentTimeMillis() - start;
+
+            log.info("MVC request completed: status={}, duration={}ms",
+                response.getStatus(), duration);
+        }
+
+        if (ex != null) {
+            log.error("Unhandled MVC exception", ex);
+        }
+    }
+}</code></pre>
+</div>
+
+<div class="example">
+<div class="example-head"><strong>Register the Interceptor</strong><span>Select which endpoint paths should be intercepted.</span></div>
+<pre><code>@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    private final ControllerLoggingInterceptor interceptor;
+
+    public WebConfig(
+            ControllerLoggingInterceptor interceptor) {
+        this.interceptor = interceptor;
+    }
+
+    @Override
+    public void addInterceptors(
+            InterceptorRegistry registry) {
+
+        registry.addInterceptor(interceptor)
+            .addPathPatterns("/api/**")
+            .excludePathPatterns(
+                "/api/health",
+                "/api/login"
+            );
+    }
+}</code></pre>
+<div class="code-note"><strong>Why this is better than a Filter for Controller-specific logging:</strong> <code>handler</code> can be a <code>HandlerMethod</code>, so you can read the Controller class, Java method and its annotations.</div>
+</div>
+</div>
+
+<div class="example-grid">
+<div class="example">
+<div class="example-head"><strong>Alternative: whole HTTP request logging with Filter</strong><span>Use this when Controller identity is not the main requirement.</span></div>
+<pre><code>@Component
+public class HttpLoggingFilter
+        extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
+
+        long start = System.currentTimeMillis();
+
+        log.info("HTTP before: {} {}",
+            request.getMethod(),
+            request.getRequestURI());
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            log.info("HTTP after: status={}, duration={}ms",
+                response.getStatus(),
+                System.currentTimeMillis() - start);
+        }
+    }
+}</code></pre>
+</div>
+<div class="card">
+<h3>How I choose in production</h3>
+<div class="usecase"><strong>Controller name / method</strong><span>Use <code>HandlerInterceptor</code>.</span></div>
+<div class="usecase"><strong>Total HTTP latency</strong><span>Use <code>Filter</code>; it wraps more of the request lifecycle.</span></div>
+<div class="usecase"><strong>Service method timing</strong><span>Use Spring AOP.</span></div>
+<div class="usecase"><strong>Trace ID / MDC</strong><span>Usually use a Filter so the ID exists for downstream MVC and Service logs.</span></div>
+</div>
+</div>
+
+<div class="note good-note"><p><strong>Interview detail:</strong> <code>postHandle()</code> is for a normal Controller return. For final timing/cleanup, prefer <code>afterCompletion()</code>. Also remember that an exception may be handled by Spring's exception resolvers, so the <code>Exception ex</code> argument is not a complete substitute for centralized exception logging.</p></div>
+</div>
+
+<div class="subsection">
+<h3>Q2. What is the difference between Interceptor and Filter?</h3>
+<div class="interview">
+<p><strong>Recommended answer:</strong> a Filter belongs to the Servlet layer and wraps the HTTP request before it enters Spring MVC. A HandlerInterceptor belongs to Spring MVC and runs after Spring has mapped the request to a handler, so it can work with the selected Controller method. I use Filter for HTTP-wide infrastructure and Interceptor for Controller-aware behavior.</p>
+</div>
+
+<div class="diagram" style="margin-top:16px">
+<div class="mini-flow">
+<div class="mini-box">Client<small>HTTP</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">Servlet Filter<small>request / response</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">DispatcherServlet<small>Spring MVC starts</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">HandlerMapping<small>find Controller</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">Interceptor<small>HandlerMethod known</small></div>
+<div class="arrow">-&gt;</div>
+<div class="mini-box">Controller<small>endpoint</small></div>
+</div>
+</div>
+
+<div class="matrix compact-table" style="margin-top:18px">
+<table>
+<thead><tr><th>Point</th><th>Filter</th><th>HandlerInterceptor</th></tr></thead>
+<tbody>
+<tr><td>API / framework</td><td>Servlet API (<code>jakarta.servlet</code>)</td><td>Spring MVC</td></tr>
+<tr><td>Runs where?</td><td>Outside / before Spring MVC handler execution</td><td>Inside Spring MVC around the selected handler</td></tr>
+<tr><td>Main input</td><td><code>HttpServletRequest</code>, <code>HttpServletResponse</code>, <code>FilterChain</code></td><td>Request, response and <code>handler</code></td></tr>
+<tr><td>Knows exact Controller?</td><td>Normally no</td><td>Yes, when <code>handler instanceof HandlerMethod</code></td></tr>
+<tr><td>Before hook</td><td>Code before <code>chain.doFilter()</code></td><td><code>preHandle()</code></td></tr>
+<tr><td>After hook</td><td>Code after <code>chain.doFilter()</code></td><td><code>postHandle()</code> / <code>afterCompletion()</code></td></tr>
+<tr><td>Can stop request?</td><td>Yes: do not call <code>chain.doFilter()</code></td><td>Yes: return <code>false</code> from <code>preHandle()</code></td></tr>
+<tr><td>Typical scope</td><td>All matching HTTP traffic, including requests that may never reach a Controller</td><td>Spring MVC handler execution</td></tr>
+<tr><td>Good use cases</td><td>Security filters, CORS, request ID, tracing, HTTP logging, request wrapping</td><td>Controller logging, endpoint annotations, Controller-specific authorization, locale / tenant rules tied to handlers</td></tr>
+<tr><td>Service / scheduled jobs?</td><td>No</td><td>No</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="example-grid">
+<div class="example">
+<div class="example-head"><strong>Filter can reject before MVC</strong><span>The request may never reach DispatcherServlet or a Controller.</span></div>
+<pre><code>String token = request.getHeader("Authorization");
+
+if (!tokenService.isValid(token)) {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    return; // do not continue the FilterChain
+}
+
+chain.doFilter(request, response);</code></pre>
+</div>
+<div class="example">
+<div class="example-head"><strong>Interceptor can inspect the selected Controller</strong><span>Spring MVC has already resolved the handler.</span></div>
+<pre><code>if (handler instanceof HandlerMethod hm) {
+
+    Class&lt;?&gt; controllerClass = hm.getBeanType();
+    Method controllerMethod = hm.getMethod();
+
+    boolean requiresAudit =
+        controllerMethod.isAnnotationPresent(Audit.class);
+
+    log.info("{}.{} audit={}",
+        controllerClass.getSimpleName(),
+        controllerMethod.getName(),
+        requiresAudit);
+}</code></pre>
+</div>
+</div>
+
+<div class="note"><p><strong>Important nuance:</strong> Spring Security is implemented primarily as a chain of Servlet Filters. That is why authentication commonly happens before your MVC Interceptors. An Interceptor can enforce Controller-aware rules, but it should not be treated as a replacement for the core Spring Security filter chain.</p></div>
+</div>
+</section>
+
+<section><h2>10. 30-second interview summary</h2><div class="interview"><p><strong>Filter</strong> works at the Servlet level and is ideal for HTTP-wide concerns such as authentication, CORS, headers, request IDs and access logging. <strong>HandlerInterceptor</strong> works inside Spring MVC after Spring has resolved the handler, so it can identify the exact Controller class and method. <strong>Spring AOP</strong> works around Spring bean method calls through proxies, so it is suitable for transactions, auditing, timing, caching and other cross-cutting concerns. <strong>Java Reflection</strong> is different: it is a runtime mechanism for inspecting and invoking classes, methods, fields, constructors and annotations dynamically.</p></div></section>
+<div class="footer">Rule of thumb: Filter = HTTP request | Interceptor = Controller | AOP = Spring bean method | Reflection = runtime inspection.</div>
+</div>
+</body>
+</html>

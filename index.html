@@ -16,6 +16,7 @@
       --border: #d9e1ec;
       --java: #c2410c;
       --spring: #15803d;
+      --spring-aop: #047857;
       --backend: #2563eb;
       --db: #0f766e;
       --kafka: #4338ca;
@@ -28,6 +29,7 @@
       --behavior: #a16207;
       --testing: #2563eb;
       --caching: #0e7490;
+      --ai: #4f46e5;
       --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
       --radius: 8px;
     }
@@ -485,10 +487,12 @@
         <button class="filter-btn" type="button" data-filter="java">Java</button>
         <button class="filter-btn" type="button" data-filter="jvm">JVM</button>
         <button class="filter-btn" type="button" data-filter="spring">Spring</button>
+        <button class="filter-btn" type="button" data-filter="spring-aop">Spring AOP</button>
         <button class="filter-btn" type="button" data-filter="backend">Backend</button>
         <button class="filter-btn" type="button" data-filter="db">DB</button>
         <button class="filter-btn" type="button" data-filter="kafka">Kafka</button>
         <button class="filter-btn" type="button" data-filter="caching">Caching</button>
+        <button class="filter-btn" type="button" data-filter="ai">AI</button>
         <button class="filter-btn" type="button" data-filter="microservice">Microservice</button>
         <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
         <button class="filter-btn" type="button" data-filter="testing">Testing</button>
@@ -692,6 +696,16 @@
         filter: "spring",
         accent: "var(--spring)",
         tags: ["java", "reflection", "spring", "aop", "proxy", "annotation"]
+      },
+      {
+        id: "spring-filter-interceptor-aop-reflection",
+        title: "Filter vs Interceptor vs Spring AOP vs Reflection",
+        summary: "Interview guide comparing Servlet Filter, Spring MVC HandlerInterceptor, Spring AOP, and Java Reflection with request flow, practical use cases, common mistakes, and Q&A.",
+        file: "spring_filter_interceptor_aop_reflection_with_interview_questions.html",
+        category: "Spring AOP",
+        filter: "spring-aop",
+        accent: "var(--spring-aop)",
+        tags: ["spring", "filter", "interceptor", "aop", "reflection", "servlet", "spring mvc", "proxy", "interview"]
       },
       {
         id: "spring-boot",
@@ -1172,6 +1186,16 @@
         filter: "ops",
         accent: "var(--ops)",
         tags: ["ci/cd", "jenkins", "docker", "kubernetes", "spring boot", "java", "maven", "git", "devops"]
+      },
+      {
+        id: "ai-sdlc-slide-deck",
+        title: "AI-SDLC Slide Deck",
+        summary: "Slide deck introducing AI, Generative AI, LLM concepts, coding agents, token usage, MCP, agent workflow, security risks, controls, and AI-SDLC adoption for software teams.",
+        file: "ai_sdlc_slide_deck.html",
+        category: "AI",
+        filter: "ai",
+        accent: "var(--ai)",
+        tags: ["ai", "ai-sdlc", "generative ai", "llm", "coding agent", "mcp", "security", "token", "software delivery", "adoption"]
       },
       {
         id: "microservice-devops",
