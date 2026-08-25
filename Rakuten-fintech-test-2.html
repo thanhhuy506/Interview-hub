@@ -190,6 +190,35 @@
       font-weight: 650;
     }
 
+    .problem-text {
+      color: var(--text);
+      margin: 0 0 14px;
+    }
+
+    .problem-list {
+      margin: 0 0 14px 20px;
+      padding: 0;
+      color: var(--text);
+    }
+
+    .problem-list li {
+      margin: 6px 0;
+    }
+
+    .example-box {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #181b1f;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .example-box strong {
+      color: var(--accent);
+    }
+
     .answer {
       border-left: 4px solid var(--accent-2);
       padding: 10px 12px;
@@ -200,6 +229,28 @@
 
     .answer strong {
       color: var(--accent);
+    }
+
+    .options {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .option {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #191c20;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .option.correct {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(255, 209, 102, .08);
+      font-weight: 800;
     }
 
     .explain {
@@ -363,6 +414,12 @@
             <p class="prompt">What is printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: C</div>
+              <div class="option">B: P</div>
+              <div class="option correct">C: P C</div>
+              <div class="option">D: C P</div>
+            </div>
             <div class="answer">Correct answer: <strong>C: P C</strong></div>
             <p class="explain">When a child object is created, Java calls the parent constructor first, then the child constructor. The parent constructor prints <code>P</code>, then the child constructor prints <code>C</code>.</p>
             <div class="terms">
@@ -393,6 +450,12 @@ System.out.println(test());</code></pre>
             <p class="prompt">What is printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: 1</div>
+              <div class="option correct">B: 2</div>
+              <div class="option">C: Compile error</div>
+              <div class="option">D: Runtime error</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: 2</strong></div>
             <p class="explain">The <code>finally</code> block runs after the <code>try</code> block. A return inside <code>finally</code> overrides the earlier return from <code>try</code>, so the method returns <code>2</code>.</p>
             <div class="terms">
@@ -452,6 +515,12 @@ System.out.println(test());</code></pre>
             <p class="prompt">What is printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option correct">A: A</div>
+              <div class="option">B: B</div>
+              <div class="option">C: A B</div>
+              <div class="option">D: Runtime error</div>
+            </div>
             <div class="answer">Correct answer: <strong>A: A</strong></div>
             <p class="explain">Static methods are hidden, not overridden. The method call is resolved using the reference type <code>A</code>, so <code>A.run()</code> is called.</p>
             <div class="terms">
@@ -483,6 +552,10 @@ System.out.println(obj.x);</code></pre>
             <p class="prompt">What is printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option correct">A: 1</div>
+              <div class="option">B: 2</div>
+            </div>
             <div class="answer">Correct answer: <strong>A: 1</strong></div>
             <p class="explain">Instance fields are resolved by reference type, not runtime object type. Since <code>obj</code> is declared as <code>A</code>, Java reads <code>A.x</code>.</p>
             <div class="terms">
@@ -512,6 +585,12 @@ System.out.println(obj.x);</code></pre>
             <p class="prompt">What is printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option correct">A: 1</div>
+              <div class="option">B: 2</div>
+              <div class="option">C: 3</div>
+              <div class="option">D: Compile error</div>
+            </div>
             <div class="answer">Correct answer: <strong>A: 1</strong></div>
             <p class="explain">Fields are not polymorphic in Java. Field access is resolved by the reference type, and the reference type here is <code>A</code>.</p>
             <div class="terms">
@@ -538,6 +617,12 @@ System.out.println(obj.x);</code></pre>
             <p class="prompt">What type of exception is thrown?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Checked exception</div>
+              <div class="option correct">B: Unchecked exception</div>
+              <div class="option">C: IOException</div>
+              <div class="option">D: Error</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: Unchecked exception</strong></div>
             <p class="explain">Any exception that extends <code>RuntimeException</code> is an unchecked exception. It does not need to be caught or declared.</p>
             <div class="terms">
@@ -567,6 +652,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">What is the most likely output?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Always 1000</div>
+              <div class="option correct">B: Always &lt; 1000</div>
+              <div class="option">C: Always 0</div>
+              <div class="option">D: Throws exception</div>
+            </div>
             <div class="answer">Best answer: <strong>B: Always &lt; 1000</strong></div>
             <p class="explain">The intended point is that <code>value++</code> is not atomic, so parallel calls can lose updates. Strictly, the result is nondeterministic and could occasionally be 1000, but it is usually less than 1000.</p>
             <div class="terms">
@@ -593,6 +684,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">What does <code>synchronized(this)</code> guarantee?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Only one thread can call add() at a time</div>
+              <div class="option">B: Only one thread can access the entire object</div>
+              <div class="option correct">C: Only one thread can access the block for this instance</div>
+              <div class="option">D: It locks the class, not the instance</div>
+            </div>
             <div class="answer">Correct answer: <strong>C: Only one thread can access the block for this instance</strong></div>
             <p class="explain"><code>synchronized(this)</code> locks the current object instance. Other threads using the same instance must wait before entering code synchronized on that same monitor.</p>
             <div class="terms">
@@ -619,6 +716,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">If 10 threads call <code>register()</code> concurrently, what is true?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: count is always 10</div>
+              <div class="option correct">B: count may be &lt; 10</div>
+              <div class="option">C: count resets per instance</div>
+              <div class="option">D: count is thread-local</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: count may be &lt; 10</strong></div>
             <p class="explain"><code>count</code> is static, so it is shared by all instances. But <code>count++</code> is not thread-safe, so concurrent updates can be lost.</p>
             <div class="terms">
@@ -647,6 +750,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">When is <code>"init"</code> printed?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Every time new A() is created</div>
+              <div class="option correct">B: Only once when class A is loaded</div>
+              <div class="option">C: Never</div>
+              <div class="option">D: Every time x is accessed</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: Only once when class A is loaded</strong></div>
             <p class="explain">Static fields are initialized during class initialization, once per class loading. Creating more objects or reading <code>x</code> later does not call <code>init()</code> again.</p>
             <div class="terms">
@@ -671,6 +780,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">What happens when validating a User with <code>name = null</code>?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Nothing</div>
+              <div class="option">B: ValidationException is thrown</div>
+              <div class="option correct">C: A constraint violation is returned</div>
+              <div class="option">D: NullPointerException</div>
+            </div>
             <div class="answer">Correct answer: <strong>C: A constraint violation is returned</strong></div>
             <p class="explain">Bean Validation returns a set of <code>ConstraintViolation</code> objects when validation fails. A plain invalid field normally does not throw <code>ValidationException</code>.</p>
             <div class="terms">
@@ -692,6 +807,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">If DEBUG is disabled, what happens?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Nothing is executed</div>
+              <div class="option correct">B: String concatenation still happens</div>
+              <div class="option">C: user.getName() is skipped</div>
+              <div class="option">D: Logback optimizes and removes concatenation</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: String concatenation still happens</strong></div>
             <p class="explain">Java evaluates method arguments before calling the method, so <code>user.getName()</code> and string concatenation still happen even if the logger discards the debug message.</p>
             <div class="terms">
@@ -717,6 +838,12 @@ System.out.println(c.get());</code></pre>
             <p class="prompt">What is the hidden issue?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Wrong log level</div>
+              <div class="option correct">B: Exception is swallowed without stacktrace</div>
+              <div class="option">C: risky() is never executed</div>
+              <div class="option">D: log.error cannot log exceptions</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: Exception is swallowed without stacktrace</strong></div>
             <p class="explain">The code catches the exception but logs only a message. The stack trace is lost. Prefer <code>log.error("Failed", e)</code> or rethrow when needed.</p>
             <div class="terms">
@@ -740,6 +867,12 @@ Files.readString(Path.of(file));</code></pre>
             <p class="prompt">If <code>input = "../etc/passwd"</code>, what happens?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Java blocks the request</div>
+              <div class="option">B: FileNotFoundException</div>
+              <div class="option correct">C: Potential path traversal vulnerability</div>
+              <div class="option">D: input is sanitized automatically</div>
+            </div>
             <div class="answer">Correct answer: <strong>C: Potential path traversal vulnerability</strong></div>
             <p class="explain">The input can produce <code>/data/../etc/passwd</code>, which may escape the intended directory. Java does not automatically sanitize this path.</p>
             <div class="terms">
@@ -768,6 +901,12 @@ Files.readString(Path.of(file));</code></pre>
             <p class="prompt">Assume <code>getProfile()</code> triggers a DB call. What is the issue?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: Memory leak</div>
+              <div class="option correct">B: N+1 query problem</div>
+              <div class="option">C: Dead code</div>
+              <div class="option">D: NullPointerException</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: N+1 query problem</strong></div>
             <p class="explain">After loading N users, the loop may execute one extra query per user to load profiles. Use fetch join, entity graph, or batch loading.</p>
             <div class="terms">
@@ -795,6 +934,12 @@ Files.readString(Path.of(file));</code></pre>
             <p class="prompt">What is the issue?</p>
           </div>
           <div class="answer-pane">
+            <div class="options">
+              <div class="option">A: equals must be static</div>
+              <div class="option correct">B: equals must override Object.equals(Object)</div>
+              <div class="option">C: equals must compare references</div>
+              <div class="option">D: equals must throw exceptions</div>
+            </div>
             <div class="answer">Correct answer: <strong>B: equals must override Object.equals(Object)</strong></div>
             <p class="explain"><code>equals(User)</code> overloads the method but does not override <code>equals(Object)</code>. Collections and frameworks expect the Object signature, and <code>hashCode()</code> should be overridden too.</p>
             <div class="terms">
@@ -813,9 +958,27 @@ Files.readString(Path.of(file));</code></pre>
         </div>
         <div class="question-body">
           <div class="code-pane">
+            <p class="problem-text">Implement a function that finds the number or numbers that occur most frequently in an integer array.</p>
+            <ol class="problem-list">
+              <li><strong>Function:</strong> <code>findMostFrequent(int[] nums)</code></li>
+              <li><strong>Input:</strong> an array of integers <code>nums</code>, which can contain millions of elements.</li>
+              <li><strong>Output:</strong> a list of pairs <code>(number, frequency)</code> representing the most frequently occurring numbers in the array, sorted by frequency in descending order.</li>
+            </ol>
 <pre><code><span class="kw-purple">public static</span> List&lt;Map.Entry&lt;Integer, Integer&gt;&gt;
 findMostFrequent(<span class="kw-orange">int</span>[] nums)</code></pre>
-            <p class="prompt">Return the most frequent number-frequency pairs, sorted by frequency descending.</p>
+            <div class="example-box">
+              <strong>Example 1</strong><br>
+              Input: <code>[1, 3, 2, 1, 4, 2, 1, 3]</code><br>
+              Output: <code>[(1, 3)]</code><br>
+              Number <code>1</code> appears 3 times, the most.
+            </div>
+            <div class="example-box">
+              <strong>Example 2</strong><br>
+              Input: <code>[1, 2, 2, 3, 3]</code><br>
+              Output: <code>[(2, 2), (3, 2)]</code><br>
+              Numbers <code>2</code> and <code>3</code> both appear 2 times.
+            </div>
+            <p class="prompt">Question: return all most-frequent pairs efficiently for a large array.</p>
           </div>
           <div class="answer-pane">
             <div class="answer">Correct approach: <strong>HashMap frequency count</strong></div>
@@ -864,8 +1027,25 @@ findMostFrequent(<span class="kw-orange">int</span>[] nums)</code></pre>
         </div>
         <div class="question-body">
           <div class="code-pane">
+            <p class="problem-text">You are given a string <code>s</code> and an array of strings <code>words</code>. All strings in <code>words</code> have the same length.</p>
+            <p class="problem-text">A concatenated string is a string that exactly contains all strings of any permutation of <code>words</code> concatenated.</p>
+            <ol class="problem-list">
+              <li><strong>Input:</strong> a string <code>s</code> and an array <code>words</code>.</li>
+              <li><strong>Output:</strong> all starting indices of substrings in <code>s</code> that are a concatenation of each word in <code>words</code> exactly once.</li>
+              <li><strong>Order:</strong> the answer can be returned in any order.</li>
+            </ol>
 <pre><code><span class="kw-purple">public</span> List&lt;Integer&gt; findSubstring(String s, String[] words)</code></pre>
-            <p class="prompt">Return all starting indices where a substring is a concatenation of every word exactly once.</p>
+            <div class="example-box">
+              <strong>Example 1</strong><br>
+              Input: <code>s = "barfoothefoobarman"</code>, <code>words = ["foo", "bar"]</code><br>
+              Output: <code>[0, 9]</code><br>
+              At index <code>0</code>, substring <code>"barfoo"</code> is <code>"bar" + "foo"</code>. At index <code>9</code>, substring <code>"foobar"</code> is <code>"foo" + "bar"</code>.
+            </div>
+            <div class="example-box">
+              <strong>Permutation example</strong><br>
+              If <code>words = ["ab", "cd", "ef"]</code>, then <code>"abcdef"</code>, <code>"abefcd"</code>, <code>"cdabef"</code>, <code>"cdefab"</code>, <code>"efabcd"</code>, and <code>"efcdab"</code> are valid concatenated strings.
+            </div>
+            <p class="prompt">Question: find every starting index in <code>s</code> where such a concatenated substring begins.</p>
           </div>
           <div class="answer-pane">
             <div class="answer">Correct approach: <strong>Sliding window by word length</strong></div>
