@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SQL Live Coding Interview Handbook</title>
+<style>
+:root{
+  --bg:#f6f8fb;
+  --surface:#ffffff;
+  --surface-soft:#f2f5f9;
+  --text:#182230;
+  --muted:#617083;
+  --border:#dbe2ea;
+  --accent:#183f63;
+  --accent2:#245a86;
+  --good:#1f6a4f;
+  --warn:#8b5d17;
+  --bad:#8a3434;
+  --code:#0f1720;
+  --shadow:0 8px 24px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  line-height:1.7;
+}
+.layout{display:grid;grid-template-columns:310px minmax(0,1fr);min-height:100vh}
+aside{
+  position:sticky;top:0;height:100vh;overflow:auto;
+  padding:26px 20px;background:#102538;color:#e8f0f7;border-right:1px solid #1d3a53;
+}
+.brand{font-size:21px;font-weight:800;line-height:1.25}
+.brand small{display:block;margin-top:7px;color:#9fb7ca;font-size:12px;text-transform:uppercase;letter-spacing:.09em}
+.toc-title{margin:28px 8px 9px;color:#86a1b7;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+nav a{display:block;padding:7px 10px;border-radius:8px;color:#dce9f2;text-decoration:none;font-size:13px}
+nav a:hover{background:#19364e}
+main{max-width:1220px;width:100%;margin:0 auto;padding:46px 56px 90px}
+.hero{
+  padding:46px;border-radius:22px;background:linear-gradient(145deg,#102b43,#245a86);
+  color:white;box-shadow:var(--shadow);margin-bottom:28px;
+}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:#b7ccdc;font-weight:800}
+h1{font-size:46px;line-height:1.08;margin:10px 0 14px}
+.hero p{font-size:19px;color:#e0ebf2;max-width:900px}
+section{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;
+  margin:22px 0;box-shadow:0 3px 14px rgba(15,23,42,.035)
+}
+h2{font-size:30px;line-height:1.2;margin:0 0 18px}
+h3{font-size:23px;margin:31px 0 12px}
+h4{font-size:17px;margin:22px 0 8px}
+p{margin:9px 0 13px}
+.lead{font-size:18px;color:#334155}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--surface-soft);border:1px solid var(--border);border-radius:13px;padding:18px}
+.card h3,.card h4{margin-top:0}
+.note,.good,.warning{
+  border:1px solid var(--border);border-radius:12px;padding:17px 19px;margin:17px 0
+}
+.note{background:#eef5fb;border-left:5px solid var(--accent2)}
+.good{background:#eef8f3;border-left:5px solid var(--good)}
+.warning{background:#fff8e8;border-left:5px solid var(--warn)}
+pre{
+  background:var(--code);color:#e7edf3;border-radius:12px;padding:19px;overflow:auto;
+  border:1px solid #263442;line-height:1.55;font-size:14px
+}
+code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
+th,td{padding:12px 11px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:#eff4f8;color:#2a4054;font-weight:800}
+.badge{
+  display:inline-block;background:#e6eef5;color:#1b486c;border:1px solid #ccdae6;border-radius:999px;
+  padding:3px 9px;font-size:12px;font-weight:800;margin-right:5px
+}
+.q{
+  border-top:1px solid var(--border);padding-top:22px;margin-top:30px
+}
+.q:first-of-type{border-top:none;padding-top:0}
+.number{
+  display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;border-radius:50%;
+  background:var(--accent);color:#fff;font-weight:800;margin-right:8px
+}
+.step{border-left:3px solid #cad8e4;padding-left:16px;margin:13px 0}
+.kicker{color:var(--muted);font-size:13px}
+.sql-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#668096;margin-top:14px}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2f6;border:1px solid #d8e0e8;font-size:12px;margin:2px}
+.answer details{
+  border:1px solid var(--border);background:#fbfcfe;border-radius:10px;padding:11px 14px;margin:10px 0
+}
+.answer summary{cursor:pointer;font-weight:800}
+footer{text-align:center;color:var(--muted);padding:30px}
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  aside{position:relative;height:auto}
+  main{padding:26px 16px 60px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  h1{font-size:36px}
+  .hero{padding:32px 23px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">SQL Live Coding
+    <small>Interview Questions & Answers</small>
+  </div>
+
+  <div class="toc-title">Foundation</div>
+  <nav>
+    <a href="#overview">How to use this handbook</a>
+    <a href="#schema">Sample schema</a>
+    <a href="#q1">1. Second highest salary</a>
+    <a href="#q2">2. Highest salary per department</a>
+    <a href="#q3">3. Find duplicate rows</a>
+    <a href="#q4">4. Delete duplicates</a>
+    <a href="#q5">5. Customers with no orders</a>
+    <a href="#q6">6. Best-selling product</a>
+    <a href="#q7">7. Top 3 products per category</a>
+    <a href="#q8">8. Monthly revenue</a>
+    <a href="#q9">9. Consecutive purchase days</a>
+    <a href="#q10">10. Running total</a>
+    <a href="#q11">11. Revenue percentage</a>
+
+    <div class="toc-title">Intermediate</div>
+    <a href="#q12">12. Nth highest salary</a>
+    <a href="#q13">13. Employees above department average</a>
+    <a href="#q14">14. Latest order per customer</a>
+    <a href="#q15">15. First and last order</a>
+    <a href="#q16">16. Days between orders</a>
+    <a href="#q17">17. Find missing IDs</a>
+    <a href="#q18">18. Pivot-like conditional aggregation</a>
+    <a href="#q19">19. Customers buying all categories</a>
+    <a href="#q20">20. Median salary</a>
+
+    <div class="toc-title">Advanced</div>
+    <a href="#q21">21. Longest consecutive activity streak</a>
+    <a href="#q22">22. Sessionization</a>
+    <a href="#q23">23. 7-day moving average</a>
+    <a href="#q24">24. Retention query</a>
+    <a href="#q25">25. Detect overlapping intervals</a>
+
+    <div class="toc-title">Interview Strategy</div>
+    <a href="#patterns">Reusable SQL patterns</a>
+    <a href="#mistakes">Common mistakes</a>
+    <a href="#performance">Performance & indexing</a>
+    <a href="#cheatsheet">Cheat sheet</a>
+  </nav>
+</aside>
+
+<main>
+<div class="hero">
+  <div class="eyebrow">Backend / Data / Software Engineer Interview Preparation</div>
+  <h1>SQL Live Coding Interview Handbook</h1>
+  <p>
+    A practical collection of common SQL interview problems with clear answers, expected output,
+    step-by-step reasoning, alternative solutions, common mistakes, and production performance notes.
+  </p>
+</div>
+
+<section id="overview">
+  <h2>How to use this handbook</h2>
+  <p class="lead">
+    In a live coding interview, the interviewer is usually evaluating more than whether your final query works.
+    They also evaluate how you think, how you clarify assumptions, and whether you understand correctness and performance.
+  </p>
+  <div class="grid-3">
+    <div class="card">
+      <h4>1. Clarify</h4>
+      <p>Ask what duplicate means, how ties should be handled, whether NULL values exist, and which SQL dialect is used.</p>
+    </div>
+    <div class="card">
+      <h4>2. Build incrementally</h4>
+      <p>Start with a correct simple query, then improve it with window functions or indexes when needed.</p>
+    </div>
+    <div class="card">
+      <h4>3. Explain trade-offs</h4>
+      <p>Explain why you use JOIN, EXISTS, GROUP BY, ROW_NUMBER, RANK, or a CTE.</p>
+    </div>
+  </div>
+  <div class="note">
+    <strong>Dialect note:</strong> Most queries use ANSI-style SQL and work with small changes in PostgreSQL, MySQL 8+,
+    SQL Server, and Oracle. Some functions such as <code>DATE_TRUNC</code>, <code>INTERVAL</code>, and percentile functions
+    vary by database.
+  </div>
+</section>
+
+<section id="schema">
+  <h2>Sample schema used in examples</h2>
+  <pre><code>employees(
+    employee_id   BIGINT PRIMARY KEY,
+    employee_name VARCHAR(100),
+    department_id BIGINT,
+    salary        DECIMAL(12,2),
+    hired_at      DATE
+);
+
+departments(
+    department_id   BIGINT PRIMARY KEY,
+    department_name VARCHAR(100)
+);
+
+customers(
+    customer_id   BIGINT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    created_at    TIMESTAMP
+);
+
+orders(
+    order_id     BIGINT PRIMARY KEY,
+    customer_id  BIGINT,
+    order_date   TIMESTAMP,
+    total_amount DECIMAL(12,2),
+    status       VARCHAR(30)
+);
+
+order_items(
+    order_id    BIGINT,
+    product_id  BIGINT,
+    quantity    INT,
+    unit_price  DECIMAL(12,2)
+);
+
+products(
+    product_id   BIGINT PRIMARY KEY,
+    product_name VARCHAR(100),
+    category_id  BIGINT
+);
+
+categories(
+    category_id   BIGINT PRIMARY KEY,
+    category_name VARCHAR(100)
+);</code></pre>
+</section>
+
+<section id="q1">
+  <h2><span class="number">1</span>Find the second highest salary</h2>
+  <p><span class="badge">Window Function</span><span class="badge">Ranking</span></p>
+  <h4>Question</h4>
+  <p>Return the second highest <strong>distinct</strong> salary from the employees table.</p>
+
+  <div class="sql-label">Recommended answer</div>
+  <pre><code>SELECT salary
+FROM (
+    SELECT
+        salary,
+        DENSE_RANK() OVER (ORDER BY salary DESC) AS salary_rank
+    FROM employees
+) x
+WHERE salary_rank = 2;</code></pre>
+
+  <h4>Why DENSE_RANK?</h4>
+  <p>
+    Suppose salaries are:
+  </p>
+  <pre><code>10000
+10000
+9000
+8000</code></pre>
+  <p>
+    The second highest distinct salary is <strong>9000</strong>. <code>DENSE_RANK()</code> gives both 10000 rows rank 1,
+    then 9000 rank 2.
+  </p>
+
+  <h4>Alternative</h4>
+  <pre><code>SELECT MAX(salary) AS second_highest_salary
+FROM employees
+WHERE salary &lt; (SELECT MAX(salary) FROM employees);</code></pre>
+
+  <div class="warning">
+    Always clarify whether the interviewer means the second row or the second <strong>distinct</strong> salary.
+  </div>
+</section>
+
+<section id="q2">
+  <h2><span class="number">2</span>Find the highest-paid employee in each department</h2>
+  <p><span class="badge">Partition</span><span class="badge">Tie Handling</span></p>
+
+  <div class="sql-label">Answer preserving ties</div>
+  <pre><code>SELECT employee_id, employee_name, department_id, salary
+FROM (
+    SELECT
+        e.*,
+        DENSE_RANK() OVER (
+            PARTITION BY department_id
+            ORDER BY salary DESC
+        ) AS salary_rank
+    FROM employees e
+) x
+WHERE salary_rank = 1;</code></pre>
+
+  <h4>Why not ROW_NUMBER?</h4>
+  <p>
+    <code>ROW_NUMBER()</code> returns only one employee when two employees have the same highest salary.
+    <code>DENSE_RANK()</code> returns all tied employees.
+  </p>
+
+  <h4>Alternative using GROUP BY</h4>
+  <pre><code>SELECT e.*
+FROM employees e
+JOIN (
+    SELECT department_id, MAX(salary) AS max_salary
+    FROM employees
+    GROUP BY department_id
+) m
+  ON m.department_id = e.department_id
+ AND m.max_salary = e.salary;</code></pre>
+</section>
+
+<section id="q3">
+  <h2><span class="number">3</span>Find duplicate records</h2>
+  <p>Assume an employee is considered duplicated when <code>employee_name</code> and <code>department_id</code> are the same.</p>
+
+  <pre><code>SELECT
+    employee_name,
+    department_id,
+    COUNT(*) AS duplicate_count
+FROM employees
+GROUP BY employee_name, department_id
+HAVING COUNT(*) &gt; 1;</code></pre>
+
+  <div class="step">
+    <strong>Reasoning:</strong>
+    <code>GROUP BY</code> creates one group for each business key.
+    <code>HAVING</code> filters groups after aggregation.
+  </div>
+
+  <div class="warning">
+    <strong>Common mistake:</strong> using <code>WHERE COUNT(*) &gt; 1</code>. Aggregate functions belong in <code>HAVING</code>,
+    not <code>WHERE</code>.
+  </div>
+</section>
+
+<section id="q4">
+  <h2><span class="number">4</span>Delete duplicate rows while keeping one</h2>
+
+  <div class="sql-label">PostgreSQL / SQL Server style</div>
+  <pre><code>WITH ranked AS (
+    SELECT
+        employee_id,
+        ROW_NUMBER() OVER (
+            PARTITION BY employee_name, department_id
+            ORDER BY employee_id
+        ) AS rn
+    FROM employees
+)
+DELETE FROM employees
+WHERE employee_id IN (
+    SELECT employee_id
+    FROM ranked
+    WHERE rn &gt; 1
+);</code></pre>
+
+  <h4>How it works</h4>
+  <ol>
+    <li>Partition rows by the duplicate business key.</li>
+    <li>Give the first row number 1.</li>
+    <li>Delete rows numbered 2, 3, 4, ...</li>
+  </ol>
+
+  <div class="good">
+    In production, first run the CTE as a <code>SELECT</code> and verify the rows before executing the <code>DELETE</code>.
+  </div>
+</section>
+
+<section id="q5">
+  <h2><span class="number">5</span>Find customers who have never placed an order</h2>
+
+  <div class="sql-label">Preferred answer using NOT EXISTS</div>
+  <pre><code>SELECT c.customer_id, c.customer_name
+FROM customers c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);</code></pre>
+
+  <h4>Alternative using LEFT JOIN</h4>
+  <pre><code>SELECT c.customer_id, c.customer_name
+FROM customers c
+LEFT JOIN orders o
+  ON o.customer_id = c.customer_id
+WHERE o.order_id IS NULL;</code></pre>
+
+  <h4>Why NOT EXISTS is often a strong answer</h4>
+  <p>
+    It expresses the business intent directly: “return a customer for whom no matching order exists.”
+    It also avoids common NULL problems associated with <code>NOT IN</code>.
+  </p>
+</section>
+
+<section id="q6">
+  <h2><span class="number">6</span>Find the best-selling product</h2>
+  <p>Assume “best-selling” means highest total quantity sold.</p>
+
+  <pre><code>SELECT
+    p.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity
+FROM order_items oi
+JOIN products p
+  ON p.product_id = oi.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY total_quantity DESC
+FETCH FIRST 1 ROW ONLY;</code></pre>
+
+  <div class="note">
+    PostgreSQL/MySQL commonly use <code>LIMIT 1</code>. SQL Server commonly uses <code>TOP 1</code>.
+  </div>
+
+  <h4>Interview clarification</h4>
+  <p>
+    Ask whether “best-selling” means highest quantity, highest revenue, or highest number of distinct orders.
+    These are different metrics.
+  </p>
+</section>
+
+<section id="q7">
+  <h2><span class="number">7</span>Find the top 3 products by revenue in each category</h2>
+
+  <pre><code>WITH product_revenue AS (
+    SELECT
+        p.category_id,
+        p.product_id,
+        p.product_name,
+        SUM(oi.quantity * oi.unit_price) AS revenue
+    FROM order_items oi
+    JOIN products p
+      ON p.product_id = oi.product_id
+    GROUP BY
+        p.category_id,
+        p.product_id,
+        p.product_name
+),
+ranked AS (
+    SELECT
+        pr.*,
+        DENSE_RANK() OVER (
+            PARTITION BY category_id
+            ORDER BY revenue DESC
+        ) AS revenue_rank
+    FROM product_revenue pr
+)
+SELECT *
+FROM ranked
+WHERE revenue_rank &lt;= 3
+ORDER BY category_id, revenue_rank;</code></pre>
+
+  <h4>Why this is a classic interview problem</h4>
+  <p>
+    It tests whether you understand the pattern:
+    <strong>aggregate first → rank inside each group → filter the rank.</strong>
+  </p>
+</section>
+
+<section id="q8">
+  <h2><span class="number">8</span>Calculate monthly revenue</h2>
+
+  <div class="sql-label">PostgreSQL</div>
+  <pre><code>SELECT
+    DATE_TRUNC('month', order_date) AS month,
+    SUM(total_amount) AS revenue
+FROM orders
+WHERE status = 'COMPLETED'
+GROUP BY DATE_TRUNC('month', order_date)
+ORDER BY month;</code></pre>
+
+  <h4>Important details</h4>
+  <ul>
+    <li>Clarify which statuses count as revenue.</li>
+    <li>Clarify timezone if orders are stored in UTC.</li>
+    <li>Clarify whether refunds should reduce revenue.</li>
+  </ul>
+</section>
+
+<section id="q9">
+  <h2><span class="number">9</span>Find customers who purchased on consecutive days</h2>
+
+  <pre><code>WITH daily_orders AS (
+    SELECT DISTINCT
+        customer_id,
+        CAST(order_date AS DATE) AS order_day
+    FROM orders
+),
+with_previous AS (
+    SELECT
+        customer_id,
+        order_day,
+        LAG(order_day) OVER (
+            PARTITION BY customer_id
+            ORDER BY order_day
+        ) AS previous_day
+    FROM daily_orders
+)
+SELECT DISTINCT customer_id
+FROM with_previous
+WHERE order_day = previous_day + INTERVAL '1 day';</code></pre>
+
+  <h4>Why DISTINCT first?</h4>
+  <p>
+    A customer may create several orders on the same date. We want to compare distinct calendar days, not individual order rows.
+  </p>
+</section>
+
+<section id="q10">
+  <h2><span class="number">10</span>Calculate a running total</h2>
+
+  <pre><code>SELECT
+    order_date,
+    total_amount,
+    SUM(total_amount) OVER (
+        ORDER BY order_date, order_id
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS running_total
+FROM orders
+WHERE status = 'COMPLETED';</code></pre>
+
+  <h4>Key idea</h4>
+  <p>
+    A window aggregate calculates values across related rows without collapsing them into one row as <code>GROUP BY</code> does.
+  </p>
+
+  <div class="warning">
+    Add a deterministic tie-breaker such as <code>order_id</code> when multiple orders can share the same timestamp.
+  </div>
+</section>
+
+<section id="q11">
+  <h2><span class="number">11</span>Calculate each product's percentage of total revenue</h2>
+
+  <pre><code>WITH product_revenue AS (
+    SELECT
+        product_id,
+        SUM(quantity * unit_price) AS revenue
+    FROM order_items
+    GROUP BY product_id
+)
+SELECT
+    product_id,
+    revenue,
+    revenue * 100.0 / SUM(revenue) OVER () AS revenue_percentage
+FROM product_revenue
+ORDER BY revenue DESC;</code></pre>
+
+  <h4>Why <code>100.0</code>?</h4>
+  <p>
+    In some databases, using an integer can produce integer division. A decimal literal makes the intent explicit.
+  </p>
+</section>
+
+<section id="q12">
+  <h2><span class="number">12</span>Find the Nth highest salary</h2>
+  <p>For example, return the 4th highest distinct salary.</p>
+
+  <pre><code>SELECT salary
+FROM (
+    SELECT
+        salary,
+        DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+    FROM employees
+) x
+WHERE rnk = 4;</code></pre>
+
+  <p>
+    For a dynamic N, pass N as a parameter rather than building SQL by string concatenation.
+  </p>
+</section>
+
+<section id="q13">
+  <h2><span class="number">13</span>Find employees earning above their department average</h2>
+
+  <div class="sql-label">Window function solution</div>
+  <pre><code>SELECT employee_id, employee_name, department_id, salary
+FROM (
+    SELECT
+        e.*,
+        AVG(salary) OVER (
+            PARTITION BY department_id
+        ) AS department_avg_salary
+    FROM employees e
+) x
+WHERE salary &gt; department_avg_salary;</code></pre>
+
+  <h4>Alternative</h4>
+  <pre><code>SELECT e.*
+FROM employees e
+JOIN (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department_id
+) a
+  ON a.department_id = e.department_id
+WHERE e.salary &gt; a.avg_salary;</code></pre>
+</section>
+
+<section id="q14">
+  <h2><span class="number">14</span>Return the latest order for each customer</h2>
+
+  <pre><code>SELECT *
+FROM (
+    SELECT
+        o.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date DESC, order_id DESC
+        ) AS rn
+    FROM orders o
+) x
+WHERE rn = 1;</code></pre>
+
+  <h4>Why ROW_NUMBER?</h4>
+  <p>
+    We want exactly one row per customer. The second ordering column makes the result deterministic when timestamps are equal.
+  </p>
+</section>
+
+<section id="q15">
+  <h2><span class="number">15</span>Find each customer's first and last order date</h2>
+
+  <pre><code>SELECT
+    customer_id,
+    MIN(order_date) AS first_order_date,
+    MAX(order_date) AS last_order_date
+FROM orders
+GROUP BY customer_id;</code></pre>
+
+  <h4>Follow-up: return the full first-order row</h4>
+  <pre><code>SELECT *
+FROM (
+    SELECT
+        o.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date, order_id
+        ) AS rn
+    FROM orders o
+) x
+WHERE rn = 1;</code></pre>
+</section>
+
+<section id="q16">
+  <h2><span class="number">16</span>Calculate the number of days between consecutive orders</h2>
+
+  <pre><code>SELECT
+    customer_id,
+    order_id,
+    order_date,
+    LAG(order_date) OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date, order_id
+    ) AS previous_order_date,
+    order_date
+      - LAG(order_date) OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date, order_id
+        ) AS gap
+FROM orders;</code></pre>
+
+  <p>
+    <code>LAG()</code> is the natural choice when a row needs information from the previous row in the same group.
+  </p>
+</section>
+
+<section id="q17">
+  <h2><span class="number">17</span>Find missing IDs in a sequence</h2>
+  <p>Example existing IDs: 1, 2, 3, 5, 6, 9. Return missing values such as 4, 7, 8.</p>
+
+  <div class="sql-label">PostgreSQL example</div>
+  <pre><code>SELECT gs AS missing_id
+FROM generate_series(
+    (SELECT MIN(order_id) FROM orders),
+    (SELECT MAX(order_id) FROM orders)
+) gs
+LEFT JOIN orders o
+  ON o.order_id = gs
+WHERE o.order_id IS NULL;</code></pre>
+
+  <div class="note">
+    In databases without <code>generate_series</code>, use a numbers table or recursive CTE.
+  </div>
+</section>
+
+<section id="q18">
+  <h2><span class="number">18</span>Use conditional aggregation to create a pivot-like report</h2>
+  <p>Return completed, cancelled, and pending order counts per customer.</p>
+
+  <pre><code>SELECT
+    customer_id,
+    SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_orders,
+    SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled_orders,
+    SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) AS pending_orders
+FROM orders
+GROUP BY customer_id;</code></pre>
+
+  <h4>Interview concept</h4>
+  <p>
+    Conditional aggregation is often simpler and more portable than database-specific <code>PIVOT</code> syntax.
+  </p>
+</section>
+
+<section id="q19">
+  <h2><span class="number">19</span>Find customers who bought from every category</h2>
+
+  <pre><code>SELECT o.customer_id
+FROM orders o
+JOIN order_items oi
+  ON oi.order_id = o.order_id
+JOIN products p
+  ON p.product_id = oi.product_id
+GROUP BY o.customer_id
+HAVING COUNT(DISTINCT p.category_id)
+     = (SELECT COUNT(*) FROM categories);</code></pre>
+
+  <h4>What this tests</h4>
+  <p>
+    This is a form of relational division: finding entities related to <strong>all</strong> members of another set.
+  </p>
+</section>
+
+<section id="q20">
+  <h2><span class="number">20</span>Find the median salary</h2>
+
+  <div class="sql-label">PostgreSQL / Oracle-style ordered-set aggregate</div>
+  <pre><code>SELECT
+    PERCENTILE_CONT(0.5)
+    WITHIN GROUP (ORDER BY salary) AS median_salary
+FROM employees;</code></pre>
+
+  <h4>Window-function fallback</h4>
+  <pre><code>WITH ranked AS (
+    SELECT
+        salary,
+        ROW_NUMBER() OVER (ORDER BY salary) AS rn,
+        COUNT(*) OVER () AS cnt
+    FROM employees
+)
+SELECT AVG(salary) AS median_salary
+FROM ranked
+WHERE rn IN (
+    (cnt + 1) / 2,
+    (cnt + 2) / 2
+);</code></pre>
+</section>
+
+<section id="q21">
+  <h2><span class="number">21</span>Find the longest consecutive activity streak</h2>
+  <p>This is the classic <strong>gaps and islands</strong> problem.</p>
+
+  <div class="sql-label">PostgreSQL example</div>
+  <pre><code>WITH days AS (
+    SELECT DISTINCT
+        customer_id,
+        CAST(order_date AS DATE) AS activity_day
+    FROM orders
+),
+grouped AS (
+    SELECT
+        customer_id,
+        activity_day,
+        activity_day
+          - ROW_NUMBER() OVER (
+                PARTITION BY customer_id
+                ORDER BY activity_day
+            ) * INTERVAL '1 day' AS grp
+    FROM days
+),
+streaks AS (
+    SELECT
+        customer_id,
+        MIN(activity_day) AS start_day,
+        MAX(activity_day) AS end_day,
+        COUNT(*) AS streak_length
+    FROM grouped
+    GROUP BY customer_id, grp
+)
+SELECT *
+FROM streaks
+ORDER BY streak_length DESC;</code></pre>
+
+  <h4>Why the trick works</h4>
+  <p>
+    For consecutive dates, both the date and row number increase by one.
+    Subtracting the row-number offset creates the same grouping key for dates in the same streak.
+  </p>
+</section>
+
+<section id="q22">
+  <h2><span class="number">22</span>Sessionize user activity</h2>
+  <p>Create a new session when the gap between events is more than 30 minutes.</p>
+
+  <pre><code>WITH events AS (
+    SELECT
+        customer_id,
+        order_date AS event_time,
+        LAG(order_date) OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date
+        ) AS previous_time
+    FROM orders
+),
+flags AS (
+    SELECT
+        *,
+        CASE
+            WHEN previous_time IS NULL
+              OR event_time - previous_time &gt; INTERVAL '30 minutes'
+            THEN 1 ELSE 0
+        END AS new_session
+    FROM events
+)
+SELECT
+    *,
+    SUM(new_session) OVER (
+        PARTITION BY customer_id
+        ORDER BY event_time
+        ROWS UNBOUNDED PRECEDING
+    ) AS session_id
+FROM flags;</code></pre>
+</section>
+
+<section id="q23">
+  <h2><span class="number">23</span>Calculate a 7-day moving average of daily revenue</h2>
+
+  <pre><code>WITH daily AS (
+    SELECT
+        CAST(order_date AS DATE) AS order_day,
+        SUM(total_amount) AS daily_revenue
+    FROM orders
+    WHERE status = 'COMPLETED'
+    GROUP BY CAST(order_date AS DATE)
+)
+SELECT
+    order_day,
+    daily_revenue,
+    AVG(daily_revenue) OVER (
+        ORDER BY order_day
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS revenue_7d_avg
+FROM daily
+ORDER BY order_day;</code></pre>
+
+  <div class="warning">
+    This calculates seven <strong>rows</strong>, not necessarily seven calendar days if some dates have no rows.
+    For strict calendar-day logic, join to a calendar table first.
+  </div>
+</section>
+
+<section id="q24">
+  <h2><span class="number">24</span>Calculate next-day user retention</h2>
+  <p>
+    Suppose we treat a customer's first order date as the signup/activation date. Return the percentage of customers
+    who also ordered on the following day.
+  </p>
+
+  <pre><code>WITH first_day AS (
+    SELECT
+        customer_id,
+        MIN(CAST(order_date AS DATE)) AS cohort_day
+    FROM orders
+    GROUP BY customer_id
+),
+returned AS (
+    SELECT DISTINCT
+        f.customer_id
+    FROM first_day f
+    JOIN orders o
+      ON o.customer_id = f.customer_id
+     AND CAST(o.order_date AS DATE)
+         = f.cohort_day + INTERVAL '1 day'
+)
+SELECT
+    100.0 * COUNT(r.customer_id)
+    / COUNT(f.customer_id) AS next_day_retention_pct
+FROM first_day f
+LEFT JOIN returned r
+  ON r.customer_id = f.customer_id;</code></pre>
+</section>
+
+<section id="q25">
+  <h2><span class="number">25</span>Detect overlapping time intervals</h2>
+  <p>Assume bookings have <code>start_time</code> and <code>end_time</code>. Find pairs that overlap.</p>
+
+  <pre><code>SELECT
+    a.booking_id AS booking_a,
+    b.booking_id AS booking_b
+FROM bookings a
+JOIN bookings b
+  ON a.resource_id = b.resource_id
+ AND a.booking_id &lt; b.booking_id
+ AND a.start_time &lt; b.end_time
+ AND b.start_time &lt; a.end_time;</code></pre>
+
+  <h4>Core overlap rule</h4>
+  <pre><code>A overlaps B when:
+
+A.start &lt; B.end
+AND
+B.start &lt; A.end</code></pre>
+
+  <p>
+    This form handles interval overlap more reliably than trying to enumerate many separate cases.
+  </p>
+</section>
+
+<section id="patterns">
+  <h2>Reusable SQL patterns to remember</h2>
+  <table>
+    <thead><tr><th>Problem type</th><th>Typical pattern</th></tr></thead>
+    <tbody>
+      <tr><td>Top N overall</td><td><code>ORDER BY ... DESC LIMIT N</code></td></tr>
+      <tr><td>Top N per group</td><td><code>ROW_NUMBER / RANK / DENSE_RANK PARTITION BY</code></td></tr>
+      <tr><td>Previous/next row</td><td><code>LAG / LEAD</code></td></tr>
+      <tr><td>Running total</td><td><code>SUM(...) OVER (ORDER BY ...)</code></td></tr>
+      <tr><td>Duplicates</td><td><code>GROUP BY ... HAVING COUNT(*) &gt; 1</code></td></tr>
+      <tr><td>Delete duplicates</td><td><code>ROW_NUMBER()</code> then delete <code>rn &gt; 1</code></td></tr>
+      <tr><td>Missing relationship</td><td><code>NOT EXISTS</code> or <code>LEFT JOIN ... IS NULL</code></td></tr>
+      <tr><td>Conditional counts</td><td><code>SUM(CASE WHEN ... THEN 1 ELSE 0 END)</code></td></tr>
+      <tr><td>Gaps and islands</td><td>Row-number offset grouping</td></tr>
+      <tr><td>All members of a set</td><td><code>HAVING COUNT(DISTINCT ...) = total_count</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>Common live-coding mistakes</h2>
+
+  <h3>1. Using WHERE instead of HAVING</h3>
+  <pre><code>-- Wrong
+SELECT department_id, COUNT(*)
+FROM employees
+WHERE COUNT(*) &gt; 5
+GROUP BY department_id;
+
+-- Correct
+SELECT department_id, COUNT(*)
+FROM employees
+GROUP BY department_id
+HAVING COUNT(*) &gt; 5;</code></pre>
+
+  <h3>2. Using NOT IN with possible NULL values</h3>
+  <pre><code>-- Risky if subquery may return NULL
+WHERE customer_id NOT IN (
+    SELECT customer_id FROM orders
+)
+
+-- Safer
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);</code></pre>
+
+  <h3>3. Choosing the wrong ranking function</h3>
+  <table>
+    <thead><tr><th>Function</th><th>Ties</th><th>Example ranks for 100,100,90</th></tr></thead>
+    <tbody>
+      <tr><td>ROW_NUMBER</td><td>Breaks ties</td><td>1, 2, 3</td></tr>
+      <tr><td>RANK</td><td>Same rank, leaves gaps</td><td>1, 1, 3</td></tr>
+      <tr><td>DENSE_RANK</td><td>Same rank, no gaps</td><td>1, 1, 2</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4. Forgetting tie-breaking columns</h3>
+  <p>
+    If two orders share the same <code>order_date</code>, <code>ORDER BY order_date DESC</code> may not be deterministic.
+    Add <code>order_id DESC</code>.
+  </p>
+
+  <h3>5. Multiplying rows accidentally with joins</h3>
+  <p>
+    A one-to-many join can duplicate parent rows. Before aggregating, understand the cardinality of every join.
+  </p>
+
+  <h3>6. Filtering a LEFT JOIN in WHERE</h3>
+  <pre><code>-- This can effectively turn the LEFT JOIN into INNER JOIN
+SELECT *
+FROM customers c
+LEFT JOIN orders o
+  ON o.customer_id = c.customer_id
+WHERE o.status = 'COMPLETED';
+
+-- Keep unmatched customers:
+SELECT *
+FROM customers c
+LEFT JOIN orders o
+  ON o.customer_id = c.customer_id
+ AND o.status = 'COMPLETED';</code></pre>
+</section>
+
+<section id="performance">
+  <h2>Performance and indexing — what senior candidates should mention</h2>
+
+  <h3>1. Index join and filter columns</h3>
+  <pre><code>CREATE INDEX idx_orders_customer_date
+ON orders(customer_id, order_date);
+
+CREATE INDEX idx_order_items_product
+ON order_items(product_id);</code></pre>
+
+  <p>
+    Index design depends on filter selectivity, sort order, query shape, write volume, and database engine.
+  </p>
+
+  <h3>2. Avoid functions on indexed columns when possible</h3>
+  <pre><code>-- Can make index use harder
+WHERE DATE(order_date) = DATE '2026-08-26'
+
+-- Usually friendlier to a range index
+WHERE order_date &gt;= TIMESTAMP '2026-08-26 00:00:00'
+  AND order_date &lt;  TIMESTAMP '2026-08-27 00:00:00';</code></pre>
+
+  <h3>3. Do not optimize before correctness</h3>
+  <p>
+    In an interview, first produce a correct query. Then discuss indexes, execution plan, large-table behavior,
+    partitioning, and materialization if the interviewer asks about scale.
+  </p>
+
+  <h3>4. Read the execution plan</h3>
+  <p>Look for:</p>
+  <ul>
+    <li>Full table scans on large tables.</li>
+    <li>Bad row-estimation.</li>
+    <li>Large sorts.</li>
+    <li>Nested-loop joins over huge data sets.</li>
+    <li>Hash spills to disk.</li>
+    <li>Missing or unused indexes.</li>
+  </ul>
+
+  <div class="good">
+    A senior-level answer often includes: “I would verify the query with <code>EXPLAIN</code> or
+    <code>EXPLAIN ANALYZE</code> before deciding which optimization is actually needed.”
+  </div>
+</section>
+
+<section id="cheatsheet">
+  <h2>Final SQL interview cheat sheet</h2>
+  <pre><code>SECOND / NTH HIGHEST
+DENSE_RANK() OVER (ORDER BY value DESC)
+
+TOP N PER GROUP
+ROW_NUMBER/RANK/DENSE_RANK()
+OVER (PARTITION BY group ORDER BY metric DESC)
+
+DUPLICATES
+GROUP BY business_key
+HAVING COUNT(*) &gt; 1
+
+MISSING RELATIONSHIP
+NOT EXISTS (...)
+
+PREVIOUS ROW
+LAG(...)
+
+NEXT ROW
+LEAD(...)
+
+RUNNING TOTAL
+SUM(x) OVER (
+    ORDER BY ...
+    ROWS UNBOUNDED PRECEDING
+)
+
+CONDITIONAL AGGREGATION
+SUM(CASE WHEN condition THEN 1 ELSE 0 END)
+
+LATEST ROW PER GROUP
+ROW_NUMBER() OVER (
+    PARTITION BY group
+    ORDER BY timestamp DESC, id DESC
+)
+
+ABOVE GROUP AVERAGE
+AVG(value) OVER (PARTITION BY group)
+
+GAPS AND ISLANDS
+date - ROW_NUMBER() * interval
+
+INTERVIEW FLOW
+1. Clarify assumptions
+2. State the business key
+3. Write a simple correct query
+4. Explain joins and cardinality
+5. Handle ties / NULL / duplicates
+6. Mention indexes and EXPLAIN
+7. Test edge cases</code></pre>
+</section>
+
+<footer>
+  SQL Live Coding Interview Handbook · Common Questions, Answers & Detailed Explanations
+</footer>
+</main>
+</div>
+</body>
+</html>
