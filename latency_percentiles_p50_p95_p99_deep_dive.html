@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Latency Percentiles — p50, p95, p99 Deep Dive</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --surface:#ffffff;
+    --surface-2:#f0f4f8;
+    --text:#182230;
+    --muted:#5f6b7a;
+    --border:#dbe2ea;
+    --accent:#1f4f78;
+    --accent-2:#163b5a;
+    --ok:#1d6b4f;
+    --warn:#8a5b13;
+    --danger:#8f3535;
+    --code:#101720;
+    --shadow:0 10px 30px rgba(15,23,42,.08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.68;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .layout{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:100vh}
+  aside{
+    position:sticky;top:0;height:100vh;overflow:auto;
+    background:#112334;color:#e9f1f7;padding:28px 22px;border-right:1px solid #1f3a51;
+  }
+  .brand{font-size:20px;font-weight:800;line-height:1.25;margin-bottom:8px}
+  .brand small{display:block;font-size:12px;color:#a9c0d2;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-top:8px}
+  .toc-title{margin:28px 0 10px;font-size:12px;color:#91aabd;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  nav a{display:block;color:#dbe8f0;padding:8px 10px;border-radius:9px;font-size:14px;margin:2px 0}
+  nav a:hover{background:#1a354c;text-decoration:none}
+  main{max-width:1200px;width:100%;padding:50px 60px 90px;margin:0 auto}
+  .hero{
+    background:linear-gradient(145deg,#112b43,#1f4f78);
+    color:white;padding:48px;border-radius:22px;box-shadow:var(--shadow);margin-bottom:32px
+  }
+  .eyebrow{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#bcd0df}
+  h1{font-size:46px;line-height:1.08;margin:10px 0 18px}
+  .hero p{font-size:19px;max-width:900px;color:#e1ebf2;margin-bottom:0}
+  section{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:34px;margin:24px 0;box-shadow:0 4px 16px rgba(15,23,42,.035)
+  }
+  h2{font-size:30px;line-height:1.2;margin:0 0 20px}
+  h3{font-size:21px;margin:30px 0 12px}
+  h4{font-size:16px;margin:22px 0 8px}
+  p{margin:10px 0 14px}
+  .lead{font-size:18px;color:#334155}
+  .vi{color:#4d6073;font-size:.95em}
+  .term{font-weight:800;color:var(--accent-2)}
+  .term .vi{font-weight:600}
+  .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .card{border:1px solid var(--border);background:var(--surface-2);border-radius:14px;padding:20px}
+  .card h3,.card h4{margin-top:0}
+  .metric{border-left:5px solid var(--accent);padding:18px 20px;background:#f7fafc;border-radius:10px}
+  .metric strong{font-size:26px;display:block;color:var(--accent-2)}
+  .note,.warning,.good{
+    padding:18px 20px;border-radius:12px;margin:18px 0;border:1px solid var(--border)
+  }
+  .note{background:#eef5fb;border-left:5px solid var(--accent)}
+  .warning{background:#fff8e8;border-left:5px solid var(--warn)}
+  .good{background:#eef8f3;border-left:5px solid var(--ok)}
+  pre{
+    background:var(--code);color:#e7edf3;border-radius:12px;padding:20px;overflow:auto;
+    font-size:14px;line-height:1.55;border:1px solid #263442
+  }
+  code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px}
+  th,td{padding:13px 12px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+  th{background:#f2f6fa;font-weight:800;color:#2a3f52}
+  .formula{
+    font-family:"SFMono-Regular",Consolas,monospace;background:#f3f6f9;border:1px solid var(--border);
+    padding:14px 16px;border-radius:10px;overflow:auto
+  }
+  .diagram{background:#f7f9fc;border:1px solid var(--border);border-radius:14px;padding:22px;overflow:auto}
+  .bar{height:18px;border-radius:20px;background:#dce6ef;overflow:hidden;margin:8px 0 14px}
+  .bar > span{display:block;height:100%;background:var(--accent)}
+  .number{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--accent-2);color:white;font-weight:800;margin-right:10px}
+  ul,ol{padding-left:24px}
+  li{margin:8px 0}
+  .callout-title{font-weight:800;margin-bottom:6px}
+  .mini{font-size:13px;color:var(--muted)}
+  .glossary td:first-child{font-weight:800;color:var(--accent-2);width:27%}
+  .quiz details{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fafcfe}
+  .quiz summary{cursor:pointer;font-weight:700}
+  .calc{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:end}
+  textarea,input,button{
+    width:100%;font:inherit;border-radius:10px;border:1px solid #c9d5e1;padding:12px;background:white;color:var(--text)
+  }
+  button{background:var(--accent);color:white;font-weight:800;border:none;cursor:pointer}
+  button:hover{background:var(--accent-2)}
+  .calc-result{margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .calc-result .card{background:#f6f9fc}
+  footer{text-align:center;color:var(--muted);padding:30px 0}
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr}
+    aside{position:relative;height:auto}
+    main{padding:28px 18px 60px}
+    .grid-2,.grid-3,.calc,.calc-result{grid-template-columns:1fr}
+    h1{font-size:36px}
+    .hero{padding:32px 24px}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Latency Percentiles
+    <small>p50 · p95 · p99 Deep Dive</small>
+  </div>
+  <div class="toc-title">Contents</div>
+  <nav>
+    <a href="#overview">1. Big picture</a>
+    <a href="#latency">2. What is latency?</a>
+    <a href="#percentile">3. What is a percentile?</a>
+    <a href="#p509599">4. p50 / p95 / p99</a>
+    <a href="#calculation">5. How percentiles are calculated</a>
+    <a href="#average">6. Why average is not enough</a>
+    <a href="#tail">7. Tail latency</a>
+    <a href="#scale">8. Why 1% matters at scale</a>
+    <a href="#microservices">9. Microservices & propagation</a>
+    <a href="#causes">10. Why p99 becomes high</a>
+    <a href="#slo">11. SLI / SLO / SLA</a>
+    <a href="#monitoring">12. Monitoring in production</a>
+    <a href="#histogram">13. Histogram & buckets</a>
+    <a href="#prometheus">14. Prometheus example</a>
+    <a href="#debug">15. Debugging high p99</a>
+    <a href="#optimization">16. How to reduce tail latency</a>
+    <a href="#pitfalls">17. Common mistakes</a>
+    <a href="#interview">18. Senior interview answer</a>
+    <a href="#calculator">19. Interactive calculator</a>
+    <a href="#glossary">20. EN → VI glossary</a>
+    <a href="#quiz">21. Knowledge check</a>
+    <a href="#cheatsheet">22. Cheat sheet</a>
+    <a href="#production-questions">23. 15 Production Questions</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Production Performance & Observability</div>
+    <h1>Understanding p50, p95, p99 Latency</h1>
+    <p>
+      A practical, senior-level guide to latency percentiles, tail latency, SLOs, microservices,
+      monitoring, debugging, and production performance — written in clear English with Vietnamese
+      translations for important technical vocabulary.
+    </p>
+  </div>
+
+  <section id="overview">
+    <h2>1. The big picture</h2>
+    <p class="lead">
+      When we measure the performance of an API, database, service, or distributed system, one number such as
+      <span class="term">average latency <span class="vi">(độ trễ trung bình)</span></span> is usually not enough.
+      We need to understand the full <span class="term">latency distribution <span class="vi">(phân bố độ trễ)</span></span>.
+    </p>
+    <div class="grid-3">
+      <div class="metric"><strong>p50</strong>Typical user experience<br><span class="vi">Trải nghiệm phổ biến</span></div>
+      <div class="metric"><strong>p95</strong>Almost all requests<br><span class="vi">Gần như toàn bộ request</span></div>
+      <div class="metric"><strong>p99</strong>Tail performance at scale<br><span class="vi">Hiệu năng phần đuôi ở quy mô lớn</span></div>
+    </div>
+    <div class="note">
+      <div class="callout-title">Simple interpretation</div>
+      If <strong>p99 = 800 ms</strong>, it means <strong>99% of requests completed in 800 ms or less</strong>.
+      The slowest 1% took longer than 800 ms.
+    </div>
+  </section>
+
+  <section id="latency">
+    <h2>2. What is latency?</h2>
+    <p>
+      <span class="term">Latency <span class="vi">(độ trễ)</span></span> is the time between sending a request and receiving
+      its result. For a web API, it is commonly measured in milliseconds.
+    </p>
+    <pre><code>Client sends request
+        |
+        | network latency
+        v
+API Gateway
+        |
+        | application processing
+        v
+Service
+   |         |          |
+ Cache      DB     Downstream API
+   |         |          |
+   +---------+----------+
+             |
+             v
+          Response
+             |
+             v
+Client receives result
+
+Total time = end-to-end latency</code></pre>
+    <h3>Latency is not one single thing</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Meaning</th><th>Vietnamese</th></tr></thead>
+      <tbody>
+        <tr><td>Network latency</td><td>Time spent travelling through the network.</td><td>Độ trễ mạng</td></tr>
+        <tr><td>Application latency</td><td>Time spent executing application code.</td><td>Độ trễ xử lý ứng dụng</td></tr>
+        <tr><td>Database latency</td><td>Time waiting for query execution, locks, I/O, or connection acquisition.</td><td>Độ trễ cơ sở dữ liệu</td></tr>
+        <tr><td>Queueing latency</td><td>Time waiting in a queue before a worker/thread can process the request.</td><td>Độ trễ do chờ hàng đợi</td></tr>
+        <tr><td>End-to-end latency</td><td>Total time visible to the caller or end user.</td><td>Độ trễ đầu-cuối</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="percentile">
+    <h2>3. What is a percentile?</h2>
+    <p>
+      A <span class="term">percentile <span class="vi">(phân vị)</span></span> tells us the value below which a given
+      percentage of observations fall.
+    </p>
+    <div class="diagram">
+      <strong>Example: 100 requests sorted from fastest to slowest</strong>
+      <div class="bar"><span style="width:50%"></span></div>
+      <p><strong>p50</strong>: 50% of requests are at or below this latency.</p>
+      <div class="bar"><span style="width:95%"></span></div>
+      <p><strong>p95</strong>: 95% of requests are at or below this latency.</p>
+      <div class="bar"><span style="width:99%"></span></div>
+      <p><strong>p99</strong>: 99% of requests are at or below this latency.</p>
+    </div>
+    <div class="warning">
+      <div class="callout-title">Important</div>
+      p99 does <strong>not</strong> mean “request number 99 always takes this long.”
+      It is a statistical position in the latency distribution.
+    </div>
+  </section>
+
+  <section id="p509599">
+    <h2>4. p50, p95, and p99 explained</h2>
+    <div class="grid-3">
+      <div class="card">
+        <h3>p50 — Median</h3>
+        <p><span class="term">Median <span class="vi">(trung vị)</span></span> represents the middle request.</p>
+        <p>If p50 = 80 ms, half the requests finished in 80 ms or less, and half took 80 ms or more.</p>
+        <p><strong>Use:</strong> understand the typical experience.</p>
+      </div>
+      <div class="card">
+        <h3>p95 — High percentile</h3>
+        <p>p95 captures almost all common requests while excluding the slowest 5%.</p>
+        <p>If p95 = 350 ms, 95% of requests finished in 350 ms or less.</p>
+        <p><strong>Use:</strong> production health, customer experience, capacity review.</p>
+      </div>
+      <div class="card">
+        <h3>p99 — Tail percentile</h3>
+        <p>p99 exposes the slowest meaningful portion of traffic.</p>
+        <p>If p99 = 1.8 s, 1% of requests are slower than 1.8 seconds.</p>
+        <p><strong>Use:</strong> distributed systems, large scale, SLOs, tail-latency investigation.</p>
+      </div>
+    </div>
+    <h3>A realistic API example</h3>
+    <pre><code>POST /orders
+
+p50   = 120 ms
+p95   = 350 ms
+p99   = 1.8 s
+p99.9 = 7.2 s</code></pre>
+    <p>
+      A senior engineer should not say only “the API is fast because p50 is 120 ms.”
+      The correct observation is: <strong>typical performance is good, but the tail is unhealthy.</strong>
+    </p>
+  </section>
+
+  <section id="calculation">
+    <h2>5. How percentiles are calculated</h2>
+    <p>For learning purposes, imagine these 10 latency samples:</p>
+    <pre><code>20, 25, 30, 35, 40, 50, 80, 100, 200, 900 ms</code></pre>
+    <p>They are already sorted from smallest to largest.</p>
+    <p class="formula">Approximate percentile rank = percentile × number of observations</p>
+    <p>
+      With a small data set, percentile libraries may use different interpolation algorithms, so exact values can vary slightly.
+      In production, monitoring systems normally calculate percentiles from histograms, sketches, or time-series aggregations.
+    </p>
+    <div class="note">
+      For operational monitoring, understanding the meaning is more important than manually calculating the exact interpolation formula.
+    </div>
+  </section>
+
+  <section id="average">
+    <h2>6. Why average latency is not enough</h2>
+    <p>Consider 100 requests:</p>
+    <pre><code>99 requests = 100 ms
+ 1 request  = 10,000 ms</code></pre>
+    <p class="formula">Average = (99 × 100 + 10,000) / 100 = 199 ms</p>
+    <p>
+      An average of 199 ms looks acceptable. However, one user waited 10 seconds.
+      The <span class="term">average <span class="vi">(trung bình)</span></span> hides the outlier.
+    </p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Average answers</h3>
+        <p>“How much latency did all requests contribute in total?”</p>
+      </div>
+      <div class="card">
+        <h3>Percentile answers</h3>
+        <p>“How slow are requests for a particular percentage of users?”</p>
+      </div>
+    </div>
+    <div class="good">
+      In user-facing systems, percentiles usually describe experience better than a single average.
+    </div>
+  </section>
+
+  <section id="tail">
+    <h2>7. Tail latency</h2>
+    <p>
+      <span class="term">Tail latency <span class="vi">(độ trễ phần đuôi)</span></span> describes the slow requests at the
+      far end of the distribution, commonly p95, p99, or p99.9.
+    </p>
+    <pre><code>Most requests
+fast  ───────────────────────────────► slow
+
+p50           p95       p99        p99.9
+ |             |         |            |
+ 80ms         250ms     1.2s         8s</code></pre>
+    <p>
+      A system can have an excellent p50 but a terrible p99. This often happens when only a subset of requests encounters
+      locks, cache misses, retries, slow downstream services, GC pauses, or resource contention.
+    </p>
+  </section>
+
+  <section id="scale">
+    <h2>8. Why 1% matters at scale</h2>
+    <p>If a service handles <strong>10,000 requests per second</strong> and 1% are slow:</p>
+    <pre><code>10,000 requests/s × 1% = 100 slow requests/s
+
+100 × 60 × 60 × 24
+= 8,640,000 slow requests/day</code></pre>
+    <p>
+      This is why p99 becomes more important as traffic grows.
+      At large scale, a “small percentage” can still represent millions of bad user experiences.
+    </p>
+  </section>
+
+  <section id="microservices">
+    <h2>9. Why microservices amplify tail latency</h2>
+    <p>
+      In a <span class="term">distributed system <span class="vi">(hệ thống phân tán)</span></span>, one user request may call
+      many internal services.
+    </p>
+    <pre><code>Client
+  |
+  v
+API Gateway
+  |
+  v
+Order Service
+  |
+  +---- Product Service
+  |
+  +---- Inventory Service
+  |
+  +---- Promotion Service
+  |
+  +---- Payment Service
+  |
+  +---- Database</code></pre>
+    <p>
+      If the Order Service must wait for all required dependencies, the end-to-end latency is strongly influenced by
+      the slowest critical dependency.
+    </p>
+    <h3>Example</h3>
+    <table>
+      <thead><tr><th>Dependency</th><th>p50</th><th>p99</th></tr></thead>
+      <tbody>
+        <tr><td>Product Service</td><td>20 ms</td><td>80 ms</td></tr>
+        <tr><td>Inventory Service</td><td>30 ms</td><td>150 ms</td></tr>
+        <tr><td>Payment Service</td><td>80 ms</td><td>2,000 ms</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Even when most services are fast, Payment Service can dominate the Order API p99.
+      This is called <span class="term">latency propagation <span class="vi">(lan truyền độ trễ)</span></span>.
+    </p>
+    <div class="warning">
+      More synchronous dependencies usually mean more opportunities for one slow dependency to increase tail latency.
+    </div>
+  </section>
+
+  <section id="causes">
+    <h2>10. Why p99 becomes high</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Database problems</h3>
+        <ul>
+          <li><span class="term">Slow query <span class="vi">(truy vấn chậm)</span></span></li>
+          <li>Missing index</li>
+          <li>Row/table lock contention</li>
+          <li>Connection pool exhaustion</li>
+          <li>Disk I/O spikes</li>
+          <li>Replica lag</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Application problems</h3>
+        <ul>
+          <li>Thread pool exhaustion</li>
+          <li>CPU saturation</li>
+          <li>Memory pressure</li>
+          <li>Long GC pause</li>
+          <li>Blocking operation</li>
+          <li>Large payload serialization</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Cache problems</h3>
+        <ul>
+          <li>Cache miss</li>
+          <li>Cold cache</li>
+          <li>Cache stampede</li>
+          <li>Hot key overload</li>
+          <li>Expired entries at the same time</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Network / downstream problems</h3>
+        <ul>
+          <li>Packet loss</li>
+          <li>Network congestion</li>
+          <li>DNS delay</li>
+          <li>Slow downstream API</li>
+          <li>Timeout + retry chains</li>
+          <li>Cross-region calls</li>
+        </ul>
+      </div>
+    </div>
+    <h3>Classic p99 pattern</h3>
+    <pre><code>Normal request:
+API -> Cache HIT -> return
+80 ms
+
+Slow request:
+API -> Cache MISS
+    -> DB connection wait
+    -> slow query
+    -> retry downstream
+    -> return
+2.3 s</code></pre>
+  </section>
+
+  <section id="slo">
+    <h2>11. SLI, SLO, and SLA</h2>
+    <table>
+      <thead><tr><th>Term</th><th>Meaning</th><th>Vietnamese</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>SLI</td>
+          <td>Service Level Indicator: the measured metric.</td>
+          <td>Chỉ số mức dịch vụ</td>
+          <td>p99 latency = 420 ms</td>
+        </tr>
+        <tr>
+          <td>SLO</td>
+          <td>Service Level Objective: internal reliability target.</td>
+          <td>Mục tiêu mức dịch vụ</td>
+          <td>99% of requests under 500 ms</td>
+        </tr>
+        <tr>
+          <td>SLA</td>
+          <td>Service Level Agreement: formal agreement, often with business consequences.</td>
+          <td>Cam kết mức dịch vụ</td>
+          <td>Monthly availability ≥ 99.9%</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note">
+      If the SLO says <strong>“99% of requests must complete within 500 ms”</strong>, then one useful way to express it is:
+      <strong>p99 latency ≤ 500 ms</strong>.
+    </div>
+    <h3>Do not confuse latency SLO with availability SLO</h3>
+    <p>
+      “99.9% availability” and “p99 under 500 ms” measure different things.
+      A request may succeed but still be too slow.
+    </p>
+  </section>
+
+  <section id="monitoring">
+    <h2>12. Monitoring latency in production</h2>
+    <p>A useful latency dashboard should be viewed together with traffic and failure metrics.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Latency</h3>
+        <p>p50, p95, p99, p99.9</p>
+      </div>
+      <div class="card">
+        <h3>Traffic</h3>
+        <p>Requests per second / throughput</p>
+      </div>
+      <div class="card">
+        <h3>Errors</h3>
+        <p>5xx, timeout, exception, dependency failure</p>
+      </div>
+      <div class="card">
+        <h3>Saturation</h3>
+        <p>CPU, memory, thread pool, DB connections, queue depth</p>
+      </div>
+    </div>
+    <h3>Example incident pattern</h3>
+    <pre><code>18:00 traffic increases
+18:03 CPU reaches 85%
+18:04 DB pool active connections reaches maximum
+18:05 p95 increases from 250 ms to 800 ms
+18:05 p99 increases from 700 ms to 4.5 s
+18:06 timeout rate starts increasing</code></pre>
+    <p>
+      The latency spike is the symptom. Connection pool saturation may be the root cause.
+      Good observability connects metrics, traces, and logs.
+    </p>
+  </section>
+
+  <section id="histogram">
+    <h2>13. Histograms and percentile estimation</h2>
+    <p>
+      Monitoring systems often store latency in a
+      <span class="term">histogram <span class="vi">(biểu đồ phân bố / histogram)</span></span>.
+      A histogram counts how many observations fall within configured buckets.
+    </p>
+    <pre><code>Latency bucket       Request count
+<= 100 ms            6,000
+<= 250 ms            8,500
+<= 500 ms            9,600
+<= 1,000 ms          9,900
+<= 2,000 ms          10,000</code></pre>
+    <p>
+      From these cumulative counts, the monitoring system can estimate percentiles such as p95 or p99.
+    </p>
+    <div class="warning">
+      Bucket design matters. If buckets are too broad, percentile estimation can be imprecise.
+    </div>
+  </section>
+
+  <section id="prometheus">
+    <h2>14. Prometheus example</h2>
+    <p>With a Prometheus histogram, a common p99 query looks like:</p>
+    <pre><code>histogram_quantile(
+  0.99,
+  sum by (le) (
+    rate(http_request_duration_seconds_bucket[5m])
+  )
+)</code></pre>
+    <h3>What this means</h3>
+    <ol>
+      <li><strong>rate(...[5m])</strong> calculates the recent rate of observations in each bucket.</li>
+      <li><strong>sum by (le)</strong> aggregates histogram buckets.</li>
+      <li><strong>histogram_quantile(0.99, ...)</strong> estimates the 99th percentile.</li>
+    </ol>
+    <div class="note">
+      In real systems, preserve labels such as <code>service</code>, <code>route</code>, <code>method</code>, or
+      <code>status_code</code> only when they are useful and do not create excessive metric cardinality.
+    </div>
+  </section>
+
+  <section id="debug">
+    <h2>15. A senior debugging workflow for high p99</h2>
+    <p><span class="number">1</span><strong>Confirm the scope</strong></p>
+    <p>Is p99 high for all endpoints, one route, one region, one instance, one customer segment, or only one downstream dependency?</p>
+
+    <p><span class="number">2</span><strong>Check traffic and errors</strong></p>
+    <p>Determine whether the problem starts with a traffic spike, timeout spike, deployment, or infrastructure change.</p>
+
+    <p><span class="number">3</span><strong>Check saturation</strong></p>
+    <p>CPU, memory, GC, thread pools, connection pools, queue length, file descriptors, disk I/O.</p>
+
+    <p><span class="number">4</span><strong>Use distributed tracing</strong></p>
+    <p>
+      Find slow traces and identify the longest span. A trace can show whether 1.5 seconds was spent in the DB,
+      payment service, external API, or queue.
+    </p>
+
+    <p><span class="number">5</span><strong>Compare fast and slow requests</strong></p>
+    <p>
+      Compare a p50 trace with a p99 trace. The difference is often more useful than looking at one slow trace alone.
+    </p>
+
+    <p><span class="number">6</span><strong>Check recent changes</strong></p>
+    <p>Deployments, feature flags, query changes, traffic routing, index changes, autoscaling changes, dependency versions.</p>
+
+    <p><span class="number">7</span><strong>Fix the root cause and verify percentiles</strong></p>
+    <p>After the change, verify p50, p95, p99, errors, and resource saturation—not only average latency.</p>
+  </section>
+
+  <section id="optimization">
+    <h2>16. Techniques to reduce tail latency</h2>
+    <table>
+      <thead><tr><th>Technique</th><th>How it helps</th><th>Vietnamese</th></tr></thead>
+      <tbody>
+        <tr><td>Timeout budget</td><td>Prevents one dependency from consuming the whole request time.</td><td>Ngân sách timeout</td></tr>
+        <tr><td>Circuit breaker</td><td>Stops repeatedly calling an unhealthy dependency.</td><td>Ngắt mạch</td></tr>
+        <tr><td>Bulkhead isolation</td><td>Prevents one workload from exhausting shared resources.</td><td>Cô lập tài nguyên</td></tr>
+        <tr><td>Caching</td><td>Avoids repeated expensive work and DB access.</td><td>Bộ nhớ đệm</td></tr>
+        <tr><td>Request coalescing</td><td>Combines duplicate concurrent work into one operation.</td><td>Gộp request trùng</td></tr>
+        <tr><td>Backpressure</td><td>Controls incoming load before queues grow without bound.</td><td>Cơ chế tạo áp lực ngược</td></tr>
+        <tr><td>Load shedding</td><td>Rejects excess low-priority work to protect the system.</td><td>Loại bớt tải</td></tr>
+        <tr><td>Connection pooling</td><td>Reuses network/DB connections and reduces setup cost.</td><td>Gộp và tái sử dụng kết nối</td></tr>
+        <tr><td>Index/query optimization</td><td>Reduces database execution time and lock duration.</td><td>Tối ưu index/truy vấn</td></tr>
+        <tr><td>Autoscaling</td><td>Adds capacity when resource demand increases.</td><td>Tự động mở rộng</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Retries require special care</h3>
+    <p>
+      A retry can improve reliability for transient failures, but retries can also increase traffic and make p99 worse.
+      Use bounded retries, exponential backoff, jitter, and a strict timeout budget.
+    </p>
+    <pre><code>Bad:
+request -> timeout 2s -> retry -> timeout 2s -> retry -> timeout 2s
+
+Total ~= 6 seconds+
+
+Better:
+end-to-end budget = 1.5s
+dependency timeout = 400ms
+at most 1 retry if safe
+retry uses backoff + jitter</code></pre>
+  </section>
+
+  <section id="pitfalls">
+    <h2>17. Common mistakes</h2>
+    <h3>1. Looking only at average latency</h3>
+    <p>It hides the slow tail and can make an unhealthy service look healthy.</p>
+
+    <h3>2. Looking at p99 without traffic volume</h3>
+    <p>A percentile from only a few requests may be statistically noisy. Always consider sample size.</p>
+
+    <h3>3. Aggregating percentiles incorrectly</h3>
+    <p>
+      You generally cannot calculate a correct global p99 by averaging the p99 values of individual servers.
+      Percentiles are not directly additive.
+    </p>
+
+    <h3>4. Mixing unrelated endpoints</h3>
+    <p>
+      A fast health endpoint and a slow report endpoint should not necessarily share one latency SLO.
+      Measure latency by meaningful route/workload.
+    </p>
+
+    <h3>5. Ignoring coordinated omission</h3>
+    <p>
+      Some benchmark tools stop sending work while waiting for a slow response. This can under-report latency under overload.
+      Good load testing should model the intended arrival rate carefully.
+    </p>
+
+    <h3>6. Optimizing p50 while p99 remains bad</h3>
+    <p>
+      Faster happy-path caching may improve p50 while rare DB-lock or retry scenarios remain unchanged.
+      Production optimization must consider the full distribution.
+    </p>
+  </section>
+
+  <section id="interview">
+    <h2>18. Senior-level interview answer</h2>
+    <div class="good">
+      <p><strong>Example answer:</strong></p>
+      <p>
+        “p50, p95, and p99 are latency percentiles. If p99 is 500 milliseconds, it means 99% of requests complete
+        within 500 milliseconds and the slowest 1% take longer. I do not rely only on average latency because an average
+        can hide slow outliers. In production, I usually monitor p50 for the normal user experience, p95 for broad service
+        quality, and p99 for tail latency. p99 becomes especially important at scale because even 1% can represent millions
+        of requests. If p99 increases, I correlate it with traffic, error rate, CPU, thread pools, DB connection pools,
+        cache misses, and distributed traces to identify which dependency or resource is causing the long tail.”
+      </p>
+    </div>
+    <h3>Stronger follow-up</h3>
+    <p>
+      If the interviewer asks “Why can p99 be high while p50 is normal?”, explain that only a subset of requests may hit a
+      slow path: cache miss, cold data, database lock, slow downstream service, retry, GC pause, or resource queue.
+    </p>
+  </section>
+
+  <section id="calculator">
+    <h2>19. Interactive percentile calculator</h2>
+    <p>Enter comma-separated latency values in milliseconds.</p>
+    <div class="calc">
+      <div>
+        <label for="values"><strong>Latency samples</strong></label>
+        <textarea id="values" rows="4">80, 90, 95, 100, 105, 110, 120, 130, 150, 180, 200, 250, 300, 400, 900</textarea>
+      </div>
+      <button onclick="calculate()">Calculate percentiles</button>
+    </div>
+    <div class="calc-result">
+      <div class="card"><strong>Average</strong><div id="avg">—</div></div>
+      <div class="card"><strong>p50</strong><div id="p50">—</div></div>
+      <div class="card"><strong>p95</strong><div id="p95">—</div></div>
+      <div class="card"><strong>p99</strong><div id="p99">—</div></div>
+    </div>
+    <p class="mini">The calculator uses linear interpolation for educational purposes.</p>
+  </section>
+
+  <section id="glossary">
+    <h2>20. Technical vocabulary — English to Vietnamese</h2>
+    <table class="glossary">
+      <thead><tr><th>English term</th><th>Vietnamese</th><th>Explanation</th></tr></thead>
+      <tbody>
+        <tr><td>Latency</td><td>Độ trễ</td><td>Time required to complete an operation.</td></tr>
+        <tr><td>Percentile</td><td>Phân vị</td><td>A statistical position in a distribution.</td></tr>
+        <tr><td>Median</td><td>Trung vị</td><td>The middle value; commonly p50.</td></tr>
+        <tr><td>Average / Mean</td><td>Trung bình</td><td>Total divided by number of observations.</td></tr>
+        <tr><td>Latency distribution</td><td>Phân bố độ trễ</td><td>How latency values are spread across requests.</td></tr>
+        <tr><td>Tail latency</td><td>Độ trễ phần đuôi</td><td>Latency of the slowest portion of requests.</td></tr>
+        <tr><td>Outlier</td><td>Giá trị ngoại lệ</td><td>An unusually high or low observation.</td></tr>
+        <tr><td>Throughput</td><td>Thông lượng</td><td>Amount of work processed per unit of time.</td></tr>
+        <tr><td>Request per second (RPS)</td><td>Số request mỗi giây</td><td>Traffic rate.</td></tr>
+        <tr><td>Saturation</td><td>Bão hòa tài nguyên</td><td>A resource is close to or at capacity.</td></tr>
+        <tr><td>Contention</td><td>Tranh chấp tài nguyên</td><td>Multiple operations compete for the same resource.</td></tr>
+        <tr><td>Queueing</td><td>Xếp hàng chờ</td><td>Waiting until processing capacity is available.</td></tr>
+        <tr><td>Connection pool</td><td>Nhóm kết nối dùng lại</td><td>Reusable database or network connections.</td></tr>
+        <tr><td>Cache miss</td><td>Không tìm thấy dữ liệu trong cache</td><td>Data must be loaded from a slower source.</td></tr>
+        <tr><td>Cache stampede</td><td>Dồn request vào nguồn dữ liệu khi cache hết hạn</td><td>Many requests regenerate the same expired item simultaneously.</td></tr>
+        <tr><td>Cold cache</td><td>Cache chưa được làm nóng</td><td>Cache starts with little/no useful data.</td></tr>
+        <tr><td>Downstream service</td><td>Dịch vụ phụ thuộc phía sau</td><td>A service called by the current service.</td></tr>
+        <tr><td>Distributed tracing</td><td>Truy vết phân tán</td><td>Tracks one request through multiple services.</td></tr>
+        <tr><td>Span</td><td>Một đoạn xử lý trong trace</td><td>A timed operation within a distributed trace.</td></tr>
+        <tr><td>Timeout</td><td>Giới hạn thời gian chờ</td><td>Maximum time allowed for an operation.</td></tr>
+        <tr><td>Retry</td><td>Thử lại</td><td>Repeating an operation after failure.</td></tr>
+        <tr><td>Backoff</td><td>Giãn thời gian giữa các lần retry</td><td>Wait longer before subsequent retries.</td></tr>
+        <tr><td>Jitter</td><td>Độ ngẫu nhiên thêm vào thời gian chờ</td><td>Prevents clients from retrying at the same moment.</td></tr>
+        <tr><td>Circuit breaker</td><td>Cơ chế ngắt mạch</td><td>Stops calls to a repeatedly failing dependency.</td></tr>
+        <tr><td>Bulkhead</td><td>Cô lập tài nguyên</td><td>Limits failure impact by separating resource pools.</td></tr>
+        <tr><td>Backpressure</td><td>Áp lực ngược</td><td>Controls producer speed when consumers cannot keep up.</td></tr>
+        <tr><td>Load shedding</td><td>Loại bớt tải</td><td>Drops/rejects work to keep critical functions healthy.</td></tr>
+        <tr><td>Histogram</td><td>Biểu đồ phân bố</td><td>Counts observations across ranges/buckets.</td></tr>
+        <tr><td>Bucket</td><td>Khoảng giá trị</td><td>A configured range inside a histogram.</td></tr>
+        <tr><td>Cardinality</td><td>Độ đa dạng số lượng nhãn</td><td>Number of unique metric label combinations.</td></tr>
+        <tr><td>SLI</td><td>Chỉ số mức dịch vụ</td><td>The measured reliability/performance indicator.</td></tr>
+        <tr><td>SLO</td><td>Mục tiêu mức dịch vụ</td><td>The target for an SLI.</td></tr>
+        <tr><td>SLA</td><td>Cam kết mức dịch vụ</td><td>Formal service commitment.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="quiz" class="quiz">
+    <h2>21. Knowledge check</h2>
+    <details>
+      <summary>1. If p95 = 300 ms, what does it mean?</summary>
+      <p>95% of requests complete in 300 ms or less. The slowest 5% take longer than 300 ms.</p>
+    </details>
+    <details>
+      <summary>2. Why can average latency be misleading?</summary>
+      <p>Because a small number of very slow requests can be hidden inside a reasonable average.</p>
+    </details>
+    <details>
+      <summary>3. Why is p99 important in a system with millions of requests?</summary>
+      <p>Because 1% still represents a large number of real requests and real users.</p>
+    </details>
+    <details>
+      <summary>4. Why may p99 increase while p50 stays stable?</summary>
+      <p>Only a subset of requests may hit slow paths such as cache misses, DB locks, retries, or slow downstream dependencies.</p>
+    </details>
+    <details>
+      <summary>5. Can we average the p99 from ten servers to get the global p99?</summary>
+      <p>No. Percentiles are not directly additive. Use the underlying histogram/distribution to compute an aggregated percentile.</p>
+    </details>
+  </section>
+
+  <section id="cheatsheet">
+    <h2>22. Final cheat sheet</h2>
+    <pre><code>p50
+= median
+= normal / typical request experience
+
+p95
+= 95% of requests are <= this latency
+= broad production quality
+
+p99
+= 99% of requests are <= this latency
+= slowest meaningful tail
+= very important at large scale
+
+Average
+= useful, but can hide outliers
+
+High p99 often means:
+- DB lock / slow query
+- cache miss / stampede
+- GC pause
+- CPU / thread / connection pool saturation
+- queueing
+- slow downstream service
+- timeout / retry
+- network issue
+
+Senior production approach:
+Latency + Traffic + Errors + Saturation
+        |
+        v
+Metrics + Logs + Distributed Tracing
+        |
+        v
+Find slow path / bottleneck
+        |
+        v
+Fix root cause
+        |
+        v
+Verify p50 / p95 / p99 again</code></pre>
+    <div class="good">
+      <strong>One sentence to remember:</strong><br>
+      p50 tells you what is normal, p95 tells you how almost all requests behave,
+      and p99 tells you whether the slow tail is hurting users at scale.
+    </div>
+  </section>
+
+
+  <section id="production-questions">
+    <h2>23. 15 Senior Production Troubleshooting Questions</h2>
+    <p class="lead">
+      These questions are common in senior backend, Java, Spring Boot, Microservices, and system-design interviews.
+      A strong answer should not jump directly to one solution. It should show a structured troubleshooting process:
+      <strong>measure → narrow the scope → find the bottleneck → protect the system → fix the root cause → verify with metrics.</strong>
+    </p>
+
+    <div class="note">
+      <div class="callout-title">A useful senior mindset</div>
+      In production, avoid guessing. Start with evidence from
+      <span class="term">metrics <span class="vi">(số liệu giám sát)</span></span>,
+      <span class="term">logs <span class="vi">(nhật ký hệ thống)</span></span>, and
+      <span class="term">distributed traces <span class="vi">(truy vết phân tán)</span></span>.
+      Then correlate the symptom with traffic, errors, latency, and resource saturation.
+    </div>
+
+    <h3>1. Your Spring Boot API suddenly becomes slow. How would you find the bottleneck?</h3>
+    <p>
+      I would first determine whether the problem is global or limited to one endpoint, one instance, one region, or one dependency.
+      Then I would follow the request path and inspect each layer rather than immediately changing code.
+    </p>
+
+    <h4>Step 1 — Confirm the symptom</h4>
+    <ul>
+      <li>Compare <strong>p50, p95, and p99 latency</strong>.</li>
+      <li>Check whether only tail latency is bad or all requests are slower.</li>
+      <li>Check request rate, error rate, and timeout rate.</li>
+      <li>Compare the current values with the normal baseline.</li>
+    </ul>
+
+    <h4>Step 2 — Check application resources</h4>
+    <ul>
+      <li><span class="term">CPU saturation <span class="vi">(CPU bị bão hòa)</span></span>.</li>
+      <li>Heap usage and GC pause time.</li>
+      <li>Tomcat/Jetty/Netty worker threads.</li>
+      <li>Blocked or waiting threads.</li>
+      <li>DB connection pool active, idle, and waiting connections.</li>
+      <li>Queue depth if asynchronous work is used.</li>
+    </ul>
+
+    <h4>Step 3 — Use distributed tracing</h4>
+    <pre><code>HTTP request = 2.4 seconds
+
+Controller       5 ms
+Service         10 ms
+Redis           15 ms
+Database      2100 ms  &lt;-- bottleneck
+Serialization   20 ms
+Network        250 ms</code></pre>
+
+    <p>
+      A trace allows me to identify which
+      <span class="term">span <span class="vi">(đoạn xử lý trong trace)</span></span>
+      dominates total latency.
+    </p>
+
+    <h4>Step 4 — Inspect the slow dependency</h4>
+    <p>
+      If the database is slow, I check slow-query logs, execution plans, locks, missing indexes, connection wait time, and I/O.
+      If a downstream service is slow, I check its p95/p99, timeout rate, thread pool, and network path.
+    </p>
+
+    <div class="good">
+      <strong>Senior interview answer:</strong>
+      “I would not guess from the code first. I would start with p50/p95/p99, throughput, error rate, and saturation.
+      Then I would use distributed tracing to identify where the request spends its time. If the slow span is the DB,
+      I inspect query latency, locks, indexes, and connection pool. If it is another service, I inspect that dependency.
+      After fixing the root cause, I verify the same percentiles again.”
+    </div>
+
+    <h3>2. 5,000 requests hit your API simultaneously. What could become the bottleneck?</h3>
+    <p>
+      Almost any shared or bounded resource can become the bottleneck. The important point is that 5,000 incoming requests
+      do not mean the application can process 5,000 requests at exactly the same time.
+    </p>
+
+    <table>
+      <thead><tr><th>Layer</th><th>Possible bottleneck</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td>Load balancer</td><td>Connection or throughput limit</td><td>Requests queue or get rejected.</td></tr>
+        <tr><td>Application server</td><td>Worker-thread pool</td><td>Requests wait for a free thread.</td></tr>
+        <tr><td>CPU</td><td>CPU saturation</td><td>Context switching and processing latency increase.</td></tr>
+        <tr><td>Memory</td><td>Allocation pressure / GC</td><td>Long GC pauses and higher p99.</td></tr>
+        <tr><td>Database</td><td>Connection pool / locks / IOPS</td><td>Threads wait for connections or queries.</td></tr>
+        <tr><td>Cache</td><td>Hot key / network / cache miss</td><td>Cache becomes overloaded or DB receives a spike.</td></tr>
+        <tr><td>Downstream service</td><td>Capacity limit</td><td>Timeouts and retries amplify load.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Example</h4>
+    <pre><code>Incoming requests:       5,000
+Tomcat max threads:        200
+DB pool size:               50
+
+At most:
+~200 requests execute application code concurrently.
+Only ~50 DB-heavy requests can use DB connections concurrently.
+
+The rest wait in queues.</code></pre>
+
+    <p>
+      If each DB operation takes too long, the DB pool becomes a bottleneck first. Increasing the thread pool without increasing
+      downstream capacity can actually make the system worse.
+    </p>
+
+    <div class="good">
+      <strong>Senior answer:</strong>
+      “I would check bounded resources: application threads, CPU, memory, DB pool, DB locks, Redis connections,
+      downstream capacity, queues, and network limits. I would also check whether the system has backpressure or load shedding,
+      because accepting unlimited concurrent work can create queue growth and p99 collapse.”
+    </div>
+
+    <h3>3. Your database connection pool is exhausted. What would you check first?</h3>
+    <p>
+      Connection-pool exhaustion means all available DB connections are busy and new requests must wait.
+      The first question is not “Should I increase the pool?” but <strong>“Why are connections being held for so long?”</strong>
+    </p>
+
+    <h4>Check in this order</h4>
+    <ol>
+      <li>Active connections versus maximum pool size.</li>
+      <li>Connection acquisition wait time.</li>
+      <li>Slow queries.</li>
+      <li>Long-running transactions.</li>
+      <li>Database locks or blocked sessions.</li>
+      <li>Connection leaks.</li>
+      <li>Traffic increase.</li>
+      <li>Database CPU, I/O, memory, and max connection limits.</li>
+    </ol>
+
+    <pre><code>Request A opens transaction
+    |
+    +-- Query 1
+    +-- HTTP call to another service: 5 seconds
+    +-- Query 2
+    |
+commit
+
+DB connection may be held for the whole 5+ seconds.</code></pre>
+
+    <p>
+      Calling slow external services inside a transaction is a common cause of unnecessarily long connection holding.
+    </p>
+
+    <div class="warning">
+      Blindly increasing HikariCP maximumPoolSize can shift the bottleneck to the database.
+      More connections can mean more DB concurrency, more lock contention, and higher CPU.
+    </div>
+
+    <h3>4. A downstream service takes 10 seconds to respond. How would you protect your API?</h3>
+    <p>
+      Never allow one unhealthy dependency to consume the entire request budget.
+      I would use several resilience patterns together.
+    </p>
+
+    <table>
+      <thead><tr><th>Protection</th><th>Purpose</th><th>Vietnamese</th></tr></thead>
+      <tbody>
+        <tr><td>Timeout</td><td>Stop waiting after a bounded time.</td><td>Giới hạn thời gian chờ</td></tr>
+        <tr><td>Circuit breaker</td><td>Stop calling a dependency that is repeatedly failing.</td><td>Ngắt mạch</td></tr>
+        <tr><td>Bulkhead</td><td>Limit resource usage for this dependency.</td><td>Cô lập tài nguyên</td></tr>
+        <tr><td>Fallback</td><td>Return degraded or cached data if acceptable.</td><td>Phương án dự phòng</td></tr>
+        <tr><td>Retry</td><td>Retry only transient failures under strict limits.</td><td>Thử lại có kiểm soát</td></tr>
+        <tr><td>Rate limiting</td><td>Protect capacity from overload.</td><td>Giới hạn tốc độ request</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Bad design</h4>
+    <pre><code>API timeout = 30s
+downstream takes 10s
+3 automatic retries
+
+Worst case:
+10s + 10s + 10s = 30s+</code></pre>
+
+    <h4>Better design</h4>
+    <pre><code>End-to-end budget: 2 seconds
+
+Downstream timeout: 400 ms
+Maximum retries: 1
+Retry only idempotent/safe failures
+Backoff + jitter
+Circuit breaker opens after repeated failures</code></pre>
+
+    <div class="good">
+      The goal is <strong>fail fast and degrade gracefully</strong>
+      <span class="vi">(thất bại nhanh và giảm cấp dịch vụ một cách kiểm soát)</span>,
+      not wait until every thread becomes blocked.
+    </div>
+
+    <h3>5. The same request reaches your API twice. How would you make it idempotent?</h3>
+    <p>
+      <span class="term">Idempotency <span class="vi">(tính bất biến khi gọi lặp lại)</span></span>
+      means processing the same logical request multiple times has the same effect as processing it once.
+    </p>
+
+    <h4>Example: payment API</h4>
+    <pre><code>POST /payments
+Idempotency-Key: pay-20260826-abc123
+
+First request:
+key not found
+-> create payment
+-> save result with key
+-> return 201
+
+Second request:
+same key found
+-> do NOT create another payment
+-> return stored result</code></pre>
+
+    <h4>Possible implementation</h4>
+    <ul>
+      <li>Client sends a unique idempotency key.</li>
+      <li>Server stores the key with request hash, status, and result.</li>
+      <li>Use a unique DB constraint on the key.</li>
+      <li>Process key creation and business operation atomically if possible.</li>
+      <li>If the same key is reused with a different payload, reject it.</li>
+    </ul>
+
+    <pre><code>CREATE UNIQUE INDEX uq_payment_idempotency_key
+ON payment_request(idempotency_key);</code></pre>
+
+    <div class="note">
+      Idempotency is especially important for payment, order creation, booking, and event consumers because clients may retry
+      after a timeout without knowing whether the first request succeeded.
+    </div>
+
+    <h3>6. Two users update the same record simultaneously. How would you handle it?</h3>
+    <p>This is a concurrency-control problem. The correct strategy depends on the business rule.</p>
+
+    <h4>Option A — Optimistic locking</h4>
+    <p>
+      Use when conflicts are possible but not extremely frequent.
+    </p>
+    <pre><code>@Entity
+class Product {
+    @Id
+    private Long id;
+
+    @Version
+    private Long version;
+
+    private BigDecimal price;
+}</code></pre>
+
+    <pre><code>User A reads version 10
+User B reads version 10
+
+A updates:
+WHERE id = 1 AND version = 10
+-> success, version becomes 11
+
+B updates:
+WHERE id = 1 AND version = 10
+-> 0 rows updated
+-> OptimisticLockException</code></pre>
+
+    <p>
+      Then return a conflict such as HTTP 409 or reload/retry depending on the business requirement.
+    </p>
+
+    <h4>Option B — Pessimistic locking</h4>
+    <p>
+      Use a DB lock such as <code>SELECT ... FOR UPDATE</code> when the critical section must be serialized.
+      This provides stronger protection but reduces concurrency.
+    </p>
+
+    <h4>Option C — Atomic update</h4>
+    <pre><code>UPDATE inventory
+SET quantity = quantity - 1
+WHERE product_id = ?
+  AND quantity &gt; 0;</code></pre>
+
+    <p>
+      For inventory, an atomic conditional update can be more efficient than reading and then writing separately.
+    </p>
+
+    <h3>7. Your API works locally but fails in production. What would you investigate?</h3>
+    <p>
+      “Works on my machine” normally indicates an environment difference.
+      I would compare local and production configuration systematically.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Configuration</h4>
+        <ul>
+          <li>Environment variables</li>
+          <li>Spring profiles</li>
+          <li>Secrets</li>
+          <li>Feature flags</li>
+          <li>URLs and ports</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Infrastructure</h4>
+        <ul>
+          <li>DNS</li>
+          <li>Firewall / security group</li>
+          <li>Proxy / ingress</li>
+          <li>TLS certificates</li>
+          <li>Load balancer</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Dependencies</h4>
+        <ul>
+          <li>DB schema version</li>
+          <li>Migration status</li>
+          <li>Redis/Kafka connectivity</li>
+          <li>External API permissions</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Runtime</h4>
+        <ul>
+          <li>JDK version</li>
+          <li>Container image</li>
+          <li>Memory/CPU limits</li>
+          <li>Timezone/locale</li>
+          <li>File-system permissions</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>
+      I would first inspect deployment logs and startup errors, then compare configuration, then test connectivity from inside
+      the production container/pod rather than from my laptop.
+    </p>
+
+    <h3>8. A @Transactional operation partially fails. Why might rollback not happen as expected?</h3>
+    <p>
+      There are several common Spring transaction pitfalls.
+    </p>
+
+    <h4>Reason 1 — Exception is caught and swallowed</h4>
+    <pre><code>@Transactional
+public void createOrder() {
+    orderRepository.save(order);
+
+    try {
+        paymentService.pay();
+    } catch (Exception e) {
+        log.error("payment failed", e);
+    }
+
+    auditRepository.save(audit);
+}</code></pre>
+
+    <p>
+      If the exception never escapes the transactional boundary and nothing marks the transaction rollback-only,
+      Spring may commit.
+    </p>
+
+    <h4>Reason 2 — Checked exception</h4>
+    <p>
+      By default, Spring commonly rolls back for unchecked exceptions
+      (<code>RuntimeException</code> and <code>Error</code>), not every checked exception.
+    </p>
+    <pre><code>@Transactional(rollbackFor = Exception.class)</code></pre>
+
+    <h4>Reason 3 — Self-invocation</h4>
+    <pre><code>public void outer() {
+    this.inner(); // proxy may be bypassed
+}
+
+@Transactional
+public void inner() { ... }</code></pre>
+
+    <p>
+      Spring's proxy-based transaction interceptor may not run when a method in the same bean calls another transactional method directly.
+    </p>
+
+    <h4>Reason 4 — Propagation behavior</h4>
+    <p>
+      <code>REQUIRES_NEW</code> creates an independent transaction. The inner transaction can commit even if the outer one later rolls back.
+    </p>
+
+    <h4>Reason 5 — Database operation has already committed elsewhere</h4>
+    <p>
+      A remote API call, Kafka publish, file write, or external system is not automatically rolled back with the database transaction.
+    </p>
+
+    <div class="warning">
+      <strong>@Transactional is not a distributed transaction across every side effect.</strong>
+      For cross-service consistency, patterns such as Outbox, Saga, or compensating actions may be required.
+    </div>
+
+    <h3>9. Your Java application suddenly consumes too much memory. How would you debug it?</h3>
+    <p>
+      First determine whether this is a true
+      <span class="term">memory leak <span class="vi">(rò rỉ bộ nhớ)</span></span>,
+      temporary traffic-related memory pressure, or simply a larger healthy working set.
+    </p>
+
+    <h4>Metrics to inspect</h4>
+    <ul>
+      <li>Heap used / committed / max.</li>
+      <li>Old-generation usage after full GC.</li>
+      <li>GC frequency and pause duration.</li>
+      <li>Allocation rate.</li>
+      <li>Off-heap / direct-buffer usage.</li>
+      <li>Thread count and stack memory.</li>
+      <li>Container RSS versus JVM heap.</li>
+    </ul>
+
+    <h4>Leak pattern</h4>
+    <pre><code>Heap after GC:
+
+10:00  1.2 GB
+11:00  1.7 GB
+12:00  2.3 GB
+13:00  3.0 GB
+14:00  3.8 GB
+
+Memory does not return after GC
+-> possible leak / retained objects</code></pre>
+
+    <h4>Tools</h4>
+    <ul>
+      <li>Heap dump.</li>
+      <li>JDK Flight Recorder (JFR).</li>
+      <li>Java Mission Control.</li>
+      <li>jcmd / jmap / jstack where appropriate.</li>
+      <li>Eclipse MAT for retained-object analysis.</li>
+    </ul>
+
+    <h4>Common causes</h4>
+    <ul>
+      <li>Unbounded cache.</li>
+      <li>Static collection retaining objects.</li>
+      <li>Large session objects.</li>
+      <li>Listener not removed.</li>
+      <li>ThreadLocal leak.</li>
+      <li>Large byte arrays / payload buffering.</li>
+      <li>Too many threads.</li>
+      <li>Direct ByteBuffer / native memory leak.</li>
+    </ul>
+
+    <h3>10. A Microservice goes down while other services are healthy. How should your system handle it?</h3>
+    <p>
+      The failure should be isolated rather than propagated through the entire system.
+      This is the purpose of
+      <span class="term">fault isolation <span class="vi">(cô lập lỗi)</span></span>.
+    </p>
+
+    <h4>Protection strategy</h4>
+    <ol>
+      <li>Remove unhealthy instances from service discovery/load balancing.</li>
+      <li>Use health/readiness checks.</li>
+      <li>Apply short timeouts.</li>
+      <li>Open a circuit breaker after repeated failures.</li>
+      <li>Use bulkhead isolation so blocked calls do not consume all threads.</li>
+      <li>Use fallback or cached data where business rules allow it.</li>
+      <li>Queue asynchronous work if immediate completion is not required.</li>
+    </ol>
+
+    <pre><code>Order Service
+    |
+    +-- Product Service        healthy
+    +-- Inventory Service      healthy
+    +-- Recommendation Service DOWN
+
+If recommendation is optional:
+return order result without recommendations
+
+Do not fail the entire purchase flow.</code></pre>
+
+    <p>
+      This is called <span class="term">graceful degradation <span class="vi">(giảm cấp dịch vụ có kiểm soát)</span></span>.
+    </p>
+
+    <h3>11. Kafka consumer lag keeps increasing. What would you investigate?</h3>
+    <p>
+      <span class="term">Consumer lag <span class="vi">(độ trễ consumer)</span></span>
+      grows when producers create messages faster than consumers can process them.
+    </p>
+
+    <h4>First check the equation</h4>
+    <pre><code>Producer rate = 20,000 msg/s
+Consumer processing capacity = 15,000 msg/s
+
+Lag growth = 5,000 msg/s</code></pre>
+
+    <h4>Investigate</h4>
+    <ul>
+      <li>Producer throughput.</li>
+      <li>Consumer processing time per message.</li>
+      <li>Number of partitions.</li>
+      <li>Number of active consumers in the consumer group.</li>
+      <li>Slow DB or downstream calls inside message processing.</li>
+      <li>Frequent consumer rebalances.</li>
+      <li>GC pauses and CPU saturation.</li>
+      <li>Large messages or slow deserialization.</li>
+      <li>Broker health and disk/network I/O.</li>
+      <li>Error retries causing repeated processing.</li>
+    </ul>
+
+    <div class="note">
+      Adding more consumers only improves parallelism up to the number of partitions.
+      With 6 partitions, 20 consumers in the same consumer group do not give 20-way parallel processing.
+    </div>
+
+    <h3>12. Your API becomes slow only during peak traffic. Which metrics would you check?</h3>
+    <p>
+      Peak-only slowness usually points to resource saturation, queueing, lock contention, or a downstream capacity limit.
+    </p>
+
+    <table>
+      <thead><tr><th>Category</th><th>Metrics</th></tr></thead>
+      <tbody>
+        <tr><td>Traffic</td><td>RPS, concurrent requests, payload size.</td></tr>
+        <tr><td>Latency</td><td>p50, p95, p99 by endpoint and dependency.</td></tr>
+        <tr><td>Errors</td><td>5xx, timeout, rejected requests, circuit-breaker events.</td></tr>
+        <tr><td>CPU</td><td>Utilization, throttling, load average.</td></tr>
+        <tr><td>Memory</td><td>Heap, GC pause, allocation rate.</td></tr>
+        <tr><td>Threads</td><td>Active, blocked, waiting, queue length.</td></tr>
+        <tr><td>DB pool</td><td>Active, idle, pending, acquisition time.</td></tr>
+        <tr><td>Database</td><td>Query latency, locks, CPU, IOPS, cache hit ratio.</td></tr>
+        <tr><td>Cache</td><td>Hit ratio, evictions, latency, hot keys.</td></tr>
+        <tr><td>Downstream</td><td>Latency, timeout, error rate, retry count.</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      One important concept is <strong>queueing delay</strong>. A server may execute each request quickly after it gets a worker,
+      but users still experience high latency because requests wait in a queue.
+    </p>
+
+    <h3>13. A retry mechanism is making a downstream outage worse. Why?</h3>
+    <p>
+      This is a
+      <span class="term">retry storm <span class="vi">(bão retry)</span></span>.
+      When a dependency becomes slow, callers retry failed requests, increasing load exactly when the dependency has the least capacity.
+    </p>
+
+    <pre><code>Normal:
+1,000 original requests/s
+
+Dependency starts failing.
+Each request retries 3 times.
+
+Potential downstream load:
+1,000 original
++ 3,000 retries
+= 4,000 attempts/s</code></pre>
+
+    <p>
+      If multiple service layers retry independently, the amplification can be even worse.
+    </p>
+
+    <h4>Safer retry policy</h4>
+    <ul>
+      <li>Retry only transient errors.</li>
+      <li>Retry only safe/idempotent operations.</li>
+      <li>Set a small maximum number of attempts.</li>
+      <li>Use exponential backoff.</li>
+      <li>Add jitter.</li>
+      <li>Use a circuit breaker.</li>
+      <li>Respect an end-to-end timeout budget.</li>
+      <li>Consider retry budgets to limit total retry traffic.</li>
+    </ul>
+
+    <h3>14. A scheduled job runs twice after scaling your application. How would you prevent it?</h3>
+    <p>
+      A normal Spring <code>@Scheduled</code> task runs independently in every application instance.
+      Therefore, scaling from one pod to three pods can make the job run three times.
+    </p>
+
+    <pre><code>Before scaling:
+Pod A -> @Scheduled job
+
+After scaling:
+Pod A -> job
+Pod B -> job
+Pod C -> job</code></pre>
+
+    <h4>Solutions</h4>
+    <table>
+      <thead><tr><th>Approach</th><th>When to use</th></tr></thead>
+      <tbody>
+        <tr><td>Distributed lock</td><td>Simple jobs where only one instance should execute.</td></tr>
+        <tr><td>ShedLock</td><td>Common Spring solution using DB/Redis/etc. as lock storage.</td></tr>
+        <tr><td>Kubernetes CronJob</td><td>Run the scheduled task outside the application instances.</td></tr>
+        <tr><td>Quartz clustered mode</td><td>Advanced distributed scheduling requirements.</td></tr>
+        <tr><td>Leader election</td><td>Only the leader instance executes scheduled work.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Also make the job idempotent</h4>
+    <p>
+      Even with a distributed lock, design the job to tolerate duplicate execution because network failures and lock edge cases can happen.
+    </p>
+
+    <h3>15. One request passes through multiple Microservices. How would you trace it end-to-end?</h3>
+    <p>
+      Use
+      <span class="term">distributed tracing <span class="vi">(truy vết phân tán)</span></span>
+      with a shared trace context propagated through every service.
+    </p>
+
+    <pre><code>Client
+  |
+  | traceId = 8f7a...
+  v
+API Gateway
+  |
+  | traceId = 8f7a...
+  v
+Order Service
+  |
+  +---- Inventory Service
+  |
+  +---- Payment Service
+  |
+  +---- Kafka event
+            |
+            v
+      Notification Service</code></pre>
+
+    <p>
+      Each service creates its own <strong>span</strong>, but all spans share the same
+      <strong>trace ID</strong>. Parent-child relationships show the request path.
+    </p>
+
+    <h4>What to propagate</h4>
+    <ul>
+      <li>W3C <code>traceparent</code> / tracing context.</li>
+      <li>Trace ID and span ID.</li>
+      <li>Correlation ID where useful for application-level log search.</li>
+    </ul>
+
+    <h4>Example trace</h4>
+    <pre><code>Trace ID: 8f7a...
+
+Gateway                   1,250 ms
+└─ Order Service          1,180 ms
+   ├─ Product Service        30 ms
+   ├─ Inventory Service      80 ms
+   └─ Payment Service     1,020 ms
+      └─ External Bank API 980 ms  &lt;-- bottleneck</code></pre>
+
+    <p>
+      I would instrument services with OpenTelemetry and export traces to a backend such as Jaeger, Tempo, Zipkin,
+      or a commercial observability platform. Logs should also include the trace ID so I can jump from a slow trace to related logs.
+    </p>
+
+    <div class="good">
+      <strong>Senior interview answer:</strong>
+      “I propagate a standard trace context across HTTP, messaging, and async boundaries. Every service creates spans under the same trace ID.
+      Then I use the trace waterfall to see which service or dependency dominates end-to-end latency. I also put the trace ID in structured logs
+      so metrics, traces, and logs can be correlated during an incident.”
+    </div>
+
+    <h3>How these 15 questions connect to p50/p95/p99</h3>
+    <p>
+      These scenarios are not separate from latency percentiles. In production, many of them appear first as a change in p95 or p99.
+    </p>
+
+    <table>
+      <thead><tr><th>Problem</th><th>Typical latency signal</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>DB connection pool exhausted</td><td>p95/p99 rise sharply</td><td>Requests queue waiting for a connection.</td></tr>
+        <tr><td>Slow downstream service</td><td>p99 follows downstream p99</td><td>Critical-path latency propagates.</td></tr>
+        <tr><td>GC pause</td><td>Periodic p99 spikes</td><td>A subset of requests pauses with the JVM.</td></tr>
+        <tr><td>Retry storm</td><td>p95/p99 and errors both increase</td><td>Retries amplify load and queueing.</td></tr>
+        <tr><td>Peak traffic saturation</td><td>p50 may stay acceptable first, p99 degrades first</td><td>Tail requests wait longer for resources.</td></tr>
+        <tr><td>DB lock contention</td><td>Long tail / bimodal latency</td><td>Only conflicting requests wait on locks.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <div class="callout-title">A reusable interview framework</div>
+      For almost every production troubleshooting question, structure your answer as:
+      <strong>Scope → Metrics → Saturation → Dependencies → Trace → Root cause → Protection → Verification.</strong>
+    </div>
+  </section>
+
+  <footer>
+    Latency Percentiles Technical Handbook · p50 / p95 / p99
+  </footer>
+</main>
+</div>
+
+<script>
+function percentile(sorted, p){
+  if(sorted.length === 1) return sorted[0];
+  const index = (sorted.length - 1) * p;
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if(lower === upper) return sorted[lower];
+  const weight = index - lower;
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+function fmt(n){
+  return (Math.round(n * 100) / 100).toLocaleString() + " ms";
+}
+function calculate(){
+  const raw = document.getElementById("values").value;
+  const values = raw.split(",").map(v => Number(v.trim())).filter(v => Number.isFinite(v));
+  if(!values.length){
+    alert("Please enter valid numeric latency values.");
+    return;
+  }
+  values.sort((a,b)=>a-b);
+  const avg = values.reduce((a,b)=>a+b,0)/values.length;
+  document.getElementById("avg").textContent = fmt(avg);
+  document.getElementById("p50").textContent = fmt(percentile(values,.50));
+  document.getElementById("p95").textContent = fmt(percentile(values,.95));
+  document.getElementById("p99").textContent = fmt(percentile(values,.99));
+}
+calculate();
+</script>
+</body>
+</html>

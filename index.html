@@ -30,6 +30,7 @@
       --testing: #2563eb;
       --caching: #0e7490;
       --ai: #4f46e5;
+      --production-issue: #b91c1c;
       --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
       --radius: 8px;
     }
@@ -497,6 +498,7 @@
         <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
         <button class="filter-btn" type="button" data-filter="testing">Testing</button>
         <button class="filter-btn" type="button" data-filter="devops">DevOps</button>
+        <button class="filter-btn" type="button" data-filter="production-issue">Production Issue</button>
         <button class="filter-btn" type="button" data-filter="architecture">Design</button>
       </div>
 
@@ -1206,6 +1208,26 @@
         filter: "devops",
         accent: "var(--devops)",
         tags: ["devops", "docker", "kubernetes", "containers", "microservices", "networking", "deployment", "ingress", "autoscaling", "observability"]
+      },
+      {
+        id: "latency-percentiles-p50-p95-p99",
+        title: "Latency Percentiles p50, p95 and p99 Deep Dive",
+        summary: "Production troubleshooting guide for latency percentiles, tail latency, p50/p95/p99 interpretation, SLI/SLO/SLA, Prometheus histograms, high p99 debugging workflow, and techniques to reduce tail latency.",
+        file: "latency_percentiles_p50_p95_p99_deep_dive.html",
+        category: "Production Issue",
+        filter: "production-issue",
+        accent: "var(--production-issue)",
+        tags: ["production issue", "latency", "p50", "p95", "p99", "tail latency", "slo", "prometheus", "monitoring", "troubleshooting"]
+      },
+      {
+        id: "production-traffic-architecture-terms",
+        title: "Production Traffic Architecture",
+        summary: "Production architecture guide explaining DNS, CDN, WAF, load balancers, API gateways, service discovery, TLS, real failure cases, end-to-end traffic flow, and production checklists with Vietnamese technical terms.",
+        file: "production-traffic-architecture-en-vn-terms.html",
+        category: "DevOps",
+        filter: "devops",
+        accent: "var(--devops)",
+        tags: ["devops", "production traffic", "dns", "cdn", "waf", "load balancer", "api gateway", "tls", "service discovery", "architecture"]
       },
       {
         id: "ai-sdlc-slide-deck",

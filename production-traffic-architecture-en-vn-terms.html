@@ -1,0 +1,1233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Production Traffic Architecture — DNS, CDN, WAF, Load Balancer, API Gateway</title>
+  <meta name="description" content="Deep explanation of DNS, CDN, WAF, Load Balancer, API Gateway and common production problems, with Vietnamese translations for technical terms." />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#111827;
+      --panel2:#162033;
+      --text:#e5e7eb;
+      --muted:#9aa8bd;
+      --line:#28364f;
+      --accent:#8bd5ff;
+      --accent2:#c4b5fd;
+      --good:#8ee7ad;
+      --warn:#f8d77d;
+      --bad:#f2a8a8;
+      --code:#09111f;
+      --radius:18px;
+      --shadow:0 18px 60px rgba(0,0,0,.26);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(139,213,255,.08), transparent 30rem),
+        radial-gradient(circle at 0% 10%, rgba(196,181,253,.07), transparent 28rem),
+        var(--bg);
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      line-height:1.68;
+    }
+    .layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+    aside{
+      position:sticky;top:0;height:100vh;overflow:auto;
+      border-right:1px solid var(--line);
+      padding:24px 18px;background:rgba(11,16,32,.9);backdrop-filter:blur(10px)
+    }
+    main{padding:38px 42px 80px}
+    .wrap{max-width:1180px;margin:0 auto}
+    .brand{font-size:19px;font-weight:900;letter-spacing:.2px}
+    .brand span{color:var(--accent)}
+    .desc{font-size:13px;color:var(--muted);margin:7px 0 20px}
+    nav a{
+      display:block;text-decoration:none;color:#cbd5e1;
+      padding:9px 11px;margin:3px 0;border-radius:10px;
+      border:1px solid transparent;font-size:14px
+    }
+    nav a:hover,nav a.active{background:rgba(139,213,255,.08);border-color:rgba(139,213,255,.2);color:#fff}
+    .hero{
+      border:1px solid var(--line);
+      border-radius:26px;
+      padding:34px;
+      background:linear-gradient(180deg,rgba(17,24,39,.96),rgba(17,24,39,.75));
+      box-shadow:var(--shadow)
+    }
+    .eyebrow{font-size:12px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+    h1{font-size:clamp(34px,5vw,58px);line-height:1.04;margin:10px 0 16px;letter-spacing:-.035em}
+    h2{font-size:31px;line-height:1.2;margin:54px 0 18px}
+    h3{font-size:22px;margin:29px 0 12px}
+    h4{font-size:16px;margin:0 0 8px;color:#fff}
+    p{margin:10px 0;color:#d9e3ef}
+    .lead{font-size:18px;max-width:930px;color:#c9d5e5}
+    .muted{color:var(--muted)}
+    .term{color:#fff;font-weight:800}
+    .vn{color:var(--accent2);font-weight:700}
+    .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+    .pill{font-size:13px;border:1px solid var(--line);background:#10192b;border-radius:999px;padding:7px 10px;color:#dbeafe}
+    .flow{display:flex;align-items:stretch;gap:9px;overflow:auto;padding:10px 0 8px;margin:22px 0 0}
+    .node{min-width:145px;padding:14px 12px;border:1px solid #334155;border-radius:14px;background:#0e1729;text-align:center}
+    .node strong{display:block;color:#fff}
+    .node span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+    .arrow{align-self:center;min-width:20px;text-align:center;color:#64748b;font-size:22px}
+    .grid{display:grid;gap:16px}
+    .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,var(--panel),#0f1727)}
+    .label{display:inline-block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);font-weight:900;margin-bottom:8px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+    table{width:100%;min-width:800px;border-collapse:collapse;background:#0d1524}
+    th,td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{text-align:left;background:#121c2e;color:#fff;font-size:13px}
+    td{color:#d9e2ef}
+    tr:last-child td{border-bottom:none}
+    .callout{border-left:4px solid var(--accent);background:rgba(139,213,255,.07);padding:16px 18px;border-radius:10px;margin:18px 0}
+    .callout.warn{border-left-color:var(--warn);background:rgba(248,215,125,.06)}
+    .callout.good{border-left-color:var(--good);background:rgba(142,231,173,.06)}
+    .callout.bad{border-left-color:var(--bad);background:rgba(242,168,168,.06)}
+    .steps{counter-reset:step;display:grid;gap:12px}
+    .step{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#0f1728}
+    .step:before{
+      counter-increment:step;content:counter(step);display:grid;place-items:center;width:34px;height:34px;
+      border-radius:10px;background:#18253b;color:var(--accent);font-weight:900
+    }
+    pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;color:#dbeafe;font-size:13px;line-height:1.55}
+    code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+    ul,ol{padding-left:20px}
+    li{margin:6px 0;color:#d7e0ec}
+    .compare td:first-child{font-weight:800;color:#fff}
+    .checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;list-style:none;padding:0}
+    .checklist li{position:relative;margin:0;padding:12px 14px 12px 40px;border:1px solid var(--line);border-radius:12px;background:#0e1728}
+    .checklist li:before{content:"✓";position:absolute;left:14px;top:11px;color:var(--good);font-weight:900}
+    .glossary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .glossary .item{border:1px solid var(--line);border-radius:12px;background:#0e1728;padding:13px 14px}
+    .glossary .item b{color:#fff}
+    footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+    .top{
+      position:fixed;right:24px;bottom:24px;width:44px;height:44px;border-radius:50%;
+      display:grid;place-items:center;text-decoration:none;color:#fff;background:#111827;border:1px solid var(--line);box-shadow:var(--shadow)
+    }
+    @media(max-width:980px){
+      .layout{grid-template-columns:1fr}
+      aside{display:none}
+      main{padding:24px 18px 64px}
+      .g2,.g3,.checklist,.glossary{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Production <span>Traffic Stack</span></div>
+    <div class="desc">DNS • CDN • WAF • Load Balancer • API Gateway</div>
+    <nav id="nav">
+      <a href="#overview">1. Request Flow</a>
+      <a href="#dns">2. DNS</a>
+      <a href="#cdn">3. CDN</a>
+      <a href="#waf">4. WAF</a>
+      <a href="#lb">5. Load Balancer</a>
+      <a href="#gateway">6. API Gateway</a>
+      <a href="#discovery">7. Service Discovery</a>
+      <a href="#compare">8. LB vs Gateway</a>
+      <a href="#tls">9. TLS / HTTPS</a>
+      <a href="#failures">10. Failure Cases</a>
+      <a href="#sequence">11. Sequence Flow</a>
+      <a href="#reference">12. Reference Architecture</a>
+      <a href="#checklist">13. Checklist</a>
+      <a href="#interview">14. Senior Interview Answer</a>
+      <a href="#glossary">15. Technical Glossary</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="wrap">
+      <section class="hero" id="overview">
+        <div class="eyebrow">Production Architecture Deep Dive</div>
+        <h1>DNS → CDN → WAF → Load Balancer → API Gateway</h1>
+        <p class="lead">
+          In a production system, user traffic normally does not go directly to an application server.
+          It passes through multiple infrastructure layers. Each layer solves a different problem:
+          locating the correct endpoint, reducing latency, protecting the application, distributing traffic,
+          controlling APIs, routing to the correct service, and improving reliability.
+        </p>
+
+        <div class="pills">
+          <span class="pill">Availability <span class="vn">(tính sẵn sàng)</span></span>
+          <span class="pill">Scalability <span class="vn">(khả năng mở rộng)</span></span>
+          <span class="pill">Reliability <span class="vn">(độ tin cậy)</span></span>
+          <span class="pill">Latency <span class="vn">(độ trễ)</span></span>
+          <span class="pill">Observability <span class="vn">(khả năng quan sát hệ thống)</span></span>
+        </div>
+
+        <div class="flow">
+          <div class="node"><strong>User</strong><span>Browser / Mobile</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>DNS</strong><span>Domain resolution</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>CDN</strong><span>Edge cache</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>WAF</strong><span>HTTP security</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Load Balancer</strong><span>Traffic distribution</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>API Gateway</strong><span>API policy + routing</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Service Discovery</strong><span>Find healthy services</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Services</strong><span>Business logic</span></div>
+        </div>
+
+        <div class="callout">
+          <strong>Important:</strong> The exact order is provider-dependent.
+          For example, a <span class="term">WAF <span class="vn">(tường lửa ứng dụng web)</span></span>
+          can be integrated into the CDN, placed before the Load Balancer, or attached directly to the API Gateway.
+        </div>
+      </section>
+
+      <section>
+        <h2>1. What problem does each layer solve?</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Layer</th><th>Main responsibility</th><th>Without it</th><th>Typical production decision</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DNS</strong></td>
+                <td>Resolve a domain name to an endpoint.</td>
+                <td>The client does not know where to connect.</td>
+                <td>Geo routing, failover routing, weighted routing.</td>
+              </tr>
+              <tr>
+                <td><strong>CDN</strong></td>
+                <td>Serve cacheable content closer to users.</td>
+                <td>Higher latency and more origin traffic.</td>
+                <td>Cache static files, images, video, selected GET APIs.</td>
+              </tr>
+              <tr>
+                <td><strong>WAF</strong></td>
+                <td>Inspect and filter Layer 7 HTTP traffic.</td>
+                <td>Web attacks and bots reach the application directly.</td>
+                <td>Managed rules, bot control, rate limiting.</td>
+              </tr>
+              <tr>
+                <td><strong>Load Balancer</strong></td>
+                <td>Distribute requests across healthy backends.</td>
+                <td>One server becomes a bottleneck or single point of failure.</td>
+                <td>Round robin, least connections, weighted traffic.</td>
+              </tr>
+              <tr>
+                <td><strong>API Gateway</strong></td>
+                <td>Centralize API policy and routing.</td>
+                <td>Authentication, quotas, routing, and rate limits are duplicated across services.</td>
+                <td>JWT validation, API versioning, request routing.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dns">
+        <h2>2. DNS — Domain Name System <span class="vn">(hệ thống phân giải tên miền)</span></h2>
+        <p>
+          DNS does not forward the HTTP request itself. Its main job is to answer:
+          <strong>“Which IP address or endpoint should this domain connect to?”</strong>
+        </p>
+
+        <h3>How DNS resolution works</h3>
+        <div class="steps">
+          <div class="step">
+            <div>
+              <strong>Browser / OS cache</strong>
+              <p class="muted">If the record is still cached and its TTL has not expired, the client can reuse it immediately.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <strong>Recursive Resolver <span class="vn">(DNS resolver trung gian)</span></strong>
+              <p class="muted">Usually provided by an ISP, company network, or public DNS provider.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <strong>Root → TLD → Authoritative DNS</strong>
+              <p class="muted">
+                The resolver walks the DNS hierarchy until it finds the
+                <span class="term">Authoritative DNS <span class="vn">(DNS có thẩm quyền)</span></span>
+                server that owns the record.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <strong>Return record + TTL</strong>
+              <p class="muted">
+                The result is cached according to
+                <span class="term">TTL — Time To Live <span class="vn">(thời gian bản ghi được phép cache)</span></span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3>Why do we need DNS?</h3>
+        <div class="grid g3">
+          <div class="card">
+            <span class="label">Decoupling</span>
+            <h4>Hide infrastructure changes</h4>
+            <p>Servers and IP addresses can change while the public domain remains stable.</p>
+          </div>
+          <div class="card">
+            <span class="label">Routing</span>
+            <h4>Choose a region or endpoint</h4>
+            <p>DNS can route users by geography, weight, latency, or health.</p>
+          </div>
+          <div class="card">
+            <span class="label">Failover</span>
+            <h4>Move traffic after failure</h4>
+            <p>Health-aware DNS can route traffic away from an unhealthy region.</p>
+          </div>
+        </div>
+
+        <h3>Common DNS production problems</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Problem</th><th>Why it happens</th><th>Impact</th><th>Solution</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Slow propagation</td>
+                <td>Old DNS records are still cached.</td>
+                <td>Some users still reach the old endpoint.</td>
+                <td>Lower TTL before migration, keep both environments running during the transition.</td>
+              </tr>
+              <tr>
+                <td>Provider outage</td>
+                <td>The authoritative DNS provider becomes unavailable.</td>
+                <td>Users cannot resolve the domain.</td>
+                <td>Use secondary DNS, multi-provider DNS, or Anycast DNS.</td>
+              </tr>
+              <tr>
+                <td>Failover is too slow</td>
+                <td>Long TTL and slow health detection.</td>
+                <td>Traffic still reaches a failed region.</td>
+                <td>Use health-based routing, reasonable TTLs, and a Global Load Balancer when faster failover is required.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>Senior-level point:</strong>
+          DNS failover is not instant because clients and resolvers may still cache old records.
+          For critical systems, combine DNS with a
+          <span class="term">Global Load Balancer <span class="vn">(bộ cân bằng tải toàn cầu)</span></span>
+          or <span class="term">Anycast <span class="vn">(nhiều server cùng quảng bá một IP để user đi tới điểm gần/khỏe nhất)</span></span>.
+        </div>
+      </section>
+
+      <section id="cdn">
+        <h2>3. CDN — Content Delivery Network <span class="vn">(mạng phân phối nội dung)</span></h2>
+        <p>
+          A CDN uses many <span class="term">Edge Servers <span class="vn">(máy chủ biên đặt gần người dùng)</span></span>.
+          If the requested content is already cached at the edge, the CDN returns it immediately without calling the origin.
+        </p>
+
+        <div class="grid g2">
+          <div class="card">
+            <span class="label">Cache Hit</span>
+            <h4>Fast path</h4>
+            <p>User → CDN Edge → Response</p>
+            <p class="muted">The origin is not called.</p>
+          </div>
+          <div class="card">
+            <span class="label">Cache Miss</span>
+            <h4>Origin path</h4>
+            <p>User → CDN Edge → Origin → Cache → Response</p>
+            <p class="muted">The next request may be served from the edge.</p>
+          </div>
+        </div>
+
+        <h3>Why use a CDN?</h3>
+        <ul>
+          <li>Reduce <span class="term">Latency <span class="vn">(độ trễ)</span></span>.</li>
+          <li>Reduce <span class="term">Origin Load <span class="vn">(tải lên server gốc)</span></span>.</li>
+          <li>Absorb large traffic spikes.</li>
+          <li>Reduce bandwidth usage at the origin.</li>
+          <li>Improve global user experience.</li>
+        </ul>
+
+        <h3>What should be cached?</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Content</th><th>Should cache?</th><th>Reason</th><th>Recommended strategy</th></tr></thead>
+            <tbody>
+              <tr><td>Versioned JS/CSS</td><td>Yes</td><td>Immutable by content hash</td><td>Very long TTL + hashed file name</td></tr>
+              <tr><td>Images / video</td><td>Yes</td><td>Static and large</td><td>Edge caching + compression</td></tr>
+              <tr><td>Public product detail</td><td>Often yes</td><td>Read-heavy, updates less frequently</td><td>Short TTL + invalidation</td></tr>
+              <tr><td>Private user profile</td><td>Usually no shared cache</td><td>Personalized data</td><td>Private cache or no-store</td></tr>
+              <tr><td>Payment / order creation</td><td>No</td><td>State-changing request</td><td>Bypass CDN cache</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Important CDN failure cases</h3>
+        <div class="grid g2">
+          <div class="card">
+            <h4>Stale Cache <span class="vn">(cache cũ, dữ liệu không còn mới)</span></h4>
+            <p>An admin updates a product, but the CDN still serves the old value.</p>
+            <p><strong>Solution:</strong> cache invalidation, purge, versioned URLs, shorter TTL, or stale-while-revalidate.</p>
+          </div>
+          <div class="card">
+            <h4>Cache Stampede <span class="vn">(nhiều request cùng cache miss rồi dồn xuống backend)</span></h4>
+            <p>A hot cache entry expires and thousands of requests hit the origin at once.</p>
+            <p><strong>Solution:</strong> request coalescing, TTL jitter, origin shield, soft TTL, stale-while-revalidate.</p>
+          </div>
+          <div class="card">
+            <h4>Wrong Cache Key <span class="vn">(khóa cache thiết kế sai)</span></h4>
+            <p>If important query parameters, headers, or cookies are not part of the cache key, users may receive incorrect data.</p>
+            <p><strong>Solution:</strong> define the cache key explicitly and keep private responses out of shared caches.</p>
+          </div>
+          <div class="card">
+            <h4>Origin Overload</h4>
+            <p>A CDN cannot cache every request. Personalized and write traffic still reaches the backend.</p>
+            <p><strong>Solution:</strong> autoscaling, Redis, database scaling, queues, and rate limiting are still required.</p>
+          </div>
+        </div>
+
+        <pre><code>Example cache policy
+
+Static files:
+Cache-Control: public, max-age=31536000, immutable
+
+Public product API:
+Cache-Control: public, max-age=30, stale-while-revalidate=60
+
+Private user response:
+Cache-Control: private, no-store</code></pre>
+      </section>
+
+      <section id="waf">
+        <h2>4. WAF — Web Application Firewall <span class="vn">(tường lửa ứng dụng web)</span></h2>
+        <p>
+          A WAF inspects Layer 7 HTTP/HTTPS requests. It can inspect URLs, headers, query parameters,
+          request bodies, IP reputation, and request behavior before traffic reaches the application.
+        </p>
+
+        <div class="grid g3">
+          <div class="card">
+            <span class="label">Threat</span>
+            <h4>SQL Injection <span class="vn">(chèn câu lệnh SQL độc hại)</span></h4>
+            <p>The attacker sends crafted input to manipulate database queries.</p>
+          </div>
+          <div class="card">
+            <span class="label">Threat</span>
+            <h4>XSS — Cross-Site Scripting <span class="vn">(chèn script độc hại vào trang web)</span></h4>
+            <p>The attacker injects script content that later runs in another user's browser.</p>
+          </div>
+          <div class="card">
+            <span class="label">Threat</span>
+            <h4>Bot Abuse <span class="vn">(lạm dụng bằng bot tự động)</span></h4>
+            <p>Bots may scrape data, brute-force accounts, or create huge request volumes.</p>
+          </div>
+        </div>
+
+        <h3>WAF is defense-in-depth</h3>
+        <div class="callout warn">
+          <span class="term">Defense-in-depth <span class="vn">(phòng thủ nhiều lớp)</span></span>
+          means you do not rely on one security layer.
+          A WAF does not replace secure coding, input validation, authorization, parameterized queries,
+          secrets management, dependency patching, or strong authentication.
+        </div>
+
+        <h3>Common WAF problems</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Problem</th><th>Meaning</th><th>Solution</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>False Positive <span class="vn">(chặn nhầm request hợp lệ)</span></td>
+                <td>A legitimate request is blocked.</td>
+                <td>Start rules in count/log mode, tune exceptions by endpoint, monitor blocked traffic.</td>
+              </tr>
+              <tr>
+                <td>False Negative <span class="vn">(không phát hiện request độc hại)</span></td>
+                <td>A malicious request passes through.</td>
+                <td>Use updated managed rules and keep validation inside the application.</td>
+              </tr>
+              <tr>
+                <td>Overly broad rule</td>
+                <td>A large range of legitimate users is blocked.</td>
+                <td>Scope the rule by route, country, IP, or request behavior.</td>
+              </tr>
+              <tr>
+                <td>Added latency</td>
+                <td>Heavy inspection adds processing time.</td>
+                <td>Remove unnecessary rules and carefully tune body inspection.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Rate Limiting <span class="vn">(giới hạn số request trong một khoảng thời gian)</span></h3>
+        <pre><code>/login
+- limit by account
+- also limit by IP
+- exponential backoff
+- bot detection
+- MFA / risk-based authentication
+
+/search
+- limit requests per IP or API key
+
+/payment
+- rate limiting
+- idempotency key
+- fraud/risk checks</code></pre>
+      </section>
+
+      <section id="lb">
+        <h2>5. Load Balancer <span class="vn">(bộ cân bằng tải)</span></h2>
+        <p>
+          A Load Balancer distributes traffic across multiple instances, VMs, containers, or Kubernetes pods.
+          Its main goal is to enable <span class="term">Horizontal Scaling <span class="vn">(mở rộng bằng cách tăng số lượng instance)</span></span>
+          and prevent one machine from becoming a bottleneck.
+        </p>
+
+        <h3>Common algorithms</h3>
+        <div class="grid g3">
+          <div class="card">
+            <h4>Round Robin <span class="vn">(chia lần lượt)</span></h4>
+            <p>Requests are distributed one by one across available backends.</p>
+          </div>
+          <div class="card">
+            <h4>Least Connections <span class="vn">(ưu tiên server có ít kết nối hơn)</span></h4>
+            <p>Traffic goes to the backend with fewer active connections.</p>
+          </div>
+          <div class="card">
+            <h4>Weighted Routing <span class="vn">(phân phối theo trọng số)</span></h4>
+            <p>Some instances receive more traffic than others, useful for different server sizes or canary rollout.</p>
+          </div>
+        </div>
+
+        <h3>Health Checks <span class="vn">(kiểm tra tình trạng service)</span></h3>
+        <ul>
+          <li><strong>Liveness <span class="vn">(service còn sống hay không)</span>:</strong> Is the process alive?</li>
+          <li><strong>Readiness <span class="vn">(service đã sẵn sàng nhận traffic chưa)</span>:</strong> Can it safely receive traffic now?</li>
+          <li><strong>Dependency check:</strong> Does the application have the critical dependencies it needs?</li>
+        </ul>
+
+        <div class="callout">
+          Do not make readiness depend on every minor dependency.
+          Otherwise, one small dependency failure can cause the Load Balancer to remove the entire application fleet.
+        </div>
+
+        <h3>Common Load Balancer problems</h3>
+        <div class="grid g2">
+          <div class="card">
+            <h4>Uneven Load <span class="vn">(tải phân phối không đều)</span></h4>
+            <p>One server processes requests more slowly than the others.</p>
+            <p><strong>Solution:</strong> least connections, latency-aware routing, autoscaling based on queue depth and latency.</p>
+          </div>
+          <div class="card">
+            <h4>Sticky Session <span class="vn">(ghim một user vào một server)</span></h4>
+            <p>A user's session is tied to one server, creating state and failover problems.</p>
+            <p><strong>Solution:</strong> prefer stateless services or store session state in Redis, a database, or tokens.</p>
+          </div>
+          <div class="card">
+            <h4>Retry Storm <span class="vn">(bão retry, nhiều tầng cùng retry làm traffic tăng mạnh)</span></h4>
+            <p>The client, Load Balancer, Gateway, and service all retry during a failure.</p>
+            <p><strong>Solution:</strong> retry budget, exponential backoff + jitter, timeouts, retry only idempotent operations.</p>
+          </div>
+          <div class="card">
+            <h4>Connection Draining <span class="vn">(đợi request đang chạy hoàn tất trước khi gỡ instance)</span></h4>
+            <p>During deployment, an instance is terminated while requests are still active.</p>
+            <p><strong>Solution:</strong> deregistration delay, graceful shutdown, readiness false before termination.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="gateway">
+        <h2>6. API Gateway <span class="vn">(cổng quản lý API)</span></h2>
+        <p>
+          An API Gateway sits in front of backend services and centralizes cross-cutting concerns
+          such as authentication, routing, rate limiting, API versioning, quotas, and observability.
+        </p>
+
+        <div class="grid g3">
+          <div class="card">
+            <span class="label">Security</span>
+            <h4>Authentication <span class="vn">(xác thực danh tính)</span></h4>
+            <p>Validate JWTs, API keys, scopes, and claims before traffic reaches the service.</p>
+          </div>
+          <div class="card">
+            <span class="label">Routing</span>
+            <h4>Path-based routing</h4>
+            <p><code>/orders/*</code> → Order Service<br><code>/users/*</code> → User Service</p>
+          </div>
+          <div class="card">
+            <span class="label">Control</span>
+            <h4>Quota <span class="vn">(hạn mức sử dụng)</span></h4>
+            <p>Control request volume by user, API key, customer, or tenant.</p>
+          </div>
+        </div>
+
+        <h3>When is an API Gateway useful?</h3>
+        <ul>
+          <li>You have many public APIs or microservices.</li>
+          <li>You need centralized authentication and common policy enforcement.</li>
+          <li>You need API versioning and controlled deprecation.</li>
+          <li>You need rate limits or quotas per customer or tenant.</li>
+          <li>You want external clients to be isolated from the internal service topology.</li>
+        </ul>
+
+        <h3>Common Gateway problems</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Problem</th><th>Why it is dangerous</th><th>Solution</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Bottleneck <span class="vn">(điểm nghẽn)</span></td>
+                <td>All public API traffic passes through one layer.</td>
+                <td>Keep it stateless, scale horizontally, deploy multi-zone, capacity test.</td>
+              </tr>
+              <tr>
+                <td>SPOF — Single Point of Failure <span class="vn">(điểm lỗi duy nhất)</span></td>
+                <td>If the Gateway fails, many APIs fail together.</td>
+                <td>High availability, multiple zones, health checks, failover.</td>
+              </tr>
+              <tr>
+                <td>Business logic inside Gateway</td>
+                <td>The Gateway becomes a large, hard-to-maintain application.</td>
+                <td>Keep business logic in services. Keep only shared policies in the Gateway.</td>
+              </tr>
+              <tr>
+                <td>Timeout mismatch</td>
+                <td>Client, Gateway, and service timeouts do not align.</td>
+                <td>Design a timeout budget from outside to inside.</td>
+              </tr>
+              <tr>
+                <td>Large file upload</td>
+                <td>WAF or Gateway may have request-body size limits.</td>
+                <td>Use object storage and pre-signed URLs for large uploads.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout good">
+          <strong>Important:</strong>
+          Authentication can be centralized at the Gateway, but sensitive
+          <span class="term">Authorization <span class="vn">(phân quyền)</span></span>
+          decisions should still be enforced by the service because business rules belong there.
+        </div>
+      </section>
+
+
+      <section id="discovery">
+        <h2>7. Service Discovery <span class="vn">(cơ chế khám phá service)</span></h2>
+        <p>
+          In a microservice system, service instances are dynamic.
+          Containers restart, pods move to another node, autoscaling creates new instances,
+          and old instances disappear.
+          Because of that, one service should not hard-code the IP address of another service.
+        </p>
+
+        <div class="callout">
+          <strong>Core idea:</strong>
+          Service Discovery answers the question:
+          <strong>“Where is the healthy instance of Service B right now?”</strong>
+        </div>
+
+        <h3>Why do we need Service Discovery?</h3>
+        <div class="grid g3">
+          <div class="card">
+            <span class="label">Dynamic infrastructure</span>
+            <h4>Instances change constantly</h4>
+            <p>
+              In Kubernetes or autoscaling environments, IP addresses are temporary.
+              A service instance can disappear and be recreated with a different IP.
+            </p>
+          </div>
+          <div class="card">
+            <span class="label">Decoupling</span>
+            <h4>No hard-coded endpoints</h4>
+            <p>
+              Service A should call a logical name such as <code>order-service</code>
+              instead of a fixed IP like <code>10.0.1.24</code>.
+            </p>
+          </div>
+          <div class="card">
+            <span class="label">Resilience</span>
+            <h4>Route only to healthy instances</h4>
+            <p>
+              Discovery systems usually work together with
+              <span class="term">Health Checks <span class="vn">(kiểm tra tình trạng service)</span></span>
+              to avoid dead instances.
+            </p>
+          </div>
+        </div>
+
+        <h3>Main components</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Component</th><th>Meaning</th><th>Responsibility</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Service Registry <span class="vn">(sổ đăng ký service)</span></td>
+                <td>A database of available service instances</td>
+                <td>Stores service name, IP, port, health status, metadata</td>
+              </tr>
+              <tr>
+                <td>Service Registration <span class="vn">(đăng ký service)</span></td>
+                <td>An instance announces itself</td>
+                <td>Example: Order Service starts and registers its endpoint</td>
+              </tr>
+              <tr>
+                <td>Health Check <span class="vn">(kiểm tra trạng thái)</span></td>
+                <td>Determines whether the instance is alive and ready</td>
+                <td>Unhealthy instances are removed or ignored</td>
+              </tr>
+              <tr>
+                <td>Service Lookup <span class="vn">(tra cứu service)</span></td>
+                <td>A caller asks where the destination service is</td>
+                <td>Returns one or more healthy endpoints</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Client-Side Discovery <span class="vn">(client tự tìm service)</span></h3>
+        <p>
+          In client-side discovery, the calling service queries the registry directly,
+          gets a list of healthy instances, and chooses one instance itself.
+        </p>
+
+        <pre><code>Service A
+   |
+   | query registry
+   v
+Service Registry
+   |
+   | returns:
+   | 10.0.1.10:8080
+   | 10.0.1.11:8080
+   | 10.0.1.12:8080
+   v
+Service A chooses one instance
+   |
+   v
+Service B</code></pre>
+
+        <div class="grid g2">
+          <div class="card">
+            <h4>Advantages</h4>
+            <ul>
+              <li>One less network hop.</li>
+              <li>Client can implement custom load-balancing logic.</li>
+              <li>Fast when registry data is cached locally.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Disadvantages</h4>
+            <ul>
+              <li>Every client must understand discovery logic.</li>
+              <li>Client libraries can become language-specific.</li>
+              <li>More complexity is pushed into application code.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Server-Side Discovery <span class="vn">(phía trung gian tìm service thay cho client)</span></h3>
+        <p>
+          In server-side discovery, the caller sends a request to a Load Balancer,
+          proxy, API Gateway, or service mesh component.
+          That infrastructure layer performs service lookup and forwards the request.
+        </p>
+
+        <pre><code>Service A
+   |
+   v
+Load Balancer / Proxy / Service Mesh
+   |
+   | lookup healthy backend
+   v
+Service Registry
+   |
+   v
+Service B instance</code></pre>
+
+        <div class="grid g2">
+          <div class="card">
+            <h4>Advantages</h4>
+            <ul>
+              <li>Application code is simpler.</li>
+              <li>Discovery logic is centralized in infrastructure.</li>
+              <li>Works better in polyglot systems with many languages.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Disadvantages</h4>
+            <ul>
+              <li>Adds an infrastructure dependency.</li>
+              <li>Proxy or Load Balancer must be highly available.</li>
+              <li>May add another network hop.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>How Kubernetes handles Service Discovery</h3>
+        <p>
+          Kubernetes already provides built-in service discovery.
+          Applications normally call a stable
+          <span class="term">Service Name <span class="vn">(tên service ổn định)</span></span>
+          instead of calling Pod IP addresses directly.
+        </p>
+
+        <pre><code>order-service
+     |
+     | DNS lookup
+     v
+order-service.default.svc.cluster.local
+     |
+     v
+Kubernetes Service
+     |
+     +--> Pod A: 10.244.1.20
+     +--> Pod B: 10.244.2.18
+     +--> Pod C: 10.244.3.11</code></pre>
+
+        <p>
+          Kubernetes DNS, usually powered by
+          <span class="term">CoreDNS <span class="vn">(DNS nội bộ của Kubernetes)</span></span>,
+          resolves the service name.
+          The Kubernetes Service provides a stable virtual endpoint and routes traffic to healthy Pods.
+        </p>
+
+        <div class="callout good">
+          <strong>Senior-level point:</strong>
+          In Kubernetes, you usually do not need Eureka just for basic service discovery.
+          Kubernetes Service + CoreDNS already solve the core discovery problem.
+          A separate registry is only useful when you have additional cross-platform or non-Kubernetes requirements.
+        </div>
+
+        <h3>Service Discovery vs Load Balancer</h3>
+        <div class="table-wrap">
+          <table class="compare">
+            <thead><tr><th>Dimension</th><th>Service Discovery</th><th>Load Balancer</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Main question</td>
+                <td>“Where are the available service instances?”</td>
+                <td>“Which healthy instance should receive this request?”</td>
+              </tr>
+              <tr>
+                <td>Main responsibility</td>
+                <td>Maintain and locate service endpoints</td>
+                <td>Distribute traffic across endpoints</td>
+              </tr>
+              <tr>
+                <td>Can they work together?</td>
+                <td colspan="2">Yes. Discovery finds healthy instances, then the Load Balancer chooses one.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Common production problems</h3>
+        <div class="grid g2">
+          <div class="card">
+            <h4>Stale Registry Data <span class="vn">(registry giữ thông tin instance đã chết)</span></h4>
+            <p>
+              An instance disappears, but the registry still advertises it.
+            </p>
+            <p>
+              <strong>Solution:</strong> short health-check intervals, heartbeats, TTL-based registration,
+              active health checking, and connection retry to another instance.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Registry Outage <span class="vn">(service registry bị lỗi)</span></h4>
+            <p>
+              If every request depends on a live registry lookup, an outage can affect the entire system.
+            </p>
+            <p>
+              <strong>Solution:</strong> registry cluster, local caching, multiple replicas, graceful fallback.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Thundering Herd <span class="vn">(nhiều client cùng lúc query registry)</span></h4>
+            <p>
+              Many services refresh discovery data at the same time.
+            </p>
+            <p>
+              <strong>Solution:</strong> local caching, jittered refresh intervals, push-based updates where supported.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Split Brain <span class="vn">(các registry node có trạng thái không đồng nhất)</span></h4>
+            <p>
+              Different registry nodes disagree about which instances are healthy.
+            </p>
+            <p>
+              <strong>Solution:</strong> quorum-based consistency, leader election, strong operational monitoring.
+            </p>
+          </div>
+        </div>
+
+        <h3>Common technologies</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Technology</th><th>Typical use</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Kubernetes Service + CoreDNS</td>
+                <td>Kubernetes-native discovery</td>
+                <td>Recommended default inside Kubernetes clusters</td>
+              </tr>
+              <tr>
+                <td>Consul</td>
+                <td>Service registry + health checking + multi-environment discovery</td>
+                <td>Useful across VMs, containers, and multiple platforms</td>
+              </tr>
+              <tr>
+                <td>Netflix Eureka</td>
+                <td>Application-level service registry</td>
+                <td>Common in older Spring Cloud / Netflix OSS architectures</td>
+              </tr>
+              <tr>
+                <td>etcd</td>
+                <td>Distributed key-value store</td>
+                <td>Often used as infrastructure metadata store, including by Kubernetes internally</td>
+              </tr>
+              <tr>
+                <td>Service Mesh</td>
+                <td>Proxy-based discovery, routing, mTLS, retries, observability</td>
+                <td>Examples include Istio or Linkerd</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="compare">
+        <h2>8. Load Balancer vs API Gateway</h2>
+        <div class="table-wrap">
+          <table class="compare">
+            <thead><tr><th>Dimension</th><th>Load Balancer</th><th>API Gateway</th></tr></thead>
+            <tbody>
+              <tr><td>Main purpose</td><td>Distribute network traffic</td><td>Manage and control API traffic</td></tr>
+              <tr><td>Backend targets</td><td>VMs, pods, containers, services</td><td>APIs, services, functions</td></tr>
+              <tr><td>Authentication</td><td>Usually limited</td><td>Common feature</td></tr>
+              <tr><td>Rate limiting</td><td>Possible, but not primary role</td><td>Core API management feature</td></tr>
+              <tr><td>Request transformation</td><td>Limited</td><td>Usually supported</td></tr>
+              <tr><td>Versioning</td><td>Limited</td><td>Common API feature</td></tr>
+              <tr><td>Can they be used together?</td><td colspan="2">Yes. This is common in real production systems.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tls">
+        <h2>9. TLS / HTTPS</h2>
+        <p>
+          <span class="term">TLS Termination <span class="vn">(điểm giải mã kết nối HTTPS)</span></span>
+          can happen at the CDN, Load Balancer, or API Gateway.
+        </p>
+
+        <div class="grid g2">
+          <div class="card">
+            <h4>Edge TLS Termination</h4>
+            <p>User ↔ CDN/WAF uses HTTPS. The edge decrypts traffic for inspection or caching and then re-encrypts it to the origin.</p>
+          </div>
+          <div class="card">
+            <h4>mTLS — Mutual TLS <span class="vn">(TLS xác thực hai chiều)</span></h4>
+            <p>Both client and server validate certificates. This is common in service-to-service zero-trust environments.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="failures">
+        <h2>10. Real Production Failure Cases</h2>
+
+        <h3>Case A — Flash sale traffic increases 50x</h3>
+        <div class="steps">
+          <div class="step">
+            <div><strong>CDN absorbs cacheable traffic</strong><p class="muted">Static files and public GET responses should not all hit the origin.</p></div>
+          </div>
+          <div class="step">
+            <div><strong>WAF and rate limiting block abuse</strong><p class="muted">Bots should not consume the same backend capacity as real customers.</p></div>
+          </div>
+          <div class="step">
+            <div><strong>Load Balancer spreads requests</strong><p class="muted">Backend instances scale horizontally.</p></div>
+          </div>
+          <div class="step">
+            <div><strong>Gateway enforces API quotas</strong><p class="muted">Protect sensitive endpoints such as checkout and payment.</p></div>
+          </div>
+          <div class="step">
+            <div><strong>Services protect downstream dependencies</strong><p class="muted">Use queues, caching, connection-pool limits, backpressure, and circuit breakers.</p></div>
+          </div>
+        </div>
+
+        <h3>Case B — Admin updates a product, but users still see the old price</h3>
+        <div class="callout warn">
+          Stale data may exist at many layers:
+          Browser Cache → CDN → API Cache → Redis → Database Replica.
+        </div>
+        <ol>
+          <li>Invalidate or version cache entries by product ID.</li>
+          <li>At checkout, re-read authoritative price and inventory.</li>
+          <li>UI can display cached data, but the final transaction must validate fresh business data.</li>
+          <li>If the price changed, return a clear conflict and let the user confirm again.</li>
+        </ol>
+
+        <h3>Case C — One slow dependency causes system-wide congestion</h3>
+        <ul>
+          <li>Set timeouts for every network hop.</li>
+          <li>Do not retry forever.</li>
+          <li>Use <span class="term">Exponential Backoff <span class="vn">(tăng dần thời gian chờ giữa các lần retry)</span></span>.</li>
+          <li>Add <span class="term">Jitter <span class="vn">(độ ngẫu nhiên trong thời gian retry để tránh nhiều request retry cùng lúc)</span></span>.</li>
+          <li>Use a <span class="term">Circuit Breaker <span class="vn">(cơ chế tạm ngắt gọi tới dependency đang lỗi)</span></span>.</li>
+          <li>Use <span class="term">Bulkhead Isolation <span class="vn">(cô lập tài nguyên để một dependency không làm nghẽn toàn hệ thống)</span></span>.</li>
+        </ul>
+
+        <h3>Case D — A new deployment causes 5xx errors</h3>
+        <ul>
+          <li>Readiness must pass before traffic is sent.</li>
+          <li>Use a <span class="term">Canary Deployment <span class="vn">(triển khai thử cho một phần nhỏ traffic)</span></span>.</li>
+          <li>Monitor error rate, p95, p99, and saturation.</li>
+          <li>Automatically roll back when SLOs degrade.</li>
+          <li>Use connection draining before terminating old instances.</li>
+        </ul>
+      </section>
+
+      <section id="sequence">
+        <h2>11. End-to-End Sequence Flow</h2>
+        <pre><code>1. User opens:
+   https://api.example.com/products/123
+        |
+2. DNS resolves api.example.com
+        |
+3. Client connects to CDN / edge
+        |
+4. CDN checks cache
+   |-- cache hit  -> return immediately
+   |
+   '-- cache miss -> forward to origin path
+        |
+5. WAF inspects request
+   |-- malicious -> BLOCK / RATE LIMIT
+   '-- allowed   -> continue
+        |
+6. Load Balancer chooses a healthy entry point
+        |
+7. API Gateway:
+   |-- validate JWT
+   |-- check rate limit
+   |-- apply route
+   '-- /products/* -> Product Service
+        |
+8. Service Discovery:
+   |-- resolve product-service
+   '-- find healthy service instance
+        |
+9. Product Service:
+   |-- local cache / Redis
+   '-- database / read replica
+        |
+10. Response returns:
+    Service -> Gateway -> LB -> WAF/CDN -> User
+        |
+11. CDN may cache the response if policy allows</code></pre>
+      </section>
+
+      <section id="reference">
+        <h2>12. Production Reference Architecture</h2>
+
+        <div class="flow">
+          <div class="node"><strong>DNS</strong><span>Geo / Failover</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>CDN</strong><span>Edge Cache</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>WAF</strong><span>L7 Security</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Public LB</strong><span>Multi-AZ</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>API Gateway</strong><span>Auth / Rate / Route</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Service Discovery</strong><span>Registry / DNS</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Kubernetes</strong><span>Services / Pods</span></div>
+        </div>
+
+        <div class="flow">
+          <div class="node"><strong>Services</strong><span>Stateless</span></div>
+          <div class="arrow">→</div>
+          <div class="node"><strong>Redis</strong><span>Hot Cache</span></div>
+          <div class="arrow">+</div>
+          <div class="node"><strong>Database</strong><span>Primary / Replica</span></div>
+          <div class="arrow">+</div>
+          <div class="node"><strong>Queue</strong><span>Async Work</span></div>
+          <div class="arrow">+</div>
+          <div class="node"><strong>Observability</strong><span>Logs / Metrics / Traces</span></div>
+        </div>
+
+        <h3>Observability <span class="vn">(khả năng quan sát hệ thống)</span></h3>
+        <div class="grid g3">
+          <div class="card">
+            <h4>Traffic</h4>
+            <p>RPS, active connections, bandwidth, cache hit ratio.</p>
+          </div>
+          <div class="card">
+            <h4>Errors</h4>
+            <p>4xx, 5xx, blocked requests, auth failures, rate-limit hits.</p>
+          </div>
+          <div class="card">
+            <h4>Latency</h4>
+            <p>p50, p95, p99 by edge, Load Balancer, Gateway, and service.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="checklist">
+        <h2>13. Production Checklist</h2>
+        <ul class="checklist">
+          <li>Reasonable DNS TTL and tested failover plan</li>
+          <li>Automatic TLS certificate renewal</li>
+          <li>Reviewed CDN cache key design</li>
+          <li>Content hash for static assets</li>
+          <li>Private data never placed in public shared cache</li>
+          <li>WAF rules tuned to reduce false positives</li>
+          <li>Rate limits for login, search, payment</li>
+          <li>Readiness-based Load Balancer health checks</li>
+          <li>Service Discovery has health-aware registration</li>
+          <li>Registry/DNS discovery has caching and failover</li>
+          <li>Stateless application where possible</li>
+          <li>Graceful shutdown and connection draining</li>
+          <li>Explicit timeout budget</li>
+          <li>Retry with backoff and jitter</li>
+          <li>Idempotency for create/payment operations</li>
+          <li>Autoscaling based on meaningful metrics</li>
+          <li>Canary or blue-green deployment</li>
+          <li>Centralized logs, metrics, and traces</li>
+          <li>Alerts based on SLOs, not only CPU</li>
+          <li>Realistic load testing</li>
+        </ul>
+      </section>
+
+      <section id="interview">
+        <h2>14. Senior Engineer Interview Answer</h2>
+        <div class="card">
+          <p>
+            “When I deploy an application to production, I normally do not expose application servers directly to clients.
+            I design the request path in layers, and each layer has a clear responsibility.
+          </p>
+          <p>
+            DNS resolves the public domain and can support regional routing or failover.
+            A CDN reduces latency and origin traffic by serving cacheable content from edge locations.
+            A WAF protects Layer 7 traffic from common web attacks and abuse.
+            A Load Balancer distributes traffic across healthy instances so the application can scale horizontally.
+            If the system has many APIs or microservices, an API Gateway centralizes authentication,
+            rate limiting, routing, versioning, and API policies. Service Discovery allows services to find healthy instances dynamically instead of hard-coding IP addresses.
+          </p>
+          <p>
+            I also avoid over-engineering. A small application may only need DNS and a managed Load Balancer.
+            CDN, WAF, and API Gateway should be introduced when there is a real requirement for performance,
+            security, scale, or API governance.
+          </p>
+          <p>
+            The important part is not only knowing the components, but understanding their failure modes:
+            DNS propagation, stale cache, cache stampede, WAF false positives, retry storms,
+            sticky sessions, Gateway bottlenecks, incorrect health checks, and unsafe deployments.”
+          </p>
+        </div>
+      </section>
+
+      <section id="glossary">
+        <h2>15. Technical Glossary — English → Vietnamese</h2>
+        <div class="glossary">
+          <div class="item"><b>Availability</b><br><span class="vn">Tính sẵn sàng của hệ thống</span></div>
+          <div class="item"><b>Scalability</b><br><span class="vn">Khả năng mở rộng</span></div>
+          <div class="item"><b>Reliability</b><br><span class="vn">Độ tin cậy</span></div>
+          <div class="item"><b>Latency</b><br><span class="vn">Độ trễ</span></div>
+          <div class="item"><b>Throughput</b><br><span class="vn">Lưu lượng xử lý trong một khoảng thời gian</span></div>
+          <div class="item"><b>Origin Server</b><br><span class="vn">Máy chủ gốc</span></div>
+          <div class="item"><b>Edge Server</b><br><span class="vn">Máy chủ biên gần người dùng</span></div>
+          <div class="item"><b>Cache Hit</b><br><span class="vn">Tìm thấy dữ liệu trong cache</span></div>
+          <div class="item"><b>Cache Miss</b><br><span class="vn">Không tìm thấy dữ liệu trong cache</span></div>
+          <div class="item"><b>Cache Invalidation</b><br><span class="vn">Xóa / làm mất hiệu lực cache cũ</span></div>
+          <div class="item"><b>Cache Stampede</b><br><span class="vn">Nhiều request cùng miss cache và dồn xuống backend</span></div>
+          <div class="item"><b>Rate Limiting</b><br><span class="vn">Giới hạn số request</span></div>
+          <div class="item"><b>Quota</b><br><span class="vn">Hạn mức sử dụng</span></div>
+          <div class="item"><b>Load Balancer</b><br><span class="vn">Bộ cân bằng tải</span></div>
+          <div class="item"><b>Health Check</b><br><span class="vn">Kiểm tra tình trạng service</span></div>
+          <div class="item"><b>Readiness</b><br><span class="vn">Khả năng sẵn sàng nhận traffic</span></div>
+          <div class="item"><b>Liveness</b><br><span class="vn">Trạng thái còn sống của process/service</span></div>
+          <div class="item"><b>Sticky Session</b><br><span class="vn">Ghim user vào một server cụ thể</span></div>
+          <div class="item"><b>Horizontal Scaling</b><br><span class="vn">Tăng số lượng instance</span></div>
+          <div class="item"><b>Vertical Scaling</b><br><span class="vn">Tăng CPU/RAM cho một instance</span></div>
+          <div class="item"><b>Failover</b><br><span class="vn">Chuyển traffic sang hệ thống dự phòng khi lỗi</span></div>
+          <div class="item"><b>High Availability</b><br><span class="vn">Tính sẵn sàng cao</span></div>
+          <div class="item"><b>Single Point of Failure</b><br><span class="vn">Điểm lỗi duy nhất</span></div>
+          <div class="item"><b>Retry Storm</b><br><span class="vn">Bão retry làm traffic tăng mạnh</span></div>
+          <div class="item"><b>Exponential Backoff</b><br><span class="vn">Tăng dần thời gian chờ giữa các lần retry</span></div>
+          <div class="item"><b>Jitter</b><br><span class="vn">Độ ngẫu nhiên thêm vào thời gian retry</span></div>
+          <div class="item"><b>Circuit Breaker</b><br><span class="vn">Cơ chế ngắt tạm gọi tới dependency đang lỗi</span></div>
+          <div class="item"><b>Bulkhead</b><br><span class="vn">Cô lập tài nguyên giữa các dependency</span></div>
+          <div class="item"><b>Backpressure</b><br><span class="vn">Cơ chế giảm/kiểm soát tốc độ request khi downstream quá tải</span></div>
+          <div class="item"><b>Connection Draining</b><br><span class="vn">Đợi connection cũ hoàn tất trước khi remove instance</span></div>
+          <div class="item"><b>Graceful Shutdown</b><br><span class="vn">Tắt service an toàn, không cắt request đang chạy</span></div>
+          <div class="item"><b>Observability</b><br><span class="vn">Khả năng quan sát hệ thống qua logs, metrics, traces</span></div>
+          <div class="item"><b>Canary Deployment</b><br><span class="vn">Triển khai thử cho một phần nhỏ traffic</span></div>
+          <div class="item"><b>Blue-Green Deployment</b><br><span class="vn">Duy trì hai môi trường cũ/mới rồi chuyển traffic</span></div>
+          <div class="item"><b>Idempotency</b><br><span class="vn">Gọi lặp lại nhưng không tạo thêm tác động ngoài ý muốn</span></div>
+          <div class="item"><b>mTLS</b><br><span class="vn">TLS xác thực hai chiều</span></div>
+
+          <div class="item"><b>Service Discovery</b><br><span class="vn">Cơ chế khám phá service</span></div>
+          <div class="item"><b>Service Registry</b><br><span class="vn">Sổ đăng ký các service instance</span></div>
+          <div class="item"><b>Service Registration</b><br><span class="vn">Quá trình service tự đăng ký endpoint</span></div>
+          <div class="item"><b>Client-Side Discovery</b><br><span class="vn">Client tự tìm và chọn service instance</span></div>
+          <div class="item"><b>Server-Side Discovery</b><br><span class="vn">Proxy/LB/Gateway tìm service thay cho client</span></div>
+          <div class="item"><b>Service Lookup</b><br><span class="vn">Tra cứu vị trí service</span></div>
+          <div class="item"><b>Thundering Herd</b><br><span class="vn">Nhiều client cùng lúc tạo tải lớn lên một dependency</span></div>
+          <div class="item"><b>Split Brain</b><br><span class="vn">Các node trong cluster có trạng thái không đồng nhất</span></div>
+          <div class="item"><b>CoreDNS</b><br><span class="vn">DNS nội bộ thường dùng trong Kubernetes</span></div>
+
+          <div class="item"><b>Authorization</b><br><span class="vn">Phân quyền</span></div>
+          <div class="item"><b>Authentication</b><br><span class="vn">Xác thực danh tính</span></div>
+        </div>
+      </section>
+
+      <footer>
+        Production Traffic Architecture Guide — English explanation with Vietnamese translations for technical terminology.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<a class="top" href="#overview" aria-label="Back to top">↑</a>
+
+<script>
+  const navLinks = [...document.querySelectorAll('#nav a')];
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries
+      .filter(entry => entry.isIntersecting)
+      .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + visible.target.id);
+    });
+  }, {rootMargin:'-20% 0px -68% 0px', threshold:[0.05,0.2,0.5]});
+
+  sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>
