@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Java Stack, Heap, Static, String Pool & GC</title>
+<style>
+  :root{
+    --bg:#f6f8fb;--card:#fff;--text:#172033;--muted:#667085;
+    --line:#d9e0e8;--accent:#294c60;--soft:#edf3f6;--code:#111827;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;line-height:1.62}
+  .wrap{max-width:1120px;margin:auto;padding:40px 22px 70px}
+  .hero,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:18px}
+  .hero{padding:32px}
+  h1{margin:0 0 10px;font-size:2.05rem}h2{margin:0 0 14px;font-size:1.48rem}h3{margin:24px 0 8px;font-size:1.08rem}
+  p{margin:9px 0}.lead{color:var(--muted);font-size:1.04rem}.vi{color:var(--muted);font-size:.92em;font-weight:500}
+  .note{background:var(--soft);border-left:4px solid var(--accent);padding:13px 15px;border-radius:8px;margin:14px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.mini{background:#fff;border:1px solid var(--line);border-radius:11px;padding:15px}
+  pre{background:var(--code);color:#f8fafc;padding:16px;border-radius:10px;overflow:auto;font-size:.91rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;background:white}th,td{border:1px solid var(--line);padding:11px;text-align:left;vertical-align:top}th{background:var(--soft)}
+  details{background:white;border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin:10px 0}summary{cursor:pointer;font-weight:750}.answer{padding-top:8px;color:#344054}
+  .strong{font-weight:800;color:#203f50}.pill{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--soft);font-size:.9em;font-weight:700}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}h1{font-size:1.72rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section class="hero">
+  <h1>Java Stack, Heap, Static, String Pool & Garbage Collection</h1>
+  <p class="lead">Focus: what the Stack stores, exactly what lives in the Heap, how static fields keep heap objects alive, how the String Pool works, and the original interview scenarios about StackOverflow, Heap OOM and GC.</p>
+  <div class="note"><strong>Core rule:</strong> Java objects and arrays are heap objects. A primitive can also be physically inside the Heap when it is an object field or an array element.</div>
+</section>
+
+
+<section class="card">
+  <h2>1. What exactly does the Stack store?</h2>
+  <p>Each Java thread has its own <strong>Stack <span class="vi">(vùng nhớ Stack riêng của từng thread)</span></strong>. Every method call creates a <strong>stack frame <span class="vi">(khung ngăn xếp)</span></strong>.</p>
+
+  <table>
+    <thead><tr><th>Data</th><th>Where?</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td>Local primitive: <code>int x = 10</code>, <code>boolean ok = true</code></td><td><strong>Stack frame</strong></td><td>The local primitive value belongs to the current method frame.</td></tr>
+      <tr><td>Local object reference: <code>User u</code></td><td><strong>Stack frame</strong></td><td>The reference is local to the method. The <code>User</code> object it points to is on Heap.</td></tr>
+      <tr><td>Method arguments</td><td><strong>Stack frame</strong></td><td>Arguments are part of the called method's frame.</td></tr>
+      <tr><td>Operand stack / call bookkeeping</td><td><strong>Stack frame</strong></td><td>Used by JVM execution for intermediate values and method calls.</td></tr>
+    </tbody>
+  </table>
+
+<pre><code>void process() {
+    int count = 10;
+    User user = new User();
+}
+
+Thread Stack                         Heap
+------------                         -------------------
+process() frame
+|- count = 10
+`- user ---------------------------> User object</code></pre>
+
+  <div class="note"><strong>Key distinction:</strong> the local reference <code>user</code> is in the Stack frame, but <code>new User()</code> creates the object on Heap. When the method returns, its frame is removed; the heap object is collected only if it is no longer reachable.</div>
+
+  <p><strong>StackOverflowError:</strong> happens when a thread keeps creating stack frames until its stack has no room left, commonly because of infinite or very deep recursion. Stack size is typically controlled with <code>-Xss</code>.</p>
+</section>
+
+<section class="card">
+  <h2>2. What exactly does the Heap store?</h2>
+  <p>The <strong>Heap <span class="vi">(vùng nhớ Heap)</span></strong> is the shared JVM memory area used mainly for Java <strong>objects and arrays</strong>. GC manages the lifetime of those heap objects.</p>
+
+  <table>
+    <thead><tr><th>Data</th><th>Is it on Heap?</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td><code>new User()</code></td><td><strong>Yes</strong></td><td>The whole User object is a heap object.</td></tr>
+      <tr><td>Primitive instance field: <code>user.age</code>, <code>user.active</code></td><td><strong>Yes</strong></td><td>The primitive value is stored inside the User object's memory.</td></tr>
+      <tr><td>Reference field: <code>user.address</code></td><td><strong>Yes</strong></td><td>The reference is part of the User object; the Address object it points to is also on Heap.</td></tr>
+      <tr><td><code>String</code> object</td><td><strong>Yes</strong></td><td>String is an object. Its backing <code>byte[]</code> on modern JDKs is also a heap object.</td></tr>
+      <tr><td><code>Boolean</code>, <code>Integer</code>, <code>Long</code></td><td><strong>Yes</strong></td><td>Wrapper types are objects.</td></tr>
+      <tr><td><code>int[]</code>, <code>boolean[]</code>, <code>User[]</code></td><td><strong>Yes</strong></td><td>Every Java array is an object, including primitive arrays.</td></tr>
+      <tr><td><code>ArrayList</code>, <code>HashMap</code></td><td><strong>Yes</strong></td><td>The collection object and its backing arrays/nodes/entries are heap objects.</td></tr>
+      <tr><td><code>Class&lt;?&gt;</code> mirror object</td><td><strong>Yes</strong></td><td>Loaded classes have Java <code>Class</code> mirror objects on Heap. Class metadata itself is mainly in Metaspace.</td></tr>
+    </tbody>
+  </table>
+
+<pre><code>class User {
+    int age;
+    boolean active;
+    String name;
+    Address address;
+}
+
+User u = new User();</code></pre>
+
+<pre><code>Stack                               Heap
+-----                               ---------------------------------
+u --------------------------------> User object
+                                    |- age = 30          (primitive)
+                                    |- active = true     (primitive)
+                                    |- name ------------> String "Huy"
+                                    `- address ---------> Address object</code></pre>
+
+  <div class="note"><strong>Important:</strong> Do not memorize <code>primitive = Stack</code>. A local primitive belongs to a method frame, but a primitive field or primitive array element is part of a heap object.</div>
+</section>
+
+<section class="card">
+  <h2>3. String and the String Pool</h2>
+  <p>A <code>String</code> is always an object. The actual String object is therefore on the <strong>Heap</strong>.</p>
+
+<pre><code>String a = "hello";
+String b = "hello";
+String c = new String("hello");</code></pre>
+
+<pre><code>Stack                                  Heap
+-----                                  --------------------------------
+a ----\
+       +-----------------------------> pooled String "hello"
+b ----/
+
+c -----------------------------------> separate String object "hello"
+                                       created by new String(...)</code></pre>
+
+  <h3>What is the String Pool?</h3>
+  <p>The <strong>String Pool <span class="vi">(bộ nhớ dùng chung cho chuỗi intern)</span></strong> keeps a canonical reference for interned strings so equal literals can reuse the same String object instead of creating a new object for every literal occurrence.</p>
+
+  <table>
+    <thead><tr><th>Code</th><th>What happens?</th></tr></thead>
+    <tbody>
+      <tr><td><code>String a = "abc";</code></td><td>Uses the interned <code>"abc"</code> String object.</td></tr>
+      <tr><td><code>String b = "abc";</code></td><td>Normally points to the same pooled String as <code>a</code>.</td></tr>
+      <tr><td><code>new String("abc")</code></td><td>Creates a separate String object on Heap, in addition to the pooled literal that may already exist.</td></tr>
+      <tr><td><code>s.intern()</code></td><td>Returns the canonical pooled String reference for that content.</td></tr>
+    </tbody>
+  </table>
+
+<pre><code>String a = "abc";
+String b = "abc";
+String c = new String("abc");
+
+System.out.println(a == b); // true
+System.out.println(a == c); // false
+System.out.println(a == c.intern()); // true</code></pre>
+
+  <div class="note"><strong>Modern HotSpot:</strong> interned String objects live on the Java Heap. Do not use the old statement “String Pool is in PermGen” for modern Java. The JVM's internal StringTable implementation is a JVM detail, but the String objects themselves are heap objects.</div>
+</section>
+
+<section class="card">
+  <h2>4. boolean vs Boolean — where are they stored?</h2>
+
+<pre><code>void test() {
+    boolean active = true;
+    Boolean enabled = Boolean.TRUE;
+}</code></pre>
+
+<pre><code>Stack                               Heap
+-----                               -------------------------
+active = true
+enabled --------------------------> Boolean.TRUE object</code></pre>
+
+  <p><code>boolean</code> is a primitive. A local primitive conceptually belongs to the method's stack frame. <code>Boolean</code> is a Java object type, so the Boolean object is on Heap.</p>
+
+<pre><code>class User {
+    boolean active;
+}
+
+new User()  --->  Heap object
+                  |- active = true</code></pre>
+
+  <p>Here <code>active</code> is also physically part of the Heap because it is an instance field inside the heap object.</p>
+</section>
+
+<section class="card">
+  <h2>5. Static and the Heap</h2>
+
+<pre><code>class Cache {
+    static int count = 10;
+    static String VERSION = "1.0";
+    static User admin = new User();
+    static Map&lt;String, User&gt; users = new HashMap&lt;&gt;();
+}</code></pre>
+
+  <p>The JVM specification does not require one exact physical memory layout for static fields. For modern <strong>HotSpot</strong>, a useful implementation-level model is:</p>
+
+<pre><code>Metaspace                         Heap
+---------                         ----------------------------------
+Cache class metadata              Class&lt;Cache&gt; mirror
+                                  |- static count = 10
+                                  |- VERSION ----------------------> String "1.0"
+                                  |- admin ------------------------> User object
+                                  `- users ------------------------> HashMap
+                                                                       |
+                                                                       +--> User
+                                                                       +--> User</code></pre>
+
+  <div class="note"><strong>Correct interview wording:</strong> Do not simply say “static variables are stored in Metaspace.” Class metadata is mainly in Metaspace. Objects referenced by static fields are heap objects, and in HotSpot the static field storage is associated with the class's <code>java.lang.Class</code> mirror on Heap.</div>
+
+  <h3>Does creating many static variables increase Heap usage?</h3>
+  <p><strong>Yes, but the impact depends on what the static fields hold.</strong></p>
+  <ul>
+    <li><code>static int</code>, <code>static boolean</code>, <code>static long</code>: usually a very small amount of memory.</li>
+    <li><code>static String</code>, <code>static User</code>, <code>static List</code>, <code>static Map</code>: the referenced objects live on Heap and can consume a lot of memory.</li>
+    <li>The dangerous case is an <strong>unbounded static collection/cache</strong> that keeps adding objects and never removes them.</li>
+  </ul>
+<pre><code>static int count = 10;                 // tiny
+static boolean enabled = true;         // tiny
+static User admin = new User();        // User object on Heap
+static List&lt;User&gt; users = new ArrayList&lt;&gt;();
+// ArrayList + its backing array + referenced User objects are on Heap</code></pre>
+
+  <p><strong>Key idea:</strong> many static primitives usually do not cause a serious Heap problem. Static references to large or growing object graphs can.</p>
+</section>
+
+<section class="card">
+  <h2>6. Can GC remove a static variable or object?</h2>
+  <p>This question must distinguish the <strong>static field</strong> from the <strong>object referenced by that field</strong>.</p>
+
+<pre><code>static User admin = new User();</code></pre>
+
+<pre><code>GC Root
+   |
+   v
+loaded Class / class state
+   |
+   v
+static admin
+   |
+   v
+User object</code></pre>
+
+  <p>As long as the static reference still points to the User object and the class remains reachable/loaded, GC normally cannot collect that User object because it is still <strong>reachable <span class="vi">(còn đường tham chiếu tới)</span></strong>.</p>
+
+<pre><code>admin = null;</code></pre>
+
+  <p>If no other strong reference points to that User object, it becomes <strong>eligible for GC</strong>. GC does not necessarily remove it immediately; it can reclaim it on a later collection.</p>
+
+  <div class="note"><strong>Static primitive:</strong> <code>static int count</code> is not a separate Java object for GC to collect. It remains part of the class state while the class is loaded.</div>
+</section>
+
+<section class="card">
+  <h2>7. Why can static cause a Heap memory leak?</h2>
+
+<pre><code>class Cache {
+    static final Map&lt;String, User&gt; USERS = new HashMap&lt;&gt;();
+
+    static void add(User user) {
+        USERS.put(user.getId(), user);
+    }
+}</code></pre>
+
+<pre><code>GC Root
+   |
+   v
+Class Cache
+   |
+   v
+static USERS
+   |
+   v
+HashMap
+   +------> User 1
+   +------> User 2
+   +------> User 3
+   `------> ... millions of Users</code></pre>
+
+  <p>If entries are continuously added and never removed, all those Users remain reachable. GC is working correctly: it cannot remove live objects.</p>
+
+<pre><code>Heap usage
+100 MB -> 200 MB -> 350 MB -> 480 MB
+                         |
+                         v
+                   GC runs
+                         |
+                         v
+              objects are still reachable
+                         |
+                         v
+java.lang.OutOfMemoryError: Java heap space</code></pre>
+</section>
+
+<section class="card">
+  <h2>8. Keep these interview scenarios</h2>
+
+  <details open><summary>Q1. When does <code>StackOverflowError</code> happen?</summary><div class="answer">
+    <p>It happens when one thread needs another stack frame but its thread stack has no room left. The most common cause is infinite recursion or very deep recursion.</p>
+<pre><code>void call() {
+    call();
+}</code></pre>
+<pre><code>Thread Stack
+call()
+call()
+call()
+call()
+...
+No room for the next frame
+-> StackOverflowError</code></pre>
+    <p><strong>Interview answer:</strong> “StackOverflowError is mainly a per-thread stack problem, not a heap problem. I would first inspect recursion depth, recursive cycles and unusually large call chains.”</p>
+  </div></details>
+
+  <details><summary>Q2. When does <code>OutOfMemoryError: Java heap space</code> happen?</summary><div class="answer">
+    <p>The JVM needs to allocate another heap object, there is not enough free Heap, GC cannot reclaim enough unreachable objects, and the Heap cannot grow further within its configured maximum such as <code>-Xmx</code>.</p>
+<pre><code>Need new object
+     |
+     v
+Not enough Heap
+     |
+     v
+GC tries to reclaim objects
+     |
+     v
+Still not enough free memory
+     |
+     v
+Heap cannot grow beyond -Xmx
+     |
+     v
+OutOfMemoryError: Java heap space</code></pre>
+  </div></details>
+
+  <details><summary>Q3. Does Heap OOM always mean there is a memory leak?</summary><div class="answer">
+    <p>No. A memory leak is only one cause. Heap OOM can also occur because the configured Heap is too small, the application processes a very large payload, too many requests are alive at the same time, a queue grows during a slow downstream call, or a large cache legitimately holds more data than the Heap can fit.</p>
+    <p><strong>Useful signal:</strong> inspect memory after GC. If post-GC usage keeps increasing over time, object retention is suspicious. If memory drops after traffic decreases, it may be temporary load pressure rather than a permanent leak.</p>
+  </div></details>
+
+  <details><summary>Q4. What are common real-world causes of <code>Java heap space</code>?</summary><div class="answer">
+    <p>Typical scenarios include:</p>
+    <ul>
+      <li>Unbounded static cache or collection.</li>
+      <li>Unbounded message/task queue.</li>
+      <li>Reading a huge file or response fully into memory.</li>
+      <li>Very large <code>byte[]</code>, <code>String</code>, JSON object graph or collection.</li>
+      <li>High concurrency: many requests keep objects alive at the same time.</li>
+      <li>A downstream service becomes slow, so in-flight request objects accumulate.</li>
+      <li>Object retention bug: listeners, maps, sessions or references are never cleared.</li>
+      <li><code>-Xmx</code> is smaller than the application's legitimate live set.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>Q5. Does creating many static variables make the Heap grow?</summary><div class="answer">
+    <p>It can, but not all static fields have the same impact. Many static primitives such as <code>int</code> or <code>boolean</code> usually use little memory. The real Heap growth comes from static references that keep large objects, collections, caches, arrays, or object graphs alive.</p>
+<pre><code>static int count = 10;                  // small
+static User user = new User();          // User object on Heap
+static List&lt;User&gt; users = new ArrayList&lt;&gt;();
+// users may retain thousands or millions of User objects</code></pre>
+    <p><strong>Interview answer:</strong> “Static itself is not automatically a memory problem. The risk is that a long-lived static reference can retain a large heap object graph for the lifetime of the loaded class.”</p>
+  </div></details>
+
+  <details><summary>Q6. Can a static variable be deleted by GC?</summary><div class="answer">
+    <p>Do not describe it as “GC deletes the static variable.” A static field is part of class state. If it holds a reference to a heap object, that object normally stays alive while the static reference keeps it reachable.</p>
+<pre><code>static User user = new User();
+
+class -> static user -> User object   // reachable, not collectible
+
+user = null;
+
+User object                           // collectible if no other reference exists</code></pre>
+    <p>Class unloading is a separate case: if a class loader and its classes become unreachable and the JVM unloads them, objects that were reachable only through that class state can also become eligible for GC.</p>
+  </div></details>
+
+  <details><summary>Q7. If a method returns, are the objects created inside it immediately removed?</summary><div class="answer">
+    <p>No. The method's stack frame disappears, but heap objects survive if another reachable object still references them.</p>
+<pre><code>User create() {
+    User u = new User();
+    return u;
+}</code></pre>
+    <p>The local reference <code>u</code> disappears when the method returns, but the caller now holds the returned reference, so the User object remains alive.</p>
+  </div></details>
+
+  <details><summary>Q8. Can a circular reference cause a Java Heap memory leak?</summary><div class="answer">
+    <p>Not by itself. Java GC uses reachability, not simple reference counting.</p>
+<pre><code>A -> B
+^    |
+|____|
+
+No GC Root can reach A or B
+-> both can still be collected.</code></pre>
+    <p>A cycle becomes a problem only when something reachable, such as a static cache, still points into that cycle.</p>
+  </div></details>
+
+  <details><summary>Q9. Can the String Pool contribute to Heap pressure?</summary><div class="answer">
+    <p>Yes, especially if an application calls <code>intern()</code> on a very large number of distinct dynamic strings or otherwise retains many unique strings. The String objects live on Heap, so a large live set of strings consumes Heap like other objects.</p>
+    <p>Modern HotSpot can clean up unreachable interned strings; they are not automatically immortal forever. The real danger is keeping large numbers of unique strings strongly reachable.</p>
+  </div></details>
+
+</section>
+
+
+<section class="card">
+  <h2>9. Common StackOverflowError &amp; OutOfMemoryError scenarios</h2>
+  <p>This section focuses on the failure patterns that are most useful in production debugging and interviews.</p>
+
+  <h3>StackOverflowError scenarios</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>Why it happens</th><th>Typical fix</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Infinite recursion</strong><br><code>method() -&gt; method()</code></td><td>Every call creates another stack frame until the thread stack is full.</td><td>Fix the termination condition or remove the recursion.</td></tr>
+      <tr><td><strong>Valid but very deep recursion</strong></td><td>The algorithm has a base case, but the input depth is larger than the available stack can support.</td><td>Use iteration, an explicit heap-based stack/queue, or reduce recursion depth.</td></tr>
+      <tr><td><strong>Mutual recursion</strong><br><code>a() -&gt; b() -&gt; a()</code></td><td>The recursive cycle is indirect, so it is harder to notice in code review.</td><td>Break the cycle and define a clear termination path.</td></tr>
+      <tr><td><strong>Recursive <code>toString()</code>, <code>equals()</code> or <code>hashCode()</code></strong></td><td>Bidirectional object relationships can call each other forever, common with JPA entities or Lombok-generated methods.</td><td>Exclude back-references or implement these methods using stable identifiers instead of the full object graph.</td></tr>
+      <tr><td><strong>Circular JSON serialization</strong></td><td><code>Parent -&gt; Child -&gt; Parent</code> can be serialized recursively when cycle handling is missing.</td><td>Break the serialized cycle with DTOs or serializer cycle-handling annotations/configuration.</td></tr>
+      <tr><td><strong>Thread stack configured too small</strong></td><td>A very small <code>-Xss</code> allows fewer stack frames before overflow.</td><td>First fix excessive recursion/call depth. Increase <code>-Xss</code> only when the deeper stack is legitimate.</td></tr>
+    </tbody>
+  </table>
+
+  <h3><code>OutOfMemoryError: Java heap space</code> scenarios</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>What stays on Heap?</th><th>Why GC cannot save it</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unbounded static cache</strong></td><td><code>static Map/List</code> plus all objects reachable from it.</td><td>They are still strongly reachable from long-lived class state.</td></tr>
+      <tr><td><strong>Unbounded queue / executor backlog</strong></td><td>Queued tasks, request data, closures and captured objects.</td><td>The queue still references every waiting task.</td></tr>
+      <tr><td><strong>Read a huge file fully into memory</strong><br><code>Files.readAllBytes(...)</code></td><td>A large <code>byte[]</code> and possibly Strings/parsed objects created from it.</td><td>The application needs the whole object while processing it; the live set may exceed <code>-Xmx</code>.</td></tr>
+      <tr><td><strong>Load a huge DB result at once</strong></td><td>Large <code>List&lt;Entity&gt;</code>, entity graphs and possibly JPA persistence-context references.</td><td>The result is still required/referenced until processing finishes.</td></tr>
+      <tr><td><strong>Large JSON/CSV/String building</strong></td><td>Huge <code>String</code>, <code>StringBuilder</code> backing arrays, JSON object graphs or export buffers.</td><td>Large intermediate objects may overlap in memory before old ones become collectible.</td></tr>
+      <tr><td><strong>High request concurrency</strong></td><td>Thousands of simultaneously live DTOs, request bodies, response buffers and business objects.</td><td>The objects are legitimate live data, not garbage.</td></tr>
+      <tr><td><strong>Slow downstream service</strong></td><td>In-flight requests, futures, buffers and request context remain alive while waiting.</td><td>Requests have not completed, so their object graphs remain reachable.</td></tr>
+      <tr><td><strong>Session stores large data</strong></td><td>Large lists, DTOs or cached data referenced by HTTP sessions.</td><td>The session remains reachable until timeout/invalidation.</td></tr>
+      <tr><td><strong><code>ThreadLocal</code> not cleaned</strong></td><td>Values attached to long-lived thread-pool threads.</td><td>The thread remains alive and continues to retain the ThreadLocal value.</td></tr>
+      <tr><td><strong>Listener / callback not unregistered</strong></td><td>The listener plus every object reachable from it.</td><td>The event publisher still has a strong reference to the listener.</td></tr>
+      <tr><td><strong>Heap configured too small</strong></td><td>The application's legitimate live set.</td><td>Nothing is leaking; the required live objects simply do not fit within <code>-Xmx</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Important: forgetting to close a file is usually not <code>Java heap space</code></h3>
+<pre><code>for (...) {
+    FileInputStream in = new FileInputStream(file);
+    // forgot to close in
+}</code></pre>
+  <p>This usually causes a <strong>resource leak <span class="vi">(rò rỉ tài nguyên)</span></strong>, especially a file-descriptor leak. The operating system may eventually reject new files with an error such as <code>Too many open files</code>. It is not normally the direct cause of <code>OutOfMemoryError: Java heap space</code>.</p>
+
+<pre><code>try (FileInputStream in = new FileInputStream(file)) {
+    // read safely
+} // automatically closed</code></pre>
+
+  <div class="note"><strong>Interview distinction:</strong> Not closing a file usually leaks an OS/native resource. Reading a huge file completely into a <code>byte[]</code> or <code>String</code> can cause Heap OOM. These are two different problems.</div>
+
+  <h3>Other important OutOfMemoryError types</h3>
+  <table>
+    <thead><tr><th>Error</th><th>Typical cause</th></tr></thead>
+    <tbody>
+      <tr><td><code>OutOfMemoryError: Metaspace</code></td><td>Too many loaded/generated classes or a ClassLoader leak. This is not Java Heap exhaustion.</td></tr>
+      <tr><td><code>OutOfMemoryError: Direct buffer memory</code></td><td>Too much off-heap/direct memory, commonly from <code>ByteBuffer.allocateDirect()</code>, networking or native buffers.</td></tr>
+      <tr><td><code>OutOfMemoryError: unable to create native thread</code></td><td>Too many threads or insufficient native memory / OS thread resources.</td></tr>
+      <tr><td><code>GC overhead limit exceeded</code></td><td>The JVM spends most of its time collecting but recovers very little Heap, often because the Heap is almost completely occupied by live objects.</td></tr>
+    </tbody>
+  </table>
+
+  <details open><summary>Interview scenario: “The service runs normally for hours, then Heap keeps growing until OOM. What do you check?”</summary><div class="answer">
+    <p>First determine whether this is <strong>retention</strong> or just a temporary load spike. Check post-GC Heap usage over time. If the baseline after GC keeps rising, capture a heap dump and inspect the largest retained objects and their <strong>path to GC roots</strong>. Common suspects are static caches, unbounded queues, sessions, listeners and ThreadLocals.</p>
+  </div></details>
+
+  <details><summary>Interview scenario: “Traffic spikes and the service OOMs, but memory goes back to normal when traffic drops. Is that a leak?”</summary><div class="answer">
+    <p>Not necessarily. It may be a high <strong>live set</strong>: too many legitimate request objects are alive at the same time. I would check concurrency, request size, in-flight request count, downstream latency, queue depth and whether the configured <code>-Xmx</code> is appropriate.</p>
+  </div></details>
+</section>
+
+<section class="card">
+  <h2>10. Final memory map</h2>
+<pre><code>                     JVM Process
+
+Thread Stack                             Shared Heap
+--------------------                     --------------------------------
+method frame                             User object
+local int / boolean                      |- primitive fields
+local references ----------------------> |- reference fields ----------> other objects
+operand stack                            |
+                                         +-- String objects
+                                         +-- String backing byte[]
+                                         +-- arrays, including int[]
+                                         +-- Boolean / Integer objects
+                                         +-- ArrayList / HashMap
+                                         +-- Class&lt;?&gt; mirror objects
+                                         `-- objects referenced by static fields
+
+Metaspace
+--------------------
+class metadata
+method metadata
+runtime class structures
+
+GC follows reachability from GC Roots and reclaims unreachable heap objects.</code></pre>
+
+  <div class="note"><strong>Remember these four lines:</strong><br>
+  1. Objects and arrays live on Heap.<br>
+  2. String Pool contains/reuses String objects that live on Heap in modern HotSpot.<br>
+  3. Static references can keep heap objects reachable for a very long time.<br>
+  4. GC removes unreachable heap objects; it does not remove an object just because it is old or created inside a finished method.</div>
+</section>
+
+</div>
+</body>
+</html>

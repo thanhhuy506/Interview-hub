@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SQL Query Performance: Indexing, Partitioning & Interview Guide</title>
+<style>
+:root {
+  --bg:#f5f7fb;
+  --panel:#ffffff;
+  --ink:#172033;
+  --muted:#5b6475;
+  --line:#dbe2ee;
+  --accent:#204a87;
+  --accent-2:#173760;
+  --soft:#edf3fb;
+  --code:#101826;
+  --good:#225b3f;
+  --warn:#7a4b00;
+  --bad:#7a2431;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.67}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow:auto;padding:28px 22px;background:#0f1d31;color:#fff}
+.brand{font-size:19px;font-weight:800;line-height:1.35;margin-bottom:8px}.subbrand{font-size:13px;color:#b8c5d8;margin-bottom:24px}
+nav a{display:block;color:#dce6f3;padding:9px 11px;margin:3px 0;border-radius:8px;font-size:13px}
+nav a:hover{background:#192c48;text-decoration:none}.nav-group{margin-top:18px;font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8297b7;font-weight:800;padding:0 10px}
+main{max-width:1180px;padding:48px 54px 90px}
+.hero{background:linear-gradient(135deg,#173760,#204a87);color:#fff;border-radius:20px;padding:38px 40px;margin-bottom:28px;box-shadow:0 16px 40px rgba(25,55,96,.15)}
+.hero h1{margin:0 0 12px;font-size:38px;line-height:1.15;letter-spacing:-.02em}.hero p{margin:0;color:#dce7f5;max-width:900px;font-size:16px}.badge{display:inline-block;margin-top:18px;padding:7px 11px;border:1px solid rgba(255,255,255,.22);border-radius:999px;font-size:12px;color:#e9f1fb}
+section{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px 32px;margin:22px 0;box-shadow:0 4px 14px rgba(31,47,73,.045)}
+h2{font-size:28px;margin:0 0 10px;line-height:1.25;letter-spacing:-.015em}h3{font-size:20px;margin:28px 0 10px}h4{font-size:16px;margin:22px 0 7px}.lead{color:var(--muted);font-size:16px;margin-top:0}.vi{font-size:.92em;color:#516076;font-style:italic}.term{font-weight:750;color:var(--accent-2)}
+.callout{border-left:4px solid var(--accent);background:var(--soft);padding:15px 17px;border-radius:0 10px 10px 0;margin:18px 0}.callout strong{color:var(--accent-2)}
+.warning{border-left-color:#b27a14;background:#fff7e8}.danger{border-left-color:#9e3848;background:#fff0f2}.success{border-left-color:#3d7a5b;background:#eef8f2}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{border:1px solid var(--line);border-radius:12px;padding:18px;background:#fff}.card h4{margin:0 0 7px}.metric{font-size:30px;font-weight:850;color:var(--accent-2)}
+table{width:100%;border-collapse:collapse;margin:16px 0 8px;font-size:14px}th,td{text-align:left;vertical-align:top;border:1px solid var(--line);padding:11px 12px}th{background:#eef3f9;color:#1d3657;font-weight:780}tr:nth-child(even) td{background:#fbfcfe}
+pre{background:var(--code);color:#e8eef8;padding:17px 18px;border-radius:12px;overflow:auto;font-size:13px;line-height:1.55;border:1px solid #1d2a3c}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}.inline{background:#edf1f7;padding:2px 5px;border-radius:5px;color:#26364d;font-size:.92em}
+ul,ol{padding-left:22px}.tight li{margin:5px 0}.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}.step{background:#edf3fb;border:1px solid #d4dfed;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:700}.arrow{color:#718096;font-weight:800}
+.qa{border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}.q{font-weight:800;color:#16345d;margin-bottom:9px}.a{color:#2f3948}.answer{background:#f7f9fc;border:1px solid #dbe4f0;border-radius:11px;padding:16px 18px;margin-top:10px}.answer:before{content:"Senior interview answer";display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:800;margin-bottom:7px}.tag{display:inline-block;background:#edf3fb;color:#24456f;border:1px solid #d6e0ed;border-radius:999px;padding:3px 8px;font-size:11px;margin:2px 5px 2px 0;font-weight:700}.checklist li{margin:8px 0}.small{font-size:13px;color:var(--muted)}
+.footer{margin-top:36px;color:#6b7280;font-size:12px;text-align:center}
+@media(max-width:980px){.shell{display:block}aside{position:relative;height:auto}.grid,.grid3{grid-template-columns:1fr}main{padding:28px 18px 60px}.hero{padding:28px 24px}.hero h1{font-size:31px}section{padding:24px 20px}}
+@media print{aside{display:none}.shell{display:block}main{max-width:none;padding:0}section,.hero{break-inside:avoid;box-shadow:none}.hero{background:#173760!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside>
+  <div class="brand">SQL Performance Guide</div>
+  <div class="subbrand">Indexing • Partitioning • Query Tuning • Senior Interview Answers</div>
+  <nav>
+    <div class="nav-group">Foundation</div>
+    <a href="#mental-model">1. Performance mental model</a>
+    <a href="#tuning">2. Query tuning: WHERE/JOIN/ORDER/GROUP</a>
+    <a href="#execution-plan">3. Read the execution plan</a>
+    <div class="nav-group">Index</div>
+    <a href="#index">4. Index explained deeply</a>
+    <a href="#index-when">5. When to use an index</a>
+    <a href="#low-cardinality">6. Low-cardinality columns</a>
+    <a href="#function-index">7. Functions on indexed columns</a>
+    <a href="#composite">8. Composite / covering index</a>
+    <div class="nav-group">Partition</div>
+    <a href="#partition">9. Partitioning explained deeply</a>
+    <a href="#index-vs-partition">10. Index vs Partition</a>
+    <a href="#partition-index">11. Partition + Index together</a>
+    <div class="nav-group">Practice</div>
+    <a href="#patterns">12. Common query patterns</a>
+    <a href="#bad-cases">13. Bad cases & production pitfalls</a>
+    <a href="#interview">14. Interview Q&A</a>
+    <a href="#scenarios">15. Scenario-based deep dive</a>
+    <a href="#checklist">16. Final checklist</a>
+    <a href="#glossary">17. EN → VI glossary</a>
+  </nav>
+</aside>
+<main>
+  <div class="hero">
+    <h1>SQL Query Performance: Indexing vs Partitioning</h1>
+    <p>A practical, interview-ready guide to query tuning with WHERE, JOIN, ORDER BY and GROUP BY, B-tree indexes, low-cardinality columns, SARGable predicates, function-based indexes, partition pruning, composite index design, and production troubleshooting.</p>
+    <div class="badge">English guide • Key technical terms translated to Vietnamese</div>
+  </div>
+
+  <section id="mental-model">
+    <h2>1. The Performance Mental Model</h2>
+    <p class="lead">A fast query is usually a query that makes the database do less work.</p>
+    <div class="flow">
+      <span class="step">Read fewer rows</span><span class="arrow">→</span>
+      <span class="step">Read fewer pages</span><span class="arrow">→</span>
+      <span class="step">Sort less data</span><span class="arrow">→</span>
+      <span class="step">Join less data</span><span class="arrow">→</span>
+      <span class="step">Return only what is needed</span>
+    </div>
+    <p>Most SQL performance problems come from one or more of these costs:</p>
+    <div class="grid3">
+      <div class="card"><div class="metric">I/O</div><h4>Disk / buffer reads</h4><p>The database scans too many data pages. <span class="vi">I/O = thao tác đọc/ghi dữ liệu.</span></p></div>
+      <div class="card"><div class="metric">CPU</div><h4>Compute work</h4><p>Sorting, hashing, expression evaluation, grouping, decompression, JSON parsing, etc.</p></div>
+      <div class="card"><div class="metric">WAIT</div><h4>Concurrency waits</h4><p>Locks, latches, network, connection pool, remote storage, and overloaded resources.</p></div>
+    </div>
+    <div class="callout"><strong>Senior mindset:</strong> Do not ask “Which index should I add?” first. Ask “Why is this query expensive?” Then verify with the execution plan, actual row counts, statistics, and I/O.</div>
+  </section>
+
+  <section id="tuning">
+    <h2>2. How to Improve SQL Query Performance — Practical Theory</h2>
+    <p class="lead">The most common performance wins do not come from one magic keyword. They come from reducing the amount of data the database must read, join, sort, group, and return. Start with the access pattern and execution plan, then optimize the SQL clauses that create the most work.</p>
+
+    <div class="callout success"><strong>The most-used techniques in real projects:</strong> make <code>WHERE</code> predicates SARGable, create indexes that match the actual access pattern, join on the correct keys with compatible data types, return only required columns, avoid unnecessary large sorts/aggregations, keep optimizer statistics healthy, and validate every change with the actual execution plan and I/O metrics.</div>
+
+    <h3>2.1 The priority order: what should you check first?</h3>
+    <table>
+      <thead><tr><th>Priority</th><th>What to check</th><th>Why it matters</th><th>Typical symptom</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1 — Measure</strong></td><td>Actual execution plan, elapsed time, CPU, logical/physical reads</td><td>You need to know where the cost really is before changing SQL.</td><td>“The query is slow” but nobody knows whether the problem is I/O, CPU, locks, sorting, or a bad join.</td></tr>
+        <tr><td><strong>2 — WHERE</strong></td><td>SARGability, selectivity, data types, functions/casts</td><td>Filtering fewer rows early usually reduces work for every later operator.</td><td>Millions of rows read to return hundreds.</td></tr>
+        <tr><td><strong>3 — Index</strong></td><td>Leading columns, equality/range predicates, covering needs</td><td>A good index can turn a large scan into a small seek/range scan.</td><td>Large table scan on a selective filter.</td></tr>
+        <tr><td><strong>4 — JOIN</strong></td><td>Join keys, row multiplication, indexes, data type compatibility</td><td>Bad joins create huge intermediate result sets.</td><td>100K rows become 20M rows before filtering/grouping.</td></tr>
+        <tr><td><strong>5 — SELECT</strong></td><td>Only required columns and rows</td><td>Wide rows increase page reads, memory, network, and may prevent index-only access.</td><td><code>SELECT *</code> from a large/wide table.</td></tr>
+        <tr><td><strong>6 — ORDER/GROUP</strong></td><td>Sort size, aggregation size, index order, spills</td><td>Sorting and grouping large sets consume CPU and memory and can spill to disk.</td><td>Large Sort/Hash Aggregate operator with disk spill.</td></tr>
+        <tr><td><strong>7 — Statistics</strong></td><td>Estimated rows vs actual rows</td><td>The optimizer needs accurate estimates to choose join types, indexes, memory grants, etc.</td><td>Estimate = 10 rows, actual = 5,000,000 rows.</td></tr>
+        <tr><td><strong>8 — Architecture</strong></td><td>Cache, replicas, summary tables, warehouse/search</td><td>Some workloads should not repeatedly execute expensive OLTP queries.</td><td>Same expensive report runs thousands of times per minute.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>Mental model:</strong> <span class="term">Predicate</span> <span class="vi">(điều kiện lọc)</span> → reduce rows → <span class="term">Join</span> <span class="vi">(kết hợp bảng)</span> → avoid row explosion → <span class="term">Aggregate/Sort</span> <span class="vi">(gom nhóm/sắp xếp)</span> → process the smallest possible set → return only the data the caller needs.</div>
+
+    <h3>2.2 Optimize <code>WHERE</code>: usually the first SQL-level win</h3>
+    <p>The <code>WHERE</code> clause determines which rows survive. A good filter is not only logically correct; it should also allow the optimizer to use an efficient access path such as an index seek/range scan or partition pruning.</p>
+
+    <h4>Rule A — Keep predicates SARGable</h4>
+    <p><span class="term">SARGable</span> <span class="vi">(điều kiện có thể dùng index để tìm kiếm hiệu quả)</span> means the database can use the search argument directly against an index instead of transforming every stored value first.</p>
+    <div class="grid">
+      <div class="card"><h4>Less efficient</h4><pre><code>SELECT id, total_amount
+FROM orders
+WHERE DATE(created_at) = DATE '2026-08-27';</code></pre><p>The function may have to be evaluated for many rows, and a normal index on <code>created_at</code> may not be usable as a direct range search.</p></div>
+      <div class="card"><h4>Usually better</h4><pre><code>SELECT id, total_amount
+FROM orders
+WHERE created_at &gt;= TIMESTAMP '2026-08-27 00:00:00'
+  AND created_at &lt;  TIMESTAMP '2026-08-28 00:00:00';</code></pre><p>This expresses the condition as an index-friendly range.</p></div>
+    </div>
+
+    <h4>Rule B — Avoid implicit conversion on indexed/join columns</h4>
+    <pre><code>-- Risky when order_id is numeric
+WHERE order_id = '10001'
+
+-- Better: use the correct parameter/data type
+WHERE order_id = 10001</code></pre>
+    <p>An <span class="term">implicit conversion</span> <span class="vi">(chuyển kiểu ngầm định)</span> can force the database to convert values, distort cardinality estimates, or make an index harder to use. The exact behavior is database-specific, but matching types is the safest design.</p>
+
+    <h4>Rule C — Understand selectivity, not just “column has an index”</h4>
+    <pre><code>-- If 90% of orders are ACTIVE, this may still scan a lot of data
+SELECT id
+FROM orders
+WHERE status = 'ACTIVE';</code></pre>
+    <p><span class="term">Selectivity</span> <span class="vi">(độ chọn lọc)</span> describes how much the predicate reduces the data. An index is especially useful when the predicate returns a small fraction of the table. A low-cardinality value such as <code>status</code> can still be useful in a composite/filtered/partial index when the queried value is rare or when combined with more selective columns.</p>
+
+    <h4>Rule D — Prefix search can use a B-tree more naturally than contains search</h4>
+    <pre><code>-- Commonly index-friendly
+WHERE customer_name LIKE 'Nguyen%'
+
+-- A normal B-tree usually cannot seek efficiently from the left edge
+WHERE customer_name LIKE '%Nguyen%'</code></pre>
+    <p>For contains/full-text search, consider database-specific full-text, trigram, inverted, or search-engine solutions rather than forcing a regular B-tree to solve the wrong problem.</p>
+
+    <h4>Rule E — Be careful with large <code>OR</code> conditions</h4>
+    <pre><code>WHERE customer_id = :customerId
+   OR merchant_id = :merchantId</code></pre>
+    <p>Some optimizers can combine indexes efficiently; others may choose a broad scan depending on statistics and data distribution. For difficult cases, compare the plan with an equivalent <code>UNION ALL</code> strategy, while preventing duplicates if the branches can overlap. Do not rewrite mechanically—measure both forms.</p>
+
+    <h4>Rule F — Filter by the partition key when partition pruning is part of the design</h4>
+    <pre><code>SELECT id, customer_id, total_amount
+FROM orders
+WHERE created_at &gt;= :fromDate
+  AND created_at &lt;  :toDate
+  AND customer_id = :customerId;</code></pre>
+    <p>If <code>orders</code> is partitioned by <code>created_at</code>, the time predicate may eliminate most partitions. The remaining <code>customer_id</code> predicate can then use an index inside those partitions. This is the classic <strong>partition pruning + index</strong> combination.</p>
+
+    <h3>2.3 Optimize <code>SELECT</code>: read and transfer only what you need</h3>
+    <div class="grid">
+      <div class="card"><h4>Avoid unnecessary wide reads</h4><pre><code>SELECT *
+FROM orders
+WHERE customer_id = :customerId;</code></pre></div>
+      <div class="card"><h4>Prefer explicit projection</h4><pre><code>SELECT id, status, total_amount, created_at
+FROM orders
+WHERE customer_id = :customerId;</code></pre></div>
+    </div>
+    <p>Why this matters:</p>
+    <ul class="tight">
+      <li>Fewer columns can mean fewer data pages and less network traffic.</li>
+      <li>Narrow rows reduce memory pressure during sorts, hashes, and joins.</li>
+      <li>A narrow projection may allow a <span class="term">covering/index-only scan</span> <span class="vi">(đọc đủ dữ liệu trực tiếp từ index)</span>, depending on the engine and visibility/storage rules.</li>
+      <li><code>SELECT *</code> creates unnecessary coupling when table columns change.</li>
+    </ul>
+
+    <h3>2.4 Optimize <code>JOIN</code>: control row multiplication</h3>
+    <p>A join becomes expensive when the database must repeatedly search a large table, when join keys are not indexed appropriately, or when the relationship unexpectedly multiplies rows.</p>
+
+    <h4>Rule A — Join on real keys with compatible data types</h4>
+    <pre><code>SELECT o.id, o.total_amount, c.name
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+WHERE o.created_at &gt;= :fromDate;</code></pre>
+    <p><code>customers.id</code> is normally a primary/unique indexed key. An index on <code>orders.customer_id</code> is often useful for lookup/join patterns, referential operations, and queries starting from customers—but whether it is used for this exact query depends on row counts and the chosen join algorithm.</p>
+
+    <h4>Rule B — Do not apply functions/casts to join keys unless intentionally indexed</h4>
+    <pre><code>-- Risky
+JOIN users u
+  ON LOWER(u.email) = LOWER(o.customer_email)
+
+-- Better data model when possible
+JOIN users u
+  ON u.normalized_email = o.normalized_customer_email</code></pre>
+    <p>Normalize values at write time when appropriate, or use a supported expression/function-based index. Recomputing expressions on both sides of a large join can increase CPU and block normal index access.</p>
+
+    <h4>Rule C — Reduce rows before an expensive many-to-many-like join</h4>
+    <pre><code>-- Example: limit orders to the relevant time range before joining large detail data
+SELECT o.id, SUM(oi.quantity * oi.unit_price) AS amount
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE o.created_at &gt;= :fromDate
+  AND o.created_at &lt;  :toDate
+GROUP BY o.id;</code></pre>
+    <p>Modern optimizers often push safe filters down automatically, so written SQL order is not the same as execution order. The important point is to provide selective predicates and correct join relationships so the optimizer can keep the <span class="term">intermediate result set</span> <span class="vi">(tập dữ liệu trung gian)</span> small.</p>
+
+    <h4>Rule D — Detect accidental row explosion</h4>
+    <pre><code>-- Dangerous if the real relationship is missing a condition
+FROM orders o
+JOIN payments p ON p.customer_id = o.customer_id</code></pre>
+    <p>If one customer has 100 orders and 20 payments, this can produce 2,000 joined rows for that customer. If the intended relationship is payment-to-order, join by <code>p.order_id = o.id</code>. Using <code>DISTINCT</code> later to hide duplicate rows is usually a design smell and adds another expensive operation.</p>
+
+    <h4>Rule E — Understand the main join algorithms</h4>
+    <table>
+      <thead><tr><th>Join type</th><th>Usually good for</th><th>Performance concern</th></tr></thead>
+      <tbody>
+        <tr><td><span class="term">Nested Loop</span> <span class="vi">(lặp lồng)</span></td><td>Small outer result + fast indexed lookup on the inner side.</td><td>Terrible if the outer side is unexpectedly huge and each row triggers expensive lookup work.</td></tr>
+        <tr><td><span class="term">Hash Join</span> <span class="vi">(join bằng bảng băm)</span></td><td>Large equality joins when scanning inputs is reasonable.</td><td>Needs memory; a large hash table can spill to disk.</td></tr>
+        <tr><td><span class="term">Merge Join</span> <span class="vi">(join trên dữ liệu có thứ tự)</span></td><td>Large inputs already sorted/indexed by join keys.</td><td>Sorting inputs can be expensive if order is not available.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Senior point:</strong> Do not force “index join” everywhere. If 40% of a 500M-row table is needed, a sequential scan + hash join can be more efficient than millions of random index lookups.</div>
+
+    <h3>2.5 Optimize <code>ORDER BY</code>: avoid sorting millions of rows</h3>
+    <p><code>ORDER BY</code> can require a full sort. Sorting is CPU- and memory-intensive; when memory is insufficient, the engine can <span class="term">spill to disk</span> <span class="vi">(tràn dữ liệu tạm xuống disk)</span>.</p>
+
+    <h4>Best case — Let an index produce rows in the required order</h4>
+    <pre><code>SELECT id, total_amount, created_at
+FROM orders
+WHERE customer_id = :customerId
+ORDER BY created_at DESC
+FETCH FIRST 20 ROWS ONLY;</code></pre>
+    <p>A useful index pattern is often:</p>
+    <pre><code>CREATE INDEX idx_orders_customer_created
+ON orders (customer_id, created_at DESC);</code></pre>
+    <p>The engine can seek to one customer and read the newest rows in index order, possibly stopping after 20 rows instead of sorting the customer's full history. Exact syntax and index direction behavior vary by engine.</p>
+
+    <h4>Make <code>ORDER BY</code> deterministic for pagination</h4>
+    <pre><code>ORDER BY created_at DESC, id DESC</code></pre>
+    <p>If multiple rows have the same <code>created_at</code>, adding a unique tie-breaker such as <code>id</code> makes page ordering stable.</p>
+
+    <h4>Avoid deep OFFSET pagination for large result sets</h4>
+    <pre><code>-- Expensive at deep pages: engine may still process/skip many rows
+ORDER BY created_at DESC, id DESC
+OFFSET 500000 ROWS FETCH NEXT 20 ROWS ONLY;
+
+-- Keyset/seek pagination
+WHERE (created_at, id) &lt; (:lastCreatedAt, :lastId)
+ORDER BY created_at DESC, id DESC
+FETCH FIRST 20 ROWS ONLY;</code></pre>
+    <p><span class="term">Keyset pagination</span> <span class="vi">(phân trang theo khóa/mốc cuối)</span> scales much better for deep navigation when the access pattern fits it.</p>
+
+    <h3>2.6 Optimize <code>GROUP BY</code>: aggregate the smallest useful dataset</h3>
+    <p><code>GROUP BY</code> may use sorting or hashing. Both get expensive when the input is huge or group cardinality is high.</p>
+
+    <h4>Rule A — Use <code>WHERE</code> for row filtering before aggregation; use <code>HAVING</code> for aggregate filtering</h4>
+    <pre><code>SELECT customer_id, SUM(total_amount) AS revenue
+FROM orders
+WHERE created_at &gt;= :fromDate
+  AND created_at &lt;  :toDate
+GROUP BY customer_id
+HAVING SUM(total_amount) &gt; 10000;</code></pre>
+    <p><code>WHERE</code> removes source rows before grouping. <code>HAVING</code> filters groups after aggregate results exist. A non-aggregate condition that can safely be placed in <code>WHERE</code> should generally not wait until <code>HAVING</code>.</p>
+
+    <h4>Rule B — Pre-aggregate before joining when it reduces data substantially</h4>
+    <pre><code>WITH order_totals AS (
+  SELECT order_id,
+         SUM(quantity * unit_price) AS item_total
+  FROM order_items
+  GROUP BY order_id
+)
+SELECT o.customer_id, SUM(t.item_total) AS revenue
+FROM orders o
+JOIN order_totals t ON t.order_id = o.id
+WHERE o.created_at &gt;= :fromDate
+GROUP BY o.customer_id;</code></pre>
+    <p>This can be beneficial when aggregation dramatically reduces the detail table before later operations. But CTE/materialization behavior differs by database and version, so inspect the actual plan rather than assuming the written form is faster.</p>
+
+    <h4>Rule C — Indexes can help GROUP BY, but not always</h4>
+    <p>An index whose leading order matches the grouping keys can sometimes support ordered/stream aggregation and reduce sorting. However, for large analytical scans, a hash aggregate over a sequential scan may still be cheaper. The correct plan depends on the amount of data, grouping cardinality, memory, and storage layout.</p>
+
+    <h4>Rule D — Do not group wide expressions repeatedly if you can model them better</h4>
+    <pre><code>-- Repeated expression work
+GROUP BY DATE(created_at), LOWER(country_code)</code></pre>
+    <p>For frequent reporting dimensions, consider generated/normalized columns, expression indexes, summary tables, or materialized views where supported and justified.</p>
+
+    <h3>2.7 Use <code>DISTINCT</code> carefully</h3>
+    <pre><code>SELECT DISTINCT c.id, c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id;</code></pre>
+    <p><code>DISTINCT</code> often requires sorting or hashing. If your real requirement is “customers that have at least one order,” a semi-join form is clearer:</p>
+    <pre><code>SELECT c.id, c.name
+FROM customers c
+WHERE EXISTS (
+  SELECT 1
+  FROM orders o
+  WHERE o.customer_id = c.id
+);</code></pre>
+    <p>Modern optimizers may transform multiple equivalent forms to the same plan, so <code>EXISTS</code> is not universally “faster.” The key advantage here is semantic clarity: stop caring about duplicate matching rows when existence is all you need.</p>
+
+    <h3>2.8 Should we use subqueries?</h3>
+    <p><strong>Yes.</strong> A <span class="term">subquery</span> <span class="vi">(truy vấn con)</span> is not inherently slow. In many cases it is the clearest and most correct way to express the requirement, and modern optimizers can transform a subquery into a semi-join, anti-join, hash join, or another efficient execution strategy. The important question is not “subquery or JOIN?” but <strong>how much work does the chosen form cause the database to perform?</strong></p>
+
+    <div class="callout success"><strong>Senior rule:</strong> Use a subquery when it expresses the business condition clearly and produces an efficient plan. Avoid a subquery when it causes repeated work, prevents useful predicate pushdown, returns an unnecessarily large intermediate result, or hides a better set-based access pattern.</div>
+
+    <h4>2.8.1 Good case — use <code>EXISTS</code> when you only need to know whether a related row exists</h4>
+    <p>Suppose the requirement is: “Return customers who have at least one paid order.” You do not need the order rows themselves.</p>
+    <pre><code>SELECT c.id, c.name
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.id
+      AND o.status = 'PAID'
+);</code></pre>
+    <p>This expresses a <span class="term">semi-join</span> <span class="vi">(phép nối chỉ kiểm tra sự tồn tại)</span>. Conceptually, the database can stop searching for a customer after it finds the first matching order. A useful index may be:</p>
+    <pre><code>orders(customer_id, status)</code></pre>
+    <p>A less clear alternative is to join all matching orders and then remove duplicates:</p>
+    <pre><code>SELECT DISTINCT c.id, c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+WHERE o.status = 'PAID';</code></pre>
+    <p>The second form can create many duplicate customer rows before <code>DISTINCT</code> removes them. Optimizers may still produce similar plans, but <code>EXISTS</code> communicates the intent better: <strong>I care about existence, not the number of matching child rows.</strong></p>
+
+    <h4>2.8.2 Good case — use <code>NOT EXISTS</code> for “find rows that have no matching child”</h4>
+    <pre><code>SELECT c.id, c.name
+FROM customers c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.id
+);</code></pre>
+    <p>This is an <span class="term">anti-join</span> <span class="vi">(phép nối tìm bản ghi không có bản ghi đối ứng)</span>. It is usually a clean way to express “customers who never ordered.”</p>
+    <div class="callout warning"><strong>Be careful with <code>NOT IN</code>:</strong> if the subquery can return <code>NULL</code>, SQL three-valued logic may produce unexpected results. <code>NOT EXISTS</code> is often safer for this business meaning.</div>
+
+    <h4>2.8.3 <code>IN</code> vs <code>EXISTS</code>: do not memorize “EXISTS is always faster”</h4>
+    <pre><code>-- IN
+SELECT *
+FROM customers
+WHERE id IN (
+    SELECT customer_id
+    FROM vip_customers
+);
+
+-- EXISTS
+SELECT c.*
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM vip_customers v
+    WHERE v.customer_id = c.id
+);</code></pre>
+    <p>Many database optimizers can transform both forms into a similar semi-join. Performance depends on table sizes, indexes, statistics, null semantics, correlation, and the optimizer. Use the form that expresses the requirement correctly, then verify the actual plan.</p>
+    <table>
+      <thead><tr><th>Situation</th><th>Usually clearer choice</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Check whether at least one related row exists</td><td><code>EXISTS</code></td><td>Directly expresses existence and avoids thinking about duplicate child rows.</td></tr>
+        <tr><td>Compare with a small literal/set result</td><td><code>IN</code></td><td>Readable and concise, for example <code>status IN ('PAID','DONE')</code>.</td></tr>
+        <tr><td>Find rows that have no match</td><td><code>NOT EXISTS</code></td><td>Clear anti-join semantics and avoids <code>NOT IN</code> + <code>NULL</code> surprises.</td></tr>
+        <tr><td>Need columns from the related table</td><td><code>JOIN</code></td><td>You actually need data from both relations, not only an existence check.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>2.8.4 Dangerous case — correlated subquery executed for many outer rows</h4>
+    <p>A <span class="term">correlated subquery</span> <span class="vi">(subquery phụ thuộc vào từng dòng của query bên ngoài)</span> references columns from the outer query.</p>
+    <pre><code>SELECT c.id,
+       c.name,
+       (SELECT MAX(o.created_at)
+        FROM orders o
+        WHERE o.customer_id = c.id) AS last_order_at
+FROM customers c;</code></pre>
+    <p>Conceptually, this can look like:</p>
+    <pre><code>Read customer 1 → find MAX(order)
+Read customer 2 → find MAX(order)
+Read customer 3 → find MAX(order)
+...
+Read customer 5,000,000 → find MAX(order)</code></pre>
+    <p>If the optimizer cannot decorrelate the subquery and there is no efficient index, this becomes millions of repeated lookups. With an index such as <code>(customer_id, created_at DESC)</code>, each lookup may be cheap; without it, the pattern can be very expensive.</p>
+    <p>A set-based rewrite may be better when a large portion of customers is needed:</p>
+    <pre><code>SELECT c.id,
+       c.name,
+       x.last_order_at
+FROM customers c
+LEFT JOIN (
+    SELECT customer_id, MAX(created_at) AS last_order_at
+    FROM orders
+    GROUP BY customer_id
+) x ON x.customer_id = c.id;</code></pre>
+    <p>But this rewrite is <strong>not automatically faster</strong>. If you only request 20 customers and there is an excellent index, 20 targeted lookups may be cheaper than aggregating the entire orders table. Always compare the amount of work.</p>
+
+    <h4>2.8.5 Scalar subqueries in the <code>SELECT</code> list: convenient, but watch repeated work</h4>
+    <pre><code>SELECT o.id,
+       o.total_amount,
+       (SELECT c.name
+        FROM customers c
+        WHERE c.id = o.customer_id) AS customer_name
+FROM orders o
+WHERE o.created_at &gt;= :fromDate;</code></pre>
+    <p>If the outer query returns a very large number of orders, this can conceptually create one customer lookup per order. A normal join is usually easier to reason about and gives the optimizer an obvious set relationship:</p>
+    <pre><code>SELECT o.id,
+       o.total_amount,
+       c.name AS customer_name
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+WHERE o.created_at &gt;= :fromDate;</code></pre>
+    <p>Again, many optimizers can rewrite the scalar subquery, but in code review I would inspect the execution plan rather than assuming that rewrite always happens.</p>
+
+    <h4>2.8.6 Derived-table subquery in <code>FROM</code>: useful when pre-aggregation significantly reduces rows</h4>
+    <pre><code>SELECT c.region,
+       SUM(x.revenue) AS revenue
+FROM customers c
+JOIN (
+    SELECT customer_id,
+           SUM(total_amount) AS revenue
+    FROM orders
+    WHERE created_at &gt;= :fromDate
+      AND created_at &lt;  :toDate
+    GROUP BY customer_id
+) x ON x.customer_id = c.id
+GROUP BY c.region;</code></pre>
+    <p>This can be useful because the detail <code>orders</code> rows are aggregated before the later join. If 100 million order rows become 2 million customer summaries, the following join may process far less data.</p>
+    <p>However, some optimizers can push filters and rearrange joins even if you write the SQL differently. The derived table is useful when it improves correctness/readability or encourages a desirable reduction in intermediate rows—not because “subquery is faster.”</p>
+
+    <h4>2.8.7 CTE vs subquery: readability first, then verify materialization behavior</h4>
+    <pre><code>WITH customer_revenue AS (
+    SELECT customer_id,
+           SUM(total_amount) AS revenue
+    FROM orders
+    WHERE created_at &gt;= :fromDate
+    GROUP BY customer_id
+)
+SELECT c.id, c.name, r.revenue
+FROM customers c
+JOIN customer_revenue r ON r.customer_id = c.id;</code></pre>
+    <p>A <span class="term">CTE</span> <span class="vi">(Common Table Expression / biểu thức bảng chung)</span> often improves readability and makes complex queries easier to maintain. But do not assume it is automatically faster or slower than an inline subquery. Depending on the database and version, the optimizer may:</p>
+    <ul class="tight">
+      <li><span class="term">Inline</span> it <span class="vi">(gộp CTE vào query chính)</span>.</li>
+      <li><span class="term">Materialize</span> it <span class="vi">(tạo kết quả trung gian rồi đọc lại)</span>.</li>
+      <li>Push predicates into it or keep it as an optimization boundary.</li>
+    </ul>
+    <p>If the CTE is referenced multiple times, materialization may save repeated computation in some engines; in other cases it can create unnecessary I/O. Check the execution plan for your database/version.</p>
+
+    <h4>2.8.8 Subquery and partition/index behavior</h4>
+    <p>A subquery does not remove the need to think about indexes or partitions. Each query block still has its own access path.</p>
+    <pre><code>SELECT *
+FROM orders o
+WHERE o.created_at &gt;= '2026-08-01'
+  AND o.created_at &lt;  '2026-09-01'
+  AND EXISTS (
+      SELECT 1
+      FROM payments p
+      WHERE p.order_id = o.id
+        AND p.status = 'SUCCESS'
+  );</code></pre>
+    <p>If <code>orders</code> is partitioned by <code>created_at</code>, the outer date predicate may enable partition pruning. The <code>EXISTS</code> lookup may then benefit from an index such as:</p>
+    <pre><code>payments(order_id, status)</code></pre>
+    <p>So one efficient plan can combine:</p>
+    <div class="flow">
+      <span class="step">Partition pruning on orders</span><span class="arrow">→</span>
+      <span class="step">Read August rows only</span><span class="arrow">→</span>
+      <span class="step">Indexed EXISTS lookup on payments</span><span class="arrow">→</span>
+      <span class="step">Return matching orders</span>
+    </div>
+
+    <h4>2.8.9 When should you avoid or rewrite a subquery?</h4>
+    <table>
+      <thead><tr><th>Warning sign</th><th>Why it can be expensive</th><th>What to consider</th></tr></thead>
+      <tbody>
+        <tr><td>Correlated subquery over millions of outer rows</td><td>Can cause millions of repeated lookups.</td><td>Index the correlation key, decorrelate, pre-aggregate, or rewrite as a JOIN where appropriate.</td></tr>
+        <tr><td>Scalar subquery repeated in <code>SELECT</code></td><td>Potential repeated lookup for each output row.</td><td>JOIN once if you need related columns for many rows.</td></tr>
+        <tr><td>Subquery returns a huge intermediate set</td><td>Consumes memory/I/O and may require hashing or sorting.</td><td>Filter earlier, project fewer columns, or aggregate earlier.</td></tr>
+        <tr><td><code>NOT IN (subquery)</code> with nullable result</td><td><code>NULL</code> can change the logical result.</td><td>Use <code>NOT EXISTS</code> when expressing “no matching row.”</td></tr>
+        <tr><td>Functions/casts inside the subquery filter</td><td>Can make predicates non-SARGable exactly like in the outer query.</td><td>Rewrite predicates or use an appropriate expression index.</td></tr>
+        <tr><td>Subquery prevents partition pruning</td><td>The optimizer may need to touch more partitions.</td><td>Expose a direct partition-key predicate when possible and verify pruning in the plan.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>2.8.10 Interview answer — “Should we use subqueries?”</h4>
+    <div class="answer">Yes. I do not treat subqueries as inherently slow. I choose them when they clearly express the requirement, especially for existence checks, anti-joins, isolated aggregation, or readable query decomposition. What I watch for is repeated execution, especially correlated or scalar subqueries over a large outer result. I also check whether predicates can be pushed down, whether indexes support the correlation key, whether partition pruning still happens, and how many rows each query block processes. Modern optimizers can rewrite many subqueries into joins or semi-joins, so I compare actual execution plans rather than using a rule such as “JOIN is always faster.” If a correlated subquery performs millions of lookups, I may rewrite it as a set-based JOIN or pre-aggregation, but only after comparing the real I/O and row counts.</div>
+
+    <h3>2.9 Keep statistics accurate</h3>
+    <p><span class="term">Statistics</span> <span class="vi">(thống kê phân bố dữ liệu)</span> tell the optimizer how many rows it expects predicates and joins to produce. Bad estimates lead to bad plans.</p>
+    <pre><code>Estimated rows: 100
+Actual rows:    8,000,000</code></pre>
+    <p>This gap can cause:</p>
+    <ul class="tight">
+      <li>Nested-loop joins chosen where a hash join would be better.</li>
+      <li>Insufficient memory for sort/hash operations.</li>
+      <li>Indexes chosen for predicates that are actually not selective.</li>
+      <li>Wrong join order or access path.</li>
+    </ul>
+    <p>Use the database's statistics maintenance mechanism (<code>ANALYZE</code>, auto statistics, update statistics, histogram features, etc.) according to the engine you use.</p>
+
+    <h3>2.10 Design indexes for the query pattern, not one column at a time</h3>
+    <pre><code>SELECT id, total_amount, created_at
+FROM orders
+WHERE merchant_id = :merchantId
+  AND status = :status
+  AND created_at &gt;= :fromDate
+ORDER BY created_at DESC;</code></pre>
+    <p>A candidate composite index could be:</p>
+    <pre><code>(merchant_id, status, created_at DESC)</code></pre>
+    <p>Why? Equality predicates can narrow the search first, then the time column supports the range and ordering. But index design depends on the complete workload: data distribution, optional filters, read/write ratio, existing indexes, and database-specific optimizer rules.</p>
+    <div class="callout warning"><strong>Do not over-index:</strong> every additional index consumes storage and must be maintained by <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code>. Remove redundant or unused indexes only after validating workload and operational requirements.</div>
+
+    <h3>2.11 Use partitioning for data elimination and manageability—not as a replacement for indexing</h3>
+    <pre><code>orders partitioned by month on created_at
+
+Query time range
+      ↓
+Partition pruning
+      ↓
+Only August partition remains
+      ↓
+Index(customer_id, created_at)
+      ↓
+Find a small customer subset</code></pre>
+    <p>Partitioning is especially useful for very large time-series/history/fact tables, retention operations, bulk maintenance, and pruning. If a query still needs only a tiny subset inside the selected partition, an index may still be essential.</p>
+
+    <h3>2.12 Avoid common hidden costs</h3>
+    <table>
+      <thead><tr><th>Problem</th><th>Why it hurts</th><th>Better direction</th></tr></thead>
+      <tbody>
+        <tr><td><code>SELECT *</code></td><td>Wide I/O, memory, network; can prevent covering access.</td><td>Select only required columns.</td></tr>
+        <tr><td>Function/cast on indexed filter column</td><td>May make predicate non-SARGable.</td><td>Rewrite range/comparison or add appropriate expression index.</td></tr>
+        <tr><td>Leading wildcard <code>LIKE '%abc%'</code></td><td>Normal B-tree cannot efficiently seek from the left side.</td><td>Full-text/trigram/search index when needed.</td></tr>
+        <tr><td>Unnecessary <code>DISTINCT</code></td><td>Extra sort/hash and can hide bad join logic.</td><td>Fix join; use <code>EXISTS</code> for existence semantics.</td></tr>
+        <tr><td>Deep <code>OFFSET</code></td><td>Database still processes/skips many earlier rows.</td><td>Keyset/seek pagination.</td></tr>
+        <tr><td>Mismatched join data types</td><td>Conversions, poor estimates, index problems.</td><td>Use the same logical and physical type.</td></tr>
+        <tr><td>Huge sort/group</td><td>CPU/memory pressure and disk spills.</td><td>Filter first, use matching order/index when appropriate, pre-aggregate.</td></tr>
+        <tr><td>Too many indexes</td><td>Write amplification and cache/storage overhead.</td><td>Keep indexes that serve real access patterns.</td></tr>
+        <tr><td>Stale statistics</td><td>Optimizer estimates the wrong cardinality.</td><td>Maintain/update statistics.</td></tr>
+        <tr><td>N+1 queries from application code</td><td>Thousands of network round trips and repetitive lookups.</td><td>Batch/fetch intentionally, join when appropriate, or redesign access pattern.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.13 Performance examples: bad vs better</h3>
+    <table>
+      <thead><tr><th>Goal</th><th>Risky pattern</th><th>Better pattern</th></tr></thead>
+      <tbody>
+        <tr><td>Filter by one day</td><td><code>DATE(created_at) = :day</code></td><td><code>created_at &gt;= :start AND created_at &lt; :nextDay</code></td></tr>
+        <tr><td>Case-insensitive email lookup</td><td><code>LOWER(email) = :email</code> with only normal index</td><td>Normalized column or supported expression index.</td></tr>
+        <tr><td>Latest 20 orders</td><td>Filter + huge sort</td><td>Index aligned with equality filter + ordering column.</td></tr>
+        <tr><td>Customers with orders</td><td>Join + <code>DISTINCT</code></td><td><code>EXISTS</code> when only existence is needed.</td></tr>
+        <tr><td>Deep pagination</td><td><code>OFFSET 500000</code></td><td>Keyset pagination from last sort key.</td></tr>
+        <tr><td>Monthly report</td><td>Aggregate raw billions of rows repeatedly</td><td>Partition pruning + appropriate index or summary/materialized data.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.14 A reliable query-tuning workflow</h3>
+    <ol class="checklist">
+      <li><strong>Capture the real SQL and real parameter pattern.</strong> Performance can differ dramatically by parameter value and data skew.</li>
+      <li><strong>Measure a baseline.</strong> Record latency, CPU, logical reads, rows returned, and concurrency conditions.</li>
+      <li><strong>Read the actual execution plan.</strong> Find the operators consuming the most time/I/O and compare estimated vs actual rows.</li>
+      <li><strong>Check <code>WHERE</code>.</strong> Is it selective? SARGable? Does it include the partition key when pruning is expected? Are data types compatible?</li>
+      <li><strong>Check indexes.</strong> Does an index match the combined predicate/order pattern? Is the optimizer reading far more rows than it returns?</li>
+      <li><strong>Check joins.</strong> Are relationships correct? Do intermediate row counts explode? Are nested-loop lookups repeated millions of times?</li>
+      <li><strong>Check <code>ORDER BY</code>/<code>GROUP BY</code>.</strong> Is a large sort/hash spilling to disk? Can the input be reduced first?</li>
+      <li><strong>Check projection and pagination.</strong> Remove unnecessary columns and avoid deep OFFSET where possible.</li>
+      <li><strong>Check statistics and data skew.</strong> Fix estimation problems before forcing plans.</li>
+      <li><strong>Re-test under realistic load.</strong> A query that is fast for one user can still fail under 5,000 concurrent requests.</li>
+    </ol>
+
+    <h3>2.15 Senior interview answer: “How do you improve a slow SQL query?”</h3>
+    <div class="answer">I do not start by adding indexes blindly. First, I reproduce the slow query with representative parameters and inspect the actual execution plan, elapsed time, CPU, and logical reads. I compare estimated rows with actual rows to find cardinality-estimation problems. Then I check whether the WHERE predicates are selective and SARGable, whether functions or implicit casts prevent efficient index access, and whether partition pruning is happening when expected. Next I inspect the indexes against the complete access pattern, especially equality predicates, range predicates, join keys, and ORDER BY. I check joins for row explosion or repeated nested-loop lookups, and I check ORDER BY and GROUP BY for large sorts, hash aggregates, or disk spills. I remove unnecessary SELECT * columns and avoid deep OFFSET pagination. If estimates are wrong, I investigate statistics and data skew. Finally, I rerun the plan and measure again under realistic concurrency. If the workload itself is inappropriate for OLTP—such as repeated expensive analytics—I consider caching, read replicas, materialized summaries, a warehouse, or another specialized data store.</div>
+
+    <h3>2.16 Clause-by-clause interview cheat sheet</h3>
+    <table>
+      <thead><tr><th>Clause</th><th>Senior-level question to ask</th><th>What usually helps</th></tr></thead>
+      <tbody>
+        <tr><td><strong>WHERE</strong></td><td>How many rows survive? Is the predicate SARGable? Is pruning possible?</td><td>Selective predicates, correct types, range rewrite, matching index, partition key.</td></tr>
+        <tr><td><strong>JOIN</strong></td><td>Does the join multiply rows? Which side is large? Is an indexed lookup or scan/hash cheaper?</td><td>Correct join keys, compatible types, useful FK/indexes, smaller inputs, accurate statistics.</td></tr>
+        <tr><td><strong>ORDER BY</strong></td><td>Must the engine sort a huge set, or can an index provide order?</td><td>Filter first, matching composite index, LIMIT/top-N, stable tie-breaker, keyset pagination.</td></tr>
+        <tr><td><strong>GROUP BY</strong></td><td>How many input rows and groups exist? Sort aggregate or hash aggregate? Spill?</td><td>WHERE before aggregation, pre-aggregate when useful, matching ordered input, summary tables.</td></tr>
+        <tr><td><strong>SELECT</strong></td><td>Are we reading columns we never use?</td><td>Explicit projection, covering/index-only opportunity.</td></tr>
+        <tr><td><strong>DISTINCT</strong></td><td>Is this required by business semantics or hiding duplicate joins?</td><td>Fix joins; use EXISTS for existence queries.</td></tr>
+        <tr><td><strong>LIMIT/OFFSET</strong></td><td>Does performance degrade on deep pages?</td><td>Keyset pagination with a matching order index.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+
+  <section id="execution-plan">
+    <h2>3. Execution Plan: Your First Diagnostic Tool</h2>
+    <p>An execution plan shows <strong>how</strong> the optimizer decided to execute the SQL. Exact operator names differ by PostgreSQL, MySQL, SQL Server, and Oracle, but the principles are similar.</p>
+    <div class="grid">
+      <div class="card"><h4>Good signals</h4><ul class="tight"><li>Index seek/range scan for selective predicates</li><li>Partition pruning</li><li>Reasonable estimated vs actual rows</li><li>Small intermediate result sets</li><li>No large spill to disk</li></ul></div>
+      <div class="card"><h4>Warning signals</h4><ul class="tight"><li>Full scan on a huge table</li><li>Millions of rows read to return 10 rows</li><li>Repeated key lookups</li><li>Large sort/hash memory spill</li><li>Implicit conversion on indexed columns</li></ul></div>
+    </div>
+    <pre><code>-- PostgreSQL example
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id, customer_id, total_amount
+FROM orders
+WHERE customer_id = 1001
+  AND created_at &gt;= DATE '2026-08-01';</code></pre>
+    <p class="small">In production, be careful with execution options that actually run the statement, especially for UPDATE/DELETE statements.</p>
+  </section>
+
+  <section id="index">
+    <h2>4. Index Explained Deeply</h2>
+    <p class="lead">An index is an additional data structure that helps the database locate rows faster than scanning every row.</p>
+    <p>The most common general-purpose index is a <span class="term">B-tree</span> <span class="vi">(cây cân bằng dùng để tìm kiếm theo thứ tự)</span>. Conceptually, it stores indexed key values in sorted order and points to rows or row locations.</p>
+    <pre><code>CREATE INDEX idx_orders_customer_created
+ON orders (customer_id, created_at);</code></pre>
+    <p>For a query like:</p>
+    <pre><code>SELECT id, total_amount
+FROM orders
+WHERE customer_id = 1001
+  AND created_at &gt;= '2026-08-01';</code></pre>
+    <p>the database can navigate directly to the area of the index containing <code>customer_id = 1001</code>, then scan only the relevant <code>created_at</code> range.</p>
+
+    <h3>Why indexes are not free</h3>
+    <table>
+      <thead><tr><th>Benefit</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Faster selective reads</td><td>Extra disk/storage space</td></tr>
+        <tr><td>Faster JOIN lookups</td><td>INSERT/UPDATE/DELETE must maintain indexes</td></tr>
+        <tr><td>Can avoid sorting</td><td>More cache pressure / memory footprint</td></tr>
+        <tr><td>Can enforce uniqueness</td><td>Too many indexes increase write latency</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warning"><strong>Important:</strong> An index does not automatically make a query faster. If a query returns a very large percentage of the table, a sequential/full scan can be cheaper.</div>
+  </section>
+
+  <section id="index-when">
+    <h2>5. When Should You Use an Index?</h2>
+    <p>Indexes are most valuable when a column or column combination is frequently used to locate a <strong>small, selective subset</strong> of rows.</p>
+    <h3>Good candidates</h3>
+    <ul class="checklist">
+      <li>Columns frequently used in <code>WHERE</code> filters.</li>
+      <li>Foreign keys used in joins.</li>
+      <li>Columns used for uniqueness, such as email or external_id.</li>
+      <li>Columns frequently used in <code>ORDER BY</code> when the index order matches the query.</li>
+      <li>Columns used together often in a stable query pattern → composite index.</li>
+      <li>High-read, low-write tables where read latency matters more than write cost.</li>
+    </ul>
+    <h3>Bad or weak candidates</h3>
+    <ul class="checklist">
+      <li>Columns rarely filtered or joined.</li>
+      <li>Very small tables where scanning is already cheap.</li>
+      <li>Columns updated extremely frequently unless the read benefit is strong.</li>
+      <li>Low-cardinality columns used alone and returning a large percentage of rows.</li>
+      <li>Redundant indexes that duplicate the same left-prefix pattern.</li>
+    </ul>
+  </section>
+
+  <section id="low-cardinality">
+    <h2>6. Low-Cardinality Columns: flag, status, type = 1/2/3/4</h2>
+    <p><span class="term">Cardinality</span> <span class="vi">(độ đa dạng giá trị)</span> means how many distinct values exist in a column. A boolean flag has very low cardinality: usually only 2 distinct values.</p>
+    <div class="qa">
+      <div class="q">Question: Is it useful to create an index on a flag or status column with only 2–4 values?</div>
+      <div class="a"><strong>Answer: Sometimes, but not automatically.</strong> The key issue is not only the number of distinct values. The real question is: <strong>How many rows does this predicate return?</strong></div>
+    </div>
+
+    <h3>Case A — Usually not useful</h3>
+    <p>Assume 10 million orders:</p>
+    <pre><code>status = 'ACTIVE'   → 8,500,000 rows
+status = 'CLOSED'   → 1,400,000 rows
+status = 'ERROR'    →   100,000 rows</code></pre>
+    <p>An index on <code>status</code> alone may not help much for <code>ACTIVE</code> because the database still needs to visit most of the table.</p>
+
+    <h3>Case B — Can be useful because distribution is skewed</h3>
+    <p><span class="term">Data skew</span> <span class="vi">(phân bố dữ liệu lệch)</span> matters. Even though <code>status</code> has only three values, <code>ERROR</code> is only 1% of rows. An index may be useful for queries filtering ERROR.</p>
+    <pre><code>SELECT id, created_at
+FROM orders
+WHERE status = 'ERROR';</code></pre>
+
+    <h3>Case C — Partial / filtered index is often better</h3>
+    <pre><code>-- PostgreSQL partial index example
+CREATE INDEX idx_orders_error_created
+ON orders (created_at)
+WHERE status = 'ERROR';</code></pre>
+    <p>This keeps the index smaller because it contains only ERROR rows.</p>
+
+    <h3>Case D — Low-cardinality column inside a composite index</h3>
+    <pre><code>CREATE INDEX idx_orders_tenant_status_created
+ON orders (tenant_id, status, created_at);</code></pre>
+    <p>This can be effective when <code>tenant_id</code> first reduces the search space strongly, then <code>status</code> and <code>created_at</code> narrow it further.</p>
+
+    <div class="callout success"><strong>Interview-quality statement:</strong> “I would not reject an index only because the column has low cardinality. I would check selectivity, data distribution, query frequency, row width, clustering, and whether a partial/composite/bitmap index is more appropriate. On OLTP systems, a simple B-tree on a 50/50 boolean flag is often weak. On some analytical databases or Oracle, bitmap indexes can be effective for low-cardinality read-heavy workloads, but they are usually a poor fit for high-concurrency OLTP writes.”</div>
+  </section>
+
+  <section id="function-index">
+    <h2>7. What Happens When a Function Is Applied to an Indexed Column?</h2>
+    <p>The critical concept is <span class="term">SARGable</span> <span class="vi">(điều kiện có thể tận dụng cấu trúc index để tìm kiếm)</span>. A predicate is SARGable when the optimizer can use the indexed value directly to locate a range of matching keys.</p>
+
+    <h3>Non-SARGable example</h3>
+    <pre><code>CREATE INDEX idx_orders_created_at ON orders(created_at);
+
+-- Often prevents normal B-tree range usage
+SELECT *
+FROM orders
+WHERE DATE(created_at) = DATE '2026-08-27';</code></pre>
+    <p>The function is applied to every candidate value, so the database may not be able to navigate directly to the indexed date range.</p>
+
+    <h3>Better: rewrite as a range</h3>
+    <pre><code>SELECT *
+FROM orders
+WHERE created_at &gt;= TIMESTAMP '2026-08-27 00:00:00'
+  AND created_at &lt;  TIMESTAMP '2026-08-28 00:00:00';</code></pre>
+    <p>This usually allows a normal range scan on the index.</p>
+
+    <h3>Other common non-SARGable patterns</h3>
+    <pre><code>-- Function
+WHERE LOWER(email) = 'alice@example.com'
+
+-- Arithmetic
+WHERE amount * 1.1 &gt; 1000
+
+-- Leading wildcard
+WHERE name LIKE '%smith'
+
+-- Implicit type conversion can also block or reduce index use
+WHERE numeric_id = '12345'</code></pre>
+
+    <h3>Solution: expression / function-based index</h3>
+    <pre><code>-- PostgreSQL expression index
+CREATE INDEX idx_users_lower_email
+ON users (LOWER(email));
+
+SELECT *
+FROM users
+WHERE LOWER(email) = 'alice@example.com';</code></pre>
+    <div class="callout"><strong>Nuance:</strong> “Function on indexed column = index is never used” is too absolute. A database can still use an expression/function-based index, generated column index, or optimizer transformation. The correct senior answer is: <strong>a function can make a normal index predicate non-SARGable unless the database has a matching expression index or can safely rewrite the predicate.</strong></div>
+  </section>
+
+  <section id="composite">
+    <h2>8. Composite Index, Leftmost Prefix & Covering</h2>
+    <p>A <span class="term">composite index</span> <span class="vi">(index nhiều cột)</span> contains multiple columns in a defined order.</p>
+    <pre><code>CREATE INDEX idx_orders_customer_status_created
+ON orders (customer_id, status, created_at);</code></pre>
+    <h3>Typical B-tree behavior</h3>
+    <table>
+      <thead><tr><th>Predicate</th><th>Usefulness</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>customer_id = ?</code></td><td>Good</td><td>Uses the leftmost indexed column.</td></tr>
+        <tr><td><code>customer_id = ? AND status = ?</code></td><td>Very good</td><td>Uses first two columns.</td></tr>
+        <tr><td><code>customer_id = ? AND status = ? AND created_at &gt;= ?</code></td><td>Excellent pattern</td><td>Equality columns first, then range column.</td></tr>
+        <tr><td><code>status = ?</code></td><td>Often weak / cannot fully seek</td><td>Skips leftmost customer_id.</td></tr>
+        <tr><td><code>created_at &gt;= ?</code></td><td>Often weak</td><td>Skips earlier keys.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Column-order rule of thumb</h3>
+    <p>Common OLTP pattern:</p>
+    <pre><code>equality columns → range column → optional columns used for order/covering</code></pre>
+    <p>But do not blindly sort columns by “highest cardinality first”. Column order should be based on the real predicate, join, sort, grouping, and selectivity pattern.</p>
+
+    <h3>Covering index</h3>
+    <p>A <span class="term">covering index</span> <span class="vi">(index chứa đủ dữ liệu để trả kết quả mà không cần đọc row chính)</span> can satisfy a query from the index alone or mostly from it.</p>
+    <pre><code>-- Syntax differs by database
+CREATE INDEX idx_orders_customer_created_cover
+ON orders (customer_id, created_at)
+INCLUDE (status, total_amount);</code></pre>
+    <div class="callout warning"><strong>Trade-off:</strong> Covering indexes reduce row lookups, but wider indexes cost more memory, storage, and write maintenance.</div>
+  </section>
+
+  <section id="partition">
+    <h2>9. Partitioning Explained Deeply</h2>
+    <p class="lead">Partitioning divides one logical table into multiple smaller physical/logical pieces based on a partition key.</p>
+    <p>Typical strategies:</p>
+    <div class="grid3">
+      <div class="card"><h4>Range partition</h4><p>Example: partition by month on <code>created_at</code>. Best for time-series/history/retention.</p></div>
+      <div class="card"><h4>List partition</h4><p>Example: partition by region or business type.</p></div>
+      <div class="card"><h4>Hash partition</h4><p>Distribute rows more evenly across partitions using a hash of a key.</p></div>
+    </div>
+
+    <h3>Example: monthly order partitions</h3>
+    <pre><code>orders
+├── orders_2026_06
+├── orders_2026_07
+├── orders_2026_08
+└── orders_2026_09</code></pre>
+    <p>Query:</p>
+    <pre><code>SELECT customer_id, total_amount
+FROM orders
+WHERE created_at &gt;= '2026-08-01'
+  AND created_at &lt;  '2026-09-01';</code></pre>
+    <p>If the database can infer the target partition, it performs <span class="term">partition pruning</span> <span class="vi">(loại bỏ các partition không liên quan)</span> and reads only <code>orders_2026_08</code>.</p>
+
+    <h3>Partitioning benefits</h3>
+    <ul class="checklist">
+      <li>Skip irrelevant partitions when the query filters by partition key.</li>
+      <li>Make retention easier: drop/detach an old partition instead of deleting billions of rows.</li>
+      <li>Smaller indexes per partition can be easier to maintain.</li>
+      <li>Can improve maintenance, archiving, vacuuming, backups, loading, and data lifecycle operations depending on DB engine.</li>
+      <li>Can isolate very large datasets into more manageable pieces.</li>
+    </ul>
+
+    <h3>What partitioning does NOT automatically solve</h3>
+    <ul class="checklist">
+      <li>It does not automatically make every query faster.</li>
+      <li>If you do not filter by the partition key, the database may scan many or all partitions.</li>
+      <li>It does not replace good indexes inside partitions.</li>
+      <li>Too many partitions can increase planning/metadata/maintenance overhead.</li>
+      <li>Poor partition-key choice can create hotspots or uneven distribution.</li>
+    </ul>
+  </section>
+
+  <section id="index-vs-partition">
+    <h2>10. Index vs Partition: What Is the Real Difference?</h2>
+    <table>
+      <thead><tr><th>Dimension</th><th>Index</th><th>Partition</th></tr></thead>
+      <tbody>
+        <tr><td>Main goal</td><td>Locate rows quickly.</td><td>Eliminate whole chunks of data and manage huge tables.</td></tr>
+        <tr><td>Works at</td><td>Key/value lookup structure.</td><td>Table/data-segment level.</td></tr>
+        <tr><td>Best when</td><td>Query is selective.</td><td>Data naturally separates by time/tenant/region/hash and queries can prune partitions.</td></tr>
+        <tr><td>Typical example</td><td><code>customer_id = 123</code></td><td><code>created_at BETWEEN Aug 1 and Aug 31</code></td></tr>
+        <tr><td>Write cost</td><td>Every write may update indexes.</td><td>Routing row to partition + partition maintenance.</td></tr>
+        <tr><td>Retention</td><td>Does not simplify dropping old data much.</td><td>Excellent for dropping old partitions.</td></tr>
+        <tr><td>Can replace the other?</td><td>No.</td><td>No.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Short interview answer:</strong> “Indexing and partitioning solve different levels of the problem. Partitioning reduces the search domain by pruning partitions; indexing then locates the matching rows efficiently inside the remaining partition(s). In large OLTP/OLAP systems, we often use both.”</div>
+  </section>
+
+  <section id="partition-index">
+    <h2>11. Do We Still Need Indexes on Partitioned Tables?</h2>
+    <div class="qa">
+      <div class="q">Question: If a table is already partitioned, do I still need indexes?</div>
+      <div class="a"><strong>Usually yes, if queries need selective lookup inside the remaining partitions.</strong> Partition pruning only says which partitions to inspect. It does not necessarily tell the engine which exact rows inside the partition match.</div>
+    </div>
+
+    <h3>Example</h3>
+    <p>Table is partitioned monthly by <code>created_at</code>. A single monthly partition still contains 50 million orders.</p>
+    <pre><code>SELECT id, total_amount
+FROM orders
+WHERE created_at &gt;= '2026-08-01'
+  AND created_at &lt;  '2026-09-01'
+  AND customer_id = 1001;</code></pre>
+    <p>Partitioning can eliminate all months except August. An index inside the August partition such as <code>(customer_id, created_at)</code> can then find the customer's rows quickly.</p>
+
+    <h3>Should the partition key also be included in the index?</h3>
+    <p><strong>Answer: It depends on query pattern and database design.</strong></p>
+    <table>
+      <thead><tr><th>Case</th><th>Recommendation</th><th>Reasoning</th></tr></thead>
+      <tbody>
+        <tr><td>Query always includes partition key and then filters another selective key</td><td>Index may start with the selective key, e.g. <code>(customer_id, created_at)</code></td><td>Partition pruning already reduced scope; customer_id may be the most useful search key inside the partition.</td></tr>
+        <tr><td>Query uses partition key as a range inside a large partition</td><td>Including partition key can still help</td><td>It narrows the range inside the partition and can help ordering.</td></tr>
+        <tr><td>Uniqueness constraint spans partitions</td><td>DB-specific rule</td><td>Some engines require partition key to be part of a unique/local index; others support global uniqueness differently.</td></tr>
+        <tr><td>Query does not include partition key</td><td>Index may still help, but engine may touch many partitions</td><td>Without pruning, each partition may need to be searched; global indexes can change this behavior in engines that support them.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Local index vs Global index</h3>
+    <p>Terminology and capability are database-specific:</p>
+    <ul class="checklist">
+      <li><span class="term">Local index</span> <span class="vi">(index gắn theo từng partition)</span>: each partition has its own aligned index structure. Good manageability; pruning and index access work together naturally.</li>
+      <li><span class="term">Global index</span> <span class="vi">(index bao phủ nhiều/all partition)</span>: one logical index spans partition boundaries. Useful for lookups not using the partition key, but maintenance can be more complex and support differs by engine.</li>
+    </ul>
+
+    <div class="callout warning"><strong>Do not overgeneralize across databases:</strong> PostgreSQL, Oracle, SQL Server, and MySQL differ significantly in unique constraints, local/global indexing, automatic child-partition indexes, and partitioned-index syntax. In interviews, state the general principle first, then mention that exact implementation is engine-specific.</div>
+  </section>
+
+  <section id="patterns">
+    <h2>12. Common Query Patterns & Better Designs</h2>
+
+    <h3>Pattern 1 — Avoid SELECT *</h3>
+    <pre><code>-- Weak
+SELECT * FROM orders WHERE customer_id = 1001;
+
+-- Better
+SELECT id, status, total_amount
+FROM orders
+WHERE customer_id = 1001;</code></pre>
+    <p>Reading fewer columns reduces I/O, network transfer, memory, and sometimes enables a covering index.</p>
+
+    <h3>Pattern 2 — Keyset pagination instead of deep OFFSET</h3>
+    <pre><code>-- Can become expensive for deep pages
+SELECT id, created_at
+FROM orders
+ORDER BY created_at DESC, id DESC
+LIMIT 20 OFFSET 500000;
+
+-- Better seek/keyset pagination
+SELECT id, created_at
+FROM orders
+WHERE (created_at, id) &lt; (:last_created_at, :last_id)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;</code></pre>
+
+    <h3>Pattern 3 — Avoid unnecessary DISTINCT</h3>
+    <p><code>DISTINCT</code> can force a sort/hash. If duplicates come from a bad join, fix the join instead of using DISTINCT as a patch.</p>
+
+    <h3>Pattern 4 — Pre-filter before large joins</h3>
+    <pre><code>SELECT o.id, c.name
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+WHERE o.created_at &gt;= CURRENT_DATE - INTERVAL '7 days';</code></pre>
+    <p>Make sure the date predicate and join key have useful access paths and statistics.</p>
+
+    <h3>Pattern 5 — Avoid leading wildcard when possible</h3>
+    <pre><code>WHERE name LIKE '%abc%'</code></pre>
+    <p>A standard B-tree is generally poor for leading-wildcard substring search. Depending on database and requirements, consider trigram/full-text/search-engine solutions.</p>
+
+    <h3>Pattern 6 — Avoid implicit conversion</h3>
+    <pre><code>-- Suppose order_id is BIGINT
+WHERE order_id = '10001'</code></pre>
+    <p>Some engines can convert safely, others may cast the column or make estimates less accurate. Use consistent data types across parameters, joins, and foreign keys.</p>
+  </section>
+
+  <section id="bad-cases">
+    <h2>13. Production Pitfalls: Index & Partition Problems</h2>
+    <div class="grid">
+      <div class="card">
+        <h4>Too many indexes</h4>
+        <p>Writes become slower because every INSERT/UPDATE/DELETE maintains multiple index trees. Bulk loads and vacuum/maintenance can also cost more.</p>
+      </div>
+      <div class="card">
+        <h4>Redundant indexes</h4>
+        <p><code>(customer_id)</code> may be redundant if <code>(customer_id, created_at)</code> already serves the same workload, though exact usefulness depends on size and engine.</p>
+      </div>
+      <div class="card">
+        <h4>Wrong composite order</h4>
+        <p>An index exists but the query cannot exploit its leading columns efficiently.</p>
+      </div>
+      <div class="card">
+        <h4>Stale statistics</h4>
+        <p>The optimizer chooses a poor plan because it predicts 10 rows but actually gets 10 million.</p>
+      </div>
+      <div class="card">
+        <h4>Partition key missing</h4>
+        <p>No pruning: the engine touches many partitions. This can make a partitioned table slower than expected.</p>
+      </div>
+      <div class="card">
+        <h4>Too many tiny partitions</h4>
+        <p>Planning, metadata, file handles, maintenance, and operational complexity can increase.</p>
+      </div>
+      <div class="card">
+        <h4>Hot partition</h4>
+        <p>All current writes land in one partition, so partitioning alone does not remove a write hotspot.</p>
+      </div>
+      <div class="card">
+        <h4>Function / cast hides index</h4>
+        <p>The indexed column is transformed, making the predicate non-SARGable.</p>
+      </div>
+    </div>
+
+    <h3>Case: “The index exists, but database still does a full scan”</h3>
+    <p>Possible reasons:</p>
+    <ol class="checklist">
+      <li>The predicate returns too many rows.</li>
+      <li>Statistics are stale or cardinality estimate is wrong.</li>
+      <li>The query uses a function/cast or mismatched data type.</li>
+      <li>The composite index column order does not match the query.</li>
+      <li>The table is small, so scanning is cheaper.</li>
+      <li>Random row lookups are more expensive than sequential I/O.</li>
+      <li>The optimizer expects most needed pages are already in cache or makes another cost-based choice.</li>
+    </ol>
+  </section>
+
+  <section id="interview">
+    <h2>14. Senior-Level Interview Questions & Answers</h2>
+
+    <div class="qa">
+      <div class="q">Q1. What are the first things you check when a SQL query is slow?</div>
+      <div class="answer">I first reproduce the query with realistic parameters and inspect the execution plan. I look at actual versus estimated row counts, rows read versus rows returned, expensive scans, join strategy, sorting/hashing, memory spills, and wait time. Then I verify indexes, statistics, predicate SARGability, data distribution, and whether the query is reading much more data than necessary. I measure again after each change rather than assuming an index will fix the issue.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q2. When should you create an index?</div>
+      <div class="answer">I create an index when a frequent access pattern needs to find a relatively small subset of rows, support a join, avoid an expensive sort, or enforce uniqueness. I consider read frequency, selectivity, update frequency, table size, existing indexes, and whether a composite or partial index is better than a single-column index. I also validate the improvement from the execution plan and runtime metrics.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q3. Should we index a flag or status column with only values 1, 2, 3, 4?</div>
+      <div class="answer">It depends on selectivity and distribution. A B-tree index on a 50/50 boolean column is often not useful because each value returns too many rows. But if one value is rare, such as ERROR = 0.1%, the index can be useful. A partial/filtered index can be even better. In read-heavy analytical workloads, bitmap indexing can also be relevant depending on the database, but it is normally not a good OLTP choice under heavy concurrent writes.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q4. If I apply a function to an indexed column, is the index still used?</div>
+      <div class="answer">A normal B-tree index may no longer be usable for a direct seek because the predicate becomes non-SARGable. For example, DATE(created_at) = ? is usually worse than a timestamp range on created_at. However, a matching expression/function-based index or optimizer rewrite can still make index access possible. So the correct answer is database- and expression-dependent, not an absolute “no”.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q5. What is the difference between an index and a partition?</div>
+      <div class="answer">An index is a search structure used to locate rows quickly. Partitioning divides a large table into separate chunks. Partition pruning can remove entire chunks from the query, while an index can then locate rows efficiently inside the remaining chunk. They solve different problems and often work together rather than replacing each other.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q6. If a table is partitioned, should we still index it?</div>
+      <div class="answer">Usually yes. Partition pruning narrows which partitions are relevant, but a remaining partition may still contain millions of rows. We still need appropriate indexes for selective filters, joins, sorting, and uniqueness. The exact local/global index design depends on the database engine and query pattern.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q7. Must the partition key be included in the index?</div>
+      <div class="answer">Not always. If pruning already isolates one partition and the real lookup key is customer_id, an index starting with customer_id may be better. But including the partition key can still help range filtering or ordering, and some database engines require the partition key in certain local unique indexes or constraints. I decide from the query pattern and engine rules, not from a universal rule.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q8. Why can the optimizer ignore an index?</div>
+      <div class="answer">Because using the index can cost more than scanning. If the predicate returns a large percentage of the table, an index may cause many random row lookups. Other reasons include stale statistics, wrong cardinality estimates, non-SARGable predicates, implicit conversion, low selectivity, unsuitable composite order, or simply a small table.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q9. How do you choose the order of columns in a composite index?</div>
+      <div class="answer">I start from the real query shape. Equality predicates are commonly placed before range predicates, and I consider join columns, ordering, grouping, selectivity, and whether the index can cover the query. I do not blindly put the highest-cardinality column first. The best order is the one that supports the most important access path with acceptable write cost.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q10. When would you choose partitioning?</div>
+      <div class="answer">I consider partitioning for very large tables where data has a natural partition key such as time, tenant, or region, and where pruning, retention, archiving, loading, or operational maintenance becomes important. For example, monthly range partitions are strong for large event or order-history tables because old data can be dropped by partition and time-bounded queries can scan only relevant months.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q11. Should we use a subquery, or should we always rewrite it as a JOIN?</div>
+      <div class="answer">I do not rewrite a subquery just because it is a subquery. EXISTS and NOT EXISTS are often the clearest form for semi-join and anti-join requirements, and many optimizers transform them into efficient join strategies. I become concerned when a correlated or scalar subquery is executed repeatedly for a large outer result. Then I check whether the correlation key is indexed, whether the optimizer decorrelates it, and whether a set-based JOIN or pre-aggregation reduces total work. The decision is based on the actual execution plan, rows processed, logical reads, and semantics—not on a rule that JOIN is always faster.</div>
+    </div>
+  </section>
+
+  <section id="scenarios">
+    <h2>15. Scenario-Based SQL, Index & Partition Interview Questions</h2>
+    <p class="lead">These scenarios are designed to show reasoning depth. A strong answer should not stop at “add an index” or “use partitioning.” Explain what work the database is doing, what the optimizer can eliminate, how selective the remaining predicates are, and how you would validate the decision with an execution plan.</p>
+
+    <div class="callout success"><strong>Senior reasoning framework:</strong> Query shape → partition pruning → rows remaining → predicate selectivity → possible index access → table/heap lookups → sort/join cost → write overhead → execution plan validation. <span class="vi">Đây là chuỗi suy luận nên nói ra khi trả lời phỏng vấn.</span></div>
+
+    <h3>Scenario 1 — The query already uses the partition key. Do we still need an index?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <p>A table contains 1 billion orders and is partitioned monthly by <code>created_at</code>. A query always filters one month and one customer:</p>
+      <pre><code>SELECT id, total_amount, status
+FROM orders
+WHERE created_at &gt;= '2026-08-01'
+  AND created_at &lt;  '2026-09-01'
+  AND customer_id = 12345;</code></pre>
+      <div class="answer"><strong>Yes, an index can still be very useful.</strong> Partition pruning and indexing reduce work at different levels. The date predicate may prune 120 monthly partitions down to one August partition, but that remaining partition could still contain 30 million rows. An index such as <code>(customer_id, created_at)</code> or a local index on <code>customer_id</code> can then locate the customer's rows inside that partition instead of scanning all 30 million rows. I would add or keep the index only if the customer predicate is selective enough and the query is important enough to justify the write/storage cost.</div>
+      <div class="callout"><strong>Key distinction:</strong> Partition pruning answers “which partition should I search?” The index answers “where are the matching rows inside that partition?”</div>
+      <p><strong>What I would verify:</strong> the execution plan should show partition pruning first, then an index seek/range scan inside the surviving partition. I would compare rows read vs rows returned and logical I/O before and after the index.</p>
+    </div>
+
+    <h3>Scenario 2 — The query filters only the partition key. Is another index always useful?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT *
+FROM audit_log
+WHERE created_at &gt;= '2026-08-01'
+  AND created_at &lt;  '2026-09-01';</code></pre>
+      <div class="answer"><strong>Not necessarily.</strong> If the table is partitioned monthly and the query needs almost every row in the August partition, scanning that partition can be cheaper than traversing an index and then performing millions of row lookups. An index helps most when the predicate is selective. If the partition contains 100 million rows but the query asks for only a five-minute range, then an index on <code>created_at</code> can still be useful because the predicate is much narrower than the partition granularity.</div>
+      <p><strong>Senior point:</strong> do not equate “index exists” with “index must be used.” The optimizer chooses the lowest estimated cost. A sequential/partition scan can be the correct plan when a large percentage of the partition is required.</p>
+    </div>
+
+    <h3>Scenario 3 — The table is partitioned by date. Must the date column also be the first column of the index?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <p>Partitions are monthly by <code>created_at</code>. The main query is:</p>
+      <pre><code>SELECT id, status
+FROM orders
+WHERE created_at &gt;= :from
+  AND created_at &lt;  :to
+  AND customer_id = :customerId;</code></pre>
+      <div class="answer"><strong>No universal rule says the partition key must be first in the index.</strong> If the date predicate already prunes the query to one or a few partitions, <code>customer_id</code> may be the better leading index column because it is the real selective lookup key inside each remaining partition. <code>(customer_id, created_at)</code> is often more useful than <code>(created_at, customer_id)</code> when <code>customer_id</code> is equality-filtered and <code>created_at</code> is a range. However, ordering, additional query patterns, uniqueness rules, and database-specific local-index requirements can change the design.</div>
+      <div class="callout warning"><strong>Do not memorize:</strong> “partition key must be in every index.” Instead say: “I design the index from the access path after pruning and from the database engine's constraint rules.”</div>
+    </div>
+
+    <h3>Scenario 4 — The query does not contain the partition key but has an index on another column</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <p><code>orders</code> is partitioned monthly by <code>created_at</code>, and every partition has a local index on <code>customer_id</code>:</p>
+      <pre><code>SELECT *
+FROM orders
+WHERE customer_id = 12345;</code></pre>
+      <div class="answer">The local index can still reduce row scanning <em>inside</em> each partition, but without a date predicate the database may have to probe the <code>customer_id</code> index in every partition. If there are 120 partitions, that can mean 120 index probes plus result merging. Some engines support global indexes that span partitions, but they introduce their own maintenance trade-offs. If this query is frequent and latency-sensitive, I would reconsider the access pattern, add a bounded date predicate when semantically possible, use a supported global index, or rethink the partitioning/data model.</div>
+      <p><strong>Deep point:</strong> an index does not automatically restore partition pruning. Partition pruning depends on predicates the optimizer can map to the partition key.</p>
+    </div>
+
+    <h3>Scenario 5 — Should we index a status column with values 1, 2, 3, 4?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT id, created_at
+FROM payment
+WHERE status = 4;</code></pre>
+      <div class="answer">I would first inspect the data distribution, not only the number of distinct values. If each status represents roughly 25% of the table, a normal B-tree index on <code>status</code> alone may be weak because the query still touches a huge number of rows. But if <code>status = 4</code> represents only 0.1% of rows, the same low-cardinality column becomes highly selective for that value. A filtered/partial index such as “only rows where status = 4” can be even better when the engine supports it. A composite index such as <code>(status, created_at)</code> can also be effective for operational queries like “failed payments in the last hour.”</div>
+      <div class="callout"><strong>Vocabulary:</strong> <span class="term">low cardinality</span> <span class="vi">ít giá trị khác nhau</span> is not identical to <span class="term">low selectivity</span> <span class="vi">độ chọn lọc thấp</span>. Distribution matters.</div>
+    </div>
+
+    <h3>Scenario 6 — A function is applied to an indexed column</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>-- created_at has a normal B-tree index
+SELECT *
+FROM orders
+WHERE DATE(created_at) = '2026-08-27';</code></pre>
+      <div class="answer">This often makes the predicate non-SARGable for the normal index because the database must evaluate <code>DATE(created_at)</code> rather than search directly for a range of raw <code>created_at</code> values. I would usually rewrite it as <code>created_at &gt;= '2026-08-27 00:00:00' AND created_at &lt; '2026-08-28 00:00:00'</code>. A matching expression/function-based index is another option if the database supports it and the expression is a real access pattern.</div>
+      <p><strong>Important nuance:</strong> some optimizers can rewrite certain expressions automatically, so I verify the actual plan instead of claiming that functions <em>always</em> disable indexes.</p>
+    </div>
+
+    <h3>Scenario 7 — The index exists but an implicit type conversion prevents efficient access</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <p>An indexed column and the bound parameter have different types.</p>
+      <pre><code>-- customer_code is VARCHAR and indexed
+WHERE customer_code = 123456</code></pre>
+      <div class="answer">Depending on the database and conversion direction, the engine may convert the indexed column for every row, which can make the predicate non-SARGable or distort cardinality estimates. The fix is to bind parameters with the same data type and length/precision as the column whenever possible. I also check collation/character-set conversions because those can create similar problems.</div>
+    </div>
+
+    <h3>Scenario 8 — Why does <code>LIKE 'abc%'</code> behave differently from <code>LIKE '%abc%'</code>?</h3>
+    <div class="qa">
+      <div class="answer">A B-tree index is ordered from the beginning of the key. A prefix search such as <code>name LIKE 'abc%'</code> can often become a bounded index range. A leading wildcard such as <code>name LIKE '%abc%'</code> does not reveal where in the B-tree the matching values begin, so a normal B-tree is usually not enough. For substring search I would consider engine-specific full-text, trigram, inverted-index, or search-engine solutions rather than forcing a normal B-tree.</div>
+    </div>
+
+    <h3>Scenario 9 — Which composite index order is better?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT id, amount
+FROM payment
+WHERE merchant_id = :merchant
+  AND status = 'FAILED'
+  AND created_at &gt;= :from
+  AND created_at &lt;  :to
+ORDER BY created_at DESC;</code></pre>
+      <div class="answer">A strong candidate is an index that starts with equality predicates and places the range/order column later, for example <code>(merchant_id, status, created_at DESC)</code>. This lets the engine narrow by merchant and status, then scan the desired time range in order. But I would not choose the order from a slogan alone: I check which predicates are always present, their distribution, how many merchants exist, whether status is skewed, whether other queries reuse the index, and whether the engine can satisfy the <code>ORDER BY</code> without a sort.</div>
+    </div>
+
+    <h3>Scenario 10 — We have an index on <code>(a, b, c)</code>. Can a query on only <code>b</code> and <code>c</code> use it?</h3>
+    <div class="qa">
+      <div class="answer">With a conventional B-tree, the strongest access path normally begins from the leftmost prefix, so predicates only on <code>b</code> and <code>c</code> usually cannot seek as efficiently as predicates beginning with <code>a</code>. Some engines have skip-scan or other optimizer techniques, but I do not design critical queries assuming those will save a mismatched index. If queries frequently start from <code>b</code>, they usually need a different index whose leading columns match that access pattern.</div>
+    </div>
+
+    <h3>Scenario 11 — Can an index speed up <code>ORDER BY ... LIMIT</code> even if the filter is not very selective?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT id, created_at
+FROM notification
+WHERE user_id = :userId
+ORDER BY created_at DESC
+LIMIT 20;</code></pre>
+      <div class="answer"><strong>Yes.</strong> An index such as <code>(user_id, created_at DESC)</code> can seek to the user's key range and return the first 20 rows already ordered, avoiding a large sort and avoiding reading the user's entire history. This is an example where index value is not only about filtering; it can also provide order and support an efficient top-N access path.</div>
+    </div>
+
+    <h3>Scenario 12 — Should we make every read query a covering index?</h3>
+    <div class="qa">
+      <div class="answer">No. A covering index can avoid extra table/heap lookups and reduce I/O, but every included/key column makes the index wider. Wider indexes consume more storage and memory, reduce cache density, and make INSERT/UPDATE/DELETE more expensive. I use covering indexes for important high-frequency queries where avoiding row lookups produces measurable value. I avoid copying many large or volatile columns into indexes just to eliminate a small lookup cost.</div>
+    </div>
+
+    <h3>Scenario 13 — An index exists but the optimizer still chooses a full scan</h3>
+    <div class="qa">
+      <div class="answer">I would not force the index immediately. I first ask whether a scan is actually cheaper. If the predicate returns 40% of a table, a sequential scan may use fewer random I/Os than millions of index-to-table lookups. I also check stale statistics, cardinality misestimation, non-SARGable predicates, implicit conversions, composite-key mismatch, cached-plan/parameter sensitivity, and whether the table is small. The correct fix comes from the actual plan and runtime metrics, not from the fact that an index exists.</div>
+    </div>
+
+    <h3>Scenario 14 — We added many indexes and reads improved, but writes became slow</h3>
+    <div class="qa">
+      <div class="answer">That is an expected trade-off. Every INSERT may need entries inserted into multiple index trees; UPDATEs to indexed columns may modify several indexes; DELETEs remove index entries; and page splits or maintenance can add I/O. I would identify unused and overlapping indexes, consolidate indexes when one composite index can serve multiple important queries, avoid indexing every column independently, and measure write amplification. Index design is workload design, not a read-only decision.</div>
+    </div>
+
+    <h3>Scenario 15 — Is creating many very small partitions always better?</h3>
+    <div class="qa">
+      <div class="answer">No. Over-partitioning can increase metadata, planning time, open-file/object overhead, maintenance complexity, and the number of partition/index probes. The partition granularity should match data volume, query time windows, retention operations, and engine capabilities. If most queries read one month, daily partitions may be unnecessary unless the monthly partition is too large or operational requirements justify daily lifecycle management.</div>
+    </div>
+
+    <h3>Scenario 16 — Current-day partition is overloaded. Does partitioning solve the concurrency problem?</h3>
+    <div class="qa">
+      <div class="answer">Not automatically. Time partitioning often sends all current writes to the newest partition, creating a <span class="term">hot partition</span> <span class="vi">partition bị dồn tải</span>. Partitioning is mainly a data-organization and pruning mechanism; it is not the same as sharding traffic across independent database nodes. Depending on the workload, solutions can include hash subpartitioning, distributed sharding, reducing index contention, batching, queueing, or changing the write key design. I would first identify whether the bottleneck is page/latch contention, locks, storage throughput, CPU, or a single database node.</div>
+    </div>
+
+    <h3>Scenario 17 — Two huge partitioned tables are joined. Is partitioning enough to make the join fast?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT ...
+FROM orders o
+JOIN payments p ON p.order_id = o.id
+WHERE o.created_at &gt;= :from
+  AND o.created_at &lt;  :to;</code></pre>
+      <div class="answer">Not by itself. Pruning <code>orders</code> helps, but the database still needs an efficient way to find matching <code>payments</code>. An index on the join key such as <code>payments(order_id)</code> can be critical. Some engines can perform partition-wise joins when both tables are compatibly partitioned on related keys, but that is an optimization with engine-specific requirements. I would examine both sides of the plan, join order, join algorithm, row estimates, and whether both tables can be reduced before the join.</div>
+    </div>
+
+    <h3>Scenario 18 — Unique constraints on a partitioned table</h3>
+    <div class="qa">
+      <div class="answer">This is database-specific and is a good place to show depth. Local unique indexes can only guarantee uniqueness within each partition unless the partitioning scheme and engine rules allow a global guarantee. Some databases therefore require the partition key to be part of a partitioned unique constraint; others provide global indexes with different maintenance costs. I would explicitly check the target engine's rules rather than assume that a local unique index guarantees uniqueness across all partitions.</div>
+    </div>
+
+    <h3>Scenario 19 — Updating the partition key</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>UPDATE orders
+SET created_at = '2026-09-01'
+WHERE id = 1001;</code></pre>
+      <div class="answer">If <code>created_at</code> is the partition key and the row moves from the August partition to the September partition, the operation can behave more like a delete from one partition plus an insert into another, subject to engine behavior. That can be much more expensive than updating a non-partition key and can affect indexes, logging, locking, and replication. A good partition key is therefore usually stable.</div>
+    </div>
+
+    <h3>Scenario 20 — The execution plan shows both partition pruning and index scan, but the query is still slow</h3>
+    <div class="qa">
+      <div class="answer">Then I move beyond “does it use the index?” and inspect the real cost. The query may still return millions of rows, perform millions of table lookups, sort a large result, spill hash/sort data to disk, wait on locks, hit cold storage pages, or spend most time transferring data over the network. I compare actual vs estimated rows, rows read vs returned, buffer/physical I/O, sort/hash spill, wait events, and result size. “Uses index” is not a performance guarantee.</div>
+      <div class="callout success"><strong>Strong interview statement:</strong> “I do not optimize for an execution-plan label like Index Scan. I optimize for total work: rows/pages read, CPU, waits, memory, and end-to-end latency.”</div>
+    </div>
+
+    <h3>Scenario 21 — A global customer search is frequent, but the table is time-partitioned</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT *
+FROM transactions
+WHERE customer_id = :customerId
+ORDER BY created_at DESC
+LIMIT 100;</code></pre>
+      <div class="answer">A time-partitioned layout is excellent for time-bounded analytics and retention, but this query is customer-oriented and may have to search many partitions. I would first ask whether the business can supply a time bound. If not, options include a supported global index, a separate customer-centric lookup table/materialized projection, a different partitioning strategy, or a search/read model designed for this access pattern. This illustrates an important principle: partition keys should come from dominant access patterns and lifecycle requirements, not only from table size.</div>
+    </div>
+
+    <h3>Scenario 22 — Count or aggregate over most of the table</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT status, COUNT(*)
+FROM orders
+WHERE created_at &gt;= '2026-01-01'
+GROUP BY status;</code></pre>
+      <div class="answer">If the query legitimately needs a very large fraction of the year's data, a normal OLTP index may not remove much work. Partition pruning can remove older years, but the database may still need to scan many rows and aggregate them. For frequent analytical workloads I would consider pre-aggregation, materialized views, columnar storage, a reporting replica/warehouse, or partition-level summary tables rather than endlessly adding B-tree indexes to an OLTP table.</div>
+    </div>
+
+    <h3>Scenario 23 — Deep pagination becomes slower on later pages</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT id, created_at
+FROM orders
+WHERE customer_id = :customerId
+ORDER BY created_at DESC, id DESC
+LIMIT 50 OFFSET 500000;</code></pre>
+      <div class="answer">Even with a good index, the engine may still walk or discard roughly 500,000 earlier rows before returning the next 50. I prefer keyset/seek pagination when possible, using the last seen <code>(created_at, id)</code> as the next boundary. An index such as <code>(customer_id, created_at DESC, id DESC)</code> then supports a direct continuation from the previous page.</div>
+    </div>
+
+    <h3>Scenario 24 — Should indexes be rebuilt after every large insert?</h3>
+    <div class="qa">
+      <div class="answer">Normally no. Database indexes are maintained transactionally as rows are inserted, updated, and deleted. Rebuilding an index after every load would usually be wasteful. What may need attention is engine-specific maintenance such as statistics refresh, vacuum/analyze, page fragmentation/bloat, or bulk-load strategies. I separate the concepts of <span class="term">index contents</span> from <span class="term">optimizer statistics</span>: the index can be structurally up to date while statistics are stale.</div>
+    </div>
+
+    <h3>Scenario 25 — Partitioning or sharding?</h3>
+    <div class="qa">
+      <div class="answer">Partitioning splits one logical table into partitions managed by a database engine and is primarily useful for pruning, lifecycle management, and large-table operations. Sharding distributes data across separate database nodes or clusters to scale storage/write throughput horizontally and introduces routing, cross-shard query, rebalancing, and consistency problems. Partitioning can exist inside each shard. I would not promise horizontal scalability merely because a table is partitioned.</div>
+    </div>
+
+    <h3>Rapid-Fire “What Would You Check Next?”</h3>
+    <table>
+      <thead><tr><th>Observation</th><th>Next checks that show senior depth</th></tr></thead>
+      <tbody>
+        <tr><td>Partition pruning works</td><td>How many rows remain? Is the remaining predicate selective? Is there an index inside the surviving partitions? Rows read vs returned?</td></tr>
+        <tr><td>Index is used</td><td>How many rows does it read? Are there expensive table/heap lookups? Does it spill/sort? Is it actually faster than a scan?</td></tr>
+        <tr><td>Full scan appears</td><td>Is it rational because many rows are needed? Check statistics, selectivity, SARGability, data type conversion, table size.</td></tr>
+        <tr><td>Query is fast in test but slow in production</td><td>Data volume/distribution, stale stats, parameter sensitivity, cache warmth, concurrent locks/waits, different indexes/configuration.</td></tr>
+        <tr><td>New index speeds reads</td><td>Measure INSERT/UPDATE/DELETE regression, storage growth, buffer-cache impact, redundant indexes.</td></tr>
+        <tr><td>Partitioned table still slow</td><td>Was pruning actually applied? Too many partitions? Remaining partitions too large? Index mismatch? Hot partition?</td></tr>
+        <tr><td>Low-cardinality index ignored</td><td>Check rare-value skew, filtered/partial index opportunity, composite index, query row percentage.</td></tr>
+        <tr><td>Composite index exists</td><td>Does query use its leading columns? Equality before range? Can it support ORDER BY? Is it covering too much?</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>Interview closing line:</strong> “My final decision comes from measurements. I compare the execution plan, actual row counts, logical/physical reads, CPU, waits, and write overhead before and after the change. Indexing and partitioning are access-path tools, not automatic performance switches.”</div>
+    <h3>Scenario 26 — A correlated subquery is slow. Should we always replace it with a JOIN?</h3>
+    <div class="qa">
+      <div class="q">Situation</div>
+      <pre><code>SELECT c.id,
+       (SELECT MAX(o.created_at)
+        FROM orders o
+        WHERE o.customer_id = c.id) AS last_order_at
+FROM customers c
+WHERE c.region = 'APAC';</code></pre>
+      <div class="answer">Not automatically. First I check how many APAC customers are returned and whether <code>orders(customer_id, created_at DESC)</code> exists. If the outer result contains only a few hundred customers, indexed correlated lookups can be very efficient. If it contains millions of customers, repeated lookups may become expensive, and a set-based aggregation such as <code>GROUP BY customer_id</code> followed by a JOIN may reduce total work. I also check whether the optimizer has already decorrelated the subquery into a join-like plan. The correct answer depends on the number of outer rows, selectivity, index support, data distribution, and actual execution plan.</div>
+      <div class="callout"><strong>Deep point:</strong> “Correlated subquery” describes SQL syntax. It does not guarantee a row-by-row runtime plan. The optimizer may transform it. Always reason from the physical plan, not only the written query.</div>
+    </div>
+
+  </section>
+
+  <section id="checklist">
+    <h2>16. Final Query Tuning Checklist</h2>
+    <ul class="checklist">
+      <li><strong>Execution plan:</strong> Do I know where the time and I/O are spent?</li>
+      <li><strong>Rows read:</strong> Am I scanning millions of rows to return only a few?</li>
+      <li><strong>SARGability:</strong> Did I apply a function, calculation, or cast to an indexed column?</li>
+      <li><strong>Index selectivity:</strong> Does the predicate narrow to a small enough subset?</li>
+      <li><strong>Composite order:</strong> Does index order match equality/range/join/sort usage?</li>
+      <li><strong>Low-cardinality:</strong> Is the rare-value distribution enough to make the index useful?</li>
+      <li><strong>Statistics:</strong> Are optimizer statistics current and representative?</li>
+      <li><strong>Partition pruning:</strong> Does the query include a predicate that allows pruning?</li>
+      <li><strong>Index inside partitions:</strong> Is the remaining partition still too large to scan?</li>
+      <li><strong>Write trade-off:</strong> Will the new index significantly hurt INSERT/UPDATE/DELETE?</li>
+      <li><strong>Pagination:</strong> Can OFFSET be replaced with keyset pagination?</li>
+      <li><strong>Data returned:</strong> Can I avoid SELECT *?</li>
+      <li><strong>Architecture:</strong> Should this workload live in OLTP DB, or use cache/search/warehouse/read replica?</li>
+    </ul>
+  </section>
+
+  <section id="glossary">
+    <h2>17. Technical Glossary — English → Vietnamese</h2>
+    <table>
+      <thead><tr><th>English term</th><th>Vietnamese meaning</th><th>Short explanation</th></tr></thead>
+      <tbody>
+        <tr><td>Index</td><td>Chỉ mục</td><td>Data structure used to locate rows faster.</td></tr>
+        <tr><td>Partition</td><td>Phân vùng</td><td>Split one logical table into multiple data segments.</td></tr>
+        <tr><td>Partition pruning</td><td>Loại bỏ partition không liên quan</td><td>Optimizer skips partitions that cannot contain matching rows.</td></tr>
+        <tr><td>Selectivity</td><td>Độ chọn lọc</td><td>How strongly a predicate reduces the number of rows.</td></tr>
+        <tr><td>Cardinality</td><td>Độ đa dạng / số lượng giá trị khác nhau</td><td>Number of distinct values or row-count estimate depending on context.</td></tr>
+        <tr><td>Data skew</td><td>Phân bố dữ liệu lệch</td><td>Some values occur much more often than others.</td></tr>
+        <tr><td>SARGable predicate</td><td>Điều kiện có thể tận dụng index hiệu quả</td><td>Predicate lets the database search index ranges directly.</td></tr>
+        <tr><td>Composite index</td><td>Index nhiều cột</td><td>Index built from two or more ordered columns.</td></tr>
+        <tr><td>Covering index</td><td>Index bao phủ truy vấn</td><td>Index contains enough columns to answer query without extra row lookup.</td></tr>
+        <tr><td>Expression / function-based index</td><td>Index trên biểu thức / hàm</td><td>Index created on something like LOWER(email).</td></tr>
+        <tr><td>Full table scan</td><td>Quét toàn bảng</td><td>Read most or all table pages.</td></tr>
+        <tr><td>Index seek / range scan</td><td>Tìm kiếm / quét phạm vi bằng index</td><td>Navigate directly to relevant key range.</td></tr>
+        <tr><td>Execution plan</td><td>Kế hoạch thực thi</td><td>How the database plans to run the SQL.</td></tr>
+        <tr><td>Statistics</td><td>Thống kê dữ liệu cho optimizer</td><td>Metadata used to estimate distributions and row counts.</td></tr>
+        <tr><td>Query optimizer</td><td>Bộ tối ưu truy vấn</td><td>Database component choosing the execution strategy.</td></tr>
+        <tr><td>Keyset pagination</td><td>Phân trang theo khóa</td><td>Use last-seen key instead of deep OFFSET.</td></tr>
+        <tr><td>Local index</td><td>Index cục bộ theo partition</td><td>Index aligned with individual partitions.</td></tr>
+        <tr><td>Global index</td><td>Index toàn cục</td><td>Index that can span partition boundaries, depending on DB engine.</td></tr>
+        <tr><td>Hot partition</td><td>Partition bị dồn tải</td><td>One partition receives most traffic/writes.</td></tr>
+        <tr><td>Implicit conversion</td><td>Chuyển đổi kiểu dữ liệu ngầm</td><td>DB converts one side of a comparison automatically.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>One-Minute Summary</h2>
+    <div class="grid">
+      <div class="card"><h4>Index</h4><p>Use it to locate rows quickly when a query is selective. Watch out for write overhead, low selectivity, non-SARGable predicates, and bad composite order.</p></div>
+      <div class="card"><h4>Partition</h4><p>Use it to manage and prune very large datasets. It is strongest when queries include the partition key and when retention/maintenance is important.</p></div>
+      <div class="card"><h4>Low-cardinality status</h4><p>Not automatically bad. A rare value, partial index, composite index, or analytical bitmap index can still be effective.</p></div>
+      <div class="card"><h4>Function on indexed column</h4><p>Often makes a normal index predicate non-SARGable. Rewrite as a range or use a matching function/expression index.</p></div>
+      <div class="card"><h4>Partition + Index</h4><p>Common best practice: prune partitions first, then use an index to find rows inside the remaining partitions.</p></div>
+      <div class="card"><h4>Senior answer style</h4><p>Always say “it depends on selectivity, query pattern, distribution, database engine, and measured execution plan” rather than giving absolute rules.</p></div>
+    </div>
+  </section>
+
+  <div class="footer">SQL Query Performance Guide • Designed for practical study and senior backend/database interviews</div>
+</main>
+</div>
+</body>
+</html>
