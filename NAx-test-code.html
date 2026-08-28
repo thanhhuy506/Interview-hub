@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Three Java coding assessment problems with bilingual English and Vietnamese explanations.">
+  <title>NAx test code</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --surface: #0e1420;
+      --surface-2: #131b2b;
+      --surface-3: #182236;
+      --text: #edf2ff;
+      --muted: #9ca8c1;
+      --line: rgba(168, 184, 218, .16);
+      --mint: #84f7c6;
+      --blue: #8ba9ff;
+      --amber: #ffd479;
+      --rose: #ff8e9c;
+      --shadow: 0 28px 90px rgba(0, 0, 0, .34);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 28px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.72;
+    }
+
+    button, a { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    code, pre { font-family: var(--mono); }
+
+    ::selection {
+      background: var(--mint);
+      color: #06110d;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 0 clamp(20px, 5vw, 76px) 52px;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 78% 28%, rgba(68, 104, 255, .2), transparent 27%),
+        linear-gradient(rgba(132, 159, 216, .055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(132, 159, 216, .055) 1px, transparent 1px),
+        #080d17;
+      background-size: auto, 40px 40px, 40px 40px, auto;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      right: -190px;
+      top: 100px;
+      border: 1px solid rgba(132, 247, 198, .14);
+      border-radius: 50%;
+      box-shadow: 0 0 0 58px rgba(132, 247, 198, .022), 0 0 0 116px rgba(132, 247, 198, .014);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 2;
+      width: min(1320px, 100%);
+      min-height: 82px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 780;
+      letter-spacing: -.025em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--mint);
+      color: #07130f;
+      font-family: var(--mono);
+      font-weight: 900;
+      box-shadow: 0 0 28px rgba(132, 247, 198, .18);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 8px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 12px var(--mint);
+    }
+
+    .btn {
+      min-height: 40px;
+      padding: 0 15px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .025);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: rgba(132, 247, 198, .45); }
+    .btn-primary { border-color: var(--mint); background: var(--mint); color: #07130f; }
+
+    .hero-main {
+      position: relative;
+      z-index: 1;
+      width: min(1220px, 100%);
+      margin: 0 auto;
+      padding: clamp(70px, 9vw, 126px) 0 76px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.16fr) minmax(330px, .84fr);
+      align-items: center;
+      gap: clamp(50px, 8vw, 120px);
+    }
+
+    .kicker, .eyebrow, .section-label, .lang-title {
+      margin: 0;
+      color: var(--mint);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 18px 0 24px;
+      font-size: clamp(48px, 7vw, 96px);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+
+    h1 span {
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(237, 242, 255, .58);
+    }
+
+    .hero-lead {
+      max-width: 670px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(16px, 1.6vw, 20px);
+    }
+
+    .mini-terminal, .code-card {
+      overflow: hidden;
+      border: 1px solid rgba(139, 169, 255, .25);
+      border-radius: 16px;
+      background: rgba(8, 12, 20, .86);
+      box-shadow: var(--shadow);
+    }
+
+    .terminal-bar, .code-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 42px;
+      padding: 0 15px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .terminal-bar i, .code-head i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff6f74;
+    }
+
+    .terminal-bar i:nth-child(2), .code-head i:nth-child(2) { background: var(--amber); }
+    .terminal-bar i:nth-child(3), .code-head i:nth-child(3) { background: var(--mint); }
+
+    .terminal-bar span, .code-head span {
+      margin-left: 6px;
+      color: #717d99;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .mini-terminal pre, .code-card pre {
+      margin: 0;
+      padding: 28px;
+      overflow: auto;
+      color: #dbe3f7;
+      font-size: 13px;
+      line-height: 1.75;
+      tab-size: 4;
+    }
+
+    .tok-key { color: #c4a7ff; }
+    .tok-type { color: #83c5ff; }
+    .tok-string { color: var(--amber); }
+    .tok-comment { color: #6d7993; }
+
+    .jump-grid {
+      position: relative;
+      z-index: 2;
+      width: min(1220px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(8, 12, 20, .78);
+    }
+
+    .jump-grid a {
+      min-width: 0;
+      padding: 22px 25px;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 0 12px;
+      transition: background .16s ease;
+    }
+
+    .jump-grid a + a { border-left: 1px solid var(--line); }
+    .jump-grid a:hover { background: rgba(132, 247, 198, .055); }
+    .jump-grid b { grid-row: span 2; color: var(--mint); font-family: var(--mono); font-size: 12px; }
+    .jump-grid strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+    .jump-grid small { color: #75819b; font-size: 11px; }
+
+    .page-shell {
+      width: min(1280px, calc(100% - 44px));
+      margin: 0 auto;
+      padding: 88px 0 120px;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: clamp(50px, 7vw, 105px);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 28px;
+      align-self: start;
+      display: grid;
+      gap: 6px;
+    }
+
+    .sidebar > p {
+      margin: 0 0 12px;
+      color: #6d7892;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .sidebar > a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      padding: 9px 0;
+      color: #98a3bb;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .sidebar > a:hover { color: var(--text); }
+    .sidebar > a span { color: var(--mint); font-family: var(--mono); font-size: 10px; }
+
+    .language-box {
+      margin-top: 26px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .language-box p {
+      margin: 0 0 11px;
+      color: #7e8aa5;
+      font-size: 11px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #090e17;
+    }
+
+    .segmented button {
+      min-height: 31px;
+      padding: 0 6px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #78849f;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .segmented button.active { background: var(--mint); color: #07130f; }
+
+    .problem {
+      scroll-margin-top: 28px;
+      padding-bottom: 112px;
+    }
+
+    .problem + .problem {
+      padding-top: 112px;
+      border-top: 1px solid var(--line);
+    }
+
+    .problem-heading {
+      display: grid;
+      grid-template-columns: 62px 1fr auto;
+      align-items: start;
+      gap: 22px;
+      margin-bottom: 44px;
+    }
+
+    .number {
+      display: grid;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      border: 1px solid rgba(132, 247, 198, .26);
+      border-radius: 13px;
+      background: rgba(132, 247, 198, .04);
+      color: var(--mint);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .problem h2 {
+      margin: 7px 0 8px;
+      font-size: clamp(31px, 4vw, 48px);
+      line-height: 1.1;
+      letter-spacing: -.05em;
+    }
+
+    .subtitle { max-width: 690px; margin: 0; color: var(--muted); font-size: 15px; }
+
+    .copy-btn {
+      min-width: 92px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: #a8b3cc;
+      font-size: 11px;
+    }
+
+    .copy-btn:hover { border-color: rgba(132, 247, 198, .45); color: var(--mint); }
+
+    .block {
+      margin-top: 38px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+
+    .section-label {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      color: #7d89a4;
+    }
+
+    .section-label::after { content: ""; height: 1px; background: var(--line); }
+
+    .statement p { margin: 0 0 17px; color: #cad2e5; }
+    .statement p:last-child { margin-bottom: 0; }
+    .statement ul { margin: 17px 0 0; padding-left: 24px; color: #cad2e5; }
+    .statement li + li { margin-top: 8px; }
+    .statement li::marker { color: var(--mint); }
+
+    .signature {
+      margin-top: 22px;
+      padding: 20px 22px;
+      border: 1px solid rgba(139, 169, 255, .2);
+      border-radius: 11px;
+      background: #090e17;
+      color: #dbe4f8;
+      overflow: auto;
+      font-size: 12px;
+    }
+
+    .examples {
+      display: grid;
+      gap: 13px;
+    }
+
+    .examples.two { grid-template-columns: repeat(2, 1fr); }
+    .examples.three { grid-template-columns: repeat(3, 1fr); }
+
+    .example {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .example h4 {
+      margin: 0 0 14px;
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .io-label {
+      display: block;
+      margin-top: 11px;
+      color: #6f7c97;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .example pre { margin: 5px 0 0; color: #d6def1; font-size: 11px; line-height: 1.65; white-space: pre-wrap; }
+    .output { display: inline-block; margin-top: 5px; padding: 3px 8px; border-radius: 6px; background: rgba(132, 247, 198, .08); color: var(--mint); font-family: var(--mono); font-size: 11px; }
+    .example p { margin: 14px 0 0; padding-top: 13px; border-top: 1px solid var(--line); color: #929db7; font-size: 11px; line-height: 1.58; }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 11px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255, 212, 121, .18);
+      border-radius: 11px;
+      background: rgba(255, 212, 121, .035);
+      color: #909bb4;
+      font-size: 11px;
+    }
+
+    .source-note > span {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border: 1px solid rgba(255, 212, 121, .35);
+      border-radius: 50%;
+      color: var(--amber);
+      font-family: var(--mono);
+    }
+
+    .bilingual {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .language-panel {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--surface-2);
+    }
+
+    .language-panel.vi { border-color: rgba(132, 247, 198, .17); }
+    .language-panel.en { border-color: rgba(139, 169, 255, .2); }
+    .language-panel.en .lang-title { color: var(--blue); }
+    .language-panel h4 { margin: 20px 0 8px; color: var(--text); font-size: 14px; }
+    .language-panel h4:first-of-type { margin-top: 16px; }
+    .language-panel p { margin: 0 0 12px; color: #aeb8cf; font-size: 13px; }
+    .language-panel ul, .language-panel ol { margin: 8px 0 0; padding-left: 21px; color: #aeb8cf; font-size: 13px; }
+    .language-panel li + li { margin-top: 8px; }
+    .language-panel li::marker { color: var(--mint); }
+    .language-panel code { color: var(--amber); font-size: .92em; }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 11px;
+      align-items: start;
+    }
+
+    .step > span {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border: 1px solid rgba(132, 247, 198, .22);
+      border-radius: 8px;
+      background: rgba(132, 247, 198, .04);
+      color: var(--mint);
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .step p { margin: 2px 0 0; }
+
+    .code-card { position: relative; margin-top: 18px; border-radius: 13px; box-shadow: none; }
+    .code-card pre { padding: 25px; font-size: 12px; }
+    .code-copy { margin-left: auto; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: #a5b0c8; font-size: 10px; }
+    .code-copy:hover { border-color: rgba(132, 247, 198, .45); color: var(--mint); }
+
+    .walkthrough {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .walkthrough th, .walkthrough td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .walkthrough th { color: #7f8ba7; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .walkthrough td { color: #b7c1d7; }
+    .walkthrough code { color: var(--mint); font-size: 11px; }
+
+    .complexity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .metric {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface-2);
+    }
+
+    .metric span { display: block; color: #77849f; font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .metric strong { display: block; margin-top: 5px; color: var(--mint); font-family: var(--mono); font-size: 19px; }
+    .metric p { margin: 7px 0 0; color: #929db7; font-size: 11px; }
+
+    .pitfalls {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .pitfalls li {
+      position: relative;
+      padding: 14px 16px 14px 42px;
+      border: 1px solid rgba(255, 142, 156, .16);
+      border-radius: 10px;
+      background: rgba(255, 142, 156, .035);
+      color: #abb5cb;
+      font-size: 12px;
+    }
+
+    .pitfalls li::before {
+      content: "×";
+      position: absolute;
+      left: 15px;
+      top: 12px;
+      color: var(--rose);
+      font-family: var(--mono);
+      font-weight: 900;
+    }
+
+    footer {
+      min-height: 150px;
+      padding: 34px clamp(22px, 5vw, 76px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      border-top: 1px solid var(--line);
+      color: #78839c;
+      font-size: 12px;
+    }
+
+    footer p { margin: 0; }
+    footer > a:last-child { color: var(--mint); }
+
+    body.show-en .lang-vi { display: none !important; }
+    body.show-vi .lang-en { display: none !important; }
+    body.show-en .bilingual, body.show-vi .bilingual { grid-template-columns: minmax(0, 1fr); }
+
+    @media (max-width: 1020px) {
+      .hero-main { grid-template-columns: 1fr; }
+      .mini-terminal { max-width: 580px; }
+      .page-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .examples.three { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .jump-grid { grid-template-columns: 1fr; }
+      .jump-grid a + a { border-top: 1px solid var(--line); border-left: 0; }
+      .bilingual, .examples.two { grid-template-columns: 1fr; }
+      .problem-heading { grid-template-columns: 52px 1fr; gap: 15px; }
+      .problem-heading .copy-btn { grid-column: 2; justify-self: start; }
+      .complexity-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 580px) {
+      .hero { padding-inline: 17px; }
+      .topbar { min-height: 70px; }
+      .status, .toolbar .btn:first-of-type { display: none; }
+      h1 { font-size: clamp(46px, 14vw, 66px); }
+      .hero-main { padding: 65px 0; }
+      .page-shell { width: min(100% - 30px, 1280px); padding: 65px 0 85px; }
+      .problem, .problem + .problem { padding-top: 72px; padding-bottom: 72px; }
+      .problem:first-child { padding-top: 0; }
+      .block { padding: 21px 17px; }
+      .language-panel { padding: 20px 17px; }
+      .mini-terminal pre, .code-card pre { padding: 21px 17px; font-size: 11px; }
+      .walkthrough { display: block; overflow-x: auto; }
+      footer { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media print {
+      :root { --bg: #fff; --surface: #fff; --surface-2: #f6f8fb; --text: #151b26; --muted: #526071; --line: rgba(0, 0, 0, .14); --mint: #08765c; --blue: #3759b4; --amber: #7b5200; }
+      .hero { padding: 0 0 28px; background: #fff; }
+      .topbar, .mini-terminal, .jump-grid, .sidebar, .copy-btn, .code-copy, footer { display: none !important; }
+      .hero-main { display: block; padding: 25px 0 38px; }
+      h1 { font-size: 44px; }
+      h1 span { color: var(--text); -webkit-text-stroke: 0; }
+      .page-shell { width: 100%; display: block; padding: 35px 0; }
+      .problem, .problem + .problem { padding: 36px 0; }
+      .problem-heading { grid-template-columns: 54px 1fr; }
+      .block, .language-panel, .example, .metric, .code-card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero" id="top">
+    <nav class="topbar" aria-label="Primary navigation">
+      <a class="brand" href="#top"><span class="brand-mark">N</span><span>NAx test code</span></a>
+      <div class="toolbar">
+        <span class="status">3 solved challenges</span>
+        <button class="btn" type="button" onclick="window.print()">Print</button>
+        <button class="btn btn-primary" type="button" id="copy-all">Copy all code</button>
+      </div>
+    </nav>
+
+    <div class="hero-main">
+      <div>
+        <p class="kicker">CODING ASSESSMENT · JAVA · BILINGUAL</p>
+        <h1>Three problems.<br><span>Explained clearly.</span></h1>
+        <p class="hero-lead">Full problem statements, step-by-step reasoning in English and Vietnamese, Java solutions, walkthroughs, complexity analysis, and common mistakes.</p>
+      </div>
+      <div class="mini-terminal" aria-hidden="true">
+        <div class="terminal-bar"><i></i><i></i><i></i><span>assessment.java</span></div>
+        <pre><code><span class="tok-key">class</span> <span class="tok-type">Candidate</span> {
+    <span class="tok-key">int</span> problems = 3;
+    String language = <span class="tok-string">"Java"</span>;
+    <span class="tok-comment">// read → reason → solve</span>
+}</code></pre>
+      </div>
+    </div>
+
+    <nav class="jump-grid" aria-label="Jump to problem">
+      <a href="#task-1"><b>01</b><strong>Replace Digits with 5</strong><small>String · Greedy</small></a>
+      <a href="#task-2"><b>02</b><strong>Packages on the Shelf</strong><small>Array · Simulation</small></a>
+      <a href="#task-3"><b>03</b><strong>Ambulance and Hospitals</strong><small>Graph · Multi-source BFS</small></a>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    <aside class="sidebar">
+      <p>On this page</p>
+      <a href="#task-1"><span>01</span>Replace Digits with 5</a>
+      <a href="#task-2"><span>02</span>Packages on the Shelf</a>
+      <a href="#task-3"><span>03</span>Ambulance and Hospitals</a>
+      <div class="language-box">
+        <p>Explanation language</p>
+        <div class="segmented" role="group" aria-label="Explanation language">
+          <button class="active" type="button" data-language="both">Both</button>
+          <button type="button" data-language="en">EN</button>
+          <button type="button" data-language="vi">VI</button>
+        </div>
+      </div>
+    </aside>
+
+    <div>
+      <article class="problem" id="task-1">
+        <header class="problem-heading">
+          <span class="number">01</span>
+          <div>
+            <p class="eyebrow">String · Greedy</p>
+            <h2>Replace Digits with 5</h2>
+            <p class="subtitle">Make exactly K replacements and produce the greatest possible number.</p>
+          </div>
+          <button class="copy-btn" type="button" data-copy-target="code-1">Copy code</button>
+        </header>
+
+        <section class="block statement">
+          <h3 class="section-label">Problem statement</h3>
+          <p>There is a string S representing a positive number consisting of N digits.</p>
+          <p>In one move, you can choose some digit of S that is not equal to 5 and replace it with the digit 5.</p>
+          <p>What is the maximum number that can be obtained after making exactly K moves?</p>
+          <p>Write a function that, given a string S and an integer K, returns a string representing the maximum value that can be obtained after making exactly K moves.</p>
+          <p>If making exactly K moves is impossible, return <code>"IMPOSSIBLE"</code>.</p>
+          <pre class="signature">class Solution {
+    public String solution(String S, int K);
+}</pre>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Example</h3>
+          <div class="examples">
+            <div class="example">
+              <h4>Example 1</h4>
+              <span class="io-label">Input</span><pre>S = "165232"
+K = 3</pre>
+              <span class="io-label">Output</span><span class="output">"565552"</span>
+              <p>This is the largest number obtainable by replacing exactly three non-5 digits with 5.</p>
+            </div>
+          </div>
+          <div class="source-note"><span>!</span><div>The remaining examples and constraints were not visible in the supplied screenshot, so they are not invented here.</div></div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Core idea · Ý tưởng chính</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English explanation</p>
+              <h4>Key observation</h4>
+              <p>Replacing a digit smaller than 5 increases the number. Replacing a digit greater than 5 decreases it. Because the number is represented as a string, an earlier position has a greater place value than every later position.</p>
+              <h4>Greedy strategy</h4>
+              <ol>
+                <li>Count digits different from 5. If fewer than K exist, exactly K moves are impossible.</li>
+                <li>Scan left to right and replace digits smaller than 5. These are beneficial changes; doing the earliest positions first gives the largest increase.</li>
+                <li>If moves remain, replace digits greater than 5 from right to left. These changes are unavoidable losses, so applying them at the smallest place values minimizes the damage.</li>
+              </ol>
+              <h4>Why it is correct</h4>
+              <p>For two differing numbers of equal length, the first differing digit determines which number is larger. Therefore beneficial changes belong as far left as possible, while harmful mandatory changes belong as far right as possible.</p>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Giải thích tiếng Việt</p>
+              <h4>Nhận xét quan trọng</h4>
+              <p>Đổi chữ số nhỏ hơn 5 thành 5 sẽ làm số lớn hơn. Đổi chữ số lớn hơn 5 thành 5 sẽ làm số nhỏ đi. Vì số được biểu diễn bằng chuỗi, vị trí càng bên trái có hàng giá trị càng lớn.</p>
+              <h4>Chiến lược tham lam</h4>
+              <ol>
+                <li>Đếm số chữ số khác 5. Nếu ít hơn K thì không thể thực hiện đúng K lần đổi, trả về <code>IMPOSSIBLE</code>.</li>
+                <li>Duyệt từ trái sang phải, đổi các chữ số nhỏ hơn 5 trước. Đây là những lần đổi có lợi; ưu tiên vị trí bên trái để tăng giá trị nhiều nhất.</li>
+                <li>Nếu vẫn còn lượt đổi, duyệt từ phải sang trái và đổi các chữ số lớn hơn 5. Đây là phần giảm giá trị bắt buộc, nên đặt ở hàng thấp nhất để thiệt hại nhỏ nhất.</li>
+              </ol>
+              <h4>Vì sao đúng?</h4>
+              <p>Với hai số có cùng độ dài, chữ số khác nhau đầu tiên từ bên trái quyết định số nào lớn hơn. Vì vậy thay đổi có lợi phải nằm bên trái, còn thay đổi bất lợi bắt buộc nên bị đẩy sang phải.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Step-by-step · Từng bước</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p><code>S = "165232"</code>, <code>K = 3</code>. There are six non-5 digits, so the operation is possible.</p></div>
+                <div class="step"><span>2</span><p>Scan left to right. Digit 1 is below 5, so replace it: <code>565232</code>. K becomes 2.</p></div>
+                <div class="step"><span>3</span><p>Digit 6 is above 5, so keep it for now. The next digit 2 is below 5: <code>565532</code>. K becomes 1.</p></div>
+                <div class="step"><span>4</span><p>The next non-5 digit 3 is below 5: <code>565552</code>. K becomes 0, so this is the answer.</p></div>
+              </div>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Tiếng Việt</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p><code>S = "165232"</code>, <code>K = 3</code>. Có sáu chữ số khác 5 nên có thể thực hiện đủ K lần.</p></div>
+                <div class="step"><span>2</span><p>Duyệt từ trái sang phải. Chữ số 1 nhỏ hơn 5 nên đổi thành 5: <code>565232</code>. K còn 2.</p></div>
+                <div class="step"><span>3</span><p>Chữ số 6 lớn hơn 5 nên tạm giữ. Chữ số 2 tiếp theo nhỏ hơn 5: <code>565532</code>. K còn 1.</p></div>
+                <div class="step"><span>4</span><p>Chữ số 3 tiếp theo nhỏ hơn 5 nên đổi: <code>565552</code>. K bằng 0, đây là đáp án.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Java solution</h3>
+          <div class="code-card">
+            <div class="code-head"><i></i><i></i><i></i><span>Solution.java</span><button class="code-copy" type="button" data-copy-target="code-1">Copy</button></div>
+            <pre><code id="code-1">class Solution {
+    public String solution(String S, int K) {
+        char[] digits = S.toCharArray();
+
+        int changeable = 0;
+        for (char digit : digits) {
+            if (digit != '5') {
+                changeable++;
+            }
+        }
+
+        if (changeable &lt; K) {
+            return "IMPOSSIBLE";
+        }
+
+        // Beneficial changes: use the highest place values first.
+        for (int i = 0; i &lt; digits.length &amp;&amp; K &gt; 0; i++) {
+            if (digits[i] &lt; '5') {
+                digits[i] = '5';
+                K--;
+            }
+        }
+
+        // Mandatory harmful changes: use the lowest place values first.
+        for (int i = digits.length - 1; i &gt;= 0 &amp;&amp; K &gt; 0; i--) {
+            if (digits[i] &gt; '5') {
+                digits[i] = '5';
+                K--;
+            }
+        }
+
+        return new String(digits);
+    }
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Complexity · Độ phức tạp</h3>
+          <div class="complexity-grid">
+            <div class="metric"><span>Time</span><strong>O(N)</strong><p>At most three linear scans. / Tối đa ba lần duyệt tuyến tính.</p></div>
+            <div class="metric"><span>Extra space</span><strong>O(N)</strong><p>The mutable character array. / Mảng ký tự dùng để chỉnh sửa chuỗi.</p></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Common mistakes · Lỗi thường gặp</h3>
+          <ul class="pitfalls">
+            <li>Replacing every digit below 5 without stopping after exactly K moves. / Đổi tất cả chữ số nhỏ hơn 5 mà không dừng đúng K lần.</li>
+            <li>When harmful replacements are required, scanning left to right instead of right to left. / Khi bắt buộc đổi chữ số lớn hơn 5, lại duyệt từ trái sang phải.</li>
+            <li>Forgetting that a digit already equal to 5 cannot be selected as a move. / Quên rằng chữ số đã bằng 5 không được tính là một lượt đổi.</li>
+          </ul>
+        </section>
+      </article>
+
+      <article class="problem" id="task-2">
+        <header class="problem-heading">
+          <span class="number">02</span>
+          <div>
+            <p class="eyebrow">Array · Simulation</p>
+            <h2>Packages on the Shelf</h2>
+            <p class="subtitle">Simulate package arrivals and find the maximum number waiting on the shelf.</p>
+          </div>
+          <button class="copy-btn" type="button" data-copy-target="code-2">Copy code</button>
+        </header>
+
+        <section class="block statement">
+          <h3 class="section-label">Problem statement</h3>
+          <p>N clients are waiting in line to collect their packages at the post office. Packages arrive one by one and are numbered from 1 to N in arrival order.</p>
+          <p>The K-th client in line (K from 0 to N−1) wants package number <code>client[K]</code>.</p>
+          <p>After a package arrives:</p>
+          <ul>
+            <li>If the first client wants that package, they collect it and leave.</li>
+            <li>Otherwise, the package is put on the shelf.</li>
+            <li>If the first client wants a package already on the shelf, they collect it and leave. Only the first client can collect a package.</li>
+          </ul>
+          <p>Return the maximum number of packages stored on the shelf at the same time.</p>
+          <pre class="signature">class Solution {
+    public int solution(int[] client);
+}</pre>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Examples</h3>
+          <div class="examples three">
+            <div class="example"><h4>Example 1</h4><span class="io-label">Input</span><pre>client = [3, 2, 4, 5, 1]</pre><span class="io-label">Output</span><span class="output">2</span></div>
+            <div class="example"><h4>Example 2</h4><span class="io-label">Input</span><pre>client = [1, 2, 3, 4, 5]</pre><span class="io-label">Output</span><span class="output">0</span></div>
+            <div class="example"><h4>Example 3</h4><span class="io-label">Input</span><pre>client = [3, 2, 7, 4, 5, 6, 1]</pre><span class="io-label">Output</span><span class="output">4</span></div>
+          </div>
+          <div class="source-note"><span>✓</span><div>Known constraint: <code>1 ≤ N ≤ 100,000</code>.</div></div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Core idea · Ý tưởng chính</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English explanation</p>
+              <h4>What must be simulated?</h4>
+              <p>Packages arrive in the fixed order 1, 2, ..., N. Clients leave only from the front of the queue. A package that arrives too early waits on the shelf.</p>
+              <h4>State to maintain</h4>
+              <ul>
+                <li><code>first</code>: index of the first client still waiting.</li>
+                <li><code>onShelf[p]</code>: whether package p is waiting on the shelf.</li>
+                <li><code>shelf</code>: current shelf size.</li>
+                <li><code>answer</code>: maximum shelf size seen.</li>
+              </ul>
+              <h4>Important cascade</h4>
+              <p>After the front client leaves, the next client may already have a package on the shelf. That client leaves immediately, possibly enabling another client to leave. Therefore we need a <code>while</code> loop, not a single <code>if</code>.</p>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Giải thích tiếng Việt</p>
+              <h4>Cần mô phỏng điều gì?</h4>
+              <p>Các gói hàng đến theo thứ tự cố định 1, 2, ..., N. Khách hàng chỉ được rời hàng từ vị trí đầu tiên. Gói đến quá sớm phải nằm chờ trên kệ.</p>
+              <h4>Trạng thái cần lưu</h4>
+              <ul>
+                <li><code>first</code>: chỉ số của khách đầu tiên còn đang chờ.</li>
+                <li><code>onShelf[p]</code>: gói p hiện có trên kệ hay không.</li>
+                <li><code>shelf</code>: số gói hiện tại trên kệ.</li>
+                <li><code>answer</code>: số gói lớn nhất từng xuất hiện trên kệ.</li>
+              </ul>
+              <h4>Hiệu ứng dây chuyền</h4>
+              <p>Sau khi khách đầu hàng rời đi, khách kế tiếp có thể đã có gói trên kệ và cũng rời đi ngay. Quá trình này có thể lặp nhiều lần, nên phải dùng vòng <code>while</code>, không chỉ một câu <code>if</code>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Algorithm · Thuật toán</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p>Iterate <code>packageNumber</code> from 1 to N.</p></div>
+                <div class="step"><span>2</span><p>If the front client wants the arriving package, increment <code>first</code>. Otherwise mark the package on the shelf and update the maximum.</p></div>
+                <div class="step"><span>3</span><p>While the new front client wants a package already on the shelf, remove it, decrease the shelf count, and advance <code>first</code>.</p></div>
+              </div>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Tiếng Việt</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p>Duyệt <code>packageNumber</code> từ 1 đến N theo thứ tự gói đến.</p></div>
+                <div class="step"><span>2</span><p>Nếu khách đầu hàng cần đúng gói vừa đến thì tăng <code>first</code>. Nếu không, đặt gói lên kệ và cập nhật giá trị lớn nhất.</p></div>
+                <div class="step"><span>3</span><p>Trong khi khách đầu hàng mới có gói đang nằm trên kệ, lấy gói khỏi kệ, giảm số lượng và tiếp tục tăng <code>first</code>.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Walkthrough</h3>
+          <div style="overflow-x:auto">
+            <table class="walkthrough">
+              <thead><tr><th>Arriving package</th><th>Front client wants</th><th>Action</th><th>Shelf after cascade</th><th>Maximum</th></tr></thead>
+              <tbody>
+                <tr><td><code>1</code></td><td><code>3</code></td><td>Store package 1</td><td><code>[1]</code></td><td><code>1</code></td></tr>
+                <tr><td><code>2</code></td><td><code>3</code></td><td>Store package 2</td><td><code>[1, 2]</code></td><td><code>2</code></td></tr>
+                <tr><td><code>3</code></td><td><code>3</code></td><td>Client takes 3; next client takes 2 from shelf</td><td><code>[1]</code></td><td><code>2</code></td></tr>
+                <tr><td><code>4</code></td><td><code>4</code></td><td>Client takes 4 directly</td><td><code>[1]</code></td><td><code>2</code></td></tr>
+                <tr><td><code>5</code></td><td><code>5</code></td><td>Client takes 5; next client takes 1 from shelf</td><td><code>[]</code></td><td><code>2</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bilingual" style="margin-top:15px">
+            <div class="language-panel en lang-en"><p class="lang-title">English conclusion</p><p>The shelf contains at most two packages at once, so the answer is <code>2</code>.</p></div>
+            <div class="language-panel vi lang-vi"><p class="lang-title">Kết luận tiếng Việt</p><p>Kệ có nhiều nhất hai gói tại cùng một thời điểm, nên đáp án là <code>2</code>.</p></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Java solution</h3>
+          <div class="code-card">
+            <div class="code-head"><i></i><i></i><i></i><span>Solution.java</span><button class="code-copy" type="button" data-copy-target="code-2">Copy</button></div>
+            <pre><code id="code-2">class Solution {
+    public int solution(int[] client) {
+        int n = client.length;
+        boolean[] onShelf = new boolean[n + 1];
+
+        int first = 0;
+        int shelf = 0;
+        int answer = 0;
+
+        for (int packageNumber = 1; packageNumber &lt;= n; packageNumber++) {
+            if (first &lt; n &amp;&amp; client[first] == packageNumber) {
+                first++;
+            } else {
+                onShelf[packageNumber] = true;
+                shelf++;
+                answer = Math.max(answer, shelf);
+            }
+
+            // Several clients may leave immediately in a chain.
+            while (first &lt; n &amp;&amp; onShelf[client[first]]) {
+                onShelf[client[first]] = false;
+                shelf--;
+                first++;
+            }
+        }
+
+        return answer;
+    }
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Correctness · Tính đúng đắn</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English</p>
+              <p>Before each arrival, <code>first</code> identifies exactly the first waiting client, and <code>onShelf</code> contains exactly the arrived but uncollected packages. The arrival step follows the problem rules. The while loop then removes every client who can immediately collect from the shelf, stopping precisely when the queue is empty or its first client must wait. Thus the simulation state is correct after every arrival, and the recorded maximum is the required answer.</p>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Tiếng Việt</p>
+              <p>Trước mỗi lần gói đến, <code>first</code> luôn chỉ đúng khách đầu tiên còn chờ, còn <code>onShelf</code> chứa đúng các gói đã đến nhưng chưa được nhận. Bước xử lý gói mới tuân theo đề bài. Vòng while loại bỏ toàn bộ khách có thể lấy gói ngay trên kệ và chỉ dừng khi hàng rỗng hoặc khách đầu hàng phải chờ. Vì vậy trạng thái mô phỏng luôn đúng sau mỗi lần gói đến, và giá trị lớn nhất ghi nhận chính là đáp án.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Complexity · Độ phức tạp</h3>
+          <div class="complexity-grid">
+            <div class="metric"><span>Time</span><strong>O(N)</strong><p>Each package is added/removed at most once. / Mỗi gói được thêm và lấy khỏi kệ tối đa một lần.</p></div>
+            <div class="metric"><span>Extra space</span><strong>O(N)</strong><p>The shelf-presence array. / Mảng đánh dấu các gói đang trên kệ.</p></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Common mistakes · Lỗi thường gặp</h3>
+          <ul class="pitfalls">
+            <li>Using only one <code>if</code> after a client leaves and missing the chain of clients who can also leave. / Chỉ dùng một <code>if</code> và bỏ sót chuỗi khách có thể rời đi liên tiếp.</li>
+            <li>Confusing client indices 0..N−1 with package numbers 1..N. / Nhầm chỉ số khách 0..N−1 với số thứ tự gói 1..N.</li>
+            <li>Updating the maximum only after removing packages, which can miss the instant a newly arrived package reaches the peak shelf size. / Chỉ cập nhật cực đại sau khi lấy gói khỏi kệ.</li>
+          </ul>
+        </section>
+      </article>
+
+      <article class="problem" id="task-3">
+        <header class="problem-heading">
+          <span class="number">03</span>
+          <div>
+            <p class="eyebrow">Graph · Multi-source BFS</p>
+            <h2>Ambulance and Hospitals</h2>
+            <p class="subtitle">Find the worst waiting time when each district is served by its nearest hospital.</p>
+          </div>
+          <button class="copy-btn" type="button" data-copy-target="code-3">Copy code</button>
+        </header>
+
+        <section class="block statement">
+          <h3 class="section-label">Problem statement</h3>
+          <p>There are N districts, numbered 0 to N−1, connected by M streets. Arrays A and B, both of length M, describe undirected streets: <code>(A[K], B[K])</code>.</p>
+          <p>There are L hospitals. The J-th hospital is located in district <code>H[J]</code>.</p>
+          <p>An ambulance is sent from the hospital that can reach the requested district in the shortest time. Every street takes exactly 1 minute to pass.</p>
+          <p>A patient may need help in any district. Return the longest time required for an ambulance to reach any possible patient.</p>
+          <pre class="signature">class Solution {
+    public int solution(int N, int[] A, int[] B, int[] H);
+}</pre>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Examples</h3>
+          <div class="examples two">
+            <div class="example"><h4>Example 1</h4><span class="io-label">Input</span><pre>N = 6
+A = [0, 1, 1, 3, 0]
+B = [1, 2, 3, 4, 5]
+H = [2, 4]</pre><span class="io-label">Output</span><span class="output">3</span><p>District 5 waits longest. Route from hospital 2: 2 → 1 → 0 → 5.</p></div>
+            <div class="example"><h4>Example 2</h4><span class="io-label">Input</span><pre>N = 6
+A = [0, 1, 1, 3, 0, 4]
+B = [1, 2, 3, 4, 5, 5]
+H = [2, 4]</pre><span class="io-label">Output</span><span class="output">2</span><p>District 0 has the longest arrival time. Every other district is reached in at most 1 minute.</p></div>
+          </div>
+          <div class="source-note"><span>!</span><div>The constraints were not visible in the supplied screenshots. The explanation assumes the problem guarantee that every district can be reached from at least one hospital.</div></div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Core idea · Ý tưởng chính</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English explanation</p>
+              <h4>Reverse the viewpoint</h4>
+              <p>For every district, we need the distance to its nearest hospital. Running a separate BFS from every district would repeat work. Instead, start one BFS from all hospitals simultaneously.</p>
+              <h4>Multi-source BFS</h4>
+              <p>Put every hospital in the queue with distance 0. BFS expands the graph in layers. The first time a district is visited, it is reached through the smallest possible number of streets from any hospital.</p>
+              <h4>Final answer</h4>
+              <p>After BFS, <code>dist[d]</code> is the nearest-hospital distance for district d. The answer is the maximum value in <code>dist</code>.</p>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Giải thích tiếng Việt</p>
+              <h4>Đổi góc nhìn</h4>
+              <p>Với mỗi quận, ta cần khoảng cách tới bệnh viện gần nhất. Nếu chạy BFS riêng từ từng quận thì sẽ lặp lại rất nhiều công việc. Thay vào đó, chạy một BFS bắt đầu đồng thời từ tất cả bệnh viện.</p>
+              <h4>BFS đa nguồn</h4>
+              <p>Đưa toàn bộ bệnh viện vào hàng đợi với khoảng cách 0. BFS mở rộng đồ thị theo từng lớp. Lần đầu một quận được thăm chính là khi nó được tiếp cận qua số con đường ít nhất từ một trong các bệnh viện.</p>
+              <h4>Đáp án cuối</h4>
+              <p>Sau BFS, <code>dist[d]</code> là khoảng cách từ quận d tới bệnh viện gần nhất. Lấy giá trị lớn nhất trong mảng <code>dist</code>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Algorithm · Thuật toán</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p>Build an undirected adjacency list from A and B.</p></div>
+                <div class="step"><span>2</span><p>Fill <code>dist</code> with −1, meaning unvisited.</p></div>
+                <div class="step"><span>3</span><p>For each hospital h, set <code>dist[h] = 0</code> and enqueue the district ID h.</p></div>
+                <div class="step"><span>4</span><p>Run BFS. For each unvisited neighbor, set its distance to the current distance plus 1 and enqueue the neighbor.</p></div>
+                <div class="step"><span>5</span><p>Track the maximum assigned distance and return it.</p></div>
+              </div>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Tiếng Việt</p>
+              <div class="steps">
+                <div class="step"><span>1</span><p>Tạo danh sách kề vô hướng từ hai mảng A và B.</p></div>
+                <div class="step"><span>2</span><p>Gán toàn bộ <code>dist</code> bằng −1, nghĩa là chưa được thăm.</p></div>
+                <div class="step"><span>3</span><p>Với mỗi bệnh viện h, gán <code>dist[h] = 0</code> và đưa mã quận h vào hàng đợi.</p></div>
+                <div class="step"><span>4</span><p>Chạy BFS. Với mỗi quận kề chưa thăm, gán khoảng cách bằng khoảng cách hiện tại cộng 1 rồi đưa quận kề vào hàng đợi.</p></div>
+                <div class="step"><span>5</span><p>Theo dõi khoảng cách lớn nhất đã gán và trả về giá trị đó.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">BFS layers · Các lớp BFS</h3>
+          <div style="overflow-x:auto">
+            <table class="walkthrough">
+              <thead><tr><th>Minute / layer</th><th>Districts reached</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><code>0</code></td><td><code>2, 4</code></td><td>Hospital districts / Các quận có bệnh viện</td></tr>
+                <tr><td><code>1</code></td><td><code>1, 3</code></td><td>One street from a hospital / Cách bệnh viện một con đường</td></tr>
+                <tr><td><code>2</code></td><td><code>0</code></td><td>Nearest hospital is two streets away / Cách bệnh viện gần nhất hai đường</td></tr>
+                <tr><td><code>3</code></td><td><code>5</code></td><td>Farthest district / Quận xa nhất</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bilingual" style="margin-top:15px">
+            <div class="language-panel en lang-en"><p class="lang-title">English conclusion</p><p>The largest BFS layer is 3, so the longest ambulance waiting time is <code>3</code> minutes.</p></div>
+            <div class="language-panel vi lang-vi"><p class="lang-title">Kết luận tiếng Việt</p><p>Lớp BFS lớn nhất là 3, nên thời gian chờ xe cứu thương lâu nhất là <code>3</code> phút.</p></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Java solution</h3>
+          <div class="code-card">
+            <div class="code-head"><i></i><i></i><i></i><span>Solution.java</span><button class="code-copy" type="button" data-copy-target="code-3">Copy</button></div>
+            <pre><code id="code-3">import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+
+class Solution {
+    public int solution(int N, int[] A, int[] B, int[] H) {
+        List&lt;Integer&gt;[] graph = new ArrayList[N];
+
+        for (int district = 0; district &lt; N; district++) {
+            graph[district] = new ArrayList&lt;&gt;();
+        }
+
+        for (int street = 0; street &lt; A.length; street++) {
+            graph[A[street]].add(B[street]);
+            graph[B[street]].add(A[street]);
+        }
+
+        int[] dist = new int[N];
+        Arrays.fill(dist, -1);
+
+        Queue&lt;Integer&gt; queue = new ArrayDeque&lt;&gt;();
+        for (int hospital : H) {
+            if (dist[hospital] == -1) {
+                dist[hospital] = 0;
+                queue.offer(hospital);
+            }
+        }
+
+        int answer = 0;
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+
+            for (int next : graph[current]) {
+                if (dist[next] == -1) {
+                    dist[next] = dist[current] + 1;
+                    answer = Math.max(answer, dist[next]);
+                    queue.offer(next);
+                }
+            }
+        }
+
+        return answer;
+    }
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Correctness · Tính đúng đắn</h3>
+          <div class="bilingual">
+            <div class="language-panel en lang-en">
+              <p class="lang-title">English</p>
+              <p>All hospitals enter the queue at distance 0. BFS processes vertices in nondecreasing distance order. When a district is first visited from a district at distance d, it receives distance d + 1. No shorter route from another hospital can appear later because all smaller layers were already processed. Therefore every stored distance is the shortest distance to any hospital, and their maximum is exactly the worst ambulance arrival time.</p>
+            </div>
+            <div class="language-panel vi lang-vi">
+              <p class="lang-title">Tiếng Việt</p>
+              <p>Tất cả bệnh viện được đưa vào hàng đợi với khoảng cách 0. BFS xử lý các đỉnh theo thứ tự khoảng cách không giảm. Khi một quận lần đầu được thăm từ quận có khoảng cách d, nó nhận khoảng cách d + 1. Không thể có đường ngắn hơn từ bệnh viện khác xuất hiện về sau vì mọi lớp nhỏ hơn đã được xử lý. Do đó mỗi khoảng cách lưu được đều là khoảng cách ngắn nhất tới một bệnh viện, và giá trị lớn nhất chính là thời gian xe cứu thương lâu nhất.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Complexity · Độ phức tạp</h3>
+          <div class="complexity-grid">
+            <div class="metric"><span>Time</span><strong>O(N + M)</strong><p>Every district and street is processed a constant number of times. / Mỗi quận và con đường được xử lý số lần hằng số.</p></div>
+            <div class="metric"><span>Extra space</span><strong>O(N + M)</strong><p>Adjacency list, distance array, and queue. / Danh sách kề, mảng khoảng cách và hàng đợi.</p></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3 class="section-label">Common mistakes · Lỗi thường gặp</h3>
+          <ul class="pitfalls">
+            <li>Running one BFS per hospital or per district, causing unnecessary repeated work. / Chạy BFS riêng cho từng bệnh viện hoặc từng quận.</li>
+            <li>Adding only <code>A[i] → B[i]</code> and forgetting that streets are bidirectional. / Chỉ thêm cạnh một chiều và quên đường phố là hai chiều.</li>
+            <li>Putting <code>dist[hospital]</code> or <code>dist[next]</code> into the queue instead of the district ID. / Đưa giá trị khoảng cách vào queue thay vì mã quận.</li>
+            <li>Marking a district visited only when it is removed from the queue, allowing duplicates. / Chỉ đánh dấu đã thăm khi lấy khỏi queue, làm một quận bị thêm nhiều lần.</li>
+          </ul>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><span class="brand-mark">N</span><span>NAx test code</span></a>
+    <p>Single-file bilingual Java assessment reference.</p>
+    <a href="#top">Back to top ↑</a>
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      function copyText(text, button) {
+        var done = function () {
+          var original = button.textContent;
+          button.textContent = "Copied";
+          window.setTimeout(function () { button.textContent = original; }, 1500);
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(done);
+          return;
+        }
+
+        var area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        done();
+      }
+
+      document.querySelectorAll("[data-copy-target]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var target = document.getElementById(button.getAttribute("data-copy-target"));
+          if (target) copyText(target.textContent, button);
+        });
+      });
+
+      document.getElementById("copy-all").addEventListener("click", function () {
+        var allCode = Array.from(document.querySelectorAll(".code-card code"))
+          .map(function (node) { return node.textContent; })
+          .join("\n\n// ========================================\n\n");
+        copyText(allCode, this);
+      });
+
+      document.querySelectorAll("[data-language]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var language = button.getAttribute("data-language");
+          document.body.classList.remove("show-en", "show-vi");
+          if (language === "en") document.body.classList.add("show-en");
+          if (language === "vi") document.body.classList.add("show-vi");
+
+          document.querySelectorAll("[data-language]").forEach(function (item) {
+            item.classList.toggle("active", item === button);
+          });
+        });
+      });
+    }());
+  </script>
+</body>
+</html>
