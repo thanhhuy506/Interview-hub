@@ -54,6 +54,14 @@
       color: var(--text);
     }
 
+    body.auth-locked {
+      overflow: hidden;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     button,
     input {
       font: inherit;
@@ -67,6 +75,106 @@
     a {
       color: inherit;
       text-decoration: none;
+    }
+
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.18), transparent 30rem),
+        radial-gradient(circle at 85% 85%, rgba(15, 118, 110, 0.16), transparent 32rem),
+        #eef3f8;
+    }
+
+    .auth-card {
+      width: min(100%, 420px);
+      padding: 32px;
+      border: 1px solid rgba(217, 225, 236, 0.95);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+      backdrop-filter: blur(18px);
+    }
+
+    .auth-heading {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .auth-heading h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .auth-heading p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .auth-field {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .auth-field label {
+      color: #344258;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .auth-field input {
+      width: 100%;
+      height: 46px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .auth-field input:focus {
+      border-color: #557296;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+    }
+
+    .auth-field input[aria-invalid="true"] {
+      border-color: #b91c1c;
+    }
+
+    .auth-error {
+      min-height: 21px;
+      margin: 12px 0 0;
+      color: #b91c1c;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .auth-submit {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 4px;
+      border-radius: var(--radius);
+      background: #172033;
+      color: #fff;
+      font-weight: 800;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .auth-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(23, 32, 51, 0.24);
     }
 
     .app {
@@ -444,6 +552,14 @@
     }
 
     @media (max-width: 560px) {
+      .auth-gate {
+        padding: 16px;
+      }
+
+      .auth-card {
+        padding: 24px;
+      }
+
       .filters,
       .stats {
         grid-template-columns: 1fr;
@@ -459,8 +575,37 @@
     }
   </style>
 </head>
-<body>
-  <div class="app">
+<body class="auth-locked">
+  <section id="authGate" class="auth-gate" aria-labelledby="authTitle">
+    <form id="authForm" class="auth-card" novalidate>
+      <div class="auth-heading">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12a2 2 0 0 1 2 2v7H4v-7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 14v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="authTitle">Study Hub</h1>
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label for="authUsername">Username</label>
+        <input id="authUsername" name="username" type="text" autocomplete="username" required autofocus />
+      </div>
+
+      <div class="auth-field">
+        <label for="authPassword">Password</label>
+        <input id="authPassword" name="password" type="password" autocomplete="current-password" required />
+      </div>
+
+      <p id="authError" class="auth-error" role="alert" aria-live="polite"></p>
+      <button class="auth-submit" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <div id="app" class="app" hidden>
     <aside class="sidebar" aria-label="Interview guide navigation">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
@@ -1303,6 +1448,12 @@
       }
     ];
 
+    const app = document.getElementById("app");
+    const authGate = document.getElementById("authGate");
+    const authForm = document.getElementById("authForm");
+    const authUsername = document.getElementById("authUsername");
+    const authPassword = document.getElementById("authPassword");
+    const authError = document.getElementById("authError");
     const library = document.getElementById("library");
     const searchInput = document.getElementById("searchInput");
     const filterButtons = Array.from(document.querySelectorAll(".filter-btn"));
@@ -1320,6 +1471,9 @@
 
     let activeFilter = "all";
     let selectedId = "";
+    let appInitialized = false;
+
+    const AUTH_STORAGE_KEY = "interviewHubAuthenticated";
 
     function getInitialDocId() {
       const hash = window.location.hash.replace("#", "");
@@ -1422,20 +1576,88 @@
       });
     }
 
-    filterButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        activeFilter = button.dataset.filter;
-        filterButtons.forEach((item) => item.classList.toggle("active", item === button));
-        renderLibrary();
+    function initializeApp() {
+      if (appInitialized) {
+        return;
+      }
+
+      appInitialized = true;
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+          filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+          renderLibrary();
+        });
       });
+
+      searchInput.addEventListener("input", renderLibrary);
+      copyLinkBtn.addEventListener("click", copySelectedLink);
+      window.addEventListener("hashchange", () => selectDoc(getInitialDocId(), false));
+
+      totalDocs.textContent = docs.length;
+      selectDoc(getInitialDocId(), false);
+    }
+
+    function unlockApp(focusSearch) {
+      authGate.hidden = true;
+      app.hidden = false;
+      document.body.classList.remove("auth-locked");
+      initializeApp();
+
+      if (focusSearch) {
+        searchInput.focus();
+      }
+    }
+
+    function hasSavedLogin() {
+      try {
+        return localStorage.getItem(AUTH_STORAGE_KEY) === "true";
+      } catch {
+        return false;
+      }
+    }
+
+    function saveLogin() {
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, "true");
+      } catch {
+        // Login still works for the current page if browser storage is unavailable.
+      }
+    }
+
+    authForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const isAuthenticated = authUsername.value === "huy" && authPassword.value === "huy";
+
+      if (!isAuthenticated) {
+        authError.textContent = "Incorrect username or password.";
+        authUsername.setAttribute("aria-invalid", "true");
+        authPassword.setAttribute("aria-invalid", "true");
+        authPassword.select();
+        return;
+      }
+
+      authError.textContent = "";
+      authUsername.removeAttribute("aria-invalid");
+      authPassword.removeAttribute("aria-invalid");
+      authPassword.value = "";
+      saveLogin();
+      unlockApp(true);
     });
 
-    searchInput.addEventListener("input", renderLibrary);
-    copyLinkBtn.addEventListener("click", copySelectedLink);
-    window.addEventListener("hashchange", () => selectDoc(getInitialDocId(), false));
+    try {
+      localStorage.removeItem("interviewHubAuthExpiresAt");
+    } catch {
+      // Ignore browsers where local storage is unavailable.
+    }
 
-    totalDocs.textContent = docs.length;
-    selectDoc(getInitialDocId(), false);
+    if (hasSavedLogin()) {
+      unlockApp(false);
+    } else {
+      authUsername.focus();
+    }
   </script>
 </body>
 </html>
