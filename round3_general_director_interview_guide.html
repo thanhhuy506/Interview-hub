@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rakuten Fintech Vietnam - General Director Interview Guide</title>
+<style>
+:root {
+  --bg:#f4f6f8; --card:#ffffff; --text:#1f2937; --muted:#64748b;
+  --accent:#8b0000; --accent2:#b91c1c; --line:#e5e7eb;
+  --soft:#fff7ed; --green:#ecfdf5; --blue:#eff6ff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.68;
+}
+header{
+  background:linear-gradient(135deg,#6b0000,#b91c1c);
+  color:white;padding:56px 24px;
+}
+.header-inner{max-width:1100px;margin:auto}
+header h1{font-size:clamp(28px,4vw,46px);line-height:1.15;margin:0 0 12px}
+header p{max-width:850px;margin:0;color:#fee2e2;font-size:18px}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.badge{background:rgba(255,255,255,.14);padding:7px 12px;border-radius:999px;font-size:14px}
+.layout{max-width:1200px;margin:30px auto;display:grid;grid-template-columns:300px 1fr;gap:24px;padding:0 20px}
+nav{
+  position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
+  box-shadow:0 8px 24px rgba(15,23,42,.06)
+}
+nav h3{margin:0 0 10px}
+nav ol{padding-left:22px;margin:0}
+nav li{margin:8px 0}
+nav a{color:#334155;text-decoration:none;font-size:14px}
+nav a:hover{color:var(--accent2)}
+main{min-width:0}
+section{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:28px;margin-bottom:22px;box-shadow:0 8px 24px rgba(15,23,42,.05)
+}
+h2{margin-top:0;color:#7f1d1d;border-bottom:2px solid #fee2e2;padding-bottom:10px}
+h3{margin-bottom:6px;color:#374151}
+blockquote{
+  margin:14px 0;padding:20px 22px;border-left:5px solid var(--accent2);
+  background:#fffafa;border-radius:10px;color:#1f2937
+}
+.key,.tip,.warning{
+  border-radius:10px;padding:15px 17px;margin:14px 0
+}
+.key{background:var(--green);border:1px solid #bbf7d0}
+.tip{background:var(--blue);border:1px solid #bfdbfe}
+.warning{background:var(--soft);border:1px solid #fed7aa}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th,td{border:1px solid var(--line);padding:11px 12px;text-align:left;vertical-align:top}
+th{background:#f8fafc}
+ul,ol{padding-left:24px}
+footer{max-width:1100px;margin:0 auto 40px;padding:0 20px;color:var(--muted);text-align:center}
+.top-link{display:inline-block;margin-top:10px;font-size:13px;color:#991b1b;text-decoration:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav{position:relative;top:0;max-height:none}
+}
+@media print{
+  body{background:white}
+  header{padding:24px}
+  nav{display:none}
+  .layout{display:block;max-width:none;margin:0;padding:0}
+  section{box-shadow:none;border:0;border-bottom:1px solid #ddd;border-radius:0;page-break-inside:avoid}
+  footer{display:none}
+}
+</style>
+</head>
+<body>
+<a id="top"></a>
+<header>
+  <div class="header-inner">
+    <h1>Rakuten Fintech Vietnam<br>General Director Interview Guide</h1>
+    <p>Prepared for a Senior Java / Java Team Leader candidate with 9 years of software experience and 7 years working in Japanese-company environments.</p>
+    <div class="badges">
+      <span class="badge">9 Years Experience</span>
+      <span class="badge">Java Team Leader</span>
+      <span class="badge">7 Years in Japanese Companies</span>
+      <span class="badge">Salary Discussion: 75M Gross</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav>
+  <h3>Contents</h3>
+  <ol><li><a href="#s1">1. Interview Strategy</a></li>
+<li><a href="#s2">2. Tell Me About Yourself</a></li>
+<li><a href="#s3">3. Why Rakuten?</a></li>
+<li><a href="#s4">4. Why Should We Hire You?</a></li>
+<li><a href="#s5">5. Salary Expectation – Why 75M?</a></li>
+<li><a href="#s6">6. If We Cannot Offer 75M</a></li>
+<li><a href="#s7">7. Why Are You Leaving Your Current Company?</a></li>
+<li><a href="#s8">8. Japanese Working Culture</a></li>
+<li><a href="#s9">9. Leadership Style</a></li>
+<li><a href="#s10">10. Managing an Underperforming Developer</a></li>
+<li><a href="#s11">11. Disagreement With Your Manager</a></li>
+<li><a href="#s12">12. Difficult Situation as a Leader</a></li>
+<li><a href="#s13">13. Risk of Missing a Deadline</a></li>
+<li><a href="#s14">14. Speed vs Quality</a></li>
+<li><a href="#s15">15. Technical Excellence vs Business Requirements</a></li>
+<li><a href="#s16">16. Tell Me About a Failure</a></li>
+<li><a href="#s17">17. Biggest Weakness</a></li>
+<li><a href="#s18">18. Developing Team Members</a></li>
+<li><a href="#s19">19. Working Across Countries</a></li>
+<li><a href="#s20">20. Technical Decision-Making</a></li>
+<li><a href="#s21">21. Disagreeing With an Existing Rakuten Approach</a></li>
+<li><a href="#s22">22. Three-to-Five-Year Career Plan</a></li>
+<li><a href="#s23">23. Technical Work or Management?</a></li>
+<li><a href="#s24">24. Why Not Apply for a Manager Position?</a></li>
+<li><a href="#s25">25. Why Rakuten Fintech?</a></li>
+<li><a href="#s26">26. Customer Satisfaction for an Engineer</a></li>
+<li><a href="#s27">27. What Does Ownership Mean?</a></li>
+<li><a href="#s28">28. Wrong Decision as a Leader</a></li>
+<li><a href="#s29">29. What Motivates You?</a></li>
+<li><a href="#s30">30. Long-Term Commitment</a></li>
+<li><a href="#s31">31. Starting Again in a New Company</a></li>
+<li><a href="#s32">32. Why Should We Make a Compensation Exception?</a></li>
+<li><a href="#s33">33. High-Level Technical Questions</a></li>
+<li><a href="#s34">34. What Does Professionalism Mean?</a></li>
+<li><a href="#s35">35. Working Under Pressure</a></li>
+<li><a href="#s36">36. Questions to Ask the General Director</a></li>
+<li><a href="#s37">37. Closing Statement</a></li>
+<li><a href="#s38">38. Likely Evaluation Areas</a></li>
+<li><a href="#s39">39. How to Speak With a Japanese General Director</a></li>
+<li><a href="#s40">40. Top 10 Questions to Practice First</a></li></ol>
+</nav>
+
+<main>
+<section id="s1"><h2>1. Interview Strategy</h2>
+<p>This round is likely not a pure technical interview. You have already passed the technical and culture-fit rounds, so the General Director may mainly evaluate:</p>
+<ul>
+<li>Executive-level maturity</li>
+<li>Leadership capability</li>
+<li>Commitment and long-term motivation</li>
+<li>Japanese working-culture fit</li>
+<li>Business mindset and ownership</li>
+<li>Whether your value can justify a compensation exception</li>
+</ul>
+<div class="key">
+<strong>Core message to communicate:</strong><br>
+A strong hands-on Java engineer with leadership experience, proven experience working with Japanese organizations, and the potential to take broader technical ownership at Rakuten.
+</div>
+</section>
+<section id="s2"><h2>2. Tell Me About Yourself</h2>
+<h3>Question</h3>
+<p><strong>Please introduce yourself.</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Thank you for giving me the opportunity to meet with you.<br><br>
+I am a Java engineer with around nine years of experience in software development, and currently I am working as a Java Team Leader.<br><br>
+My main strength is backend development, especially Java. Over the years, I have worked on system design, implementation, code review, production deployment, performance improvement and troubleshooting critical production issues.<br><br>
+As a team leader, my responsibility is not only to develop software, but also to understand requirements, design solutions, break down tasks, support team members and make sure the team delivers with good quality.<br><br>
+Another important part of my background is that I have worked with Japanese companies for around seven years. Because of that, I am familiar with Japanese working culture, especially the importance of quality, responsibility, communication and commitment.<br><br>
+At this stage of my career, I am looking for an environment where I can contribute technically, take more ownership and continue developing myself as both an engineer and a leader.<br><br>
+That is one of the main reasons I am very interested in Rakuten.
+</blockquote>
+</section>
+<section id="s3"><h2>3. Why Rakuten?</h2>
+<h3>Question</h3>
+<p><strong>Why do you want to join Rakuten?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+There are three main reasons.<br><br>
+First, Rakuten is a large technology-driven company where engineering has a direct impact on the business. I want to work on systems where scalability, reliability and quality really matter.<br><br>
+Second, I am interested in Rakuten's international working environment. I have already worked with Japanese companies for many years, but I would like to work in an even more global environment and collaborate with people from different countries and backgrounds.<br><br>
+Third, I like Rakuten's culture of continuous improvement and getting things done. At this stage of my career, I don't want to only complete assigned development tasks. I want to take ownership, solve bigger problems and contribute to both the team and the organization.
+</blockquote>
+</section>
+<section id="s4"><h2>4. Why Should We Hire You?</h2>
+<h3>Question</h3>
+<p><strong>Why should we hire you?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I believe I can bring value in three areas.<br><br>
+First is technical capability. I have around nine years of software development experience with a strong focus on Java backend systems, and I can work independently on complex technical problems.<br><br>
+Second is leadership. I am currently leading a Java team, so I am comfortable with technical design, code review, mentoring developers, task planning and supporting the team when we have difficult production issues.<br><br>
+Third is my experience working with Japanese organizations. After working in Japanese companies for around seven years, I understand the importance of commitment, quality, transparency and communication.<br><br>
+So I believe I can contribute not only as an individual developer, but also as someone who can improve the overall performance of the team.
+</blockquote>
+<div class="tip"><strong>Key sentence:</strong> I can contribute not only as an individual developer, but also improve the overall performance of the team.</div>
+</section>
+<section id="s5"><h2>5. Salary Expectation – Why 75M?</h2>
+<h3>Question</h3>
+<p><strong>Your expected salary is higher than our normal package. Why do you expect 75 million?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I understand that my expectation may be higher than the standard range for the position.<br><br>
+My expectation is based on the overall value and responsibilities I can bring rather than only the number of years of experience.<br><br>
+I currently have around nine years of software development experience, including team leadership, system design, production support, code review and mentoring.<br><br>
+I believe I can contribute beyond the normal scope of an individual Senior Developer and gradually take more ownership within the organization.<br><br>
+At the same time, compensation is not the only factor for me. The role, technical challenges, working environment and long-term growth opportunities are also very important.<br><br>
+If we both believe there is a strong fit, I am open to having a reasonable discussion about the overall package.
+</blockquote>
+</section>
+<section id="s6"><h2>6. If We Cannot Offer 75M</h2>
+<h3>Question</h3>
+<p><strong>If we cannot offer 75 million, what will you do?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Seventy-five million is my current expectation based on my experience and responsibilities.<br><br>
+However, I don't evaluate an opportunity based only on one number.<br><br>
+I would also consider the role, responsibilities, learning opportunities, career path, benefits and the overall package.<br><br>
+Rakuten is an opportunity that I am seriously interested in, so I would prefer to understand the complete offer before making a final decision.
+</blockquote>
+<div class="warning"><strong>Avoid:</strong> saying “75 million is negotiable” immediately. It weakens your position unnecessarily.</div>
+</section>
+<section id="s7"><h2>7. Why Are You Leaving Your Current Company?</h2>
+<h3>Question</h3>
+<p><strong>Why are you leaving your current company?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I have had a good experience with my current company and I appreciate what I have learned there.<br><br>
+My reason for considering a change is mainly career growth.<br><br>
+After around nine years in software development, I want to challenge myself in a larger and more international organization where I can work on larger-scale systems and continue developing my technical and leadership skills.<br><br>
+I am not leaving because of a negative relationship with my current company. I simply feel that this is the right time for my next challenge.
+</blockquote>
+<div class="tip"><strong>Optional line:</strong> I am not running away from something. I am moving toward my next challenge.</div>
+</section>
+<section id="s8"><h2>8. Japanese Working Culture</h2>
+<h3>Question</h3>
+<p><strong>You have worked for Japanese companies for seven years. What have you learned from Japanese working culture?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+One important thing I have learned is responsibility.<br><br>
+In my experience working with Japanese teams, when we commit to something, we should take responsibility for delivering it and communicate early if there is any risk.<br><br>
+I also learned the importance of preparation and quality. Before implementation, we should understand the requirements carefully and consider possible risks instead of fixing everything after release.<br><br>
+At the same time, I learned that communication is extremely important, especially when Vietnamese and Japanese members may have different expectations or communication styles.<br><br>
+So I try to communicate clearly, confirm important decisions and avoid assumptions.<br><br>
+These experiences have helped me become more disciplined and reliable as both an engineer and a team leader.
+</blockquote>
+<div class="key"><strong>Keywords:</strong> Responsibility — Preparation — Quality — Clear communication — No assumptions</div>
+</section>
+<section id="s9"><h2>9. Leadership Style</h2>
+<h3>Question</h3>
+<p><strong>What is your leadership style?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+My leadership style is supportive but accountable.<br><br>
+I don't want team members to depend on me for every decision. I try to give them enough context and ownership so they can work independently.<br><br>
+At the same time, I make sure expectations, priorities and responsibilities are clear.<br><br>
+When someone has difficulty, I first try to understand the root cause and support them through discussion, technical guidance or mentoring.<br><br>
+My goal is not to become the strongest person in the team. My goal is to make the whole team stronger.
+</blockquote>
+<div class="tip"><strong>Memorize this:</strong> My goal is not to become the strongest person in the team. My goal is to make the whole team stronger.</div>
+</section>
+<section id="s10"><h2>10. Managing an Underperforming Developer</h2>
+<h3>Question</h3>
+<p><strong>How do you manage a developer who is not performing well?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+First, I would avoid making a conclusion too quickly.<br><br>
+I would have a one-on-one discussion to understand the reason. The problem could be technical knowledge, unclear requirements, workload, communication or something else.<br><br>
+Then I would define clear expectations and a concrete improvement plan.<br><br>
+For example, I might provide mentoring, assign smaller milestones or pair the developer with a stronger team member.<br><br>
+After that, I would monitor progress and give frequent feedback.<br><br>
+My first goal is always to help the person improve. But at the same time, as a team leader, I also have responsibility for the team's delivery, so if there is no improvement after reasonable support, I would discuss the next action with my manager.
+</blockquote>
+</section>
+<section id="s11"><h2>11. Disagreement With Your Manager</h2>
+<h3>Question</h3>
+<p><strong>How do you handle disagreement with your manager?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I believe disagreement itself is not a problem. The important thing is how we handle it.<br><br>
+If I disagree with my manager, I will first try to understand the reason behind the decision.<br><br>
+If I still have concerns, I will explain my opinion with facts, technical evidence and possible business impact rather than simply saying that I disagree.<br><br>
+Once a final decision is made, unless there is a serious security, compliance or ethical concern, I will support the decision and help the team execute it successfully.<br><br>
+I think a professional can disagree during the discussion but still commit after the decision.
+</blockquote>
+<div class="tip"><strong>Key idea:</strong> Disagree during discussion, commit after the decision.</div>
+</section>
+<section id="s12"><h2>12. Difficult Situation as a Leader</h2>
+<h3>Question</h3>
+<p><strong>Tell me about a difficult situation you handled as a leader.</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+One example was a critical production issue that affected an important business function.<br><br>
+My first priority was to stabilize the situation rather than immediately finding someone to blame.<br><br>
+I divided the team into different responsibilities. Some members investigated logs and application behavior, while others checked recent releases and database activity.<br><br>
+At the same time, I kept stakeholders updated about our progress and risks.<br><br>
+After identifying the root cause, we implemented the safest solution, verified it carefully and released the fix.<br><br>
+After the incident, we conducted a root-cause analysis and added preventive measures such as better monitoring and additional test cases.<br><br>
+What I learned from that experience is that during a critical situation, technical skill is important, but communication, prioritization and calm decision-making are equally important.
+</blockquote>
+</section>
+<section id="s13"><h2>13. Risk of Missing a Deadline</h2>
+<h3>Question</h3>
+<p><strong>What do you do when your team may miss a deadline?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I try to identify the risk as early as possible.<br><br>
+First, I check the remaining work and identify the real bottleneck.<br><br>
+Then I look at possible options: reducing non-critical scope, reallocating resources, simplifying the solution or adjusting priorities.<br><br>
+Most importantly, I communicate the risk early to stakeholders.<br><br>
+I don't believe in hiding a problem until the deadline.<br><br>
+If the deadline is fixed, I work with the team to find the best solution while protecting the critical quality of the product.
+</blockquote>
+<div class="tip"><strong>Strong line:</strong> I believe risks should be communicated early, not when they become problems.</div>
+</section>
+<section id="s14"><h2>14. Speed vs Quality</h2>
+<h3>Question</h3>
+<p><strong>Speed or quality—which is more important?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I don't think speed and quality should always be treated as opposites.<br><br>
+The important thing is understanding which quality attributes are non-negotiable.<br><br>
+For example, in a financial system, security, data correctness and transaction integrity cannot be compromised.<br><br>
+However, we can still improve delivery speed by reducing unnecessary complexity, automating testing and deployment, breaking work into smaller releases and making decisions faster.<br><br>
+For me, good engineering means delivering the right level of quality as quickly as possible.
+</blockquote>
+</section>
+<section id="s15"><h2>15. Technical Excellence vs Business Requirements</h2>
+<h3>Question</h3>
+<p><strong>How do you balance technical excellence and business requirements?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+As engineers, it is easy to focus only on building the technically perfect solution.<br><br>
+But the best technical solution is not always the best business solution.<br><br>
+Before making a design decision, I try to understand the business goal, expected scale, timeline, risks and future direction.<br><br>
+Then I choose a solution that is simple enough for the current requirement but flexible enough for reasonable future changes.<br><br>
+I try to avoid both under-engineering and over-engineering.
+</blockquote>
+<div class="tip"><strong>Strong line:</strong> Technology should support the business, not become the goal itself.</div>
+</section>
+<section id="s16"><h2>16. Tell Me About a Failure</h2>
+<h3>Question</h3>
+<p><strong>Tell me about a failure or mistake.</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Earlier in my career, I sometimes focused too much on solving technical problems myself.<br><br>
+When I became a leader, I realized that this approach did not scale. If every difficult problem depended on me, I became a bottleneck and team members had fewer opportunities to grow.<br><br>
+So I changed my approach.<br><br>
+Instead of immediately giving the solution, I started asking questions, sharing the context and helping team members find the solution themselves.<br><br>
+As a result, team members became more independent and I had more time to focus on architecture and higher-level problems.<br><br>
+That experience changed my understanding of leadership.
+</blockquote>
+</section>
+<section id="s17"><h2>17. Biggest Weakness</h2>
+<h3>Question</h3>
+<p><strong>What is your biggest weakness?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+One area I have been improving is delegation.<br><br>
+Because I have a strong technical background, in the past I sometimes preferred to handle difficult technical tasks myself because I believed it would be faster.<br><br>
+However, as my leadership responsibilities increased, I realized that this approach can create a dependency on the leader.<br><br>
+Now I delegate more intentionally, provide guidance and allow team members to own the solution.<br><br>
+This has helped both the team and myself grow.
+</blockquote>
+</section>
+<section id="s18"><h2>18. Developing Team Members</h2>
+<h3>Question</h3>
+<p><strong>How do you develop your team members?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I believe development should be different for each person.<br><br>
+Some developers need deeper technical knowledge, while others need opportunities in communication, design or leadership.<br><br>
+I normally observe their strengths and areas for improvement, discuss their goals during one-on-one conversations and then give them suitable challenges.<br><br>
+For example, instead of always asking a senior developer to design a solution, I may let another member prepare the first proposal and then review it together.<br><br>
+I also encourage knowledge sharing and code review within the team.<br><br>
+My goal is to gradually make team members able to handle more responsibility independently.
+</blockquote>
+</section>
+<section id="s19"><h2>19. Working Across Countries</h2>
+<h3>Question</h3>
+<p><strong>How do you work with teams from different countries?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I think the biggest challenge in cross-country collaboration is often not technical knowledge but differences in context and communication styles.<br><br>
+My approach is to make communication explicit.<br><br>
+I clearly document important requirements and decisions, confirm understanding after discussions and avoid assuming that everyone interprets something in the same way.<br><br>
+When there is disagreement, I focus the discussion on facts, requirements and business goals rather than personal opinions.<br><br>
+Working with Japanese teams for many years has taught me to be especially careful about this.<br><br>
+I believe strong cross-country collaboration requires clarity, respect and frequent communication.
+</blockquote>
+</section>
+<section id="s20"><h2>20. Technical Decision-Making</h2>
+<h3>Question</h3>
+<p><strong>How do you make technical decisions?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I normally start from the problem rather than the technology.<br><br>
+First, I clarify the requirements, constraints and expected scale.<br><br>
+Then I compare possible solutions based on factors such as maintainability, performance, reliability, development cost and operational complexity.<br><br>
+For important decisions, I discuss the options with the team because different perspectives often reveal risks that one person may miss.<br><br>
+Finally, I document important decisions so that future team members understand not only what we decided, but why we decided it.
+</blockquote>
+</section>
+<section id="s21"><h2>21. Disagreeing With an Existing Rakuten Approach</h2>
+<h3>Question</h3>
+<p><strong>What would you do if you joined Rakuten and discovered something you disagreed with?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+First, I would spend time understanding the context.<br><br>
+A system or process that looks inefficient from the outside may exist for reasons that I don't yet understand.<br><br>
+After understanding the background, if I still see an opportunity for improvement, I would prepare a proposal with the expected benefits, risks and implementation approach.<br><br>
+I prefer to improve things through evidence and collaboration rather than simply criticizing the existing way of working.
+</blockquote>
+</section>
+<section id="s22"><h2>22. Three-to-Five-Year Career Plan</h2>
+<h3>Question</h3>
+<p><strong>What do you want to achieve in the next three to five years?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+In the next three to five years, I want to become someone who can take responsibility for larger technical areas rather than only individual features.<br><br>
+Technically, I want to deepen my knowledge of architecture, distributed systems, performance and the full software development lifecycle.<br><br>
+At the same time, I want to improve my professional leadership skills—especially decision-making, mentoring and working with international teams.<br><br>
+Whether the future title is Technical Lead, Engineering Manager or another role is less important to me than increasing the level of responsibility and impact I can handle.
+</blockquote>
+</section>
+<section id="s23"><h2>23. Technical Work or Management?</h2>
+<h3>Question</h3>
+<p><strong>Do you prefer technical work or management?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+My strongest foundation is still engineering, and I want to stay close to technology.<br><br>
+At the same time, I enjoy leadership responsibilities such as architecture discussions, mentoring, code reviews and helping the team make better decisions.<br><br>
+So at this stage, I see myself as a technical leader rather than a pure people manager.<br><br>
+I want to continue being technically strong while gradually taking broader responsibility.
+</blockquote>
+</section>
+<section id="s24"><h2>24. Why Not Apply for a Manager Position?</h2>
+<h3>Question</h3>
+<p><strong>Why don't you apply for a Manager position?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+For me, title is not the most important factor.<br><br>
+Although I currently have leadership responsibilities, my strongest capability is still software engineering.<br><br>
+I enjoy architecture, solving complex technical problems and working closely with development teams.<br><br>
+If I join Rakuten, I would first like to understand the organization, systems and working culture and prove my contribution.<br><br>
+If larger leadership responsibilities become appropriate in the future, I would be happy to take that challenge.
+</blockquote>
+</section>
+
+<section id="s25"><h2>25. Why Rakuten Fintech?</h2>
+<h3>Question</h3>
+<p><strong>Why Rakuten Fintech?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I am looking for a stable and professional company where I can build my career for the long term.<br><br>
+At this stage of my career, I don't want to change companies frequently. I want to join an organization where I can continuously learn, take on more responsibility and grow together with the company.<br><br>
+I am also a person who always tries to improve myself, both technically and as a leader. I believe that when I continue learning and developing my skills, I can create more value for the team and the company.<br><br>
+That is why Rakuten Fintech is very attractive to me. I see it as an environment where I can contribute with my experience while also continuing to grow professionally.<br><br>
+If I join Rakuten, I hope to build a long-term career here, gradually take on greater responsibilities and contribute more value to the organization over time.
+</blockquote>
+<div class="key"><strong>Strong closing line:</strong> I am not only looking for my next job. I am looking for the next important stage of my career.</div>
+</section>
+
+<section id="s26"><h2>26. Customer Satisfaction for an Engineer</h2>
+<h3>Question</h3>
+<p><strong>What does customer satisfaction mean to an engineer?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Engineers may not always communicate directly with customers, but almost every engineering decision affects the customer experience.<br><br>
+Performance affects how quickly customers complete an action.<br><br>
+Reliability affects whether they trust the service.<br><br>
+Security protects their information and money.<br><br>
+Even maintainability eventually affects how quickly we can deliver improvements.<br><br>
+So I believe customer satisfaction should also be part of engineering decision-making, not only a responsibility of the business team.
+</blockquote>
+</section>
+<section id="s27"><h2>27. What Does Ownership Mean?</h2>
+<h3>Question</h3>
+<p><strong>What does ownership mean to you?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+For me, ownership means not stopping at “my code is finished.”<br><br>
+I should care whether the requirement is correct, whether the solution works in production, whether the team can maintain it and whether the customer receives the expected value.<br><br>
+If a problem happens, my first question should be “How can we solve it?” rather than “Whose fault is it?”<br><br>
+That is how I try to work as both an engineer and a leader.
+</blockquote>
+</section>
+<section id="s28"><h2>28. Wrong Decision as a Leader</h2>
+<h3>Question</h3>
+<p><strong>What if you make a wrong decision as a leader?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Leaders will not always make perfect decisions.<br><br>
+If I realize that I made a wrong decision, I think the most important thing is to acknowledge it quickly rather than defend it because of ego.<br><br>
+I would evaluate the impact, communicate transparently with the team and stakeholders, and correct the direction as quickly as possible.<br><br>
+After that, I would understand why the decision was wrong and improve the decision-making process.<br><br>
+For me, leadership is not about always being right. It is about taking responsibility for the result.
+</blockquote>
+</section>
+<section id="s29"><h2>29. What Motivates You?</h2>
+<h3>Question</h3>
+<p><strong>What motivates you?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I am motivated by progress.<br><br>
+I enjoy solving difficult problems, but what motivates me even more now is seeing a team become stronger and seeing a system become better because of decisions we made.<br><br>
+I also enjoy learning. Even after nine years in software development, there are still many areas I want to understand more deeply.<br><br>
+That continuous improvement is one of the reasons I still enjoy engineering.
+</blockquote>
+</section>
+<section id="s30"><h2>30. Long-Term Commitment</h2>
+<h3>Question</h3>
+<p><strong>How long do you plan to stay with Rakuten?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I am looking for a long-term opportunity.<br><br>
+Changing companies requires significant investment from both the company and the employee, so I don't make that decision lightly.<br><br>
+If I join Rakuten and continue having opportunities to contribute, learn and take more responsibility, I would like to build the next important stage of my career here.
+</blockquote>
+</section>
+<section id="s31"><h2>31. Starting Again in a New Company</h2>
+<h3>Question</h3>
+<p><strong>You already have a leadership role. Why start again in another company?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I don't see joining a new organization as starting again.<br><br>
+I see it as bringing my previous experience into a new environment while being humble enough to learn how that environment works.<br><br>
+My leadership experience can help me contribute, but I don't expect people to trust me simply because of my previous title.<br><br>
+I would first build credibility through my work, communication and results.<br><br>
+Leadership should be earned in each new environment.
+</blockquote>
+</section>
+<section id="s32"><h2>32. Why Should We Make a Compensation Exception?</h2>
+<h3>Question</h3>
+<p><strong>Why should we make an exception for your compensation?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+I understand that approving an exception requires a strong reason.<br><br>
+I would not expect Rakuten to make an exception simply because I request a higher salary.<br><br>
+The reason should be the value I can create.<br><br>
+With around nine years of engineering experience, current team leadership responsibility and many years working with Japanese organizations, I believe I can contribute at a level beyond only implementing assigned tasks.<br><br>
+I can independently handle complex technical problems, support architectural decisions, mentor engineers, improve development quality and take ownership when problems happen in production.<br><br>
+Of course, I understand that I still need to prove this after joining.<br><br>
+If Rakuten believes that this level of contribution matches the expectation for the role, I hope the compensation can reflect that value as well.
+</blockquote>
+<div class="key"><strong>Key sentence:</strong> I would not expect Rakuten to make an exception simply because I request a higher salary. The reason should be the value I can create.</div>
+</section>
+<section id="s33"><h2>33. High-Level Technical Questions</h2>
+<p>The General Director may still ask technical questions, but probably at a high level.</p>
+<ul>
+<li>What is the most complex system you have worked on?</li>
+<li>How do you design a reliable system?</li>
+<li>How do you handle production incidents?</li>
+<li>How do you ensure code quality?</li>
+<li>How do you prevent technical debt?</li>
+<li>How do you review architecture?</li>
+<li>How do you mentor junior engineers?</li>
+<li>How do you decide between speed and quality?</li>
+<li>How do you communicate technical risks to business people?</li>
+</ul>
+<div class="tip">
+<strong>Answer structure:</strong><br>
+Business problem → Scale / Complexity → Your responsibility → Solution → Result
+</div>
+</section>
+<section id="s34"><h2>34. What Does Professionalism Mean?</h2>
+<h3>Question</h3>
+<p><strong>What does professionalism mean to you?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+For me, professionalism means being someone that the team can rely on.<br><br>
+It means preparing carefully, keeping commitments, communicating problems early, continuously improving my skills and taking responsibility for the result.<br><br>
+A professional does not only perform well when everything is going smoothly. The real test is how we behave when there is pressure or when something goes wrong.
+</blockquote>
+</section>
+<section id="s35"><h2>35. Working Under Pressure</h2>
+<h3>Question</h3>
+<p><strong>Are you comfortable working under pressure?</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Yes. I have worked on production systems and have handled critical issues where decisions had to be made quickly.<br><br>
+Under pressure, I try to separate urgency from panic.<br><br>
+I identify the highest priority, collect the necessary information, assign clear responsibilities and keep stakeholders informed.<br><br>
+I have learned that staying calm helps the entire team perform better.
+</blockquote>
+<div class="tip"><strong>Strong phrase:</strong> Separate urgency from panic.</div>
+</section>
+<section id="s36"><h2>36. Questions to Ask the General Director</h2>
+<p>At the end of the interview, ask one or two executive-level questions.</p>
+<ol>
+<li><strong>From your perspective, what distinguishes engineers who become highly successful at Rakuten from engineers who are simply good technically?</strong></li>
+<li><strong>What are the biggest engineering or organizational challenges that you expect Rakuten Fintech Vietnam to solve over the next few years?</strong></li>
+<li><strong>For someone joining at a Senior or technical leadership level, what would you expect them to achieve within the first six to twelve months?</strong></li>
+<li><strong>How do you see the role of Rakuten Fintech Vietnam evolving within the wider Rakuten organization?</strong></li>
+</ol>
+<div class="key"><strong>Best combination:</strong> Question 1 + Question 3.</div>
+</section>
+<section id="s37"><h2>37. Closing Statement</h2>
+<h3>Situation</h3>
+<p>If the General Director says: <strong>“Thank you. Is there anything else you would like to say?”</strong></p>
+<h3>Recommended Answer</h3>
+<blockquote>
+Thank you very much for your time today.<br><br>
+After going through the interview process and learning more about Rakuten, I am even more interested in this opportunity.<br><br>
+I believe my Java background, leadership experience and experience working with Japanese organizations would allow me to contribute strongly to the team.<br><br>
+At the same time, I know that joining a new organization always requires learning and proving myself.<br><br>
+If I have the opportunity to join Rakuten, I am confident that I can bring value, and I would be very happy to take on that challenge.
+</blockquote>
+<div class="warning"><strong>Do not mention salary in your closing statement.</strong></div>
+</section>
+<section id="s38"><h2>38. Likely Evaluation Areas</h2>
+<table>
+<thead><tr><th>Area</th><th>Likelihood</th></tr></thead>
+<tbody>
+<tr><td>Why Rakuten / motivation</td><td>★★★★★</td></tr>
+<tr><td>Why 75M / salary justification</td><td>★★★★★</td></tr>
+<tr><td>Leadership / management maturity</td><td>★★★★★</td></tr>
+<tr><td>Career direction</td><td>★★★★★</td></tr>
+<tr><td>Japanese working culture</td><td>★★★★★</td></tr>
+<tr><td>Commitment / retention risk</td><td>★★★★☆</td></tr>
+<tr><td>Communication / international team</td><td>★★★★☆</td></tr>
+<tr><td>Problem solving / ownership</td><td>★★★★☆</td></tr>
+<tr><td>Business mindset</td><td>★★★★☆</td></tr>
+<tr><td>Technical high-level</td><td>★★★☆☆</td></tr>
+<tr><td>Deep Java technical</td><td>★☆☆☆☆</td></tr>
+</tbody>
+</table>
+</section>
+<section id="s39"><h2>39. How to Speak With a Japanese General Director</h2>
+<p>Try to create the impression of being <strong>experienced but humble</strong>.</p>
+<table>
+<thead><tr><th>Avoid</th><th>Better</th></tr></thead>
+<tbody>
+<tr><td>I am very senior.</td><td>I have strong experience, but I still want to learn the new organization and prove my contribution.</td></tr>
+<tr><td>I can lead any team.</td><td>I have leadership experience, but when joining a new organization, I first want to understand the team and earn their trust.</td></tr>
+<tr><td>I deserve 75 million.</td><td>I hope the compensation can reflect the level of contribution expected from me.</td></tr>
+<tr><td>My architecture is better.</td><td>I would first understand why the current architecture was designed that way before proposing an improvement.</td></tr>
+</tbody>
+</table>
+</section>
+<section id="s40"><h2>40. Top 10 Questions to Practice First</h2>
+<ol>
+<li>Tell me about yourself.</li>
+<li>Why Rakuten?</li>
+<li>Why are you leaving your current company?</li>
+<li>Why should we hire you?</li>
+<li>Why do you expect 75M?</li>
+<li>Why should we make an exception for you?</li>
+<li>What is your leadership style?</li>
+<li>What have you learned from working with Japanese companies?</li>
+<li>Where do you see yourself in 3–5 years?</li>
+<li>Do you have any questions for me?</li>
+</ol>
+<div class="key">
+<strong>Position yourself as:</strong><br>
+“A strong hands-on Java engineer with leadership experience, proven experience working with Japanese organizations, and the potential to take broader technical ownership at Rakuten.”
+</div>
+</section>
+</main>
+</div>
+
+<footer>
+  Rakuten General Director Interview Preparation Guide
+</footer>
+</body>
+</html>

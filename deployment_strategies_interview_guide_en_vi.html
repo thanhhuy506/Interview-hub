@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Deployment Strategies — Interview Study Guide (EN/VN)</title>
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --panel2:#ffffff; --text:#111827; --muted:#5f6b7a;
+  --accent:#1f4b99; --accent2:#176b55; --warn:#9a6700; --danger:#b42318; --line:#d9dee7;
+  --code:#f7f8fa; --good:#176b55;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#ffffff;color:var(--text);line-height:1.65}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:auto;padding:24px}
+header{padding:34px 0 18px}
+.hero{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:28px;box-shadow:none}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.08;margin:0 0 14px}
+h2{font-size:30px;margin:52px 0 18px}
+h3{font-size:21px;margin:0 0 10px}
+h4{font-size:17px;margin:22px 0 8px}
+p{margin:8px 0 14px}
+.small{font-size:14px;color:var(--muted)}
+.muted{color:var(--muted)}
+.topbar{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.lang-switch{display:flex;background:#ffffff;border:1px solid var(--line);border-radius:999px;padding:4px}
+.lang-switch button{border:0;background:transparent;color:var(--muted);font-weight:700;padding:8px 16px;border-radius:999px;cursor:pointer}
+.lang-switch button.active{background:#111827;color:#ffffff}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.badge{display:inline-flex;padding:5px 10px;border-radius:999px;border:1px solid #cfd5df;background:#ffffff;color:#374151;font-size:13px}
+.notice{border-left:4px solid var(--accent2);background:#fafafa;padding:14px 16px;border-radius:10px;margin:16px 0}
+.warn{border-left-color:var(--warn)}
+.danger{border-left-color:var(--danger)}
+nav{position:sticky;top:0;z-index:10;margin:20px 0 28px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:10px 14px;overflow:auto;white-space:nowrap}
+nav a{display:inline-block;margin:4px 12px 4px 0;color:#374151;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:#ffffff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3 .num{display:inline-flex;width:32px;height:32px;border-radius:9px;background:#f1f3f6;align-items:center;justify-content:center;margin-right:8px;color:#111827}
+.kv{display:grid;grid-template-columns:135px 1fr;gap:6px 12px;font-size:14px}
+.kv b{color:#111827}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+.tag{display:inline-block;font-size:12px;padding:2px 7px;border:1px solid #3a4c6d;border-radius:7px;color:#4b5563;margin-right:5px}
+.good{color:var(--good)} .bad{color:var(--danger)}
+.flow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);border:1px solid #d9dee7;border-radius:12px;padding:14px;overflow:auto;white-space:pre}
+table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:14px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:12px 10px;text-align:left;vertical-align:top}
+th{background:#f3f4f6;color:#111827;position:sticky;top:0}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.score{font-weight:800}
+code{background:#f5f6f8;border:1px solid #d9dee7;padding:1px 5px;border-radius:5px;color:#111827}
+pre code{border:0;padding:0}
+details{background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+summary{cursor:pointer;font-weight:700;color:#111827}
+.callout{display:grid;grid-template-columns:150px 1fr;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;background:#ffffff}
+.callout .label{font-weight:800;color:var(--accent2)}
+.footer{margin:50px 0 10px;padding:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.lang-vi{display:none}
+body.vi .lang-en{display:none}
+body.vi .lang-vi{display:block}
+span.lang-vi{display:none}
+body.vi span.lang-en{display:none}
+body.vi span.lang-vi{display:inline}
+@media(max-width:820px){.grid,.grid3{grid-template-columns:1fr}.kv{grid-template-columns:1fr}.callout{grid-template-columns:1fr}.wrap{padding:14px}th,td{min-width:150px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="topbar">
+  <div class="small">Senior Backend / Java / DevOps Interview Study Notes</div>
+  <div class="lang-switch">
+    <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="btn-vi" onclick="setLang('vi')">VI</button>
+  </div>
+</div>
+<div class="hero">
+  <div class="lang-en">
+    <h1>Deployment Strategies<br/>Deep-Dive Guide</h1>
+    <p class="muted">A practical interview guide to deployment models, rollout strategies, rollback, database compatibility, Kubernetes, and progressive delivery.</p>
+  </div>
+  <div class="lang-vi">
+    <h1>Deployment Strategies<br/>Tài liệu ôn phỏng vấn chuyên sâu</h1>
+    <p class="muted">Tài liệu thực tế về các mô hình deployment, rollout, rollback, tương thích database, Kubernetes và progressive delivery.</p>
+  </div>
+  <div class="badges">
+    <span class="badge">Recreate</span><span class="badge">Rolling</span><span class="badge">Blue–Green</span>
+    <span class="badge">Canary</span><span class="badge">A/B Testing</span><span class="badge">Shadow</span>
+    <span class="badge">Feature Flags</span><span class="badge">Immutable</span><span class="badge">Ring/Wave</span>
+  </div>
+</div>
+</header>
+
+<nav>
+<a href="#concepts">1. Core concepts</a>
+<a href="#strategy-overview">2. Overview</a>
+<a href="#strategies">3. Details</a>
+<a href="#compare">4. Comparison</a>
+<a href="#choose">5. How to choose</a>
+<a href="#db">6. Database</a>
+<a href="#k8s">7. Kubernetes</a>
+<a href="#pipeline">8. CI/CD</a>
+<a href="#interview">9. Interview Q&A</a>
+</nav>
+
+<section id="concepts">
+<div class="lang-en">
+<h2>1. Core concepts you should say correctly in an interview</h2>
+<div class="notice"><b>Deployment</b> means putting a new version into an environment. <b>Release</b> means making a capability available to users. They can happen at different times.</div>
+</div>
+<div class="lang-vi">
+<h2>1. Những khái niệm nền tảng cần nói đúng khi phỏng vấn</h2>
+<div class="notice"><b>Deployment</b> là đưa version mới vào environment. <b>Release</b> là cho user thực sự sử dụng tính năng. Hai việc này có thể diễn ra ở hai thời điểm khác nhau.</div>
+</div>
+
+<div class="grid3">
+<div class="card">
+<h3>Deployment</h3>
+<p class="lang-en">Move/build/run version <code>v2</code> in production.</p>
+<p class="lang-vi">Đưa/build/chạy version <code>v2</code> trên production.</p>
+</div>
+<div class="card">
+<h3>Release</h3>
+<p class="lang-en">Expose the feature to users, often controlled by a feature flag.</p>
+<p class="lang-vi">Mở tính năng cho user, thường được điều khiển bởi feature flag.</p>
+</div>
+<div class="card">
+<h3>Rollout</h3>
+<p class="lang-en">Gradually change the percentage of traffic or hosts using the new version.</p>
+<p class="lang-vi">Tăng dần phần trăm traffic hoặc số host sử dụng version mới.</p>
+</div>
+</div>
+
+<div class="callout">
+<div class="label">Interview point</div>
+<div class="lang-en">A senior answer should discuss not only “how to deploy”, but also <b>blast radius, rollback speed, backward compatibility, observability, traffic control, infrastructure cost, and database migration</b>.</div>
+<div class="lang-vi">Câu trả lời senior không chỉ nói “deploy thế nào”, mà nên nói thêm về <b>blast radius, tốc độ rollback, backward compatibility, observability, traffic control, chi phí hạ tầng và database migration</b>.</div>
+</div>
+</section>
+
+
+<section id="strategy-overview">
+<div class="lang-en"><h2>2. Deployment strategies at a glance</h2>
+<p class="muted">Start with this table to understand the big picture. The detailed explanation for each strategy comes immediately after it.</p></div>
+<div class="lang-vi"><h2>2. Tổng quan tất cả deployment strategies</h2>
+<p class="muted">Hãy nhìn bảng này trước để nắm bức tranh tổng thể. Phần giải thích chi tiết từng strategy nằm ngay bên dưới.</p></div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Strategy</th>
+<th class="lang-en">Main idea</th>
+<th class="lang-vi">Ý chính</th>
+<th class="lang-en">Best when</th>
+<th class="lang-vi">Phù hợp khi</th>
+<th>Downtime</th>
+<th>Rollback</th>
+<th>Cost</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td><td><b>Recreate</b></td><td class="lang-en">Stop v1, then start v2.</td><td class="lang-vi">Dừng v1 rồi chạy v2.</td><td class="lang-en">Small/internal systems.</td><td class="lang-vi">App nhỏ, nội bộ.</td><td>High</td><td>Medium</td><td>Low</td><td>High</td></tr>
+<tr><td>2</td><td><b>Rolling</b></td><td class="lang-en">Replace instances gradually.</td><td class="lang-vi">Thay instance từng phần.</td><td class="lang-en">Default stateless service rollout.</td><td class="lang-vi">Stateless service thông thường.</td><td>Low</td><td>Medium</td><td>Low–Med</td><td>Medium</td></tr>
+<tr><td>3</td><td><b>Blue–Green</b></td><td class="lang-en">Run two environments, then switch traffic.</td><td class="lang-vi">Chạy 2 environment rồi switch traffic.</td><td class="lang-en">Fast rollback is critical.</td><td class="lang-vi">Cần rollback rất nhanh.</td><td>Near-zero</td><td>Very fast</td><td>High</td><td>Medium</td></tr>
+<tr><td>4</td><td><b>Canary</b></td><td class="lang-en">Send small traffic to v2 first.</td><td class="lang-vi">Cho ít traffic vào v2 trước.</td><td class="lang-en">High-risk, high-traffic systems.</td><td class="lang-vi">Hệ thống lớn, thay đổi rủi ro.</td><td>Near-zero</td><td>Fast</td><td>Medium</td><td>Low</td></tr>
+<tr><td>5</td><td><b>A/B Testing</b></td><td class="lang-en">Split users into experiment groups.</td><td class="lang-vi">Chia user theo nhóm thử nghiệm.</td><td class="lang-en">Product/business experiments.</td><td class="lang-vi">So sánh UX/business outcome.</td><td>Near-zero</td><td>N/A</td><td>Medium</td><td>Controlled</td></tr>
+<tr><td>6</td><td><b>Shadow</b></td><td class="lang-en">Mirror traffic to v2; ignore its response.</td><td class="lang-vi">Copy traffic sang v2 nhưng bỏ response.</td><td class="lang-en">Real-traffic validation without user impact.</td><td class="lang-vi">Test traffic thật, không ảnh hưởng user.</td><td>None</td><td>N/A</td><td>Med–High</td><td>Very low to users</td></tr>
+<tr><td>7</td><td><b>Feature Flag</b></td><td class="lang-en">Deploy code first, release later.</td><td class="lang-vi">Deploy trước, bật feature sau.</td><td class="lang-en">Separate deployment from release.</td><td class="lang-vi">Tách deployment và release.</td><td>None</td><td>Very fast</td><td>Low</td><td>Low</td></tr>
+<tr><td>8</td><td><b>Immutable</b></td><td class="lang-en">Replace infrastructure instead of patching.</td><td class="lang-vi">Thay instance/image thay vì patch trực tiếp.</td><td class="lang-en">Cloud-native, Docker/Kubernetes.</td><td class="lang-vi">Cloud-native, Docker/Kubernetes.</td><td>Depends</td><td>Fast</td><td>Medium</td><td>Depends</td></tr>
+<tr><td>9</td><td><b>In-Place</b></td><td class="lang-en">Update existing servers directly.</td><td class="lang-vi">Update trực tiếp server hiện tại.</td><td class="lang-en">Legacy/on-prem constraints.</td><td class="lang-vi">Legacy/on-prem.</td><td>Possible</td><td>Slow–Med</td><td>Low</td><td>Medium–High</td></tr>
+<tr><td>10</td><td><b>Ring / Wave</b></td><td class="lang-en">Roll out by region, tenant, or risk group.</td><td class="lang-vi">Rollout theo region/tenant/nhóm rủi ro.</td><td class="lang-en">Multi-region and enterprise systems.</td><td class="lang-vi">Multi-region, enterprise SaaS.</td><td>Near-zero</td><td>Fast per ring</td><td>Medium</td><td>Low</td></tr>
+<tr><td>11</td><td><b>Progressive Delivery</b></td><td class="lang-en">Automated staged rollout using metrics/policy.</td><td class="lang-vi">Rollout theo stage dựa trên metrics/policy.</td><td class="lang-en">Mature observability and automation.</td><td class="lang-vi">Đội có observability/automation tốt.</td><td>Near-zero</td><td>Fast/Auto</td><td>Medium</td><td>Low</td></tr>
+<tr><td>12</td><td><b>Hybrid</b></td><td class="lang-en">Combine multiple strategies.</td><td class="lang-vi">Kết hợp nhiều strategy.</td><td class="lang-en">Complex real-world production systems.</td><td class="lang-vi">Hệ thống production thực tế, phức tạp.</td><td>Depends</td><td>Usually fast</td><td>Med–High</td><td>Low–Med</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="notice">
+<div class="lang-en"><b>Easy memory:</b> Recreate = simplest, Rolling = default, Blue–Green = fastest rollback, Canary = lowest blast radius, A/B = product experiment, Shadow = safe real-traffic validation, Feature Flag = deploy ≠ release.</div>
+<div class="lang-vi"><b>Mẹo nhớ:</b> Recreate = đơn giản nhất, Rolling = default, Blue–Green = rollback nhanh nhất, Canary = blast radius nhỏ, A/B = thử nghiệm sản phẩm, Shadow = test traffic thật an toàn, Feature Flag = deploy ≠ release.</div>
+</div>
+</section>
+
+<section id="strategies">
+<div class="lang-en"><h2>3. Detailed deployment strategies</h2></div>
+<div class="lang-vi"><h2>3. Chi tiết từng deployment strategy</h2></div>
+
+<div class="grid">
+
+<div class="card">
+<h3><span class="num">1</span> Recreate / Big-Bang Deployment</h3>
+<div class="flow">v1: ██████████
+stop v1
+deploy v2
+v2: ██████████</div>
+<div class="lang-en">
+<p><b>How it works:</b> stop all old instances, then start the new version.</p>
+<ul><li><span class="good">Pros:</span> simple, cheap, easy to understand.</li><li><span class="bad">Cons:</span> downtime; high blast radius; rollback can be slow.</li></ul>
+<p><b>Use when:</b> internal systems, development/test, scheduled maintenance, small non-critical applications, or versions that cannot coexist.</p>
+<p><b>Avoid when:</b> public APIs, 24/7 services, payment/order systems, strict SLA.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> dừng toàn bộ instance cũ rồi mới khởi động version mới.</p>
+<ul><li><span class="good">Ưu:</span> đơn giản, rẻ, dễ vận hành.</li><li><span class="bad">Nhược:</span> có downtime; blast radius lớn; rollback có thể chậm.</li></ul>
+<p><b>Dùng khi:</b> hệ thống nội bộ, dev/test, maintenance window, app nhỏ không critical, hoặc 2 version không thể chạy song song.</p>
+<p><b>Không nên dùng:</b> public API, hệ thống 24/7, payment/order, SLA cao.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">2</span> Rolling Deployment / Rolling Update</h3>
+<div class="flow">Step 1: v1 v1 v1 v1
+Step 2: v2 v1 v1 v1
+Step 3: v2 v2 v1 v1
+Step 4: v2 v2 v2 v2</div>
+<div class="lang-en">
+<p><b>How it works:</b> replace instances gradually. Old and new versions run together during the rollout.</p>
+<ul><li><span class="good">Pros:</span> near-zero downtime; no duplicate full environment; native in Kubernetes.</li><li><span class="bad">Cons:</span> mixed-version compatibility is required; rollback is not instant; bugs can affect traffic while rollout proceeds.</li></ul>
+<p><b>Use when:</b> default choice for stateless services with backward-compatible APIs and DB changes.</p>
+<p><b>Key controls:</b> <code>maxSurge</code>, <code>maxUnavailable</code>, readiness probe, health checks.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> thay từng nhóm instance từ v1 sang v2. Trong lúc rollout, cả v1 và v2 cùng chạy.</p>
+<ul><li><span class="good">Ưu:</span> gần như zero downtime; không cần dựng full environment thứ hai; Kubernetes hỗ trợ sẵn.</li><li><span class="bad">Nhược:</span> v1/v2 phải tương thích; rollback không tức thời; bug vẫn có thể nhận traffic trong rollout.</li></ul>
+<p><b>Dùng khi:</b> lựa chọn mặc định cho stateless service, API và DB change backward-compatible.</p>
+<p><b>Điểm cần nhớ:</b> <code>maxSurge</code>, <code>maxUnavailable</code>, readiness probe, health checks.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">3</span> Blue–Green / Red–Black Deployment</h3>
+<div class="flow">BLUE  = v1  ← 100% traffic
+GREEN = v2  ← 0%
+
+validate GREEN
+
+BLUE  = v1  ← 0%
+GREEN = v2  ← 100%</div>
+<div class="lang-en">
+<p><b>How it works:</b> maintain two production-like environments. Deploy and test the inactive environment, then switch traffic.</p>
+<ul><li><span class="good">Pros:</span> very fast cutover and rollback; clean separation; excellent for high-risk releases.</li><li><span class="bad">Cons:</span> roughly 2× runtime capacity during deployment; DB/stateful systems are harder.</li></ul>
+<p><b>Use when:</b> fast rollback matters, releases are less frequent but high impact, enough infrastructure budget exists.</p>
+<p><b>Important:</b> traffic switch can be done via load balancer, ingress, service selector, DNS, or routing layer.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> duy trì hai environment production-like. Deploy/test ở environment đang inactive, sau đó switch traffic.</p>
+<ul><li><span class="good">Ưu:</span> cutover và rollback rất nhanh; tách biệt rõ; phù hợp release rủi ro cao.</li><li><span class="bad">Nhược:</span> tốn gần gấp đôi capacity trong thời gian deploy; khó hơn với DB/stateful system.</li></ul>
+<p><b>Dùng khi:</b> cần rollback nhanh, release ít nhưng ảnh hưởng lớn, ngân sách infrastructure đủ.</p>
+<p><b>Lưu ý:</b> switch traffic có thể bằng load balancer, ingress, service selector, DNS hoặc routing layer.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">4</span> Canary Deployment</h3>
+<div class="flow">v1 95%  ─────────────┐
+                   ├─ users
+v2  5%  ─────────────┘
+
+5% → 10% → 25% → 50% → 100%</div>
+<div class="lang-en">
+<p><b>How it works:</b> send a small percentage of real traffic to v2, observe metrics, then progressively increase traffic.</p>
+<ul><li><span class="good">Pros:</span> small blast radius; detects production-only problems; supports automated promotion/rollback.</li><li><span class="bad">Cons:</span> complex routing/metrics; both versions must coexist; requires strong observability.</li></ul>
+<p><b>Use when:</b> large-scale consumer systems, risky changes, high traffic, strong SRE/observability maturity.</p>
+<p><b>Typical success metrics:</b> error rate, p95/p99 latency, CPU, memory, conversion, payment success, business KPI.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> gửi một phần nhỏ traffic thật vào v2, theo dõi metrics, sau đó tăng dần traffic.</p>
+<ul><li><span class="good">Ưu:</span> blast radius nhỏ; phát hiện lỗi chỉ xuất hiện trên production; có thể tự động promote/rollback.</li><li><span class="bad">Nhược:</span> routing và metrics phức tạp; v1/v2 phải cùng tồn tại; cần observability tốt.</li></ul>
+<p><b>Dùng khi:</b> hệ thống consumer lớn, thay đổi rủi ro, traffic cao, đội có SRE/observability tốt.</p>
+<p><b>Metrics thường theo dõi:</b> error rate, p95/p99 latency, CPU, memory, conversion, payment success, business KPI.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">5</span> A/B Testing</h3>
+<div class="flow">Group A → version/experience A
+Group B → version/experience B
+Measure → conversion / behavior</div>
+<div class="lang-en">
+<p><b>Purpose:</b> product experimentation, not primarily deployment safety.</p>
+<p>Traffic is split by a deliberate user attribute or experiment cohort, not just random rollout percentage.</p>
+<ul><li><span class="good">Pros:</span> compare user behavior and business outcomes.</li><li><span class="bad">Cons:</span> experiment contamination, data analysis complexity, sticky routing may be required.</li></ul>
+<p><b>Use when:</b> deciding which UX, pricing flow, recommendation algorithm, or business behavior performs better.</p>
+</div>
+<div class="lang-vi">
+<p><b>Mục đích:</b> product experimentation, không phải chủ yếu để giảm rủi ro deployment.</p>
+<p>Traffic được chia theo nhóm user/experiment cohort, thay vì chỉ chia ngẫu nhiên theo % rollout.</p>
+<ul><li><span class="good">Ưu:</span> so sánh hành vi user và business outcome.</li><li><span class="bad">Nhược:</span> phân tích dữ liệu phức tạp, có thể cần sticky routing, dễ bị nhiễu experiment.</li></ul>
+<p><b>Dùng khi:</b> chọn UX, pricing flow, recommendation algorithm hoặc business behavior tốt hơn.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">6</span> Shadow / Mirroring Deployment</h3>
+<div class="flow">User → v1 → real response
+        │
+        └──── copy request ───→ v2
+                              response ignored</div>
+<div class="lang-en">
+<p><b>How it works:</b> mirror production traffic to v2, but users still receive the response from v1.</p>
+<ul><li><span class="good">Pros:</span> validate performance and behavior using realistic traffic with almost no user impact.</li><li><span class="bad">Cons:</span> dangerous for side effects; doubles downstream load; data privacy must be considered.</li></ul>
+<p><b>Use when:</b> major refactor, new search engine, new recommendation service, JVM/runtime upgrade, performance validation.</p>
+<div class="notice warn"><b>Critical:</b> shadow requests must not create real orders, charge cards, send emails, or mutate production data unless side effects are isolated.</div>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> copy traffic production sang v2 nhưng response trả cho user vẫn lấy từ v1.</p>
+<ul><li><span class="good">Ưu:</span> test bằng traffic thật mà gần như không ảnh hưởng user.</li><li><span class="bad">Nhược:</span> nguy hiểm với side effect; có thể tăng gấp đôi load downstream; phải chú ý dữ liệu nhạy cảm.</li></ul>
+<p><b>Dùng khi:</b> refactor lớn, search engine mới, recommendation service mới, nâng JVM/runtime, kiểm thử performance.</p>
+<div class="notice warn"><b>Rất quan trọng:</b> shadow request không được tạo order thật, charge card, gửi email hoặc mutate production data nếu chưa cô lập side effect.</div>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">7</span> Feature Flag / Dark Launch</h3>
+<div class="flow">deploy code v2 → feature OFF
+                 ↓
+enable for staff
+                 ↓
+1% users → 10% → 100%</div>
+<div class="lang-en">
+<p><b>Key idea:</b> separate deployment from release. Code can be in production while the feature remains disabled.</p>
+<ul><li><span class="good">Pros:</span> quick enable/disable; business-controlled rollout; supports canary by user cohort.</li><li><span class="bad">Cons:</span> stale flags create technical debt; combinatorial testing becomes difficult.</li></ul>
+<p><b>Use when:</b> features must be released independently from deployment, coordinated launches, kill switches, beta users.</p>
+</div>
+<div class="lang-vi">
+<p><b>Ý chính:</b> tách deployment khỏi release. Code đã ở production nhưng feature vẫn có thể OFF.</p>
+<ul><li><span class="good">Ưu:</span> bật/tắt nhanh; business có thể kiểm soát rollout; hỗ trợ canary theo nhóm user.</li><li><span class="bad">Nhược:</span> flag cũ tạo technical debt; số tổ hợp cần test tăng mạnh.</li></ul>
+<p><b>Dùng khi:</b> muốn release độc lập với deployment, coordinated launch, kill switch, beta users.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">8</span> Immutable Deployment</h3>
+<div class="flow">old VM/image/container: do not patch
+build new artifact/image
+create new instances
+switch traffic
+destroy old instances</div>
+<div class="lang-en">
+<p><b>How it works:</b> never mutate running infrastructure in place. Build a new image/container/VM and replace the old one.</p>
+<ul><li><span class="good">Pros:</span> reproducible, less configuration drift, easier rollback and auditing.</li><li><span class="bad">Cons:</span> image pipeline and infrastructure automation are required.</li></ul>
+<p><b>Use when:</b> cloud-native systems, Docker/Kubernetes, autoscaling groups, strict consistency between environments.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> không patch trực tiếp instance đang chạy. Build image/container/VM mới rồi thay thế instance cũ.</p>
+<ul><li><span class="good">Ưu:</span> reproducible, giảm configuration drift, dễ rollback/audit.</li><li><span class="bad">Nhược:</span> cần image pipeline và infrastructure automation tốt.</li></ul>
+<p><b>Dùng khi:</b> cloud-native, Docker/Kubernetes, autoscaling group, cần consistency cao giữa các environment.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">9</span> In-Place Deployment</h3>
+<div class="flow">server A: v1 → patch/install → v2
+server B: v1 → patch/install → v2</div>
+<div class="lang-en">
+<p><b>How it works:</b> update software on existing servers rather than replacing them.</p>
+<ul><li><span class="good">Pros:</span> low infrastructure cost; common on legacy/on-prem systems.</li><li><span class="bad">Cons:</span> configuration drift, harder rollback, partially updated servers, manual-state risk.</li></ul>
+<p><b>Use when:</b> legacy applications, expensive stateful hosts, on-prem constraints.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> cập nhật phần mềm trực tiếp trên server hiện tại thay vì tạo server mới.</p>
+<ul><li><span class="good">Ưu:</span> chi phí infrastructure thấp; phổ biến ở legacy/on-prem.</li><li><span class="bad">Nhược:</span> configuration drift, rollback khó, dễ có server cập nhật dở dang.</li></ul>
+<p><b>Dùng khi:</b> legacy app, stateful host đắt tiền, môi trường on-prem bị giới hạn.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">10</span> Ring / Wave Deployment</h3>
+<div class="flow">Ring 0: internal users
+Ring 1: 1 region / low-risk customers
+Ring 2: 10–25%
+Ring 3: global rollout</div>
+<div class="lang-en">
+<p><b>How it works:</b> roll out by groups of machines, regions, tenants, or customer risk levels.</p>
+<ul><li><span class="good">Pros:</span> controlled blast radius; ideal for multi-region and enterprise SaaS.</li><li><span class="bad">Cons:</span> longer deployment window; version skew across rings.</li></ul>
+<p><b>Use when:</b> multi-region systems, desktop agents, enterprise tenants, infrastructure changes.</p>
+</div>
+<div class="lang-vi">
+<p><b>Cách hoạt động:</b> rollout theo từng nhóm máy, region, tenant hoặc mức độ rủi ro của customer.</p>
+<ul><li><span class="good">Ưu:</span> kiểm soát blast radius tốt; phù hợp multi-region và enterprise SaaS.</li><li><span class="bad">Nhược:</span> thời gian rollout dài; nhiều version cùng tồn tại giữa các ring.</li></ul>
+<p><b>Dùng khi:</b> hệ thống multi-region, desktop agent, enterprise tenant, infrastructure change.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">11</span> Progressive Delivery</h3>
+<div class="flow">deploy → 5%
+observe metrics
+→ auto promote 20%
+observe
+→ 50%
+→ 100%
+or auto rollback</div>
+<div class="lang-en">
+<p><b>Definition:</b> an operational approach that combines staged rollout, metrics, policy, feature flags, and automation. Canary is a common implementation.</p>
+<ul><li><span class="good">Pros:</span> data-driven releases; automatic risk control.</li><li><span class="bad">Cons:</span> requires mature telemetry, SLOs, routing, and automation.</li></ul>
+<p><b>Typical tools/concepts:</b> Argo Rollouts, Flagger, service mesh, feature-flag platforms, SLO gates.</p>
+</div>
+<div class="lang-vi">
+<p><b>Định nghĩa:</b> cách vận hành kết hợp staged rollout, metrics, policy, feature flag và automation. Canary là một cách triển khai phổ biến.</p>
+<ul><li><span class="good">Ưu:</span> release dựa trên dữ liệu; tự động kiểm soát rủi ro.</li><li><span class="bad">Nhược:</span> cần telemetry, SLO, routing và automation trưởng thành.</li></ul>
+<p><b>Công cụ/khái niệm thường gặp:</b> Argo Rollouts, Flagger, service mesh, feature-flag platform, SLO gate.</p>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="num">12</span> Hybrid Strategy</h3>
+<div class="flow">Immutable infrastructure
+      +
+Blue/Green environment
+      +
+Canary traffic shift
+      +
+Feature Flags</div>
+<div class="lang-en">
+<p>Real systems often combine strategies rather than choose only one.</p>
+<p><b>Example:</b> deploy immutable container images into a green environment, send 5% canary traffic, then switch 100%, while risky features remain behind flags.</p>
+<p>This is often the strongest senior-level answer: <b>strategies are composable</b>.</p>
+</div>
+<div class="lang-vi">
+<p>Hệ thống thực tế thường kết hợp nhiều strategy thay vì chỉ chọn một.</p>
+<p><b>Ví dụ:</b> deploy immutable container image vào Green, cho 5% canary traffic, sau đó switch 100%, còn feature rủi ro vẫn nằm sau feature flag.</p>
+<p>Đây là điểm trả lời senior rất tốt: <b>các strategy có thể kết hợp với nhau</b>.</p>
+</div>
+</div>
+
+</div>
+</section>
+
+<section id="compare">
+<div class="lang-en"><h2>4. Detailed comparison</h2></div>
+<div class="lang-vi"><h2>4. Bảng so sánh chi tiết</h2></div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Strategy</th><th>Downtime</th><th>Rollback speed</th><th>Extra infra</th><th>Blast radius</th><th>Complexity</th><th>Best fit</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Recreate</td><td>High</td><td>Medium/Slow</td><td>Low</td><td>High</td><td>Low</td><td>Small/internal systems</td></tr>
+<tr><td>Rolling</td><td>Low / near-zero</td><td>Medium</td><td>Low–Medium</td><td>Medium</td><td>Medium</td><td>Default stateless services</td></tr>
+<tr><td>Blue–Green</td><td>Near-zero</td><td><b>Very fast</b></td><td><b>High</b></td><td>Medium</td><td>Medium</td><td>High-impact releases</td></tr>
+<tr><td>Canary</td><td>Near-zero</td><td>Fast</td><td>Medium</td><td><b>Low</b></td><td><b>High</b></td><td>High-scale/risky change</td></tr>
+<tr><td>A/B</td><td>Near-zero</td><td>N/A</td><td>Medium</td><td>Controlled</td><td>High</td><td>Product experiments</td></tr>
+<tr><td>Shadow</td><td>None</td><td>N/A</td><td>Medium–High</td><td>Very low to users</td><td>High</td><td>Validation with real traffic</td></tr>
+<tr><td>Feature Flag</td><td>None by itself</td><td><b>Very fast feature rollback</b></td><td>Low</td><td>Low</td><td>Medium</td><td>Separate deploy from release</td></tr>
+<tr><td>Immutable</td><td>Depends on rollout</td><td>Fast</td><td>Medium</td><td>Depends</td><td>Medium</td><td>Cloud-native</td></tr>
+<tr><td>Ring/Wave</td><td>Near-zero</td><td>Fast per ring</td><td>Medium</td><td>Low</td><td>High</td><td>Multi-region / tenant rollout</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="lang-en">
+<h3 style="margin-top:28px">Most important differences</h3>
+<ul>
+<li><b>Rolling vs Blue–Green:</b> Rolling replaces instances gradually. Blue–Green prepares a full second environment then switches traffic. Blue–Green rollback is usually faster, but costs more.</li>
+<li><b>Blue–Green vs Canary:</b> Blue–Green changes environment/traffic mostly as a cutover. Canary intentionally exposes only a small percentage first and grows gradually.</li>
+<li><b>Canary vs A/B:</b> Canary optimizes <b>deployment safety</b>. A/B optimizes <b>product learning</b>.</li>
+<li><b>Canary vs Shadow:</b> Canary users receive responses from v2. Shadow users do not; v2 responses are ignored or compared offline.</li>
+<li><b>Deployment strategy vs Feature Flag:</b> deployment controls <b>which code is running</b>; a flag controls <b>which behavior is enabled</b>.</li>
+<li><b>Immutable vs Blue–Green:</b> immutable describes <b>how infrastructure is replaced</b>; Blue–Green describes <b>how environments/traffic are switched</b>. They can be used together.</li>
+</ul>
+</div>
+<div class="lang-vi">
+<h3 style="margin-top:28px">Những khác biệt quan trọng nhất</h3>
+<ul>
+<li><b>Rolling vs Blue–Green:</b> Rolling thay instance từ từ. Blue–Green dựng full environment thứ hai rồi switch traffic. Blue–Green rollback nhanh hơn nhưng tốn tài nguyên hơn.</li>
+<li><b>Blue–Green vs Canary:</b> Blue–Green thường cutover traffic giữa hai environment. Canary cố tình chỉ đưa một lượng traffic nhỏ vào version mới rồi tăng dần.</li>
+<li><b>Canary vs A/B:</b> Canary tối ưu <b>deployment safety</b>. A/B tối ưu <b>product learning</b>.</li>
+<li><b>Canary vs Shadow:</b> Canary user nhận response từ v2. Shadow thì không; response của v2 bị bỏ qua hoặc chỉ dùng để so sánh.</li>
+<li><b>Deployment strategy vs Feature Flag:</b> deployment quyết định <b>code nào đang chạy</b>; feature flag quyết định <b>behavior nào được bật</b>.</li>
+<li><b>Immutable vs Blue–Green:</b> immutable nói về <b>cách thay infrastructure</b>; Blue–Green nói về <b>cách switch environment/traffic</b>. Có thể dùng chung.</li>
+</ul>
+</div>
+</section>
+
+<section id="choose">
+<div class="lang-en"><h2>5. How to choose the right strategy</h2></div>
+<div class="lang-vi"><h2>5. Chọn strategy nào?</h2></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Situation</th><th>Recommended approach</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Small internal app, maintenance window acceptable</td><td>Recreate</td><td>Simplicity and low cost</td></tr>
+<tr><td>Typical stateless REST service on Kubernetes</td><td>Rolling</td><td>Good default, low extra cost</td></tr>
+<tr><td>Critical service, need instant rollback</td><td>Blue–Green</td><td>Switch traffic back quickly</td></tr>
+<tr><td>Very high traffic, risk should be minimized</td><td>Canary</td><td>Limit blast radius and promote gradually</td></tr>
+<tr><td>Need to compare business outcomes</td><td>A/B Testing</td><td>Experiment-driven cohort routing</td></tr>
+<tr><td>Need production-like validation without user impact</td><td>Shadow</td><td>Real traffic, response not exposed</td></tr>
+<tr><td>Need release independent of deployment</td><td>Feature Flags</td><td>Deploy now, enable later</td></tr>
+<tr><td>Multi-region or customer-tier rollout</td><td>Ring/Wave + Canary</td><td>Control risk by geography/customer group</td></tr>
+<tr><td>Cloud-native, avoid server drift</td><td>Immutable + Rolling/Blue–Green</td><td>Reproducibility and clean rollback</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="notice warn">
+<div class="lang-en"><b>Rule of thumb:</b> the more critical the system, the more you should prefer a strategy that reduces blast radius and gives you fast rollback — but that usually requires more infrastructure, observability, routing, and operational maturity.</div>
+<div class="lang-vi"><b>Quy tắc dễ nhớ:</b> hệ thống càng critical thì càng nên dùng strategy giúp giảm blast radius và rollback nhanh — nhưng đổi lại cần nhiều infrastructure, observability, routing và operational maturity hơn.</div>
+</div>
+</section>
+
+<section id="db">
+<div class="lang-en"><h2>6. Database migration — where deployments often fail</h2></div>
+<div class="lang-vi"><h2>6. Database migration — nơi deployment thường gặp lỗi</h2></div>
+
+<div class="card">
+<h3>Expand → Migrate → Contract</h3>
+<div class="flow">1. EXPAND
+   Add new schema in backward-compatible way.
+
+2. MIGRATE
+   Deploy code that can work with old + new schema.
+   Backfill data.
+
+3. SWITCH
+   New code starts using new schema.
+
+4. CONTRACT
+   Remove old column/table/API only after old code is gone.</div>
+<div class="lang-en">
+<p>This pattern is essential for Rolling, Canary, and Blue–Green because multiple application versions may coexist.</p>
+<p><b>Unsafe example:</b> rename or drop column <code>customer_name</code> in the same release that deploys code expecting <code>full_name</code>. Old pods may still require <code>customer_name</code>.</p>
+<p><b>Safer approach:</b> add <code>full_name</code>, dual-read/write if needed, backfill, migrate traffic, verify, then remove the old column in a later release.</p>
+</div>
+<div class="lang-vi">
+<p>Pattern này cực kỳ quan trọng với Rolling, Canary và Blue–Green vì có thể tồn tại nhiều version application cùng lúc.</p>
+<p><b>Ví dụ nguy hiểm:</b> rename/drop cột <code>customer_name</code> ngay trong release deploy code mới dùng <code>full_name</code>. Pod cũ vẫn có thể cần <code>customer_name</code>.</p>
+<p><b>Cách an toàn hơn:</b> add <code>full_name</code>, dual-read/write nếu cần, backfill data, migrate traffic, verify rồi mới xóa cột cũ ở release sau.</p>
+</div>
+</div>
+
+<div class="grid" style="margin-top:16px">
+<div class="card">
+<h3>Backward compatibility</h3>
+<p class="lang-en">New database/API changes should continue to support the old version during the rollout window.</p>
+<p class="lang-vi">DB/API mới vẫn nên support version cũ trong khoảng thời gian rollout.</p>
+</div>
+<div class="card">
+<h3>Forward compatibility</h3>
+<p class="lang-en">Old consumers tolerate new fields or messages when possible.</p>
+<p class="lang-vi">Consumer cũ nên tolerate field/message mới nếu có thể.</p>
+</div>
+<div class="card">
+<h3>Event schema</h3>
+<p class="lang-en">Kafka/event changes need versioning and tolerant consumers; do not assume every consumer upgrades together.</p>
+<p class="lang-vi">Kafka/event schema cần versioning và tolerant consumer; không nên giả định tất cả consumer upgrade cùng lúc.</p>
+</div>
+<div class="card">
+<h3>Rollback limitation</h3>
+<p class="lang-en">Application rollback may be easy while database rollback is not. Prefer roll-forward-compatible migrations.</p>
+<p class="lang-vi">Rollback application có thể dễ nhưng rollback DB thì khó. Nên ưu tiên migration tương thích để có thể roll forward.</p>
+</div>
+</div>
+</section>
+
+<section id="k8s">
+<div class="lang-en"><h2>7. Kubernetes interview notes</h2></div>
+<div class="lang-vi"><h2>7. Kiến thức Kubernetes khi phỏng vấn</h2></div>
+
+<div class="grid">
+<div class="card">
+<h3>RollingUpdate</h3>
+<pre class="flow"><code>strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0</code></pre>
+<div class="lang-en">
+<p><code>maxSurge</code>: how many extra pods can be created above desired replicas.</p>
+<p><code>maxUnavailable</code>: how many desired pods may be unavailable during rollout.</p>
+</div>
+<div class="lang-vi">
+<p><code>maxSurge</code>: cho phép tạo thêm bao nhiêu pod vượt replica mong muốn.</p>
+<p><code>maxUnavailable</code>: trong rollout được phép thiếu tối đa bao nhiêu pod.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>Readiness vs Liveness</h3>
+<div class="lang-en">
+<p><b>Readiness probe:</b> controls whether a pod receives traffic.</p>
+<p><b>Liveness probe:</b> decides whether Kubernetes should restart the container.</p>
+<p><b>Startup probe:</b> protects slow-starting applications from premature liveness failures.</p>
+</div>
+<div class="lang-vi">
+<p><b>Readiness probe:</b> quyết định pod có được nhận traffic hay không.</p>
+<p><b>Liveness probe:</b> quyết định Kubernetes có restart container hay không.</p>
+<p><b>Startup probe:</b> bảo vệ app khởi động chậm khỏi bị liveness restart quá sớm.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>Graceful shutdown</h3>
+<div class="lang-en">
+<p>On termination: stop accepting new requests, finish in-flight requests, close resources, then exit before <code>terminationGracePeriodSeconds</code>.</p>
+<p>In Spring Boot, configure graceful shutdown and make readiness fail before process exit.</p>
+</div>
+<div class="lang-vi">
+<p>Khi terminate: ngừng nhận request mới, xử lý xong request đang chạy, đóng resource rồi exit trước <code>terminationGracePeriodSeconds</code>.</p>
+<p>Với Spring Boot nên bật graceful shutdown và remove pod khỏi readiness trước khi process exit.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>Canary in Kubernetes</h3>
+<div class="lang-en">
+<p>Basic Kubernetes Deployment does not provide advanced weighted traffic shifting by itself. Common solutions use multiple Services/Ingress rules, service mesh, or rollout controllers such as Argo Rollouts.</p>
+</div>
+<div class="lang-vi">
+<p>Kubernetes Deployment cơ bản không tự cung cấp weighted traffic shifting nâng cao. Thường dùng nhiều Service/Ingress rule, service mesh hoặc rollout controller như Argo Rollouts.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="pipeline">
+<div class="lang-en"><h2>8. A production-grade CI/CD deployment flow</h2></div>
+<div class="lang-vi"><h2>8. Flow CI/CD production-grade</h2></div>
+
+<div class="flow">Commit / PR
+   ↓
+Compile + Unit Test + Static Analysis
+   ↓
+Build immutable artifact / Docker image
+   ↓
+Security / dependency scan
+   ↓
+Deploy to staging
+   ↓
+Integration / API / contract / smoke tests
+   ↓
+Approval or automated policy gate
+   ↓
+Production rollout
+   ↓
+Health checks + metrics + logs + traces
+   ↓
+Promote  ──────────────┐
+or rollback / disable  ┘</div>
+
+<div class="lang-en">
+<h3>Good production gates</h3>
+<ul>
+<li>Error rate does not exceed baseline/SLO threshold.</li>
+<li>p95/p99 latency remains within limit.</li>
+<li>CPU/memory/thread pool/DB pool remain healthy.</li>
+<li>No abnormal increase in downstream failures.</li>
+<li>Business KPI remains healthy: payment success, order completion, login success, etc.</li>
+<li>Smoke test and synthetic test pass after deployment.</li>
+</ul>
+</div>
+<div class="lang-vi">
+<h3>Những gate nên có trên production</h3>
+<ul>
+<li>Error rate không vượt baseline/SLO threshold.</li>
+<li>p95/p99 latency nằm trong giới hạn.</li>
+<li>CPU/memory/thread pool/DB pool ổn định.</li>
+<li>Không tăng bất thường lỗi từ downstream.</li>
+<li>Business KPI ổn định: payment success, order completion, login success...</li>
+<li>Smoke test và synthetic test pass sau deployment.</li>
+</ul>
+</div>
+</section>
+
+<section id="interview">
+<div class="lang-en"><h2>9. Interview questions & strong answers</h2></div>
+<div class="lang-vi"><h2>9. Câu hỏi phỏng vấn & cách trả lời tốt</h2></div>
+
+<details open>
+<summary>Q1. Rolling deployment vs Blue–Green — what is the difference?</summary>
+<div class="lang-en">
+<p><b>Strong answer:</b> Rolling replaces instances incrementally, so old and new versions coexist. It uses less extra infrastructure but requires backward compatibility and rollback takes some time. Blue–Green prepares a full second environment and switches traffic after validation. It costs more, but cutover and rollback are much faster. I normally use Rolling for standard stateless services and Blue–Green when rollback speed or release isolation is more important.</p>
+</div>
+<div class="lang-vi">
+<p><b>Trả lời:</b> Rolling thay instance từ từ nên version cũ và mới cùng tồn tại. Chi phí hạ tầng thấp hơn nhưng cần backward compatibility và rollback mất một khoảng thời gian. Blue–Green chuẩn bị một full environment thứ hai rồi switch traffic sau khi validate. Tốn resource hơn nhưng cutover và rollback rất nhanh. Tôi thường dùng Rolling cho stateless service bình thường và Blue–Green khi tốc độ rollback hoặc isolation quan trọng hơn.</p>
+</div>
+</details>
+
+<details>
+<summary>Q2. Canary vs Blue–Green?</summary>
+<div class="lang-en"><p>Blue–Green mainly isolates two environments and often switches most or all traffic in one controlled cutover. Canary focuses on risk reduction by exposing only a small portion of real traffic to the new version first. Canary needs stronger metrics and traffic routing, while Blue–Green needs more infrastructure capacity.</p></div>
+<div class="lang-vi"><p>Blue–Green chủ yếu tách hai environment và thường switch phần lớn hoặc toàn bộ traffic trong một cutover có kiểm soát. Canary tập trung giảm rủi ro bằng cách chỉ cho một lượng traffic nhỏ vào version mới trước. Canary cần metrics và routing tốt hơn, còn Blue–Green tốn infrastructure hơn.</p></div>
+</details>
+
+<details>
+<summary>Q3. Canary vs A/B Testing?</summary>
+<div class="lang-en"><p>Canary answers “is this new version safe enough to roll out further?” A/B testing answers “which experience performs better for a selected cohort?” Canary is operational safety; A/B is product experimentation.</p></div>
+<div class="lang-vi"><p>Canary trả lời “version mới có đủ an toàn để tăng rollout không?”. A/B trả lời “trải nghiệm nào tốt hơn cho nhóm user nhất định?”. Canary là operational safety, A/B là product experimentation.</p></div>
+</details>
+
+<details>
+<summary>Q4. How do you deploy with zero downtime?</summary>
+<div class="lang-en">
+<p>I would combine several controls: multiple healthy replicas, Rolling or Blue–Green/Canary rollout, readiness probes, graceful shutdown, load-balancer draining, backward-compatible APIs and database migrations, sufficient capacity, and post-deployment health checks. Zero downtime is not only a deployment setting; it depends on application lifecycle, networking, database compatibility, and observability.</p>
+</div>
+<div class="lang-vi">
+<p>Tôi sẽ kết hợp nhiều cơ chế: nhiều replica healthy, Rolling hoặc Blue–Green/Canary, readiness probe, graceful shutdown, load-balancer draining, API và DB migration backward-compatible, capacity đủ và health check sau deploy. Zero downtime không chỉ là một setting deployment; nó phụ thuộc cả application lifecycle, network, database compatibility và observability.</p>
+</div>
+</details>
+
+<details>
+<summary>Q5. What can go wrong with Rolling Deployment?</summary>
+<div class="lang-en">
+<ul>
+<li>Old and new instances are incompatible.</li>
+<li>Database migration breaks old pods.</li>
+<li>Readiness becomes green too early.</li>
+<li>Insufficient capacity while pods restart.</li>
+<li>Sticky sessions break user flow.</li>
+<li>Long-running requests are terminated without graceful shutdown.</li>
+<li>Versioned events/messages are not compatible.</li>
+</ul>
+</div>
+<div class="lang-vi">
+<ul>
+<li>Version cũ và mới không tương thích.</li>
+<li>DB migration làm pod cũ bị lỗi.</li>
+<li>Readiness báo healthy quá sớm.</li>
+<li>Không đủ capacity khi pod restart.</li>
+<li>Sticky session làm flow user bị lỗi.</li>
+<li>Long-running request bị terminate do thiếu graceful shutdown.</li>
+<li>Event/message giữa các version không tương thích.</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>Q6. What is your preferred production deployment strategy?</summary>
+<div class="lang-en">
+<p>There is no single best strategy. For a normal stateless Java service on Kubernetes, Rolling Update is usually my default because it balances availability, simplicity, and cost. For high-risk changes I prefer Canary with metrics-based promotion, and for releases where rollback speed is the highest priority I consider Blue–Green. I also separate deployment from release with feature flags when business rollout needs independent control.</p>
+</div>
+<div class="lang-vi">
+<p>Không có một strategy tốt nhất cho mọi trường hợp. Với Java stateless service trên Kubernetes, Rolling Update thường là default vì cân bằng availability, độ đơn giản và chi phí. Với thay đổi rủi ro cao tôi ưu tiên Canary có metrics-based promotion, còn khi rollback speed là ưu tiên cao nhất tôi cân nhắc Blue–Green. Tôi cũng tách deployment khỏi release bằng feature flag khi business cần kiểm soát rollout độc lập.</p>
+</div>
+</details>
+
+<details>
+<summary>Q7. How would you rollback a failed release?</summary>
+<div class="lang-en">
+<p>First I stop further rollout and protect users. Depending on the mechanism, I switch traffic back to Blue, reduce canary weight to zero, roll back the Kubernetes Deployment, or disable the feature flag. Then I confirm recovery using error rate, latency, business KPIs and logs/traces. Database rollback is more dangerous, so I prefer backward-compatible schema changes that allow application rollback without reverting data.</p>
+</div>
+<div class="lang-vi">
+<p>Đầu tiên tôi dừng rollout tiếp và bảo vệ user. Tùy cơ chế, tôi switch traffic về Blue, giảm canary weight về 0, rollback Kubernetes Deployment hoặc tắt feature flag. Sau đó xác nhận hệ thống phục hồi bằng error rate, latency, business KPI, logs/traces. Rollback DB nguy hiểm hơn nên tôi ưu tiên schema change backward-compatible để application rollback mà không cần revert dữ liệu.</p>
+</div>
+</details>
+
+<details>
+<summary>Q8. What metrics do you monitor during deployment?</summary>
+<div class="lang-en">
+<p>I monitor technical and business signals together: HTTP 5xx/4xx anomalies, request rate, p95/p99 latency, CPU, memory, GC, JVM thread pools, DB connection pool, downstream errors, queue lag, and business KPIs such as login, order or payment success. The exact rollback threshold should ideally be defined against SLOs or a known baseline.</p>
+</div>
+<div class="lang-vi">
+<p>Tôi theo dõi cả technical và business signal: HTTP 5xx/4xx bất thường, request rate, p95/p99 latency, CPU, memory, GC, JVM thread pool, DB connection pool, downstream error, queue lag và business KPI như login/order/payment success. Rollback threshold nên được định nghĩa dựa trên SLO hoặc baseline đã biết.</p>
+</div>
+</details>
+
+<div class="card" style="margin-top:18px">
+<h3 class="lang-en">30-second interview summary</h3>
+<h3 class="lang-vi">Câu trả lời tóm tắt 30 giây</h3>
+<p class="lang-en"><b>“For deployment, I usually choose based on risk, availability, rollback speed, compatibility, and cost. Rolling Update is a good default for stateless services because it provides near-zero downtime with reasonable cost. Blue–Green gives very fast rollback but requires duplicate capacity. Canary reduces blast radius by exposing only a small percentage of traffic first, but it requires strong observability and traffic control. Feature flags are useful to separate deployment from release. For any zero-downtime strategy, I also make sure the API, database, events, readiness probes, and graceful shutdown are backward-compatible.”</b></p>
+<p class="lang-vi"><b>“Khi chọn deployment strategy, tôi dựa vào mức độ rủi ro, availability, rollback speed, compatibility và chi phí. Rolling Update là default tốt cho stateless service vì gần zero downtime mà chi phí hợp lý. Blue–Green rollback rất nhanh nhưng cần duplicate capacity. Canary giảm blast radius bằng cách chỉ đưa một phần nhỏ traffic vào version mới trước, nhưng cần observability và traffic control tốt. Feature flag giúp tách deployment khỏi release. Với bất kỳ zero-downtime strategy nào, tôi cũng đảm bảo API, database, event, readiness probe và graceful shutdown đều backward-compatible.”</b></p>
+</div>
+
+<h3 style="margin-top:30px" class="lang-en">Fast memory map</h3>
+<h3 style="margin-top:30px" class="lang-vi">Mẹo nhớ nhanh</h3>
+<div class="grid3">
+<div class="card"><b>Recreate</b><p class="muted">Simple → downtime</p></div>
+<div class="card"><b>Rolling</b><p class="muted">Default → gradual pods</p></div>
+<div class="card"><b>Blue–Green</b><p class="muted">2 environments → fast rollback</p></div>
+<div class="card"><b>Canary</b><p class="muted">Small traffic → reduce risk</p></div>
+<div class="card"><b>A/B</b><p class="muted">Compare product behavior</p></div>
+<div class="card"><b>Shadow</b><p class="muted">Copy traffic → response ignored</p></div>
+<div class="card"><b>Feature Flag</b><p class="muted">Deploy ≠ Release</p></div>
+<div class="card"><b>Immutable</b><p class="muted">Replace, don't patch</p></div>
+<div class="card"><b>Ring/Wave</b><p class="muted">Roll out by region/tenant</p></div>
+</div>
+</section>
+
+<div class="footer">
+<div class="lang-en">Study tip: in senior interviews, always connect deployment strategy to database compatibility, health checks, monitoring, rollback, and business impact.</div>
+<div class="lang-vi">Mẹo học: ở level senior, khi nói deployment strategy hãy luôn nối sang database compatibility, health check, monitoring, rollback và business impact.</div>
+</div>
+</div>
+
+<script>
+function setLang(lang){
+  document.body.classList.toggle('vi', lang === 'vi');
+  document.documentElement.lang = lang === 'vi' ? 'vi' : 'en';
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-vi').classList.toggle('active', lang === 'vi');
+  localStorage.setItem('deploymentGuideLang', lang);
+}
+const saved = localStorage.getItem('deploymentGuideLang');
+if(saved) setLang(saved);
+</script>
+</body>
+</html>
