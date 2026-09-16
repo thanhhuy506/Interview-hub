@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Java/Spring Boot Microservices - Scenario Interview Guide</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --panel:#111a2e;
+    --panel2:#17223a;
+    --text:#e8eefc;
+    --muted:#9fb0cf;
+    --accent:#6ea8fe;
+    --accent2:#7ee0c4;
+    --warn:#ffd166;
+    --danger:#ff7b7b;
+    --ok:#74d99f;
+    --border:#263553;
+    --code:#0a0f1a;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:linear-gradient(180deg,#07101e 0%,#0b1220 100%);
+    color:var(--text);
+    line-height:1.65;
+  }
+  .container{width:min(1200px,92%);margin:auto}
+  header{
+    padding:52px 0 28px;
+    border-bottom:1px solid var(--border);
+    background:
+      radial-gradient(circle at 85% 20%,rgba(110,168,254,.14),transparent 28%),
+      radial-gradient(circle at 10% 0%,rgba(126,224,196,.10),transparent 26%);
+  }
+  h1{font-size:clamp(2rem,4vw,3.5rem);line-height:1.1;margin:0 0 14px}
+  h2{margin-top:0;font-size:1.8rem}
+  h3{margin:24px 0 10px;color:#dbe7ff}
+  h4{margin:18px 0 8px;color:#c8d8f7}
+  p{margin:8px 0 12px}
+  .subtitle{max-width:900px;color:var(--muted);font-size:1.05rem}
+  .toolbar{
+    margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center
+  }
+  button,.pill{
+    border:1px solid var(--border);
+    background:var(--panel2);
+    color:var(--text);
+    padding:10px 14px;border-radius:10px;
+    cursor:pointer;font-weight:700
+  }
+  button.active{background:var(--accent);color:#07101e;border-color:transparent}
+  nav{
+    position:sticky;top:0;z-index:10;background:rgba(7,16,30,.92);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--border)
+  }
+  nav .container{display:flex;gap:8px;overflow:auto;padding:10px 0}
+  nav a{
+    white-space:nowrap;color:var(--muted);text-decoration:none;
+    border:1px solid var(--border);padding:7px 10px;border-radius:999px;font-size:.9rem
+  }
+  nav a:hover{color:white;border-color:var(--accent)}
+  main{padding:28px 0 60px}
+  .intro-grid,.grid2,.grid3{display:grid;gap:16px}
+  .intro-grid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:28px}
+  .grid2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .grid3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{
+    background:linear-gradient(180deg,rgba(23,34,58,.96),rgba(17,26,46,.96));
+    border:1px solid var(--border);border-radius:18px;padding:20px;
+    box-shadow:0 18px 45px rgba(0,0,0,.18)
+  }
+  .scenario{margin:28px 0;padding:24px}
+  .scenario-title{display:flex;gap:12px;align-items:flex-start}
+  .num{
+    width:38px;height:38px;display:grid;place-items:center;border-radius:12px;
+    background:var(--accent);color:#07101e;font-weight:900;flex:0 0 auto
+  }
+  .tag{
+    display:inline-block;padding:4px 9px;border-radius:999px;font-size:.78rem;
+    border:1px solid var(--border);color:var(--accent2);margin-right:6px
+  }
+  .callout{
+    border-left:4px solid var(--accent);background:rgba(110,168,254,.08);
+    padding:14px 16px;border-radius:0 12px 12px 0;margin:14px 0
+  }
+  .warn{border-left-color:var(--warn);background:rgba(255,209,102,.07)}
+  .danger{border-left-color:var(--danger);background:rgba(255,123,123,.07)}
+  .ok{border-left-color:var(--ok);background:rgba(116,217,159,.07)}
+  ul,ol{padding-left:22px}
+  li{margin:6px 0}
+  pre{
+    background:var(--code);border:1px solid #1f2c46;border-radius:14px;
+    padding:16px;overflow:auto;font-size:.9rem;line-height:1.55
+  }
+  code{font-family:"SFMono-Regular",Consolas,Menlo,monospace}
+  .answer{
+    background:rgba(126,224,196,.07);
+    border:1px solid rgba(126,224,196,.25);
+    border-radius:14px;padding:16px
+  }
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid var(--border);padding:10px;text-align:left;vertical-align:top}
+  th{background:#13203a}
+  .muted{color:var(--muted)}
+  .lang-vn{display:none}
+  footer{border-top:1px solid var(--border);padding:28px 0;color:var(--muted)}
+  @media(max-width:700px){
+    .scenario{padding:18px}
+    pre{font-size:.82rem}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <span class="tag">Java 17+</span><span class="tag">Spring Boot 3.x</span><span class="tag">Microservices</span><span class="tag">Interview Scenarios</span>
+    <h1>
+      <span class="lang-en">Java/Spring Boot Microservices Scenario Interview Guide</span>
+      <span class="lang-vn">Hướng dẫn phỏng vấn tình huống Java/Spring Boot Microservices</span>
+    </h1>
+    <p class="subtitle lang-en">
+      A practical bilingual guide focused on how to reason, troubleshoot, design, and answer scenario-based backend interview questions. Each section includes architecture thinking, implementation examples, trade-offs, and an interview-ready answer.
+    </p>
+    <p class="subtitle lang-vn">
+      Tài liệu song ngữ tập trung vào cách phân tích, troubleshoot, thiết kế giải pháp và trả lời các câu hỏi tình huống backend. Mỗi phần có hướng xử lý, code Java/Spring Boot, trade-off và câu trả lời phỏng vấn mẫu.
+    </p>
+    <div class="toolbar">
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+      <button id="btn-vn" onclick="setLang('vn')">Tiếng Việt</button>
+      <span class="pill">IELTS 5.5-6.5 friendly English</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <a href="#s1">1. Duplicate Payment</a>
+    <a href="#s2">2. Double Booking</a>
+    <a href="#s3">3. Slow REST API</a>
+    <a href="#s4">4. Kafka Consumer Down</a>
+    <a href="#s5">5. HashMap Concurrency</a>
+    <a href="#s6">6. High CPU</a>
+    <a href="#s7">7. Memory Issue</a>
+    <a href="#s8">8. Kubernetes</a>
+    <a href="#s9">9. JWT / 401</a>
+    <a href="#s10">10. Database Performance</a>
+    <a href="#s11">11. Circuit Breaker</a>
+  </div>
+</nav>
+
+<main class="container">
+<section class="intro-grid">
+  <div class="card">
+    <h3 class="lang-en">How to answer scenarios</h3>
+    <h3 class="lang-vn">Cách trả lời câu tình huống</h3>
+    <ol class="lang-en">
+      <li>Clarify the failure mode.</li>
+      <li>Protect correctness first.</li>
+      <li>Explain implementation.</li>
+      <li>Discuss trade-offs.</li>
+      <li>Add monitoring and recovery.</li>
+    </ol>
+    <ol class="lang-vn">
+      <li>Làm rõ loại lỗi.</li>
+      <li>Ưu tiên tính đúng đắn trước.</li>
+      <li>Giải thích cách implement.</li>
+      <li>Nêu trade-off.</li>
+      <li>Bổ sung monitoring và recovery.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3 class="lang-en">Senior signal</h3>
+    <h3 class="lang-vn">Điểm thể hiện senior</h3>
+    <p class="lang-en">Do not only name a technology. Explain why it solves the race, failure, latency, or consistency problem.</p>
+    <p class="lang-vn">Không chỉ nói tên công nghệ. Hãy giải thích vì sao nó giải quyết được race condition, failure, latency hoặc consistency.</p>
+  </div>
+  <div class="card">
+    <h3 class="lang-en">Common pattern</h3>
+    <h3 class="lang-vn">Pattern thường dùng</h3>
+    <p>Correctness → Concurrency → Failure handling → Observability → Scale → Trade-off.</p>
+  </div>
+</section>
+
+<section id="s1" class="card scenario">
+  <div class="scenario-title"><div class="num">1</div><div>
+    <h2 class="lang-en">Duplicate Payment</h2>
+    <h2 class="lang-vn">Thanh toán bị gửi trùng</h2>
+    <p class="muted lang-en">Two identical payment requests arrive at the same time.</p>
+    <p class="muted lang-vn">Hai request thanh toán giống nhau đến cùng lúc.</p>
+  </div></div>
+
+  <div class="callout danger">
+    <b class="lang-en">Main risk:</b><b class="lang-vn">Rủi ro chính:</b>
+    <span class="lang-en"> the customer is charged twice because both requests pass validation before either transaction is committed.</span>
+    <span class="lang-vn"> khách hàng bị trừ tiền hai lần vì cả hai request đều qua validation trước khi transaction còn lại commit.</span>
+  </div>
+
+  <h3 class="lang-en">Recommended design</h3><h3 class="lang-vn">Thiết kế khuyến nghị</h3>
+  <ol class="lang-en">
+    <li>Require an <b>idempotency key</b> from the client for every payment command.</li>
+    <li>Store that key in the database with a <b>unique constraint</b>.</li>
+    <li>Process the payment and store the result in the same logical transaction where possible.</li>
+    <li>If the same key arrives again, return the original result instead of charging again.</li>
+    <li>For external payment gateways, also send a stable request reference to the provider.</li>
+  </ol>
+  <ol class="lang-vn">
+    <li>Client gửi <b>idempotency key</b> cho mỗi lệnh payment.</li>
+    <li>Lưu key vào DB và tạo <b>unique constraint</b>.</li>
+    <li>Xử lý payment và lưu kết quả trong cùng transaction logic nếu có thể.</li>
+    <li>Nếu key đã tồn tại, trả lại kết quả cũ thay vì charge lại.</li>
+    <li>Nếu gọi payment gateway bên ngoài, gửi thêm request reference ổn định cho provider.</li>
+  </ol>
+
+  <h3>Database</h3>
+<pre><code>CREATE TABLE payment (
+    id BIGSERIAL PRIMARY KEY,
+    idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    customer_id BIGINT NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    provider_reference VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+  <h3>Spring Boot Example</h3>
+<pre><code>@Service
+@RequiredArgsConstructor
+public class PaymentService {
+
+    private final PaymentRepository paymentRepository;
+    private final PaymentGateway paymentGateway;
+
+    @Transactional
+    public PaymentResponse pay(PaymentCommand command) {
+        return paymentRepository.findByIdempotencyKey(command.idempotencyKey())
+            .map(PaymentResponse::from)
+            .orElseGet(() -&gt; createPayment(command));
+    }
+
+    private PaymentResponse createPayment(PaymentCommand command) {
+        try {
+            Payment payment = Payment.pending(
+                command.idempotencyKey(),
+                command.customerId(),
+                command.amount()
+            );
+
+            paymentRepository.saveAndFlush(payment);
+
+            GatewayResult result = paymentGateway.charge(
+                command.customerId(),
+                command.amount(),
+                command.idempotencyKey()
+            );
+
+            payment.markSuccess(result.reference());
+            return PaymentResponse.from(payment);
+
+        } catch (DataIntegrityViolationException ex) {
+            // Another request inserted the same key at the same time.
+            Payment existing = paymentRepository
+                .findByIdempotencyKey(command.idempotencyKey())
+                .orElseThrow();
+
+            return PaymentResponse.from(existing);
+        }
+    }
+}</code></pre>
+
+  <div class="callout warn">
+    <span class="lang-en"><b>Important:</b> application-level checks alone are not enough. The database unique constraint is the final protection against a race condition.</span>
+    <span class="lang-vn"><b>Quan trọng:</b> chỉ check ở application là chưa đủ. Unique constraint ở DB mới là lớp bảo vệ cuối cùng chống race condition.</span>
+  </div>
+
+  <h3 class="lang-en">Interview answer</h3><h3 class="lang-vn">Câu trả lời interview</h3>
+  <div class="answer">
+    <p class="lang-en">I would make the payment API idempotent. Each request has an idempotency key, and I store it with a unique database constraint. If two requests arrive at the same time, only one can create the payment record. The second request gets the existing result. For an external payment provider, I also send the same stable reference so retrying does not create another charge.</p>
+    <p class="lang-vn">Tôi sẽ làm payment API theo cơ chế idempotent. Mỗi request có idempotency key và key này được lưu với unique constraint trong database. Nếu hai request đến cùng lúc, chỉ một request có thể tạo payment record. Request còn lại sẽ lấy kết quả đã có. Nếu gọi payment provider bên ngoài, tôi cũng gửi cùng một reference để retry không tạo thêm charge.</p>
+  </div>
+</section>
+
+<section id="s2" class="card scenario">
+  <div class="scenario-title"><div class="num">2</div><div>
+    <h2 class="lang-en">Double Booking</h2><h2 class="lang-vn">Đặt phòng trùng</h2>
+    <p class="muted lang-en">Two users try to reserve the same room at the same time.</p>
+    <p class="muted lang-vn">Hai user cùng đặt một phòng tại cùng thời điểm.</p>
+  </div></div>
+
+  <h3 class="lang-en">Correctness options</h3><h3 class="lang-vn">Các cách đảm bảo tính đúng</h3>
+  <table>
+    <tr><th>Technique</th><th>Use when</th><th>Trade-off</th></tr>
+    <tr><td>Pessimistic Lock</td><td>High contention, short transaction</td><td>Can reduce throughput / cause lock waits</td></tr>
+    <tr><td>Optimistic Lock</td><td>Conflict is uncommon</td><td>Need retry when version changes</td></tr>
+    <tr><td>Unique Constraint</td><td>Best final safety net</td><td>Need handle constraint exception</td></tr>
+  </table>
+
+<pre><code>@Entity
+public class RoomInventory {
+    @Id
+    private Long id;
+
+    private Long roomId;
+    private LocalDate bookingDate;
+
+    @Version
+    private Long version;
+
+    private boolean booked;
+}</code></pre>
+
+<pre><code>@Repository
+public interface RoomInventoryRepository
+        extends JpaRepository&lt;RoomInventory, Long&gt; {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select r from RoomInventory r
+        where r.roomId = :roomId
+          and r.bookingDate = :date
+    """)
+    Optional&lt;RoomInventory&gt; findForUpdate(Long roomId, LocalDate date);
+}</code></pre>
+
+<pre><code>@Transactional
+public Booking book(Long roomId, LocalDate date, Long userId) {
+    RoomInventory inventory = repository.findForUpdate(roomId, date)
+        .orElseThrow(() -&gt; new NotFoundException("Room not found"));
+
+    if (inventory.isBooked()) {
+        throw new ConflictException("Room already booked");
+    }
+
+    inventory.setBooked(true);
+    return bookingRepository.save(
+        new Booking(roomId, date, userId)
+    );
+}</code></pre>
+
+  <div class="callout ok">
+    <span class="lang-en">Best practice: combine transaction locking with a database unique rule such as UNIQUE(room_id, booking_date).</span>
+    <span class="lang-vn">Best practice: kết hợp transaction locking với unique rule ở DB, ví dụ UNIQUE(room_id, booking_date).</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en"><b>Interview:</b> I would not trust the “available” state shown on the UI. Availability must be rechecked inside a database transaction. I can use pessimistic locking for high contention or optimistic locking when conflicts are rare. I also add a unique database constraint as the final protection so two bookings for the same room and date cannot be committed.</p>
+    <p class="lang-vn"><b>Interview:</b> Tôi không tin trạng thái “available” trên UI vì nó có thể đã cũ. Availability phải được check lại trong database transaction. Tôi có thể dùng pessimistic locking khi conflict cao, hoặc optimistic locking nếu conflict hiếm. Ngoài ra tôi thêm unique constraint ở DB để đảm bảo hai booking cho cùng phòng và ngày không thể cùng commit.</p>
+  </div>
+</section>
+
+<section id="s3" class="card scenario">
+  <div class="scenario-title"><div class="num">3</div><div>
+    <h2 class="lang-en">Slow REST API</h2><h2 class="lang-vn">REST API bị chậm</h2>
+    <p class="muted">API = 30 seconds because it calls 3 downstream services.</p>
+  </div></div>
+
+  <h3 class="lang-en">Step-by-step approach</h3><h3 class="lang-vn">Cách xử lý từng bước</h3>
+  <ol class="lang-en">
+    <li>Measure latency of each downstream call using tracing and metrics.</li>
+    <li>If calls are independent, execute them in parallel.</li>
+    <li>Set connect timeout and read timeout.</li>
+    <li>Add circuit breaker for unstable services.</li>
+    <li>Cache stable data.</li>
+    <li>Return partial/default data if business rules allow it.</li>
+    <li>Move non-critical work to async messaging.</li>
+  </ol>
+  <ol class="lang-vn">
+    <li>Đo latency từng downstream bằng tracing và metrics.</li>
+    <li>Nếu các call độc lập, chạy song song.</li>
+    <li>Đặt connect timeout và read timeout.</li>
+    <li>Dùng circuit breaker với service không ổn định.</li>
+    <li>Cache dữ liệu ít thay đổi.</li>
+    <li>Trả partial/default data nếu business cho phép.</li>
+    <li>Đưa phần không critical sang async message.</li>
+  </ol>
+
+<pre><code>@Service
+@RequiredArgsConstructor
+public class DashboardService {
+
+    private final UserClient userClient;
+    private final OrderClient orderClient;
+    private final RewardClient rewardClient;
+
+    public Mono&lt;DashboardResponse&gt; load(Long userId) {
+        Mono&lt;User&gt; user = userClient.getUser(userId);
+        Mono&lt;List&lt;Order&gt;&gt; orders = orderClient.getOrders(userId);
+        Mono&lt;Reward&gt; reward = rewardClient.getReward(userId);
+
+        return Mono.zip(user, orders, reward)
+            .map(tuple -&gt; new DashboardResponse(
+                tuple.getT1(),
+                tuple.getT2(),
+                tuple.getT3()
+            ))
+            .timeout(Duration.ofSeconds(3));
+    }
+}</code></pre>
+
+  <div class="callout warn">
+    <span class="lang-en">Do not blindly use more threads. If downstream is slow, creating more threads can make the system worse by exhausting thread pools and connections.</span>
+    <span class="lang-vn">Không nên tăng thread một cách mù quáng. Nếu downstream đang chậm, tạo thêm thread có thể làm hệ thống tệ hơn do cạn thread pool và connection.</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en">First I would use tracing to find which downstream is slow. If the three calls are independent, I would call them in parallel instead of sequentially. I would configure strict timeouts, use circuit breakers, cache stable responses, and move non-critical work to asynchronous processing. The goal is not only lower average latency but also controlled p95/p99 latency and graceful failure.</p>
+    <p class="lang-vn">Đầu tiên tôi dùng tracing để xác định downstream nào chậm. Nếu ba call độc lập, tôi gọi song song thay vì tuần tự. Tôi cấu hình timeout rõ ràng, circuit breaker, cache dữ liệu ổn định và chuyển phần không critical sang async. Mục tiêu không chỉ giảm latency trung bình mà còn kiểm soát p95/p99 và degrade gracefully khi service lỗi.</p>
+  </div>
+</section>
+
+<section id="s4" class="card scenario">
+  <div class="scenario-title"><div class="num">4</div><div>
+    <h2>Kafka Consumer Down</h2>
+  </div></div>
+
+  <p class="lang-en">Kafka messages remain in the topic based on retention policy. The consumer group stores committed offsets. When the consumer returns, it continues from the last committed offset.</p>
+  <p class="lang-vn">Message Kafka vẫn nằm trong topic theo retention policy. Consumer group lưu committed offset. Khi consumer chạy lại, nó tiếp tục đọc từ offset đã commit gần nhất.</p>
+
+  <h3 class="lang-en">What to check</h3><h3 class="lang-vn">Cần kiểm tra gì</h3>
+  <ul class="lang-en">
+    <li>Consumer lag increased during downtime.</li>
+    <li>Retention is long enough so messages are not deleted before recovery.</li>
+    <li>Offset commit mode is correct.</li>
+    <li>Processing is idempotent because retries can happen.</li>
+    <li>Poison messages go to a retry topic or dead-letter topic.</li>
+  </ul>
+  <ul class="lang-vn">
+    <li>Consumer lag tăng trong thời gian downtime.</li>
+    <li>Retention đủ dài để message chưa bị xóa trước khi consumer quay lại.</li>
+    <li>Offset commit mode đúng.</li>
+    <li>Business xử lý idempotent vì retry có thể xảy ra.</li>
+    <li>Poison message nên đưa vào retry topic hoặc dead-letter topic.</li>
+  </ul>
+
+<pre><code>@KafkaListener(topics = "payment-events", groupId = "ledger-service")
+public void consume(PaymentEvent event) {
+    // Idempotency check before applying business logic
+    if (processedEventRepository.existsByEventId(event.eventId())) {
+        return;
+    }
+
+    transactionTemplate.executeWithoutResult(status -&gt; {
+        ledgerService.apply(event);
+        processedEventRepository.save(
+            new ProcessedEvent(event.eventId())
+        );
+    });
+}</code></pre>
+
+  <div class="answer">
+    <p class="lang-en">Kafka does not normally lose the messages just because the consumer is down. The messages stay in the topic until retention removes them. When the consumer restarts, it resumes from its last committed offset. I would monitor consumer lag, verify retention, use idempotent processing, and configure retry/DLT handling for messages that repeatedly fail.</p>
+    <p class="lang-vn">Kafka bình thường sẽ không mất message chỉ vì consumer bị down. Message vẫn nằm trong topic cho tới khi retention xóa. Khi consumer chạy lại, nó tiếp tục từ committed offset gần nhất. Tôi sẽ monitor consumer lag, kiểm tra retention, đảm bảo xử lý idempotent và cấu hình retry/DLT cho message lỗi nhiều lần.</p>
+  </div>
+</section>
+
+<section id="s5" class="card scenario">
+  <div class="scenario-title"><div class="num">5</div><div><h2>HashMap Concurrency</h2></div></div>
+
+  <p class="lang-en">HashMap is not thread-safe. Concurrent writes can cause lost updates, stale reads, inconsistent state, and iteration exceptions.</p>
+  <p class="lang-vn">HashMap không thread-safe. Concurrent write có thể gây lost update, stale read, trạng thái không nhất quán và exception khi iterate.</p>
+
+  <h3 class="lang-en">Fix options</h3><h3 class="lang-vn">Các cách xử lý</h3>
+  <ul>
+    <li><b>ConcurrentHashMap</b> — common choice for high-concurrency access.</li>
+    <li><b>Collections.synchronizedMap</b> — simpler, but more global locking.</li>
+    <li><b>Immutable map</b> — best if data does not change.</li>
+    <li><b>Atomic methods</b> — compute(), merge(), putIfAbsent().</li>
+  </ul>
+
+<pre><code>private final ConcurrentHashMap&lt;String, Long&gt; counters =
+        new ConcurrentHashMap&lt;&gt;();
+
+public void increase(String key) {
+    counters.merge(key, 1L, Long::sum);
+}</code></pre>
+
+  <div class="callout danger">
+    <span class="lang-en">Wrong pattern:</span><span class="lang-vn">Pattern sai:</span>
+<pre><code>if (!map.containsKey(key)) {
+    map.put(key, value); // race condition
+}</code></pre>
+  </div>
+
+<pre><code>map.putIfAbsent(key, value);</code></pre>
+
+  <div class="answer">
+    <p class="lang-en">I would not use a normal HashMap for shared mutable state. I would usually use ConcurrentHashMap and atomic methods such as compute, merge, or putIfAbsent. I also check whether the shared state should exist in memory at all, because in a multi-instance microservice local memory is not shared across pods.</p>
+    <p class="lang-vn">Tôi không dùng HashMap thường cho shared mutable state. Tôi thường dùng ConcurrentHashMap và các atomic method như compute, merge hoặc putIfAbsent. Tôi cũng xem lại dữ liệu đó có nên lưu local memory không, vì trong microservice nhiều instance thì memory không được share giữa các pod.</p>
+  </div>
+</section>
+
+<section id="s6" class="card scenario">
+  <div class="scenario-title"><div class="num">6</div><div><h2 class="lang-en">High CPU Usage</h2><h2 class="lang-vn">CPU tăng 95%</h2></div></div>
+
+  <h3 class="lang-en">Troubleshooting flow</h3><h3 class="lang-vn">Quy trình troubleshoot</h3>
+  <ol>
+    <li><b>Check metrics:</b> CPU, load average, request rate, latency, error rate, GC, thread count.</li>
+    <li><b>Take thread dump:</b> identify RUNNABLE threads and repeated stack traces.</li>
+    <li><b>Profile CPU:</b> JFR, async-profiler, Java Mission Control.</li>
+    <li><b>Check thread creation:</b> unbounded executor, blocking I/O, retry storm.</li>
+    <li><b>Check GC:</b> high GC CPU can look like application CPU.</li>
+    <li><b>Compare deployment change:</b> new release, configuration, traffic spike.</li>
+  </ol>
+
+<pre><code>// Bad: unbounded thread creation
+ExecutorService executor = Executors.newCachedThreadPool();
+
+// Better: bounded pool
+ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+executor.setCorePoolSize(20);
+executor.setMaxPoolSize(50);
+executor.setQueueCapacity(500);
+executor.setThreadNamePrefix("payment-");
+executor.initialize();</code></pre>
+
+  <div class="callout warn">
+    <span class="lang-en">Thousands of threads can increase context switching, memory usage, and CPU even if actual business work is small.</span>
+    <span class="lang-vn">Hàng nghìn thread có thể làm tăng context switching, memory và CPU dù business workload thật sự không lớn.</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en">I start with metrics to confirm whether CPU correlates with traffic, GC, or thread growth. Then I take thread dumps and a CPU profile. If thousands of threads appeared, I check for unbounded thread pools, blocking calls, retry loops, or thread leaks. I also compare the issue with recent deployments and use JFR or async-profiler to identify the hottest stack.</p>
+    <p class="lang-vn">Tôi bắt đầu từ metrics để xem CPU có liên quan đến traffic, GC hay thread count tăng không. Sau đó tôi lấy thread dump và CPU profile. Nếu có hàng nghìn thread, tôi kiểm tra unbounded thread pool, blocking call, retry loop hoặc thread leak. Tôi cũng so với release gần nhất và dùng JFR hoặc async-profiler để tìm hot stack.</p>
+  </div>
+</section>
+
+<section id="s7" class="card scenario">
+  <div class="scenario-title"><div class="num">7</div><div><h2 class="lang-en">Memory Issue / OutOfMemoryError</h2><h2 class="lang-vn">Memory tăng liên tục / OutOfMemoryError</h2></div></div>
+
+  <h3 class="lang-en">Possible causes</h3><h3 class="lang-vn">Nguyên nhân thường gặp</h3>
+  <div class="grid2">
+    <div>
+      <ul>
+        <li>Unbounded cache</li>
+        <li>Static collections</li>
+        <li>Large object retention</li>
+        <li>ThreadLocal leak</li>
+        <li>Too many threads</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li>Large HTTP payloads</li>
+        <li>File/stream resources not closed</li>
+        <li>Queue backlog in memory</li>
+        <li>Hibernate persistence context too large</li>
+        <li>ClassLoader leak</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="lang-en">Investigation</h3><h3 class="lang-vn">Cách điều tra</h3>
+  <ol>
+    <li>Check heap usage before and after Full GC.</li>
+    <li>Enable heap dump on OOM.</li>
+    <li>Analyze dominator tree and retained size.</li>
+    <li>Find objects that keep growing.</li>
+    <li>Check GC logs and allocation rate.</li>
+  </ol>
+
+<pre><code>JAVA_TOOL_OPTIONS="
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/dumps
+-Xlog:gc*:file=/logs/gc.log
+"</code></pre>
+
+<pre><code>// Bad: unbounded cache
+private static final Map&lt;String, Object&gt; CACHE = new HashMap&lt;&gt;();
+
+// Better: bounded cache policy
+Caffeine.newBuilder()
+    .maximumSize(100_000)
+    .expireAfterWrite(Duration.ofMinutes(10))
+    .build();</code></pre>
+
+  <div class="answer">
+    <p class="lang-en">I first determine whether it is a real memory leak or simply not enough heap. I check whether memory returns after Full GC. Then I capture a heap dump and analyze retained objects using tools such as Eclipse MAT or JDK tools. Typical causes are unbounded caches, static collections, ThreadLocal leaks, very large persistence contexts, or queues that grow faster than they are consumed.</p>
+    <p class="lang-vn">Đầu tiên tôi xác định đây là memory leak thật hay chỉ thiếu heap. Tôi kiểm tra memory có giảm sau Full GC hay không. Sau đó tôi lấy heap dump và phân tích retained object bằng Eclipse MAT hoặc JDK tools. Nguyên nhân thường gặp là cache không giới hạn, static collection, ThreadLocal leak, persistence context quá lớn hoặc queue tăng nhanh hơn tốc độ xử lý.</p>
+  </div>
+</section>
+
+<section id="s8" class="card scenario">
+  <div class="scenario-title"><div class="num">8</div><div><h2>Kubernetes Issue: One Pod at 95% CPU</h2></div></div>
+
+  <h3 class="lang-en">Check first</h3><h3 class="lang-vn">Kiểm tra trước tiên</h3>
+  <ol>
+    <li>Is traffic distributed evenly across pods?</li>
+    <li>Is one pod processing a special partition, job, or Kafka partition?</li>
+    <li>Does the pod have different config, JVM args, or node placement?</li>
+    <li>Is it stuck in a loop or retry storm?</li>
+    <li>Are CPU requests/limits different?</li>
+    <li>Is the node itself under resource pressure?</li>
+  </ol>
+
+<pre><code>kubectl top pod
+kubectl describe pod &lt;pod-name&gt;
+kubectl logs &lt;pod-name&gt; --previous
+kubectl get pod -o wide
+kubectl top node</code></pre>
+
+  <div class="callout ok">
+    <span class="lang-en">If only one pod is abnormal while others are healthy, first compare what is different about that pod before scaling the whole deployment.</span>
+    <span class="lang-vn">Nếu chỉ một pod bất thường còn các pod khác bình thường, hãy tìm điểm khác biệt của pod đó trước khi scale toàn bộ deployment.</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en">I would first compare the hot pod with healthy pods: traffic, logs, thread dump, config, node, CPU limits, and assigned workload. One pod may own a hot Kafka partition, run a scheduled job, receive uneven traffic, or be stuck in a retry loop. I would not immediately scale the service before understanding why only one pod is affected.</p>
+    <p class="lang-vn">Tôi sẽ so sánh pod nóng với pod bình thường: traffic, logs, thread dump, config, node, CPU limit và workload được assign. Một pod có thể đang giữ Kafka partition nóng, chạy scheduled job, nhận traffic không đều hoặc bị retry loop. Tôi không scale ngay trước khi hiểu vì sao chỉ một pod bị ảnh hưởng.</p>
+  </div>
+</section>
+
+<section id="s9" class="card scenario">
+  <div class="scenario-title"><div class="num">9</div><div><h2>JWT / 401 Unauthorized</h2></div></div>
+
+  <h3 class="lang-en">Checklist</h3><h3 class="lang-vn">Checklist kiểm tra</h3>
+  <ul>
+    <li>Authorization header format: <code>Bearer &lt;token&gt;</code></li>
+    <li>Token expired?</li>
+    <li>Signature valid?</li>
+    <li>Correct issuer (<code>iss</code>)?</li>
+    <li>Correct audience (<code>aud</code>)?</li>
+    <li>Clock skew between systems?</li>
+    <li>Correct public key / JWKS endpoint?</li>
+    <li>Spring Security filter chain configuration?</li>
+    <li>401 vs 403: authentication failure vs permission failure.</li>
+  </ul>
+
+<pre><code>@Bean
+SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(auth -&gt; auth
+            .requestMatchers("/actuator/health").permitAll()
+            .anyRequest().authenticated()
+        )
+        .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt());
+
+    return http.build();
+}</code></pre>
+
+<pre><code>spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://auth.example.com/realms/app</code></pre>
+
+  <div class="callout">
+    <span class="lang-en"><b>401</b> usually means authentication failed. <b>403</b> usually means the user is authenticated but does not have enough permission.</span>
+    <span class="lang-vn"><b>401</b> thường là authentication thất bại. <b>403</b> thường là đã authenticate nhưng không đủ permission.</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en">I would verify the Authorization header first, then decode the token and check expiry, issuer, audience, and signature. After that I check whether the resource server uses the correct JWKS or issuer configuration. I also verify system clock skew and Spring Security filter rules. If authentication succeeds but access is denied, I would expect 403 rather than 401.</p>
+    <p class="lang-vn">Tôi kiểm tra Authorization header trước, sau đó decode token để xem expiry, issuer, audience và signature. Tiếp theo tôi kiểm tra resource server có dùng đúng JWKS hoặc issuer configuration không. Tôi cũng kiểm tra clock skew và Spring Security filter rule. Nếu authentication thành công nhưng thiếu quyền thì thường phải là 403 chứ không phải 401.</p>
+  </div>
+</section>
+
+<section id="s10" class="card scenario">
+  <div class="scenario-title"><div class="num">10</div><div><h2 class="lang-en">Database Performance After Data Growth</h2><h2 class="lang-vn">Database chậm khi dữ liệu lên hàng triệu record</h2></div></div>
+
+  <h3 class="lang-en">What to inspect</h3><h3 class="lang-vn">Cần kiểm tra gì</h3>
+  <ol>
+    <li><b>Execution plan:</b> sequential scan, nested loop, sort, bad estimates.</li>
+    <li><b>Indexes:</b> missing index, wrong composite order, low selectivity.</li>
+    <li><b>Query design:</b> SELECT *, unnecessary joins, N+1 queries.</li>
+    <li><b>Functions on indexed columns:</b> may block index usage.</li>
+    <li><b>Pagination:</b> large OFFSET becomes slow.</li>
+    <li><b>Statistics:</b> stale statistics can produce a bad plan.</li>
+    <li><b>Table growth:</b> partitioning can help very large time/range data.</li>
+    <li><b>Connection pool:</b> slow DB can cause pool exhaustion.</li>
+  </ol>
+
+<pre><code>-- Less index-friendly
+SELECT *
+FROM orders
+WHERE DATE(created_at) = '2026-09-16';
+
+-- Better
+SELECT id, customer_id, status, total_amount
+FROM orders
+WHERE created_at &gt;= '2026-09-16 00:00:00'
+  AND created_at &lt;  '2026-09-17 00:00:00';</code></pre>
+
+<pre><code>CREATE INDEX idx_orders_customer_created
+ON orders(customer_id, created_at DESC);</code></pre>
+
+<pre><code>// Keyset pagination instead of very large OFFSET
+@Query("""
+    select o from Order o
+    where o.customerId = :customerId
+      and o.id &lt; :lastId
+    order by o.id desc
+""")
+List&lt;Order&gt; nextPage(
+    Long customerId,
+    Long lastId,
+    Pageable pageable
+);</code></pre>
+
+  <div class="callout warn">
+    <span class="lang-en">Do not add indexes everywhere. Every index improves some reads but adds storage and write cost.</span>
+    <span class="lang-vn">Không nên thêm index khắp nơi. Mỗi index có thể tăng tốc read nhưng làm tăng storage và chi phí write.</span>
+  </div>
+
+  <div class="answer">
+    <p class="lang-en">I would start with the slow query and inspect EXPLAIN ANALYZE. I check for full table scans, missing or ineffective indexes, bad joins, N+1 queries, large sorts, and high OFFSET pagination. I also verify statistics and connection pool saturation. If the table is very large and queries naturally filter by time or another range key, I would consider partitioning, but only after fixing query and index design first.</p>
+    <p class="lang-vn">Tôi bắt đầu từ slow query và xem EXPLAIN ANALYZE. Tôi kiểm tra full table scan, index thiếu hoặc không hiệu quả, join xấu, N+1 query, sort lớn và pagination OFFSET quá sâu. Tôi cũng kiểm tra statistics và connection pool. Nếu table rất lớn và query thường filter theo time/range key, tôi cân nhắc partitioning, nhưng chỉ sau khi tối ưu query và index trước.</p>
+  </div>
+</section>
+
+
+<section id="s11" class="card scenario">
+  <div class="scenario-title"><div class="num">11</div><div>
+    <h2 class="lang-en">Circuit Breaker & Resilience4j</h2>
+    <h2 class="lang-vn">Circuit Breaker & Resilience4j</h2>
+    <p class="muted lang-en">How to stop repeated calls to an unhealthy downstream service, recover automatically, and decide when fallback is safe.</p>
+    <p class="muted lang-vn">Cách ngăn việc gọi liên tục tới downstream đang lỗi, tự động thử lại khi service phục hồi, và quyết định khi nào fallback là an toàn.</p>
+  </div></div>
+
+  <div class="callout">
+    <p class="lang-en"><b>Main idea:</b> Circuit Breaker does not retry the same request many times. It watches recent calls. If too many calls fail or become too slow, it temporarily blocks new calls and returns a fallback immediately.</p>
+    <p class="lang-vn"><b>Ý tưởng chính:</b> Circuit Breaker không phải là retry cùng request nhiều lần. Nó quan sát các request gần đây. Nếu quá nhiều request fail hoặc quá chậm, nó tạm thời chặn các call mới và trả fallback ngay.</p>
+  </div>
+
+  <h3 class="lang-en">Why we need it</h3>
+  <h3 class="lang-vn">Tại sao cần Circuit Breaker</h3>
+  <div class="grid2">
+    <div>
+      <h4 class="lang-en">Without Circuit Breaker</h4>
+      <h4 class="lang-vn">Không có Circuit Breaker</h4>
+      <ul class="lang-en">
+        <li>Service A keeps calling Service B even when B is down.</li>
+        <li>Threads wait until timeout.</li>
+        <li>Connection pools become exhausted.</li>
+        <li>Latency increases across the whole system.</li>
+        <li>Retry storms can make the outage worse.</li>
+      </ul>
+      <ul class="lang-vn">
+        <li>Service A vẫn gọi Service B dù B đang down.</li>
+        <li>Thread phải chờ đến timeout.</li>
+        <li>Connection pool có thể bị cạn.</li>
+        <li>Latency tăng trên toàn hệ thống.</li>
+        <li>Retry storm có thể làm outage nặng hơn.</li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="lang-en">With Circuit Breaker</h4>
+      <h4 class="lang-vn">Có Circuit Breaker</h4>
+      <ul class="lang-en">
+        <li>Failures are measured in a rolling window.</li>
+        <li>When the threshold is exceeded, the circuit opens.</li>
+        <li>Calls fail fast instead of waiting for timeout.</li>
+        <li>Fallback can return cached/default/empty data.</li>
+        <li>After a wait period, a few probe calls are allowed.</li>
+      </ul>
+      <ul class="lang-vn">
+        <li>Failure được đo trong một sliding window.</li>
+        <li>Khi vượt threshold, circuit chuyển sang OPEN.</li>
+        <li>Request fail fast thay vì chờ timeout.</li>
+        <li>Fallback có thể trả cache/default/empty data.</li>
+        <li>Sau thời gian chờ, cho phép một vài probe call để test recovery.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="lang-en">Circuit Breaker states</h3>
+  <h3 class="lang-vn">Các trạng thái của Circuit Breaker</h3>
+  <table>
+    <tr>
+      <th>State</th>
+      <th class="lang-en">Meaning</th>
+      <th class="lang-vn">Ý nghĩa</th>
+      <th class="lang-en">What happens</th>
+      <th class="lang-vn">Điều gì xảy ra</th>
+    </tr>
+    <tr>
+      <td><b>CLOSED</b></td>
+      <td class="lang-en">Normal state</td>
+      <td class="lang-vn">Trạng thái bình thường</td>
+      <td class="lang-en">Calls go to downstream and are measured.</td>
+      <td class="lang-vn">Request vẫn gọi downstream và được tính vào metrics.</td>
+    </tr>
+    <tr>
+      <td><b>OPEN</b></td>
+      <td class="lang-en">Downstream considered unhealthy</td>
+      <td class="lang-vn">Downstream đang được xem là không ổn định</td>
+      <td class="lang-en">Calls are blocked immediately. Fallback runs.</td>
+      <td class="lang-vn">Call mới bị chặn ngay. Fallback chạy.</td>
+    </tr>
+    <tr>
+      <td><b>HALF_OPEN</b></td>
+      <td class="lang-en">Recovery testing</td>
+      <td class="lang-vn">Kiểm tra service đã phục hồi chưa</td>
+      <td class="lang-en">Only a limited number of probe calls are allowed.</td>
+      <td class="lang-vn">Chỉ cho một số lượng nhỏ probe call đi qua.</td>
+    </tr>
+  </table>
+
+  <div class="callout ok">
+    <p class="lang-en"><b>Normal recovery:</b> CLOSED → too many failures → OPEN → wait → HALF_OPEN → probe calls succeed → CLOSED again.</p>
+    <p class="lang-vn"><b>Luồng recovery bình thường:</b> CLOSED → quá nhiều failure → OPEN → chờ → HALF_OPEN → probe call thành công → quay lại CLOSED.</p>
+  </div>
+
+  <h3 class="lang-en">How is the failure threshold calculated?</h3>
+  <h3 class="lang-vn">Failure threshold được tính như thế nào?</h3>
+
+  <p class="lang-en">
+    Resilience4j calculates the failure rate from calls inside the current sliding window:
+  </p>
+  <p class="lang-vn">
+    Resilience4j tính failure rate dựa trên các call nằm trong sliding window hiện tại:
+  </p>
+
+<pre><code>failureRate = failedCalls / totalMeasuredCalls * 100</code></pre>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Example A</h4>
+      <p>slidingWindowSize = 10</p>
+      <p>minimumNumberOfCalls = 10</p>
+      <p>failureRateThreshold = 50%</p>
+      <p class="lang-en">If 5 out of the latest 10 calls fail → failure rate = 50% → circuit can OPEN.</p>
+      <p class="lang-vn">Nếu 5/10 call gần nhất fail → failure rate = 50% → circuit có thể OPEN.</p>
+    </div>
+    <div class="card">
+      <h4>Example B</h4>
+      <p>minimumNumberOfCalls = 10</p>
+      <p class="lang-en">Only 4 calls happened and all 4 failed.</p>
+      <p class="lang-vn">Mới có 4 call và cả 4 đều fail.</p>
+      <p class="lang-en"><b>The circuit does not open yet</b> because the minimum number of calls has not been reached.</p>
+      <p class="lang-vn"><b>Circuit chưa OPEN</b> vì chưa đủ minimumNumberOfCalls.</p>
+    </div>
+  </div>
+
+  <h4 class="lang-en">Important threshold settings</h4>
+  <h4 class="lang-vn">Các threshold quan trọng</h4>
+
+  <table>
+    <tr><th>Setting</th><th class="lang-en">Purpose</th><th class="lang-vn">Ý nghĩa</th></tr>
+    <tr>
+      <td><code>failureRateThreshold</code></td>
+      <td class="lang-en">Percentage of failed calls that causes OPEN.</td>
+      <td class="lang-vn">Tỷ lệ call fail để chuyển sang OPEN.</td>
+    </tr>
+    <tr>
+      <td><code>slidingWindowSize</code></td>
+      <td class="lang-en">How many recent calls, or how many seconds, are measured.</td>
+      <td class="lang-vn">Số call gần nhất hoặc số giây được dùng để tính.</td>
+    </tr>
+    <tr>
+      <td><code>minimumNumberOfCalls</code></td>
+      <td class="lang-en">Do not calculate/open too early with too little data.</td>
+      <td class="lang-vn">Tránh OPEN quá sớm khi chưa đủ dữ liệu.</td>
+    </tr>
+    <tr>
+      <td><code>slowCallRateThreshold</code></td>
+      <td class="lang-en">Opens the circuit when too many calls are slow, even if they still return 200.</td>
+      <td class="lang-vn">Có thể OPEN khi quá nhiều call chậm, dù response vẫn là 200.</td>
+    </tr>
+    <tr>
+      <td><code>slowCallDurationThreshold</code></td>
+      <td class="lang-en">Defines what “slow” means, for example more than 2 seconds.</td>
+      <td class="lang-vn">Định nghĩa một call bao lâu thì được tính là “slow”, ví dụ &gt; 2 giây.</td>
+    </tr>
+  </table>
+
+  <h3 class="lang-en">After the server recovers, when will calls go through again?</h3>
+  <h3 class="lang-vn">Server đã work lại thì bao lâu mới gọi thật trở lại?</h3>
+
+  <p class="lang-en">
+    This is controlled mainly by <code>waitDurationInOpenState</code>. While the circuit is OPEN, requests do not reach the downstream. After the wait duration, the circuit moves to HALF_OPEN and allows a small number of test calls.
+  </p>
+  <p class="lang-vn">
+    Việc này chủ yếu được điều khiển bởi <code>waitDurationInOpenState</code>. Khi circuit đang OPEN, request không đi đến downstream. Sau thời gian chờ này, circuit chuyển sang HALF_OPEN và cho một số call test đi qua.
+  </p>
+
+<pre><code>waitDurationInOpenState = 10s
+permittedNumberOfCallsInHalfOpenState = 3</code></pre>
+
+  <ol class="lang-en">
+    <li>Downstream fails repeatedly.</li>
+    <li>Circuit becomes OPEN.</li>
+    <li>For 10 seconds, calls immediately use fallback.</li>
+    <li>After 10 seconds, circuit becomes HALF_OPEN.</li>
+    <li>Three real calls are allowed as health probes.</li>
+    <li>If they are healthy enough, circuit returns to CLOSED.</li>
+    <li>Normal requests call downstream again.</li>
+  </ol>
+
+  <ol class="lang-vn">
+    <li>Downstream fail nhiều lần.</li>
+    <li>Circuit chuyển sang OPEN.</li>
+    <li>Trong 10 giây, request mới đi thẳng vào fallback.</li>
+    <li>Sau 10 giây, circuit chuyển sang HALF_OPEN.</li>
+    <li>Cho phép 3 call thật đi qua để kiểm tra.</li>
+    <li>Nếu các call test đủ tốt, circuit quay về CLOSED.</li>
+    <li>Request sau đó gọi downstream bình thường trở lại.</li>
+  </ol>
+
+  <div class="callout warn">
+    <p class="lang-en"><b>Do not set the wait time too short.</b> If a service needs 30 seconds to recover but the circuit retries every 1 second, you can create a new load spike during the outage.</p>
+    <p class="lang-vn"><b>Không set wait quá ngắn.</b> Nếu service cần 30 giây để recover nhưng circuit cứ thử lại mỗi 1 giây, chính các probe đó có thể tạo thêm load trong lúc outage.</p>
+  </div>
+
+  <h3 class="lang-en">Resilience4j configuration example</h3>
+  <h3 class="lang-vn">Ví dụ cấu hình Resilience4j</h3>
+
+<pre><code>resilience4j:
+  circuitbreaker:
+    instances:
+      rewardService:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+
+        failureRateThreshold: 50
+
+        slowCallDurationThreshold: 2s
+        slowCallRateThreshold: 50
+
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+        recordExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+
+        ignoreExceptions:
+          - com.example.BusinessValidationException</code></pre>
+
+  <div class="callout">
+    <p class="lang-en">
+      With this configuration, once at least 10 calls have been measured, if 50% or more fail, or 50% or more take longer than 2 seconds, the circuit can open.
+    </p>
+    <p class="lang-vn">
+      Với cấu hình này, sau khi đã có ít nhất 10 call được đo, nếu 50% trở lên fail hoặc 50% trở lên mất hơn 2 giây, circuit có thể chuyển sang OPEN.
+    </p>
+  </div>
+
+  <h3 class="lang-en">Fallback to empty so the next steps can continue</h3>
+  <h3 class="lang-vn">Fallback về empty để flow vẫn chạy tiếp</h3>
+
+  <p class="lang-en">
+    Returning empty data is useful when the downstream data is optional. Example: a dashboard can still show user and order information even if the reward service is temporarily unavailable.
+  </p>
+  <p class="lang-vn">
+    Trả empty rất hữu ích khi dữ liệu downstream chỉ là optional. Ví dụ dashboard vẫn có thể hiển thị user và order dù reward service tạm thời lỗi.
+  </p>
+
+<pre><code>@Service
+@RequiredArgsConstructor
+public class RewardClient {
+
+    private final WebClient webClient;
+
+    @CircuitBreaker(name = "rewardService", fallbackMethod = "rewardFallback")
+    public List&lt;Reward&gt; getRewards(Long userId) {
+        return webClient.get()
+            .uri("/users/{id}/rewards", userId)
+            .retrieve()
+            .bodyToFlux(Reward.class)
+            .collectList()
+            .block();
+    }
+
+    private List&lt;Reward&gt; rewardFallback(Long userId, Throwable ex) {
+        // Optional data -> continue next step safely
+        return Collections.emptyList();
+    }
+}</code></pre>
+
+  <h4 class="lang-en">Then the business flow can continue</h4>
+  <h4 class="lang-vn">Sau đó flow business vẫn tiếp tục</h4>
+
+<pre><code>public DashboardResponse getDashboard(Long userId) {
+    User user = userClient.getUser(userId);
+    List&lt;Order&gt; orders = orderClient.getOrders(userId);
+
+    // May return empty list when reward service is unavailable
+    List&lt;Reward&gt; rewards = rewardClient.getRewards(userId);
+
+    return new DashboardResponse(user, orders, rewards);
+}</code></pre>
+
+  <h3 class="lang-en">Reactive fallback example</h3>
+  <h3 class="lang-vn">Ví dụ fallback với WebFlux</h3>
+
+<pre><code>@CircuitBreaker(name = "rewardService", fallbackMethod = "rewardFallback")
+public Mono&lt;Reward&gt; getReward(Long userId) {
+    return webClient.get()
+        .uri("/users/{id}/reward", userId)
+        .retrieve()
+        .bodyToMono(Reward.class);
+}
+
+private Mono&lt;Reward&gt; rewardFallback(Long userId, Throwable ex) {
+    return Mono.empty();
+}</code></pre>
+
+  <div class="callout danger">
+    <p class="lang-en"><b>Do not blindly return empty.</b> Fallback is only safe when the missing data is optional and the caller can clearly understand that it is degraded data.</p>
+    <p class="lang-vn"><b>Không được fallback empty một cách mù quáng.</b> Chỉ nên làm vậy khi dữ liệu bị thiếu là optional và caller hiểu rõ response đang ở trạng thái degraded.</p>
+  </div>
+
+  <h4 class="lang-en">Good cases for empty/default fallback</h4>
+  <h4 class="lang-vn">Trường hợp phù hợp để fallback empty/default</h4>
+  <ul class="lang-en">
+    <li>Recommendation service is down → return empty recommendations.</li>
+    <li>Reward history is down → return empty reward list.</li>
+    <li>User avatar service is down → return default avatar.</li>
+    <li>Analytics data is down → skip analytics section.</li>
+  </ul>
+  <ul class="lang-vn">
+    <li>Recommendation service down → trả danh sách recommendation rỗng.</li>
+    <li>Reward history down → trả reward list rỗng.</li>
+    <li>Avatar service down → trả avatar mặc định.</li>
+    <li>Analytics service down → bỏ qua phần analytics.</li>
+  </ul>
+
+  <h4 class="lang-en">Cases where empty fallback is dangerous</h4>
+  <h4 class="lang-vn">Trường hợp fallback empty rất nguy hiểm</h4>
+  <ul class="lang-en">
+    <li>Payment authorization</li>
+    <li>Account balance</li>
+    <li>Inventory reservation</li>
+    <li>Fraud check when it is mandatory</li>
+    <li>Permission/authorization decision</li>
+  </ul>
+  <ul class="lang-vn">
+    <li>Payment authorization</li>
+    <li>Số dư tài khoản</li>
+    <li>Inventory reservation</li>
+    <li>Fraud check bắt buộc</li>
+    <li>Quyết định permission/authorization</li>
+  </ul>
+
+  <div class="callout warn">
+    <p class="lang-en">For critical financial or consistency operations, fallback should usually fail clearly instead of pretending that “empty” means success.</p>
+    <p class="lang-vn">Với nghiệp vụ tiền hoặc consistency quan trọng, fallback thường nên fail rõ ràng thay vì giả định rằng “empty” nghĩa là thành công.</p>
+  </div>
+
+  <h3 class="lang-en">How to choose threshold values</h3>
+  <h3 class="lang-vn">Cách chọn threshold hợp lý</h3>
+
+  <p class="lang-en">
+    There is no universal “correct” value. Use production latency, failure rate, traffic volume, and business tolerance.
+  </p>
+  <p class="lang-vn">
+    Không có một con số đúng cho mọi hệ thống. Phải dựa trên latency thực tế, error rate, traffic và mức độ business chấp nhận được.
+  </p>
+
+  <table>
+    <tr>
+      <th class="lang-en">Traffic pattern</th>
+      <th class="lang-vn">Loại traffic</th>
+      <th class="lang-en">Typical consideration</th>
+      <th class="lang-vn">Điểm cần cân nhắc</th>
+    </tr>
+    <tr>
+      <td>High traffic</td>
+      <td>High traffic</td>
+      <td class="lang-en">Larger sliding window gives more stable statistics.</td>
+      <td class="lang-vn">Sliding window lớn hơn giúp số liệu ổn định hơn.</td>
+    </tr>
+    <tr>
+      <td>Low traffic</td>
+      <td>Low traffic</td>
+      <td class="lang-en">Do not set minimum calls too high or breaker may never react.</td>
+      <td class="lang-vn">Không set minimum calls quá cao vì breaker có thể không bao giờ phản ứng.</td>
+    </tr>
+    <tr>
+      <td>Very sensitive downstream</td>
+      <td>Downstream yếu / dễ overload</td>
+      <td class="lang-en">Lower threshold and longer open wait can protect it better.</td>
+      <td class="lang-vn">Threshold thấp hơn và thời gian OPEN dài hơn có thể bảo vệ downstream tốt hơn.</td>
+    </tr>
+    <tr>
+      <td>Temporary network errors</td>
+      <td>Lỗi network ngắn hạn</td>
+      <td class="lang-en">A small retry may help before the breaker records final failure.</td>
+      <td class="lang-vn">Có thể dùng retry nhỏ trước khi breaker tính request là fail cuối cùng.</td>
+    </tr>
+  </table>
+
+  <div class="callout ok">
+    <p class="lang-en"><b>Reasonable starting point for many internal services:</b> window 20-50 calls, minimum 10-20 calls, failure threshold around 50%, open wait 10-30 seconds, and 3-10 half-open probe calls. Then tune using real metrics.</p>
+    <p class="lang-vn"><b>Một điểm bắt đầu hợp lý cho nhiều internal service:</b> window 20-50 call, minimum 10-20 call, failure threshold khoảng 50%, OPEN 10-30 giây, HALF_OPEN cho 3-10 probe call. Sau đó tune theo metrics thật.</p>
+  </div>
+
+  <h3 class="lang-en">Circuit Breaker vs Retry</h3>
+  <h3 class="lang-vn">Circuit Breaker khác Retry như thế nào?</h3>
+
+  <table>
+    <tr>
+      <th></th>
+      <th>Retry</th>
+      <th>Circuit Breaker</th>
+    </tr>
+    <tr>
+      <td class="lang-en">Main goal</td>
+      <td class="lang-en">Recover from temporary/transient failure.</td>
+      <td class="lang-en">Protect the system from a persistently unhealthy dependency.</td>
+    </tr>
+    <tr>
+      <td class="lang-vn">Mục tiêu</td>
+      <td class="lang-vn">Xử lý lỗi tạm thời/transient.</td>
+      <td class="lang-vn">Bảo vệ hệ thống khi dependency lỗi liên tục.</td>
+    </tr>
+    <tr>
+      <td class="lang-en">Behavior</td>
+      <td class="lang-en">Calls the downstream again for the same operation.</td>
+      <td class="lang-en">Stops calling downstream for a period.</td>
+    </tr>
+    <tr>
+      <td class="lang-vn">Hành vi</td>
+      <td class="lang-vn">Gọi lại downstream cho cùng operation.</td>
+      <td class="lang-vn">Ngừng gọi downstream trong một khoảng thời gian.</td>
+    </tr>
+    <tr>
+      <td class="lang-en">Best for</td>
+      <td class="lang-en">Temporary timeout, short network glitch, transient 5xx.</td>
+      <td class="lang-en">Service down, overload, repeated timeout, repeated 5xx.</td>
+    </tr>
+    <tr>
+      <td class="lang-vn">Phù hợp</td>
+      <td class="lang-vn">Timeout ngắn, network glitch, transient 5xx.</td>
+      <td class="lang-vn">Service down, overload, timeout/5xx liên tục.</td>
+    </tr>
+    <tr>
+      <td class="lang-en">Risk</td>
+      <td class="lang-en">Too many retries can create a retry storm.</td>
+      <td class="lang-en">Wrong fallback can hide real business failures.</td>
+    </tr>
+    <tr>
+      <td class="lang-vn">Rủi ro</td>
+      <td class="lang-vn">Retry quá nhiều có thể tạo retry storm.</td>
+      <td class="lang-vn">Fallback sai có thể che giấu business failure thật.</td>
+    </tr>
+  </table>
+
+  <h3 class="lang-en">Using Retry and Circuit Breaker together</h3>
+  <h3 class="lang-vn">Kết hợp Retry và Circuit Breaker</h3>
+
+  <p class="lang-en">
+    A common design is: timeout first, retry only a small number of times for transient failures, and use the circuit breaker to stop repeated pressure when the dependency remains unhealthy.
+  </p>
+  <p class="lang-vn">
+    Một thiết kế phổ biến là: timeout rõ ràng, retry rất ít lần cho transient failure, và Circuit Breaker dùng để ngăn tiếp tục gây áp lực nếu downstream vẫn lỗi.
+  </p>
+
+<pre><code>resilience4j:
+  retry:
+    instances:
+      rewardService:
+        maxAttempts: 2
+        waitDuration: 200ms
+
+  circuitbreaker:
+    instances:
+      rewardService:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s</code></pre>
+
+  <div class="callout warn">
+    <p class="lang-en"><b>Example:</b> If 1 request is retried 5 times and 100 clients do it at once, the unhealthy downstream may receive 500 calls instead of 100. This is why retry must be bounded and usually combined with backoff/jitter.</p>
+    <p class="lang-vn"><b>Ví dụ:</b> Nếu 1 request retry 5 lần và 100 client cùng làm vậy, downstream đang lỗi có thể nhận 500 call thay vì 100. Vì vậy retry phải giới hạn và thường nên kết hợp backoff/jitter.</p>
+  </div>
+
+  <h3 class="lang-en">A practical Spring Boot example</h3>
+  <h3 class="lang-vn">Ví dụ thực tế trong Spring Boot</h3>
+
+<pre><code>@Service
+@RequiredArgsConstructor
+public class ProductCompositeService {
+
+    private final ProductClient productClient;
+    private final ReviewClient reviewClient;
+    private final RecommendationClient recommendationClient;
+
+    public ProductPage getProductPage(Long productId) {
+        // Critical data: if product fails, request should fail.
+        Product product = productClient.getProduct(productId);
+
+        // Optional data: fallback can return empty.
+        List&lt;Review&gt; reviews = reviewClient.getReviews(productId);
+        List&lt;Product&gt; recommendations =
+            recommendationClient.getRecommendations(productId);
+
+        return new ProductPage(product, reviews, recommendations);
+    }
+}</code></pre>
+
+<pre><code>@CircuitBreaker(name = "reviewService", fallbackMethod = "reviewsFallback")
+public List&lt;Review&gt; getReviews(Long productId) {
+    return callReviewService(productId);
+}
+
+private List&lt;Review&gt; reviewsFallback(Long productId, Throwable ex) {
+    return Collections.emptyList();
+}</code></pre>
+
+  <h3 class="lang-en">What should you monitor?</h3>
+  <h3 class="lang-vn">Nên monitor những gì?</h3>
+  <ul class="lang-en">
+    <li>Circuit state: CLOSED / OPEN / HALF_OPEN</li>
+    <li>Failure rate</li>
+    <li>Slow call rate</li>
+    <li>Number of not-permitted calls</li>
+    <li>Fallback count</li>
+    <li>Retry count</li>
+    <li>Downstream latency p95/p99</li>
+    <li>Downstream 5xx / timeout rate</li>
+  </ul>
+  <ul class="lang-vn">
+    <li>Trạng thái circuit: CLOSED / OPEN / HALF_OPEN</li>
+    <li>Failure rate</li>
+    <li>Slow call rate</li>
+    <li>Số call bị breaker chặn</li>
+    <li>Số lần fallback</li>
+    <li>Số lần retry</li>
+    <li>Downstream latency p95/p99</li>
+    <li>Tỷ lệ 5xx / timeout của downstream</li>
+  </ul>
+
+  <h3 class="lang-en">Interview answer — concise but senior</h3>
+  <h3 class="lang-vn">Câu trả lời interview — ngắn nhưng thể hiện senior</h3>
+
+  <div class="answer">
+    <p class="lang-en">
+      I use Circuit Breaker when a downstream service is repeatedly failing or becoming too slow. In Resilience4j, I configure a sliding window, minimum number of calls, failure-rate threshold, slow-call threshold, and the wait time in the OPEN state. For example, after at least 10 calls, if 50% of the latest calls fail, the circuit opens. During OPEN state, calls fail fast and go to fallback. After the configured wait time, it moves to HALF_OPEN and allows a few probe calls. If those calls succeed, it closes and normal traffic resumes. For optional data I can fallback to an empty list or cached response so the remaining flow can continue, but I would not do that for critical operations like payment or balance checks. Retry is different: retry repeats a failed request for transient errors, while Circuit Breaker stops calling an unhealthy dependency. I usually keep retry small and bounded, then let the Circuit Breaker protect the system if the dependency remains unhealthy.
+    </p>
+    <p class="lang-vn">
+      Tôi dùng Circuit Breaker khi downstream service fail liên tục hoặc trở nên quá chậm. Trong Resilience4j, tôi cấu hình sliding window, minimum number of calls, failure-rate threshold, slow-call threshold và thời gian chờ ở trạng thái OPEN. Ví dụ sau khi có ít nhất 10 call, nếu 50% số call gần nhất fail thì circuit OPEN. Khi OPEN, request fail fast và đi vào fallback. Sau thời gian chờ, circuit chuyển sang HALF_OPEN và cho một vài probe call đi qua. Nếu các call đó thành công, circuit quay lại CLOSED và traffic hoạt động bình thường. Với dữ liệu optional, tôi có thể fallback về empty list hoặc cache để các step sau tiếp tục chạy, nhưng tôi không làm vậy cho nghiệp vụ critical như payment hoặc balance. Retry khác ở chỗ retry gọi lại request lỗi khi lỗi có tính transient, còn Circuit Breaker ngừng gọi dependency đang lỗi. Tôi thường để retry ít và có giới hạn, sau đó để Circuit Breaker bảo vệ hệ thống nếu downstream vẫn không khỏe.
+    </p>
+  </div>
+</section>
+
+<section class="card">
+  <h2 class="lang-en">Interview framework to remember</h2>
+  <h2 class="lang-vn">Framework trả lời interview dễ nhớ</h2>
+  <div class="grid3">
+    <div><h3>1. Identify</h3><p class="lang-en">What exactly is failing?</p><p class="lang-vn">Chính xác cái gì đang fail?</p></div>
+    <div><h3>2. Protect</h3><p class="lang-en">How do I guarantee correctness?</p><p class="lang-vn">Làm sao đảm bảo tính đúng?</p></div>
+    <div><h3>3. Observe</h3><p class="lang-en">Which metrics/logs/traces prove the cause?</p><p class="lang-vn">Metric/log/trace nào chứng minh nguyên nhân?</p></div>
+    <div><h3>4. Fix</h3><p class="lang-en">What design or code change solves it?</p><p class="lang-vn">Thay đổi design/code nào giải quyết?</p></div>
+    <div><h3>5. Recover</h3><p class="lang-en">How does the system recover safely?</p><p class="lang-vn">Hệ thống recover an toàn thế nào?</p></div>
+    <div><h3>6. Trade-off</h3><p class="lang-en">What cost or limitation comes with the solution?</p><p class="lang-vn">Giải pháp có trade-off gì?</p></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <span class="lang-en">Built as a practical Java/Spring Boot interview study page.</span>
+    <span class="lang-vn">Tài liệu học phỏng vấn Java/Spring Boot theo tình huống thực tế.</span>
+  </div>
+</footer>
+
+<script>
+function setLang(lang){
+  document.querySelectorAll('.lang-en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+  document.querySelectorAll('.lang-vn').forEach(el => el.style.display = lang === 'vn' ? '' : 'none');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-vn').classList.toggle('active', lang === 'vn');
+  document.documentElement.lang = lang === 'en' ? 'en' : 'vi';
+}
+</script>
+</body>
+</html>
