@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bilingual deep-dive solution for sending a 50,000-customer SMS campaign with chunking, async processing, rate limiting, queues, retries and idempotency.">
+  <title>50,000 SMS Campaign — Deep-Dive Solution</title>
+  <style>
+    :root {
+      --bg: #07121f;
+      --bg-soft: #0a1828;
+      --surface: #102238;
+      --surface-2: #142a44;
+      --surface-3: #0b1b2d;
+      --text: #f0f7ff;
+      --muted: #a6b9cd;
+      --line: rgba(174, 202, 226, .16);
+      --primary: #46e4c4;
+      --primary-ink: #03251f;
+      --secondary: #78a9ff;
+      --warning: #ffd166;
+      --danger: #ff8095;
+      --success: #73e7a7;
+      --code: #06101c;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+      --hero-a: rgba(70, 228, 196, .13);
+      --hero-b: rgba(120, 169, 255, .13);
+      --radius: 20px;
+    }
+
+    html[data-theme="light"] {
+      --bg: #f3f7fb;
+      --bg-soft: #eaf1f8;
+      --surface: #ffffff;
+      --surface-2: #f5f9fd;
+      --surface-3: #edf4fa;
+      --text: #10243a;
+      --muted: #586f86;
+      --line: rgba(16, 36, 58, .13);
+      --primary: #087f71;
+      --primary-ink: #ffffff;
+      --secondary: #356fd4;
+      --warning: #a96900;
+      --danger: #c63b57;
+      --success: #147a44;
+      --code: #0b1726;
+      --shadow: 0 20px 55px rgba(26, 54, 82, .12);
+      --hero-a: rgba(8, 127, 113, .11);
+      --hero-b: rgba(53, 111, 212, .10);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 8%, var(--hero-a), transparent 28rem),
+        radial-gradient(circle at 92% 22%, var(--hero-b), transparent 32rem),
+        var(--bg);
+      font: 15.5px/1.68 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: color .2s ease, background-color .2s ease;
+    }
+
+    body[data-lang="vi"] .en { display: none !important; }
+    body[data-lang="en"] .vi { display: none !important; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code:not(pre code) { padding: .13em .38em; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-3); color: var(--secondary); font-size: .9em; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 850; letter-spacing: -.025em; white-space: nowrap; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: var(--primary-ink); background: var(--primary); box-shadow: 0 0 24px color-mix(in srgb, var(--primary) 35%, transparent); }
+    .nav { display: flex; align-items: center; gap: 2px; color: var(--muted); font-size: 13px; }
+    .nav a { padding: 8px 9px; border-radius: 9px; }
+    .nav a:hover { color: var(--text); background: var(--surface-2); }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .toggle-group { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-3); }
+    .toggle-group button, .icon-button {
+      min-width: 40px; height: 32px; padding: 0 9px; border: 0; border-radius: 8px;
+      color: var(--muted); background: transparent; cursor: pointer; font-weight: 800; font-size: 12px;
+    }
+    .toggle-group button.active { color: var(--primary-ink); background: var(--primary); }
+    .icon-button { border: 1px solid var(--line); background: var(--surface-3); color: var(--text); font-size: 16px; }
+
+    .hero { padding: 78px 0 50px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 900; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 18px currentColor; }
+    h1 { max-width: 940px; margin: 18px 0; font-size: clamp(42px, 7.2vw, 78px); line-height: .98; letter-spacing: -.06em; }
+    .accent { color: var(--primary); }
+    .hero-copy { max-width: 800px; color: var(--muted); font-size: clamp(17px, 2vw, 21px); }
+    .hero-copy strong { color: var(--text); }
+    .actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 26px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; padding: 11px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: var(--surface); font-weight: 800; cursor: pointer; }
+    .button.primary { border-color: var(--primary); color: var(--primary-ink); background: var(--primary); }
+    .button:hover { transform: translateY(-1px); }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 40px; }
+    .metric { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: var(--shadow); }
+    .metric span { display: block; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; }
+    .metric strong { display: block; margin-top: 6px; font-size: 27px; letter-spacing: -.04em; }
+    .metric.good strong { color: var(--primary); }
+
+    main { padding-bottom: 90px; }
+    section { padding: 38px 0; }
+    .section-head { display: grid; grid-template-columns: 220px 1fr; gap: 34px; margin-bottom: 22px; }
+    .kicker { color: var(--primary); font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+    h2 { margin: 0 0 10px; font-size: clamp(29px, 4vw, 44px); line-height: 1.08; letter-spacing: -.04em; }
+    h3 { margin: 0 0 10px; font-size: 21px; line-height: 1.2; letter-spacing: -.025em; }
+    h4 { margin: 0 0 7px; font-size: 16px; }
+    p { margin: 0 0 14px; }
+    .lead { max-width: 820px; color: var(--muted); font-size: 17px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--surface) 86%, var(--bg))); box-shadow: var(--shadow); }
+    .card-pad { padding: 26px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .tag { display: inline-flex; padding: 5px 9px; border-radius: 999px; color: var(--secondary); background: color-mix(in srgb, var(--secondary) 13%, transparent); font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.green { color: var(--success); background: color-mix(in srgb, var(--success) 13%, transparent); }
+    .tag.yellow { color: var(--warning); background: color-mix(in srgb, var(--warning) 13%, transparent); }
+    .tag.red { color: var(--danger); background: color-mix(in srgb, var(--danger) 13%, transparent); }
+
+    .formula { padding: 24px; }
+    .equation { margin: 14px 0; padding: 17px 19px; border-left: 3px solid var(--primary); border-radius: 0 12px 12px 0; background: color-mix(in srgb, var(--primary) 8%, transparent); font: 750 16px/1.7 "SFMono-Regular", Consolas, monospace; }
+    .callout { padding: 18px 20px; border: 1px solid color-mix(in srgb, var(--warning) 32%, transparent); border-radius: 14px; color: color-mix(in srgb, var(--warning) 78%, var(--text)); background: color-mix(in srgb, var(--warning) 8%, transparent); }
+    .callout strong { color: var(--warning); }
+    .insight { padding: 20px; border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--primary) 7%, transparent); }
+
+    .number-card { position: relative; overflow: hidden; }
+    .number-card::after { content: attr(data-no); position: absolute; right: 14px; top: -28px; color: color-mix(in srgb, var(--text) 5%, transparent); font-size: 118px; font-weight: 950; line-height: 1; }
+    .number-card > * { position: relative; z-index: 1; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    ul, ol { margin: 10px 0 0; padding-left: 21px; }
+    li + li { margin-top: 7px; }
+    .muted-list { color: var(--muted); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+    table { width: 100%; min-width: 820px; border-collapse: collapse; background: color-mix(in srgb, var(--surface) 92%, transparent); }
+    th, td { padding: 14px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); background: var(--surface-2); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td strong { color: var(--text); }
+    .recommended-row td { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+    .winner-row td { background: color-mix(in srgb, var(--success) 10%, transparent); }
+    .score { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 7px; border-radius: 8px; color: var(--text); background: var(--surface-3); font-weight: 900; font-size: 12px; }
+    .score.high { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+    .score.medium { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+    .score.low { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+    .rank { display: grid; grid-template-columns: 48px 1fr; gap: 14px; align-items: start; padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+    .rank + .rank { margin-top: 10px; }
+    .rank-no { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: var(--primary-ink); background: var(--primary); font-size: 18px; font-weight: 950; }
+    .rank p { margin: 4px 0 0; color: var(--muted); }
+
+    .calculator { display: grid; grid-template-columns: .92fr 1.08fr; overflow: hidden; }
+    .calc-inputs { padding: 26px; border-right: 1px solid var(--line); }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; color: var(--text); background: var(--surface-3); }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent); }
+    .calc-results { display: grid; align-content: center; gap: 11px; padding: 26px; background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+    .result-row { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .result-row span { color: var(--muted); }
+    .result-row strong { text-align: right; }
+    .result-row.best strong { color: var(--primary); font-size: 19px; }
+
+    .flow { display: grid; grid-template-columns: repeat(7, auto); align-items: center; justify-content: center; gap: 10px; padding: 28px 14px; overflow-x: auto; }
+    .node { min-width: 120px; padding: 13px; border: 1px solid color-mix(in srgb, var(--secondary) 28%, transparent); border-radius: 12px; text-align: center; background: color-mix(in srgb, var(--secondary) 7%, transparent); font-weight: 800; }
+    .node.primary { border-color: var(--primary); color: var(--primary-ink); background: var(--primary); }
+    .arrow { color: var(--muted); font-size: 20px; }
+
+    .steps { display: grid; gap: 10px; counter-reset: step; }
+    .step { display: grid; grid-template-columns: 42px 1fr; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--surface-2) 88%, transparent); }
+    .step::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--primary-ink); background: var(--primary); font-weight: 950; }
+    .step p { margin: 3px 0 0; color: var(--muted); }
+
+    .state-line { display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 20px; }
+    .state { flex: 0 0 auto; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font: 750 12px "SFMono-Regular", Consolas, monospace; }
+    .state.sent { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, transparent); }
+    .state.fail { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .tab { padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: var(--surface-3); cursor: pointer; font-weight: 800; font-size: 12px; }
+    .tab.active { color: var(--primary-ink); border-color: var(--primary); background: var(--primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .code-card { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--code); box-shadow: var(--shadow); }
+    .code-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.11); color: #92a8c1; font-size: 12px; }
+    .copy { border: 0; color: #62e5cb; background: transparent; cursor: pointer; font-weight: 900; }
+    pre { margin: 0; padding: 20px; overflow: auto; color: #dbe9f9; font-size: 13px; line-height: 1.66; tab-size: 4; }
+    .kw { color: #c39aff; } .type { color: #68d9ff; } .str { color: #a6e3a1; } .comment { color: #758aa4; } .num { color: #ffd166; } .ann { color: #ff9fb1; }
+
+    .decision { padding: 28px; border: 1px solid color-mix(in srgb, var(--primary) 34%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 11%, var(--surface)), color-mix(in srgb, var(--secondary) 7%, var(--surface))); }
+    .decision h3 { font-size: 27px; }
+    .quote { border-left: 4px solid var(--secondary); }
+    blockquote { margin: 0; color: var(--text); font-size: 17px; line-height: 1.8; }
+    details { border: 1px solid var(--line); border-radius: 13px; background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
+    details + details { margin-top: 10px; }
+    summary { padding: 15px 17px; cursor: pointer; font-weight: 820; }
+    details > div { padding: 0 17px 16px; color: var(--muted); }
+    footer { padding: 34px 0 54px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 980px) {
+      .nav { display: none; }
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .section-head { grid-template-columns: 1fr; gap: 8px; }
+      .calculator { grid-template-columns: 1fr; }
+      .calc-inputs { border-right: 0; border-bottom: 1px solid var(--line); }
+      .flow { justify-content: start; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 22px, 1180px); }
+      .topbar-inner { min-height: 62px; }
+      .brand span:last-child { display: none; }
+      .hero { padding-top: 52px; }
+      .metrics, .grid-2, .grid-4, .fields { grid-template-columns: 1fr; }
+      .metric strong { font-size: 24px; }
+      .card-pad { padding: 20px; }
+      .toggle-group button { min-width: 36px; }
+    }
+  </style>
+</head>
+<body data-lang="vi">
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#top"><span class="brand-mark">S</span><span>SMS Scale Lab</span></a>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#problem"><span class="vi">Bài toán</span><span class="en">Problem</span></a>
+        <a href="#approaches"><span class="vi">Giải pháp</span><span class="en">Solutions</span></a>
+        <a href="#deep-dive">Deep dive</a>
+        <a href="#code">Code</a>
+        <a href="#interview">Interview</a>
+      </nav>
+      <div class="toolbar">
+        <div class="toggle-group" aria-label="Language">
+          <button id="langVi" class="active" type="button">VN</button>
+          <button id="langEn" type="button">EN</button>
+        </div>
+        <button id="themeToggle" class="icon-button" type="button" title="Change theme" aria-label="Change color theme">☀</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="top" class="hero shell">
+    <div class="eyebrow"><span class="pulse"></span> Java · Spring Boot · System Design</div>
+    <h1>
+      <span class="vi">50.000 SMS.<br><span class="accent">Từ 13,89 giờ xuống khoảng 8 phút.</span></span>
+      <span class="en">50,000 SMS messages.<br><span class="accent">From 13.89 hours to about 8 minutes.</span></span>
+    </h1>
+    <p class="hero-copy vi">Nếu một SMS provider call mất <strong>1 giây</strong>, xử lý tuần tự sẽ mất gần 14 giờ. Nhưng đây là network I/O: chúng ta có thể xử lý nhiều request đồng thời, miễn là concurrency không vượt quá giới hạn của application và provider.</p>
+    <p class="hero-copy en">If one SMS provider call takes <strong>one second</strong>, sequential processing takes almost 14 hours. However, this is network I/O: we can run multiple requests concurrently, provided that concurrency stays within the application and provider limits.</p>
+    <div class="actions">
+      <a class="button primary" href="#recommendation"><span class="vi">Xem giải pháp tối ưu</span><span class="en">See the optimal solution</span></a>
+      <a class="button" href="#code"><span class="vi">Xem Java code</span><span class="en">View Java code</span></a>
+    </div>
+    <div class="metrics">
+      <div class="metric"><span>Customers</span><strong>50,000</strong></div>
+      <div class="metric"><span>Latency / request</span><strong>1 second</strong></div>
+      <div class="metric"><span>Sequential</span><strong>13h 53m</strong></div>
+      <div class="metric good"><span>At 100 TPS</span><strong>8m 20s</strong></div>
+    </div>
+  </div>
+
+  <main class="shell">
+    <section id="problem">
+      <div class="section-head">
+        <div class="kicker">01 · Problem analysis</div>
+        <div>
+          <h2><span class="vi">Phép tính đúng, nhưng execution model chưa tối ưu</span><span class="en">The calculation is correct, but the execution model is not optimal</span></h2>
+          <p class="lead vi">Con số 13,89 giờ chỉ đúng khi request sau phải chờ request trước hoàn tất. Cần phân biệt rõ latency, concurrency và throughput.</p>
+          <p class="lead en">The 13.89-hour result is correct only when each request waits for the previous one. We must clearly distinguish latency, concurrency, and throughput.</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card formula">
+          <span class="tag red">Sequential baseline</span>
+          <h3 style="margin-top:12px"><span class="vi">Một request tại một thời điểm</span><span class="en">One request at a time</span></h3>
+          <div class="equation">50,000 × 1 second = 50,000 seconds<br>50,000 ÷ 3,600 = 13.89 hours</div>
+          <p class="muted vi">Throughput chỉ là 1 SMS/giây. CPU thường không bận; thread chủ yếu đang chờ network response.</p>
+          <p class="muted en">Throughput is only one SMS per second. The CPU is usually not busy; the thread mostly waits for the network response.</p>
+        </div>
+        <div class="card formula">
+          <span class="tag green">Concurrent model</span>
+          <h3 style="margin-top:12px"><span class="vi">Nhiều request đang chờ cùng lúc</span><span class="en">Multiple in-flight requests</span></h3>
+          <div class="equation">Capacity TPS ≈ Concurrency ÷ Latency<br>Effective TPS = min(Capacity TPS, Provider TPS)</div>
+          <p class="muted vi">Latency 1 giây và concurrency 100 tạo capacity khoảng 100 TPS. Nếu provider chỉ cho 60 TPS, effective throughput vẫn chỉ là 60 TPS.</p>
+          <p class="muted en">One-second latency with concurrency 100 provides about 100 TPS capacity. If the provider allows only 60 TPS, effective throughput remains 60 TPS.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <div class="vi"><strong>Điểm dễ nhầm:</strong> chunk size 500 không đồng nghĩa với 500 requests chạy song song. Chunk chỉ là đơn vị gom dữ liệu hoặc đơn vị task. Số request đồng thời được quyết định bởi thread pool, reactive concurrency, connection pool và rate limiter.</div>
+        <div class="en"><strong>Common misunderstanding:</strong> a chunk size of 500 does not mean 500 requests run in parallel. A chunk is only a data or task boundary. Actual concurrent requests are controlled by the thread pool, reactive concurrency, connection pool, and rate limiter.</div>
+      </div>
+    </section>
+
+    <section id="calculator">
+      <div class="section-head">
+        <div class="kicker">02 · Capacity calculator</div>
+        <div>
+          <h2><span class="vi">Tự tính thời gian theo giới hạn thực tế</span><span class="en">Calculate duration from real system limits</span></h2>
+          <p class="lead vi">Calculator dùng bottleneck nhỏ nhất giữa concurrency capacity và provider TPS. Retry overhead là phần thời gian dự phòng đơn giản; production thực tế còn phụ thuộc timeout và backoff.</p>
+          <p class="lead en">The calculator uses the smaller value between concurrency capacity and provider TPS. Retry overhead is a simple allowance; actual production time also depends on timeouts and backoff.</p>
+        </div>
+      </div>
+      <div class="card calculator">
+        <div class="calc-inputs">
+          <div class="fields">
+            <label><span class="vi">Số khách hàng</span><span class="en">Customers</span><input id="customers" type="number" min="1" value="50000"></label>
+            <label><span class="vi">Latency mỗi SMS (giây)</span><span class="en">Latency per SMS (seconds)</span><input id="latency" type="number" min=".01" step=".1" value="1"></label>
+            <label><span class="vi">Concurrent requests</span><span class="en">Concurrent requests</span><input id="concurrency" type="number" min="1" value="100"></label>
+            <label><span class="vi">Giới hạn provider (TPS)</span><span class="en">Provider limit (TPS)</span><input id="providerTps" type="number" min="1" value="100"></label>
+            <label><span class="vi">Chunk size</span><span class="en">Chunk size</span><input id="chunkSize" type="number" min="1" value="500"></label>
+            <label><span class="vi">Retry overhead (%)</span><span class="en">Retry overhead (%)</span><input id="retryPct" type="number" min="0" max="500" value="5"></label>
+          </div>
+        </div>
+        <div class="calc-results" aria-live="polite">
+          <div class="result-row"><span><span class="vi">Số chunks</span><span class="en">Number of chunks</span></span><strong id="chunksOut">100</strong></div>
+          <div class="result-row"><span><span class="vi">Capacity từ concurrency</span><span class="en">Concurrency capacity</span></span><strong id="capacityOut">100 TPS</strong></div>
+          <div class="result-row"><span><span class="vi">Throughput thực tế</span><span class="en">Effective throughput</span></span><strong id="effectiveOut">100 TPS</strong></div>
+          <div class="result-row"><span><span class="vi">Thời gian lý thuyết</span><span class="en">Raw duration</span></span><strong id="rawOut">8m 20s</strong></div>
+          <div class="result-row best"><span><span class="vi">Ước lượng có retry</span><span class="en">Estimate with retries</span></span><strong id="totalOut">8m 45s</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="approaches">
+      <div class="section-head">
+        <div class="kicker">03 · Four core approaches</div>
+        <div>
+          <h2><span class="vi">Bốn mô hình cốt lõi trước khi xem toàn bộ giải pháp</span><span class="en">Four core models before the complete solution catalog</span></h2>
+          <p class="lead vi">Đây là bốn nhóm tư duy chính. Phần tiếp theo mở rộng thành 12 giải pháp cụ thể. Chunk, async và queue xử lý các vấn đề khác nhau và thường được dùng cùng nhau.</p>
+          <p class="lead en">These are the four main mental models. The next section expands them into 12 concrete solutions. Chunking, async execution, and queues address different problems and are often used together.</p>
+        </div>
+      </div>
+      <div class="grid-4">
+        <article class="card card-pad number-card" data-no="1">
+          <div class="card-meta"><span class="tag red">Simple</span><strong>1 TPS</strong></div>
+          <h3>Sequential</h3>
+          <p class="muted vi">Loop 50.000 customers và gọi provider đồng bộ từng người.</p>
+          <p class="muted en">Loop through 50,000 customers and call the provider synchronously.</p>
+          <ul class="muted-list vi"><li>Dễ code</li><li>13,89 giờ</li><li>Recovery kém</li></ul>
+          <ul class="muted-list en"><li>Easy to code</li><li>13.89 hours</li><li>Poor recovery</li></ul>
+        </article>
+        <article class="card card-pad number-card" data-no="2">
+          <div class="card-meta"><span class="tag yellow">Your idea</span><strong>10–100 TPS</strong></div>
+          <h3>Chunk + thread pool</h3>
+          <p class="muted vi">Chia thành chunks và chạy nhiều chunks bằng bounded executor.</p>
+          <p class="muted en">Split into chunks and run several chunks through a bounded executor.</p>
+          <ul class="muted-list vi"><li>Dễ thêm vào monolith</li><li>Kiểm soát memory</li><li>Phụ thuộc một instance</li></ul>
+          <ul class="muted-list en"><li>Easy in a monolith</li><li>Controls memory</li><li>Depends on one instance</li></ul>
+        </article>
+        <article class="card card-pad number-card" data-no="3">
+          <div class="card-meta"><span class="tag">I/O efficient</span><strong>Bounded</strong></div>
+          <h3>Reactive async</h3>
+          <p class="muted vi">WebClient + flatMap concurrency giữ nhiều I/O in-flight với ít threads.</p>
+          <p class="muted en">WebClient plus flatMap concurrency keeps many I/O calls in flight with fewer threads.</p>
+          <ul class="muted-list vi"><li>Hiệu quả I/O cao</li><li>Cần hiểu backpressure</li><li>Vẫn cần durable state</li></ul>
+          <ul class="muted-list en"><li>Efficient for I/O</li><li>Needs backpressure knowledge</li><li>Still needs durable state</li></ul>
+        </article>
+        <article class="card card-pad number-card" data-no="4">
+          <div class="card-meta"><span class="tag green">Production</span><strong>Scalable</strong></div>
+          <h3>Queue + workers</h3>
+          <p class="muted vi">Kafka/SQS/RabbitMQ giữ job; nhiều consumers xử lý an toàn.</p>
+          <p class="muted en">Kafka, SQS, or RabbitMQ stores jobs; multiple consumers process them safely.</p>
+          <ul class="muted-list vi"><li>Durability & retry</li><li>Scale ngang</li><li>Thêm operational cost</li></ul>
+          <ul class="muted-list en"><li>Durability and retry</li><li>Horizontal scaling</li><li>More operational cost</li></ul>
+        </article>
+      </div>
+      <div class="table-wrap" style="margin-top:18px">
+        <table>
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th><span class="vi">Thời gian ví dụ</span><span class="en">Example time</span></th>
+              <th><span class="vi">Giải quyết tốt</span><span class="en">Solves well</span></th>
+              <th><span class="vi">Không tự giải quyết</span><span class="en">Does not solve by itself</span></th>
+              <th><span class="vi">Phù hợp</span><span class="en">Best fit</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Sequential</strong></td><td>13h 53m</td><td><span class="vi">Sự đơn giản</span><span class="en">Simplicity</span></td><td><span class="vi">Tốc độ, restart</span><span class="en">Speed, restart</span></td><td><span class="vi">Vài chục SMS</span><span class="en">A few SMS messages</span></td></tr>
+            <tr><td><strong>Chunk + 10 workers</strong></td><td>≈ 83m 20s</td><td><span class="vi">Memory, bounded parallelism</span><span class="en">Memory, bounded parallelism</span></td><td><span class="vi">Durability khi process chết</span><span class="en">Durability after a crash</span></td><td><span class="vi">Internal batch đơn giản</span><span class="en">Simple internal batch</span></td></tr>
+            <tr><td><strong>Reactive, concurrency 100</strong></td><td>≥ 8m 20s</td><td><span class="vi">I/O concurrency hiệu quả</span><span class="en">Efficient I/O concurrency</span></td><td><span class="vi">Job persistence</span><span class="en">Job persistence</span></td><td><span class="vi">WebFlux stack</span><span class="en">WebFlux stack</span></td></tr>
+            <tr class="recommended-row"><td><strong>Queue + workers</strong></td><td>≥ 8m 20s at 100 TPS</td><td><span class="vi">Scale, retry, backpressure, recovery</span><span class="en">Scale, retry, backpressure, recovery</span></td><td><span class="vi">Provider-side exactly-once</span><span class="en">Provider-side exactly-once</span></td><td><strong><span class="vi">Campaign production</span><span class="en">Production campaign</span></strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="all-solutions">
+      <div class="section-head">
+        <div class="kicker">03B · Complete catalog</div>
+        <div>
+          <h2><span class="vi">12 giải pháp có thể áp dụng</span><span class="en">12 possible solutions</span></h2>
+          <p class="lead vi">Các solution bên dưới đi từ đơn giản đến production-grade. Một số là execution model, một số là infrastructure pattern; vì vậy production thường kết hợp nhiều solution thay vì chọn đúng một cái.</p>
+          <p class="lead en">The solutions below range from basic to production-grade. Some are execution models while others are infrastructure patterns, so a production design normally combines several solutions rather than selecting only one.</p>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <article class="card card-pad number-card" data-no="1">
+          <span class="tag red">Baseline</span>
+          <h3 style="margin-top:12px">Sequential loop</h3>
+          <p class="vi">Một thread gọi từng customer. Thời gian khoảng 13,89 giờ. Chỉ hợp với số lượng rất nhỏ hoặc script tạm thời.</p>
+          <p class="en">One thread calls the provider for each customer. It takes about 13.89 hours. Suitable only for a very small volume or a temporary script.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> đơn giản. <strong>Nhược:</strong> chậm, recovery kém.</p>
+          <p class="muted small en"><strong>Pros:</strong> simple. <strong>Cons:</strong> slow and poor recovery.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="2">
+          <span class="tag yellow">Basic parallel</span>
+          <h3 style="margin-top:12px">Fixed thread pool — one task/customer</h3>
+          <p class="vi">Submit 50.000 tasks vào bounded executor; mỗi worker xử lý một customer. Load balancing tốt hơn chunk nhưng task/queue overhead cao hơn.</p>
+          <p class="en">Submit 50,000 tasks to a bounded executor; each worker handles one customer. It balances work better than chunks but creates more task and queue overhead.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> tận dụng threads đều. <strong>Nhược:</strong> phải bound queue; chưa durable.</p>
+          <p class="muted small en"><strong>Pros:</strong> good worker utilization. <strong>Cons:</strong> requires a bounded queue and is not durable.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="3">
+          <span class="tag yellow">Your solution</span>
+          <h3 style="margin-top:12px">Chunk + CompletableFuture / @Async</h3>
+          <p class="vi">Đọc 500 records/lần, tạo 100 chunk tasks và chạy 10–20 chunks song song. Dễ kiểm soát memory và phù hợp application hiện có.</p>
+          <p class="en">Read 500 records at a time, create 100 chunk tasks, and run 10–20 chunks concurrently. It controls memory and fits an existing application well.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> dễ triển khai. <strong>Nhược:</strong> một customer chậm có thể giữ cả chunk; restart cần checkpoint.</p>
+          <p class="muted small en"><strong>Pros:</strong> easy to implement. <strong>Cons:</strong> one slow customer can hold a chunk; restart requires checkpoints.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="4">
+          <span class="tag red">Avoid for this case</span>
+          <h3 style="margin-top:12px">parallelStream()</h3>
+          <p class="vi">Code ngắn nhưng mặc định dùng common ForkJoinPool, không thích hợp cho blocking external I/O và khó điều khiển rate, timeout, context.</p>
+          <p class="en">The code is short, but it uses the common ForkJoinPool by default, is unsuitable for blocking external I/O, and makes rate, timeout, and context control harder.</p>
+          <p class="muted small vi"><strong>Kết luận:</strong> không nên dùng cho campaign production.</p>
+          <p class="muted small en"><strong>Conclusion:</strong> avoid it for a production campaign.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="5">
+          <span class="tag">Java 21</span>
+          <h3 style="margin-top:12px">Virtual threads + Semaphore</h3>
+          <p class="vi">Giữ blocking code dễ đọc nhưng chạy nhiều virtual threads. Vẫn bắt buộc dùng Semaphore/rate limiter; virtual threads không làm provider mạnh hơn.</p>
+          <p class="en">Keep readable blocking code while running many virtual threads. A semaphore and rate limiter are still required; virtual threads do not increase provider capacity.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> code đơn giản, I/O scale tốt. <strong>Nhược:</strong> không cung cấp durability.</p>
+          <p class="muted small en"><strong>Pros:</strong> simple code and efficient I/O scaling. <strong>Cons:</strong> no durability.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="6">
+          <span class="tag">Batch platform</span>
+          <h3 style="margin-top:12px">Spring Batch chunk + partitioning</h3>
+          <p class="vi">Reader–Processor–Writer, chunk transaction, JobRepository, restart và partitioning có sẵn. Rất tốt cho scheduled/offline batch.</p>
+          <p class="en">Provides Reader–Processor–Writer, chunk transactions, JobRepository, restart, and partitioning. Very good for scheduled or offline batch work.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> checkpoint/restart mạnh. <strong>Nhược:</strong> cấu hình nặng hơn; external call vẫn cần idempotency.</p>
+          <p class="muted small en"><strong>Pros:</strong> strong checkpoint and restart. <strong>Cons:</strong> more configuration; external calls still need idempotency.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="7">
+          <span class="tag">Non-blocking</span>
+          <h3 style="margin-top:12px">WebFlux / Reactive pipeline</h3>
+          <p class="vi">Dùng WebClient và bounded <code>flatMap</code> concurrency. Hiệu quả khi latency cao và hệ thống đã dùng reactive stack.</p>
+          <p class="en">Use WebClient and bounded <code>flatMap</code> concurrency. Efficient when latency is high and the system already uses a reactive stack.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> nhiều in-flight I/O với ít threads. <strong>Nhược:</strong> complexity, chưa durable nếu đứng một mình.</p>
+          <p class="muted small en"><strong>Pros:</strong> many in-flight calls with few threads. <strong>Cons:</strong> added complexity and no durability by itself.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="8">
+          <span class="tag">No broker</span>
+          <h3 style="margin-top:12px">Database job table + SKIP LOCKED</h3>
+          <p class="vi">Workers claim rows bằng <code>FOR UPDATE SKIP LOCKED</code>. Đây là durable queue đơn giản khi chưa thể vận hành Kafka/RabbitMQ/SQS.</p>
+          <p class="en">Workers claim rows with <code>FOR UPDATE SKIP LOCKED</code>. This is a simple durable queue when Kafka, RabbitMQ, or SQS is unavailable.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> ít infrastructure. <strong>Nhược:</strong> polling và high throughput gây tải DB.</p>
+          <p class="muted small en"><strong>Pros:</strong> less infrastructure. <strong>Cons:</strong> polling and high throughput load the database.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="9">
+          <span class="tag green">Production standard</span>
+          <h3 style="margin-top:12px">Message queue + distributed workers</h3>
+          <p class="vi">Kafka/SQS/RabbitMQ lưu jobs; consumers scale ngang, retry, DLQ, backpressure và recovery rõ ràng.</p>
+          <p class="en">Kafka, SQS, or RabbitMQ stores jobs; consumers provide horizontal scaling, retries, a DLQ, backpressure, and recovery.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> reliable và scalable. <strong>Nhược:</strong> thêm infrastructure, monitoring và eventual consistency.</p>
+          <p class="muted small en"><strong>Pros:</strong> reliable and scalable. <strong>Cons:</strong> additional infrastructure, monitoring, and eventual consistency.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="10">
+          <span class="tag">Cloud native</span>
+          <h3 style="margin-top:12px">SQS + Lambda / serverless fan-out</h3>
+          <p class="vi">Queue trigger Lambda, concurrency và reserved concurrency được cấu hình. Phù hợp workload theo đợt trên AWS.</p>
+          <p class="en">A queue triggers Lambda with configured concurrency and reserved concurrency. Suitable for bursty workloads on AWS.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> auto-scale, trả theo usage. <strong>Nhược:</strong> cold start, account limits, distributed rate limit phức tạp.</p>
+          <p class="muted small en"><strong>Pros:</strong> auto-scaling and pay-per-use. <strong>Cons:</strong> cold starts, account limits, and complex distributed rate limiting.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="11">
+          <span class="tag green">Check first</span>
+          <h3 style="margin-top:12px">SMS provider bulk/campaign API</h3>
+          <p class="vi">Gửi một batch gồm nhiều recipients hoặc upload campaign; provider tự fan-out, throttle và đôi khi cung cấp delivery report.</p>
+          <p class="en">Submit a batch of recipients or upload a campaign; the provider performs fan-out, throttling, and sometimes delivery reporting.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> ít network calls và vận hành đơn giản nhất. <strong>Nhược:</strong> phụ thuộc tính năng, batch limit và SLA provider.</p>
+          <p class="muted small en"><strong>Pros:</strong> fewer network calls and the simplest operations. <strong>Cons:</strong> depends on provider features, batch limits, and SLA.</p>
+        </article>
+
+        <article class="card card-pad number-card" data-no="12">
+          <span class="tag green">Best general design</span>
+          <h3 style="margin-top:12px">Hybrid: chunk + outbox + queue + bounded workers</h3>
+          <p class="vi">Chunk đọc customer, outbox chống mất message, queue giữ job, reactive/virtual-thread workers gọi provider dưới global rate limit.</p>
+          <p class="en">Chunk customer reads, use an outbox to prevent message loss, retain jobs in a queue, and call the provider with reactive or virtual-thread workers under a global rate limit.</p>
+          <p class="muted small vi"><strong>Ưu:</strong> tổng hợp reliability, throughput và recovery. <strong>Nhược:</strong> nhiều thành phần nhất.</p>
+          <p class="muted small en"><strong>Pros:</strong> combines reliability, throughput, and recovery. <strong>Cons:</strong> the most components.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="solution-comparison">
+      <div class="section-head">
+        <div class="kicker">03C · Decision matrix</div>
+        <div>
+          <h2><span class="vi">So sánh và chấm điểm</span><span class="en">Comparison and scoring</span></h2>
+          <p class="lead vi">Điểm từ 1 đến 5. “Đơn giản” càng cao nghĩa là càng dễ implement/vận hành. Điểm tổng không thay thế context: provider bulk API có thể đứng đầu nếu provider hỗ trợ tốt; hybrid đứng đầu cho kiến trúc general-purpose.</p>
+          <p class="lead en">Scores range from 1 to 5. A higher “Simplicity” score means easier implementation and operations. The total does not replace context: a provider bulk API may rank first when it is well supported; the hybrid design ranks first as a general-purpose architecture.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Solution</th>
+              <th><span class="vi">Tốc độ</span><span class="en">Speed</span></th>
+              <th><span class="vi">Tin cậy</span><span class="en">Reliability</span></th>
+              <th><span class="vi">Scale ngang</span><span class="en">Horizontal scale</span></th>
+              <th><span class="vi">Đơn giản</span><span class="en">Simplicity</span></th>
+              <th><span class="vi">Restart/recovery</span><span class="en">Restart/recovery</span></th>
+              <th><span class="vi">Kết luận</span><span class="en">Verdict</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Sequential</strong></td><td><span class="score low">1</span></td><td><span class="score low">1</span></td><td><span class="score low">1</span></td><td><span class="score high">5</span></td><td><span class="score low">1</span></td><td><span class="tag red">Not suitable</span></td></tr>
+            <tr><td><strong>Fixed thread pool</strong></td><td><span class="score medium">3</span></td><td><span class="score medium">2</span></td><td><span class="score low">1</span></td><td><span class="score high">4</span></td><td><span class="score low">1</span></td><td><span class="vi">Job nhỏ, một instance</span><span class="en">Small, single-instance job</span></td></tr>
+            <tr><td><strong>Chunk + async</strong></td><td><span class="score medium">3</span></td><td><span class="score medium">3</span></td><td><span class="score low">1</span></td><td><span class="score high">4</span></td><td><span class="score medium">3</span></td><td><span class="vi">Tốt cho internal batch</span><span class="en">Good for internal batch</span></td></tr>
+            <tr><td><strong>parallelStream</strong></td><td><span class="score medium">2</span></td><td><span class="score low">1</span></td><td><span class="score low">1</span></td><td><span class="score high">5</span></td><td><span class="score low">1</span></td><td><span class="tag red">Avoid</span></td></tr>
+            <tr><td><strong>Virtual threads</strong></td><td><span class="score high">4</span></td><td><span class="score medium">2</span></td><td><span class="score low">1</span></td><td><span class="score high">4</span></td><td><span class="score low">1</span></td><td><span class="vi">Execution engine tốt</span><span class="en">Good execution engine</span></td></tr>
+            <tr><td><strong>Spring Batch</strong></td><td><span class="score medium">3</span></td><td><span class="score high">4</span></td><td><span class="score medium">3</span></td><td><span class="score medium">2</span></td><td><span class="score high">5</span></td><td><span class="vi">Tốt nhất cho offline batch</span><span class="en">Best for offline batch</span></td></tr>
+            <tr><td><strong>WebFlux / reactive</strong></td><td><span class="score high">5</span></td><td><span class="score medium">2</span></td><td><span class="score medium">3</span></td><td><span class="score medium">2</span></td><td><span class="score low">1</span></td><td><span class="vi">Nhanh nhưng cần durable layer</span><span class="en">Fast but needs a durable layer</span></td></tr>
+            <tr><td><strong>DB job table</strong></td><td><span class="score medium">3</span></td><td><span class="score high">4</span></td><td><span class="score medium">3</span></td><td><span class="score medium">3</span></td><td><span class="score high">4</span></td><td><span class="vi">Tốt khi không có broker</span><span class="en">Good without a broker</span></td></tr>
+            <tr><td><strong>Message queue + workers</strong></td><td><span class="score high">5</span></td><td><span class="score high">5</span></td><td><span class="score high">5</span></td><td><span class="score medium">2</span></td><td><span class="score high">5</span></td><td><span class="tag green">Best production base</span></td></tr>
+            <tr><td><strong>Serverless fan-out</strong></td><td><span class="score high">4</span></td><td><span class="score high">4</span></td><td><span class="score high">5</span></td><td><span class="score medium">3</span></td><td><span class="score high">4</span></td><td><span class="vi">Tốt trên AWS, workload burst</span><span class="en">Good on AWS for bursty load</span></td></tr>
+            <tr><td><strong>Provider bulk API</strong></td><td><span class="score high">5</span></td><td><span class="score high">4</span></td><td><span class="score high">5</span></td><td><span class="score high">5</span></td><td><span class="score high">4</span></td><td><span class="tag green">Best if supported</span></td></tr>
+            <tr class="winner-row"><td><strong>Hybrid architecture</strong></td><td><span class="score high">5</span></td><td><span class="score high">5</span></td><td><span class="score high">5</span></td><td><span class="score low">1</span></td><td><span class="score high">5</span></td><td><span class="tag green">Best overall control</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small vi" style="margin-top:10px">* Điểm là đánh giá kiến trúc tương đối cho campaign 50.000 SMS, không phải benchmark tuyệt đối.</p>
+      <p class="muted small en" style="margin-top:10px">* Scores are relative architectural assessments for a 50,000-SMS campaign, not absolute benchmarks.</p>
+    </section>
+
+    <section id="best-choice">
+      <div class="section-head">
+        <div class="kicker">03D · Which is best?</div>
+        <div>
+          <h2><span class="vi">Giải pháp nào tốt nhất?</span><span class="en">Which solution is best?</span></h2>
+          <p class="lead vi">Câu trả lời đúng không phải lúc nào cũng là Kafka. Hãy chọn theo capability có sẵn và mức reliability cần đạt.</p>
+          <p class="lead en">The correct answer is not always Kafka. Select based on available capabilities and the required reliability level.</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card card-pad">
+          <h3><span class="vi">Thứ tự quyết định</span><span class="en">Decision order</span></h3>
+          <div class="rank">
+            <div class="rank-no">1</div>
+            <div><strong><span class="vi">Kiểm tra provider Bulk API trước</span><span class="en">Check the provider bulk API first</span></strong><p class="vi">Nếu có batch endpoint, delivery report, idempotency và SLA phù hợp, đây thường là cách nhanh và đơn giản nhất. Application chỉ gửi batches và theo dõi trạng thái.</p><p class="en">If a batch endpoint, delivery report, idempotency, and suitable SLA are available, this is usually the fastest and simplest option. The application submits batches and tracks status.</p></div>
+          </div>
+          <div class="rank">
+            <div class="rank-no">2</div>
+            <div><strong><span class="vi">Không có Bulk API: Queue + workers</span><span class="en">No bulk API: queue plus workers</span></strong><p class="vi">Đây là lựa chọn production general-purpose tốt nhất: durable, scale ngang, retry/DLQ và backpressure rõ ràng.</p><p class="en">This is the best general-purpose production choice: durable, horizontally scalable, with clear retries, DLQ, and backpressure.</p></div>
+          </div>
+          <div class="rank">
+            <div class="rank-no">3</div>
+            <div><strong><span class="vi">Chọn execution engine</span><span class="en">Choose the execution engine</span></strong><p class="vi">WebFlux nếu stack reactive; virtual threads nếu Java 21 và blocking SDK; fixed pool nếu cần đơn giản. Engine nằm sau queue và luôn bounded.</p><p class="en">Use WebFlux for a reactive stack, virtual threads for Java 21 with a blocking SDK, or a fixed pool for simplicity. The engine runs behind the queue and is always bounded.</p></div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <h3><span class="vi">Kết luận theo hoàn cảnh</span><span class="en">Best choice by situation</span></h3>
+          <div class="table-wrap" style="box-shadow:none">
+            <table style="min-width:560px">
+              <thead><tr><th><span class="vi">Hoàn cảnh</span><span class="en">Situation</span></th><th><span class="vi">Chọn</span><span class="en">Choose</span></th></tr></thead>
+              <tbody>
+                <tr><td><span class="vi">Provider có Bulk Campaign API tốt</span><span class="en">Provider has a strong bulk campaign API</span></td><td><strong>Bulk API + status polling/webhook</strong></td></tr>
+                <tr><td><span class="vi">Production, không có Bulk API</span><span class="en">Production without a bulk API</span></td><td><strong>Chunk + Outbox + Queue + Workers</strong></td></tr>
+                <tr><td><span class="vi">Scheduled batch, cần restart/checkpoint</span><span class="en">Scheduled batch requiring restart/checkpoints</span></td><td><strong>Spring Batch + Queue</strong></td></tr>
+                <tr><td><span class="vi">Đang dùng WebFlux/R2DBC</span><span class="en">Already using WebFlux/R2DBC</span></td><td><strong>Queue + Reactive consumers</strong></td></tr>
+                <tr><td><span class="vi">Java 21, provider SDK blocking</span><span class="en">Java 21 with a blocking provider SDK</span></td><td><strong>Queue + Virtual threads + Semaphore</strong></td></tr>
+                <tr><td><span class="vi">Không được dùng broker</span><span class="en">A broker is not allowed</span></td><td><strong>DB job table + SKIP LOCKED</strong></td></tr>
+                <tr><td><span class="vi">Job nội bộ, rủi ro thấp</span><span class="en">Low-risk internal job</span></td><td><strong>Chunk + bounded executor</strong></td></tr>
+                <tr><td><span class="vi">AWS burst workload</span><span class="en">Bursty AWS workload</span></td><td><strong>SQS + Lambda</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="insight" style="margin-top:16px">
+        <div class="vi"><strong>Đề xuất cuối cho case này:</strong> Trước tiên hỏi SMS provider có bulk API không. Nếu có và đáp ứng tracking/idempotency, dùng bulk API là tối ưu nhất. Nếu không, dùng <strong>chunk/page 500 → transactional outbox → Kafka/SQS/RabbitMQ → bounded consumers → global rate limiter → SMS provider</strong>. Với stack WebFlux hiện tại của bạn, consumer có thể dùng WebClient với bounded <code>flatMap</code> concurrency, nhưng queue vẫn chịu trách nhiệm durability.</div>
+        <div class="en"><strong>Final recommendation for this case:</strong> First ask whether the SMS provider offers a bulk API. If it supports proper tracking and idempotency, the bulk API is the optimal choice. Otherwise, use <strong>chunk/page 500 → transactional outbox → Kafka/SQS/RabbitMQ → bounded consumers → global rate limiter → SMS provider</strong>. With your current WebFlux stack, consumers can use WebClient with bounded <code>flatMap</code> concurrency, while the queue remains responsible for durability.</div>
+      </div>
+    </section>
+
+    <section id="deep-dive">
+      <div class="section-head">
+        <div class="kicker">04 · Deep dive</div>
+        <div>
+          <h2><span class="vi">Chunk và async thực sự hoạt động như thế nào?</span><span class="en">How do chunking and async processing really work?</span></h2>
+          <p class="lead vi">Đây là phần quan trọng khi interviewer hỏi sâu: “Tại sao chunk?”, “Tại sao không tạo 50.000 threads?”, hoặc “Chunk size có phải concurrency không?”.</p>
+          <p class="lead en">This is the key section when an interviewer asks: “Why chunk?”, “Why not create 50,000 threads?”, or “Is chunk size the same as concurrency?”.</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card card-pad">
+          <span class="tag yellow">Chunk responsibility</span>
+          <h3 style="margin-top:12px"><span class="vi">Chunk kiểm soát data volume</span><span class="en">Chunking controls data volume</span></h3>
+          <div class="equation">50,000 customers ÷ 500<br>= 100 chunks</div>
+          <ul class="muted-list vi">
+            <li>Không query và giữ toàn bộ 50.000 records trong heap.</li>
+            <li>Giảm transaction size và dễ checkpoint theo page/chunk.</li>
+            <li>Mỗi chunk có thể trở thành một task hoặc chỉ là một page để tạo messages.</li>
+            <li>Chunk size không trực tiếp quyết định TPS.</li>
+          </ul>
+          <ul class="muted-list en">
+            <li>Avoid querying and holding all 50,000 records in the heap.</li>
+            <li>Reduce transaction size and make page or chunk checkpoints easier.</li>
+            <li>Each chunk can be one task or merely a page used to create messages.</li>
+            <li>Chunk size does not directly determine TPS.</li>
+          </ul>
+        </div>
+        <div class="card card-pad">
+          <span class="tag">Async responsibility</span>
+          <h3 style="margin-top:12px"><span class="vi">Async tăng số I/O đang chạy</span><span class="en">Async increases in-flight I/O</span></h3>
+          <div class="equation">10 workers × 1 request/second<br>≈ 10 TPS → 83m 20s</div>
+          <ul class="muted-list vi">
+            <li>Thread pool 10 nghĩa là tối đa khoảng 10 synchronous calls đồng thời.</li>
+            <li>Reactive không cần một platform thread cho mỗi request đang chờ.</li>
+            <li>Cả hai đều phải bounded; unbounded async gây OOM, 429 và connection exhaustion.</li>
+            <li>Concurrency không được vượt provider TPS hoặc HTTP pool capacity.</li>
+          </ul>
+          <ul class="muted-list en">
+            <li>A pool of 10 threads permits about 10 synchronous calls at the same time.</li>
+            <li>Reactive processing does not need one platform thread per waiting request.</li>
+            <li>Both must be bounded; unbounded async causes OOM, 429 errors, and connection exhaustion.</li>
+            <li>Concurrency must not exceed provider TPS or HTTP pool capacity.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="insight" style="margin-top:16px">
+        <strong class="vi">Ví dụ chính xác:</strong><strong class="en">Precise example:</strong>
+        <span class="vi"> Có 100 chunks, mỗi chunk 500 customers và executor 10 threads. Tại một thời điểm chỉ 10 chunks chạy. Nếu mỗi thread loop tuần tự trong chunk, chỉ khoảng 10 SMS calls cùng lúc—not 5.000. Khi một chunk hoàn tất, thread lấy chunk tiếp theo.</span>
+        <span class="en"> There are 100 chunks, 500 customers per chunk, and a 10-thread executor. Only 10 chunks run at one time. If each thread loops sequentially inside its chunk, there are only about 10 concurrent SMS calls—not 5,000. When one chunk finishes, its thread takes the next chunk.</span>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="section-head">
+        <div class="kicker">05 · Production architecture</div>
+        <div>
+          <h2><span class="vi">Thiết kế tối ưu: chunk + queue + bounded async workers</span><span class="en">Optimal design: chunking + queue + bounded async workers</span></h2>
+          <p class="lead vi">Ba kỹ thuật không cạnh tranh với nhau. Chúng kết hợp thành một pipeline: chunk để đọc, queue để giữ việc, async workers để đạt throughput.</p>
+          <p class="lead en">The three techniques do not compete. They form one pipeline: chunk to read, queue to retain work, and async workers to deliver throughput.</p>
+        </div>
+      </div>
+      <div class="card flow">
+        <div class="node">Campaign API</div><div class="arrow">→</div>
+        <div class="node">DB + Outbox</div><div class="arrow">→</div>
+        <div class="node primary">Queue</div><div class="arrow">→</div>
+        <div class="node">SMS Workers</div>
+      </div>
+      <div class="card flow" style="margin-top:12px">
+        <div class="node">Rate limiter</div><div class="arrow">→</div>
+        <div class="node">SMS Provider</div><div class="arrow">→</div>
+        <div class="node">Status DB</div><div class="arrow">→</div>
+        <div class="node">Retry / DLQ</div>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card card-pad">
+          <h3><span class="vi">Producer flow</span><span class="en">Producer flow</span></h3>
+          <div class="steps">
+            <div class="step"><div><strong><span class="vi">Tạo campaign</span><span class="en">Create the campaign</span></strong><p class="vi">Lưu content, target rule, schedule, total và trạng thái PREPARING.</p><p class="en">Store content, target rule, schedule, total, and PREPARING status.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Đọc theo keyset/page</span><span class="en">Read by keyset or page</span></strong><p class="vi">Ví dụ 500 customers/lần; keyset pagination tốt hơn offset cho tập lớn và thay đổi.</p><p class="en">For example, 500 customers at a time; keyset pagination is safer than offset for large, changing datasets.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Tạo notification records</span><span class="en">Create notification records</span></strong><p class="vi">Một record/customer; unique theo campaign_id + customer_id; status PENDING.</p><p class="en">One record per customer; unique by campaign_id plus customer_id; status PENDING.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Ghi outbox cùng transaction</span><span class="en">Write an outbox event in the same transaction</span></strong><p class="vi">Tránh DB commit thành công nhưng publish queue thất bại.</p><p class="en">Avoid a successful DB commit followed by a failed queue publish.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Publish message</span><span class="en">Publish the message</span></strong><p class="vi">Outbox publisher gửi job; queue hấp thụ burst và tạo backpressure.</p><p class="en">The outbox publisher sends jobs; the queue absorbs bursts and provides backpressure.</p></div></div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <h3><span class="vi">Consumer flow</span><span class="en">Consumer flow</span></h3>
+          <div class="steps">
+            <div class="step"><div><strong><span class="vi">Claim atomically</span><span class="en">Claim atomically</span></strong><p class="vi">UPDATE PENDING/RETRY → PROCESSING có điều kiện để hai workers không cùng xử lý.</p><p class="en">Conditionally update PENDING or RETRY to PROCESSING so two workers cannot process the same item.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Xin rate-limit permit</span><span class="en">Acquire a rate-limit permit</span></strong><p class="vi">Global rate cần tính tổng trên mọi pods, không chỉ một JVM.</p><p class="en">The global rate must cover all pods, not only one JVM.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Gọi provider với cùng key</span><span class="en">Call the provider with the same key</span></strong><p class="vi">Idempotency key được tạo trước call và tái sử dụng cho mọi retry.</p><p class="en">Create the idempotency key before the call and reuse it for every retry.</p></div></div>
+            <div class="step"><div><strong><span class="vi">Lưu kết quả rồi ack</span><span class="en">Persist the result, then acknowledge</span></strong><p class="vi">Mark SENT trước khi ack queue; lỗi transient thì retry có backoff.</p><p class="en">Mark SENT before acknowledging the queue; retry transient errors with backoff.</p></div></div>
+            <div class="step"><div><strong><span class="vi">DLQ và reconciliation</span><span class="en">DLQ and reconciliation</span></strong><p class="vi">Hết retry thì DLQ; job định kỳ đối soát PROCESSING quá timeout.</p><p class="en">Move exhausted items to a DLQ; periodically reconcile PROCESSING items that exceed a timeout.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="state">
+      <div class="section-head">
+        <div class="kicker">06 · State & idempotency</div>
+        <div>
+          <h2><span class="vi">Lưu trạng thái để restart không mất tiến độ</span><span class="en">Persist state so a restart does not lose progress</span></h2>
+          <p class="lead vi">Queue giữ message chưa xử lý; database trả lời câu hỏi business: customer nào đã gửi, đang retry, hay failed.</p>
+          <p class="lead en">The queue retains unprocessed messages; the database answers the business question: which customer was sent, retried, or failed?</p>
+        </div>
+      </div>
+      <div class="card state-line">
+        <span class="state">PENDING</span><span class="arrow">→</span>
+        <span class="state">PROCESSING</span><span class="arrow">→</span>
+        <span class="state sent">SENT</span>
+        <span class="muted">or</span>
+        <span class="state">RETRY</span><span class="arrow">→</span>
+        <span class="state fail">FAILED / DLQ</span>
+      </div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card card-pad">
+          <span class="tag">Idempotency rule</span>
+          <h3 style="margin-top:12px"><code>campaignId:customerId</code></h3>
+          <p class="vi">Key phải deterministic và được tạo <strong>trước external call</strong>. Không dùng UUID mới cho mỗi retry vì provider sẽ xem đó là request mới.</p>
+          <p class="en">The key must be deterministic and created <strong>before the external call</strong>. Do not generate a new UUID for each retry because the provider will treat it as a new request.</p>
+          <div class="equation">FLASH-2026:USER-123<br>UNIQUE(campaign_id, customer_id)</div>
+        </div>
+        <div class="card card-pad">
+          <span class="tag red">Crash window</span>
+          <h3 style="margin-top:12px"><span class="vi">Provider success, app crash</span><span class="en">Provider succeeds, application crashes</span></h3>
+          <ol class="muted-list vi">
+            <li>Provider nhận SMS và trả success.</li>
+            <li>Application crash trước khi mark SENT.</li>
+            <li>Queue redeliver message.</li>
+            <li>Nếu provider hỗ trợ idempotency, cùng key sẽ không gửi lần hai.</li>
+          </ol>
+          <ol class="muted-list en">
+            <li>The provider accepts the SMS and returns success.</li>
+            <li>The application crashes before marking SENT.</li>
+            <li>The queue redelivers the message.</li>
+            <li>If the provider supports idempotency, the same key prevents a second delivery.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <div class="vi"><strong>Thực tế quan trọng:</strong> DB unique constraint chỉ ngăn application xử lý duplicate record; nó không loại bỏ hoàn toàn duplicate SMS trong crash window. Exactly-once end-to-end cần provider hỗ trợ idempotency hoặc API tra cứu trạng thái theo request key/provider message ID.</div>
+        <div class="en"><strong>Important reality:</strong> a database unique constraint prevents duplicate application records, but it cannot completely remove duplicate SMS delivery in the crash window. End-to-end exactly-once behavior requires provider idempotency or a status lookup API using the request key or provider message ID.</div>
+      </div>
+    </section>
+
+    <section id="failures">
+      <div class="section-head">
+        <div class="kicker">07 · Failure handling</div>
+        <div>
+          <h2><span class="vi">Không phải lỗi nào cũng retry</span><span class="en">Not every error should be retried</span></h2>
+          <p class="lead vi">Retry sai có thể làm campaign chậm hơn, tăng chi phí và tạo duplicate. Phân loại lỗi trước khi quyết định.</p>
+          <p class="lead en">Incorrect retries can slow down the campaign, increase cost, and create duplicates. Classify errors before deciding.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th><span class="vi">Tình huống</span><span class="en">Scenario</span></th><th><span class="vi">Xử lý</span><span class="en">Action</span></th><th><span class="vi">Lý do</span><span class="en">Reason</span></th><th><span class="vi">Trạng thái</span><span class="en">Status</span></th></tr></thead>
+          <tbody>
+            <tr><td>HTTP 429</td><td><span class="vi">Retry theo Retry-After + giảm rate</span><span class="en">Retry using Retry-After and reduce the rate</span></td><td><span class="vi">Đang vượt provider quota</span><span class="en">Provider quota is being exceeded</span></td><td>RETRY</td></tr>
+            <tr><td>Timeout / 5xx</td><td><span class="vi">Exponential backoff + jitter</span><span class="en">Exponential backoff plus jitter</span></td><td><span class="vi">Lỗi transient; tránh retry storm</span><span class="en">Transient error; avoid a retry storm</span></td><td>RETRY</td></tr>
+            <tr><td>Invalid phone / HTTP 400</td><td><span class="vi">Không retry</span><span class="en">Do not retry</span></td><td><span class="vi">Dữ liệu sai sẽ không tự hồi phục</span><span class="en">Bad data will not recover by itself</span></td><td>FAILED</td></tr>
+            <tr><td>401 / 403</td><td><span class="vi">Dừng/alert; refresh credential nếu thiết kế cho phép</span><span class="en">Stop and alert; refresh credentials if designed</span></td><td><span class="vi">Có thể ảnh hưởng toàn campaign</span><span class="en">May affect the whole campaign</span></td><td>PAUSED</td></tr>
+            <tr><td><span class="vi">App crash khi PROCESSING</span><span class="en">App crash during PROCESSING</span></td><td><span class="vi">Lease timeout → RETRY</span><span class="en">Lease timeout to RETRY</span></td><td><span class="vi">Worker cũ không còn sở hữu task</span><span class="en">The old worker no longer owns the task</span></td><td>RETRY</td></tr>
+            <tr><td><span class="vi">Retry đã hết</span><span class="en">Retries exhausted</span></td><td><span class="vi">Đưa DLQ + manual replay</span><span class="en">Move to DLQ and allow manual replay</span></td><td><span class="vi">Không block các messages khác</span><span class="en">Do not block other messages</span></td><td>FAILED / DLQ</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="code">
+      <div class="section-head">
+        <div class="kicker">08 · Java implementation</div>
+        <div>
+          <h2><span class="vi">Code cho cả hai hướng</span><span class="en">Code for both implementation paths</span></h2>
+          <p class="lead vi">Chọn tab để xem chunk + async trong một instance, reactive WebClient, queue consumer hoặc database schema.</p>
+          <p class="lead en">Choose a tab to view single-instance chunk plus async, reactive WebClient, a queue consumer, or the database schema.</p>
+        </div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="chunkCode" type="button">Chunk + Async</button>
+        <button class="tab" data-tab="reactiveCode" type="button">Reactive</button>
+        <button class="tab" data-tab="queueCode" type="button">Queue Worker</button>
+        <button class="tab" data-tab="dbCode" type="button">DB Schema</button>
+      </div>
+
+      <div id="chunkCode" class="tab-panel active">
+        <div class="code-card">
+          <div class="code-head"><span>CampaignService.java — page by 500, process at bounded concurrency</span><button class="copy" type="button">Copy</button></div>
+          <pre><code><span class="ann">@Service</span>
+<span class="kw">public class</span> <span class="type">CampaignService</span> {
+    <span class="kw">private static final int</span> CHUNK_SIZE = <span class="num">500</span>;
+    <span class="kw">private final</span> <span class="type">CustomerRepository</span> customerRepository;
+    <span class="kw">private final</span> <span class="type">SmsWorker</span> smsWorker;
+    <span class="kw">private final</span> <span class="type">Executor</span> smsExecutor;
+
+    <span class="kw">public void</span> sendCampaign(<span class="type">long</span> campaignId) {
+        <span class="type">List</span>&lt;<span class="type">CompletableFuture</span>&lt;<span class="type">Void</span>&gt;&gt; futures = <span class="kw">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+        <span class="type">int</span> pageNumber = <span class="num">0</span>;
+        <span class="type">Page</span>&lt;<span class="type">Customer</span>&gt; page;
+
+        <span class="kw">do</span> {
+            page = customerRepository.findTargets(
+                PageRequest.of(pageNumber++, CHUNK_SIZE)
+            );
+
+            <span class="comment">// Copy because Page content should not be reused or mutated.</span>
+            <span class="type">List</span>&lt;<span class="type">Customer</span>&gt; chunk = <span class="type">List</span>.copyOf(page.getContent());
+
+            futures.add(<span class="type">CompletableFuture</span>.runAsync(
+                () -&gt; processChunk(campaignId, chunk),
+                smsExecutor
+            ));
+        } <span class="kw">while</span> (page.hasNext());
+
+        <span class="type">CompletableFuture</span>.allOf(
+            futures.toArray(<span class="kw">new</span> <span class="type">CompletableFuture</span>[<span class="num">0</span>])
+        ).join();
+    }
+
+    <span class="kw">private void</span> processChunk(<span class="type">long</span> campaignId, <span class="type">List</span>&lt;<span class="type">Customer</span>&gt; chunk) {
+        <span class="comment">// Sequential inside one chunk; parallelism comes from the executor.</span>
+        <span class="kw">for</span> (<span class="type">Customer</span> customer : chunk) {
+            smsWorker.send(campaignId, customer);
+        }
+    }
+}</code></pre>
+        </div>
+        <div class="grid-2" style="margin-top:14px">
+          <div class="code-card">
+            <div class="code-head"><span>AsyncConfig.java</span><button class="copy" type="button">Copy</button></div>
+            <pre><code><span class="ann">@Bean</span>(<span class="str">"smsExecutor"</span>)
+<span class="kw">public</span> <span class="type">Executor</span> smsExecutor() {
+    <span class="type">ThreadPoolTaskExecutor</span> executor =
+        <span class="kw">new</span> <span class="type">ThreadPoolTaskExecutor</span>();
+    executor.setCorePoolSize(<span class="num">10</span>);
+    executor.setMaxPoolSize(<span class="num">20</span>);
+    executor.setQueueCapacity(<span class="num">100</span>);
+    executor.setThreadNamePrefix(<span class="str">"sms-"</span>);
+    executor.setRejectedExecutionHandler(
+        <span class="kw">new</span> <span class="type">CallerRunsPolicy</span>()
+    );
+    executor.initialize();
+    <span class="kw">return</span> executor;
+}</code></pre>
+          </div>
+          <div class="card card-pad">
+            <h3><span class="vi">Giải thích code</span><span class="en">Code explanation</span></h3>
+            <ul class="muted-list vi">
+              <li>Page size 500 giới hạn memory và DB fetch size.</li>
+              <li>Executor 10–20 giới hạn số chunks chạy cùng lúc.</li>
+              <li>Mỗi chunk vẫn loop tuần tự; 10 threads ≈ 10 calls đồng thời.</li>
+              <li><code>CallerRunsPolicy</code> tạo backpressure khi executor đầy.</li>
+              <li>Không nên giữ HTTP request chờ <code>allOf().join()</code>; hãy chạy dưới background job.</li>
+            </ul>
+            <ul class="muted-list en">
+              <li>A page size of 500 limits memory and database fetch volume.</li>
+              <li>An executor of 10–20 limits how many chunks run together.</li>
+              <li>Each chunk still loops sequentially; 10 threads means about 10 concurrent calls.</li>
+              <li><code>CallerRunsPolicy</code> adds backpressure when the executor is full.</li>
+              <li>Do not keep an HTTP request waiting on <code>allOf().join()</code>; run this as a background job.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="reactiveCode" class="tab-panel">
+        <div class="code-card">
+          <div class="code-head"><span>ReactiveSmsService.java — non-blocking with bounded concurrency</span><button class="copy" type="button">Copy</button></div>
+          <pre><code><span class="ann">@Service</span>
+<span class="kw">public class</span> <span class="type">ReactiveSmsService</span> {
+    <span class="kw">private static final int</span> MAX_CONCURRENCY = <span class="num">100</span>;
+
+    <span class="kw">public</span> <span class="type">Mono</span>&lt;<span class="type">Void</span>&gt; sendCampaign(
+            <span class="type">long</span> campaignId,
+            <span class="type">Flux</span>&lt;<span class="type">Customer</span>&gt; customers) {
+
+        <span class="kw">return</span> customers
+            .flatMap(
+                customer -&gt; sendOne(campaignId, customer)
+                    .onErrorResume(<span class="type">RetryableException</span>.<span class="kw">class</span>,
+                        ex -&gt; saveForRetry(campaignId, customer, ex)),
+                MAX_CONCURRENCY
+            )
+            .then();
+    }
+
+    <span class="kw">private</span> <span class="type">Mono</span>&lt;<span class="type">Void</span>&gt; sendOne(
+            <span class="type">long</span> campaignId, <span class="type">Customer</span> customer) {
+        <span class="type">String</span> key = campaignId + <span class="str">":"</span> + customer.id();
+
+        <span class="kw">return</span> acquireRateLimitPermit()
+            .then(webClient.post()
+                .uri(<span class="str">"/messages"</span>)
+                .header(<span class="str">"Idempotency-Key"</span>, key)
+                .bodyValue(toRequest(customer))
+                .retrieve()
+                .bodyToMono(<span class="type">SmsResponse</span>.<span class="kw">class</span>))
+            .flatMap(response -&gt; markSent(key, response.messageId()));
+    }
+}</code></pre>
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <div class="vi"><strong>Lưu ý:</strong> <code>flatMap(..., 100)</code> giới hạn 100 subscriptions in-flight, nhưng nó không tự đảm bảo đúng 100 requests/second. Vẫn cần rate limiter vì nếu latency chỉ 100 ms, concurrency 100 có thể tạo capacity gần 1.000 TPS.</div>
+          <div class="en"><strong>Note:</strong> <code>flatMap(..., 100)</code> limits in-flight subscriptions to 100, but it does not guarantee exactly 100 requests per second. A rate limiter is still required because, with 100 ms latency, concurrency 100 can provide nearly 1,000 TPS capacity.</div>
+        </div>
+      </div>
+
+      <div id="queueCode" class="tab-panel">
+        <div class="code-card">
+          <div class="code-head"><span>SmsConsumer.java — atomic claim, rate limit, retry and DLQ</span><button class="copy" type="button">Copy</button></div>
+          <pre><code><span class="ann">@KafkaListener</span>(
+    topics = <span class="str">"sms-notification"</span>,
+    concurrency = <span class="str">"20"</span>
+)
+<span class="kw">public void</span> consume(<span class="type">NotificationTask</span> task) {
+    <span class="comment">// Atomic update: PENDING/RETRY -> PROCESSING.</span>
+    <span class="kw">if</span> (!notificationRepository.claim(task.id())) {
+        <span class="kw">return</span>; <span class="comment">// Already sent or owned by another worker.</span>
+    }
+
+    <span class="type">String</span> key = task.campaignId() + <span class="str">":"</span> + task.customerId();
+
+    <span class="kw">try</span> {
+        rateLimiter.acquirePermission();
+        <span class="type">SmsResponse</span> response = smsProvider.send(
+            task.phoneNumber(), task.content(), key
+        );
+        notificationRepository.markSent(
+            task.id(), response.providerMessageId()
+        );
+        <span class="comment">// Queue acknowledgement happens only after SENT is persisted.</span>
+    } <span class="kw">catch</span> (<span class="type">RetryableProviderException</span> ex) {
+        notificationRepository.markRetry(task.id(), ex.getMessage());
+        <span class="kw">throw</span> ex; <span class="comment">// Broker retry with backoff.</span>
+    } <span class="kw">catch</span> (<span class="type">PermanentProviderException</span> ex) {
+        notificationRepository.markFailed(task.id(), ex.getMessage());
+        deadLetterPublisher.publish(task, ex);
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <div id="dbCode" class="tab-panel">
+        <div class="code-card">
+          <div class="code-head"><span>PostgreSQL — campaign and notification status</span><button class="copy" type="button">Copy</button></div>
+          <pre><code><span class="kw">CREATE TABLE</span> campaign (
+    id                  BIGSERIAL <span class="kw">PRIMARY KEY</span>,
+    name                VARCHAR(<span class="num">150</span>) <span class="kw">NOT NULL</span>,
+    status              VARCHAR(<span class="num">30</span>) <span class="kw">NOT NULL</span>,
+    total_count         INTEGER <span class="kw">NOT NULL DEFAULT</span> <span class="num">0</span>,
+    sent_count          INTEGER <span class="kw">NOT NULL DEFAULT</span> <span class="num">0</span>,
+    failed_count        INTEGER <span class="kw">NOT NULL DEFAULT</span> <span class="num">0</span>,
+    created_at          TIMESTAMPTZ <span class="kw">NOT NULL DEFAULT</span> now()
+);
+
+<span class="kw">CREATE TABLE</span> notification (
+    id                  BIGSERIAL <span class="kw">PRIMARY KEY</span>,
+    campaign_id         BIGINT <span class="kw">NOT NULL REFERENCES</span> campaign(id),
+    customer_id         BIGINT <span class="kw">NOT NULL</span>,
+    phone_number        VARCHAR(<span class="num">30</span>) <span class="kw">NOT NULL</span>,
+    idempotency_key     VARCHAR(<span class="num">160</span>) <span class="kw">NOT NULL</span>,
+    status              VARCHAR(<span class="num">30</span>) <span class="kw">NOT NULL</span>,
+    retry_count         INTEGER <span class="kw">NOT NULL DEFAULT</span> <span class="num">0</span>,
+    provider_message_id VARCHAR(<span class="num">160</span>),
+    processing_until    TIMESTAMPTZ,
+    last_error          TEXT,
+    sent_at             TIMESTAMPTZ,
+    updated_at          TIMESTAMPTZ <span class="kw">NOT NULL DEFAULT</span> now(),
+    <span class="kw">UNIQUE</span> (campaign_id, customer_id),
+    <span class="kw">UNIQUE</span> (idempotency_key)
+);
+
+<span class="kw">CREATE INDEX</span> idx_notification_retry
+    <span class="kw">ON</span> notification(status, updated_at)
+    <span class="kw">WHERE</span> status <span class="kw">IN</span> (<span class="str">'PENDING'</span>, <span class="str">'RETRY'</span>, <span class="str">'PROCESSING'</span>);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="tuning">
+      <div class="section-head">
+        <div class="kicker">09 · Tuning guide</div>
+        <div>
+          <h2><span class="vi">Chọn chunk size và concurrency như thế nào?</span><span class="en">How should chunk size and concurrency be selected?</span></h2>
+          <p class="lead vi">Bắt đầu từ provider contract, sau đó kiểm tra application capacity bằng load test. Không chọn số thread chỉ dựa trên số customer.</p>
+          <p class="lead en">Start with the provider contract, then verify application capacity through load testing. Do not choose the thread count based only on the number of customers.</p>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card card-pad">
+          <span class="tag">1 · Provider</span>
+          <h3 style="margin-top:12px">Find TPS limit</h3>
+          <p class="muted vi">Xác nhận quota: requests/second, burst allowance, daily limit, Retry-After và multi-account rules.</p>
+          <p class="muted en">Confirm requests per second, burst allowance, daily limit, Retry-After, and multi-account rules.</p>
+        </div>
+        <div class="card card-pad">
+          <span class="tag">2 · Capacity</span>
+          <h3 style="margin-top:12px">Estimate concurrency</h3>
+          <div class="equation" style="font-size:13px">Concurrency ≈ Target TPS × p95 latency</div>
+          <p class="muted vi">100 TPS × 1s p95 ≈ 100 concurrent calls; cộng headroom vừa phải, không nhân tùy ý.</p>
+          <p class="muted en">100 TPS × 1s p95 ≈ 100 concurrent calls; add moderate headroom, not an arbitrary multiplier.</p>
+        </div>
+        <div class="card card-pad">
+          <span class="tag">3 · Verify</span>
+          <h3 style="margin-top:12px">Load test & observe</h3>
+          <p class="muted vi">Đo p95/p99 latency, HTTP pool usage, 429/5xx rate, queue lag, CPU, heap và DB write throughput.</p>
+          <p class="muted en">Measure p95/p99 latency, HTTP pool usage, 429/5xx rate, queue lag, CPU, heap, and database write throughput.</p>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>Parameter</th><th><span class="vi">Giá trị khởi đầu</span><span class="en">Starting value</span></th><th><span class="vi">Mục đích</span><span class="en">Purpose</span></th><th><span class="vi">Khi cần điều chỉnh</span><span class="en">When to adjust</span></th></tr></thead>
+          <tbody>
+            <tr><td>DB page/chunk size</td><td>200–1,000</td><td><span class="vi">Cân bằng DB round trips và memory</span><span class="en">Balance DB round trips and memory</span></td><td><span class="vi">Đo query time, heap và transaction duration</span><span class="en">Measure query time, heap, and transaction duration</span></td></tr>
+            <tr><td>Worker concurrency</td><td>20, then increase</td><td><span class="vi">Bounded in-flight calls</span><span class="en">Bounded in-flight calls</span></td><td><span class="vi">Tăng đến target TPS nhưng không tăng 429</span><span class="en">Increase to target TPS without increasing 429s</span></td></tr>
+            <tr><td>HTTP connection pool</td><td>≥ concurrency + headroom</td><td><span class="vi">Không để workers chờ connection</span><span class="en">Prevent workers from waiting for a connection</span></td><td><span class="vi">Theo dõi pending-acquire time</span><span class="en">Monitor pending-acquire time</span></td></tr>
+            <tr><td>Retry</td><td>3–5 attempts</td><td><span class="vi">Hồi phục lỗi transient</span><span class="en">Recover transient failures</span></td><td><span class="vi">Theo SLA và provider response</span><span class="en">Adjust to SLA and provider behavior</span></td></tr>
+            <tr><td>Lease timeout</td><td>> provider timeout</td><td><span class="vi">Recover PROCESSING bị treo</span><span class="en">Recover stuck PROCESSING items</span></td><td><span class="vi">Dựa trên p99 end-to-end latency</span><span class="en">Use p99 end-to-end latency</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="recommendation">
+      <div class="card decision">
+        <span class="tag green">Final recommendation</span>
+        <h3 style="margin-top:14px">
+          <span class="vi">Ưu tiên Bulk API; nếu không có, dùng chunk + queue + bounded workers.</span>
+          <span class="en">Prefer a bulk API; otherwise use chunking + queue + bounded workers.</span>
+        </h3>
+        <p class="lead vi">Nếu provider có Bulk Campaign API với tracking và idempotency tốt, hãy gửi theo provider batch limit vì đây thường là cách nhanh và đơn giản nhất. Nếu provider chỉ có single-message API, hãy đọc 500 records/lần; tạo notification record + outbox trong DB transaction; publish từng job vào Kafka/SQS/RabbitMQ; workers gửi theo global rate limit. Với giới hạn 100 TPS, thời gian lý thuyết là 500 giây = 8 phút 20 giây; thực tế nên dự trù khoảng 9–12 phút.</p>
+        <p class="lead en">If the provider offers a bulk campaign API with strong tracking and idempotency, submit recipients according to its batch limit because this is usually the fastest and simplest option. If only a single-message API exists, read 500 records at a time; create notification and outbox records in one database transaction; publish each job to Kafka, SQS, or RabbitMQ; and let workers send under a global rate limit. At 100 TPS, theoretical time is 500 seconds or 8 minutes 20 seconds; a practical estimate is about 9–12 minutes.</p>
+        <div class="grid-3" style="margin-top:18px">
+          <div><span class="tag">Chunk</span><p class="muted vi" style="margin-top:8px">Giới hạn memory, DB fetch và transaction size.</p><p class="muted en" style="margin-top:8px">Limits memory, DB fetch volume, and transaction size.</p></div>
+          <div><span class="tag">Async</span><p class="muted vi" style="margin-top:8px">Tận dụng thời gian chờ network và tăng throughput.</p><p class="muted en" style="margin-top:8px">Uses network wait time efficiently and increases throughput.</p></div>
+          <div><span class="tag">Queue</span><p class="muted vi" style="margin-top:8px">Cung cấp durability, retry, backpressure và scale ngang.</p><p class="muted en" style="margin-top:8px">Provides durability, retries, backpressure, and horizontal scaling.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="interview">
+      <div class="section-head">
+        <div class="kicker">10 · Interview answer</div>
+        <div>
+          <h2><span class="vi">Câu trả lời phỏng vấn hoàn chỉnh</span><span class="en">Complete interview answer</span></h2>
+          <p class="lead vi">Dùng bản ngắn nếu interviewer chỉ hỏi solution; dùng bản dưới đây khi họ muốn nghe reasoning và production concerns.</p>
+          <p class="lead en">Use a shorter version when the interviewer only asks for a solution; use the answer below when they expect reasoning and production concerns.</p>
+        </div>
+      </div>
+      <div class="card card-pad quote vi">
+        <span class="tag">Vietnamese</span>
+        <blockquote style="margin-top:14px">“Nếu gửi tuần tự 50.000 SMS và mỗi provider call mất một giây, tổng thời gian sẽ khoảng 13,89 giờ. Tôi sẽ không tạo 50.000 threads. Tôi sẽ đọc customer theo chunk, ví dụ 500 records/lần, để kiểm soát memory và transaction size. Sau đó tôi tạo notification job và publish vào Kafka, RabbitMQ hoặc SQS.<br><br>Nhiều consumers xử lý các jobs song song, nhưng concurrency phải được giới hạn theo SMS provider TPS, HTTP connection pool và capacity của application. Ví dụ provider hỗ trợ 100 TPS thì thời gian lý thuyết là 50.000 chia 100, bằng 500 giây hay khoảng 8,3 phút.<br><br>Tôi cũng lưu trạng thái PENDING, PROCESSING, SENT, RETRY và FAILED; tạo idempotency key campaignId cộng customerId trước khi gọi provider; retry lỗi transient bằng exponential backoff và jitter; đưa message hết retry vào DLQ. Nếu cần tránh mất message giữa database và queue, tôi dùng transactional outbox. Tóm lại, chunk kiểm soát data volume, async workers tăng throughput, còn queue cung cấp durability, backpressure và recovery.”</blockquote>
+      </div>
+      <div class="card card-pad quote en">
+        <span class="tag">English</span>
+        <blockquote style="margin-top:14px">“If we send 50,000 SMS messages sequentially and each provider call takes one second, the total time is about 13.89 hours. I would not create 50,000 threads. I would read customers in chunks, for example 500 records at a time, to control memory and transaction size. I would then create notification jobs and publish them to Kafka, RabbitMQ, or SQS.<br><br>Multiple consumers process the jobs concurrently, but concurrency must be bounded by the SMS provider’s TPS limit, the HTTP connection pool, and application capacity. For example, if the provider supports 100 TPS, the theoretical duration is 50,000 divided by 100, which is 500 seconds or about 8.3 minutes.<br><br>I would also persist PENDING, PROCESSING, SENT, RETRY, and FAILED states; create a deterministic idempotency key from the campaign ID and customer ID before calling the provider; retry transient failures with exponential backoff and jitter; and move exhausted messages to a dead-letter queue. To avoid losing messages between the database and the broker, I would use a transactional outbox. In summary, chunking controls data volume, async workers improve throughput, and the queue provides durability, backpressure, and recovery.”</blockquote>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="section-head">
+        <div class="kicker">11 · Follow-up questions</div>
+        <div>
+          <h2><span class="vi">Các câu interviewer có thể hỏi tiếp</span><span class="en">Likely interviewer follow-up questions</span></h2>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <details open>
+            <summary><span class="vi">Tại sao không chỉ dùng multithreading?</span><span class="en">Why not use only multithreading?</span></summary>
+            <div class="vi">Thread pool giúp parallelism trong một process, nhưng không tự cung cấp durability, cross-instance scaling, message retention, replay hay DLQ. Queue giải quyết các phần đó.</div>
+            <div class="en">A thread pool provides parallelism inside one process, but it does not provide durability, cross-instance scaling, message retention, replay, or a DLQ. A queue provides those capabilities.</div>
+          </details>
+          <details>
+            <summary><span class="vi">Application restart sau khi gửi 30.000 thì sao?</span><span class="en">What happens if the app restarts after 30,000 messages?</span></summary>
+            <div class="vi">Database biết records nào SENT; queue giữ jobs chưa ack; reconciliation chuyển PROCESSING quá lease timeout về RETRY. Workers tiếp tục mà không cần chạy lại toàn campaign.</div>
+            <div class="en">The database identifies SENT records; the queue retains unacknowledged jobs; reconciliation moves PROCESSING records beyond their lease timeout to RETRY. Workers continue without restarting the whole campaign.</div>
+          </details>
+          <details>
+            <summary><span class="vi">Chunk size 500 có phải tối ưu nhất?</span><span class="en">Is a chunk size of 500 always optimal?</span></summary>
+            <div class="vi">Không. Đây là starting point. Tuning dựa trên row size, query latency, memory, transaction duration và database load. Chunk size gần như độc lập với provider TPS.</div>
+            <div class="en">No. It is a starting point. Tune it using row size, query latency, memory, transaction duration, and database load. Chunk size is largely independent of provider TPS.</div>
+          </details>
+        </div>
+        <div>
+          <details open>
+            <summary><span class="vi">Có đảm bảo exactly once không?</span><span class="en">Can we guarantee exactly-once delivery?</span></summary>
+            <div class="vi">Queue thường cho at-least-once. Ta đạt effectively-once bằng DB uniqueness, atomic claim và provider idempotency. Nếu provider không hỗ trợ idempotency, vẫn còn một duplicate window nhỏ khi app crash sau provider success.</div>
+            <div class="en">Queues normally provide at-least-once delivery. We achieve effectively-once behavior through database uniqueness, atomic claim, and provider idempotency. Without provider idempotency, a small duplicate window remains after provider success and before database update.</div>
+          </details>
+          <details>
+            <summary><span class="vi">Tại sao cần rate limiter nếu đã giới hạn threads?</span><span class="en">Why use a rate limiter if threads are already limited?</span></summary>
+            <div class="vi">Concurrency giới hạn số request in-flight; rate limiter giới hạn số request bắt đầu trong một khoảng thời gian. Khi latency thay đổi hoặc có nhiều pods, hai con số không còn tương đương.</div>
+            <div class="en">Concurrency limits in-flight requests; a rate limiter limits requests started during a time window. When latency changes or multiple pods run, the two numbers are no longer equivalent.</div>
+          </details>
+          <details>
+            <summary><span class="vi">Kafka hay SQS/RabbitMQ?</span><span class="en">Kafka or SQS/RabbitMQ?</span></summary>
+            <div class="vi">SQS phù hợp AWS managed task queue; RabbitMQ mạnh về routing/ack; Kafka phù hợp throughput lớn, replay và event platform. Chọn theo hệ sinh thái, ordering, retention và operational capability—not theo trend.</div>
+            <div class="en">SQS is a good managed task queue on AWS; RabbitMQ offers strong routing and acknowledgement controls; Kafka suits high throughput, replay, and event platforms. Choose based on ecosystem, ordering, retention, and operational capability—not trends.</div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <span class="vi">SMS Campaign Scaling Guide · Java / Spring Boot · Các con số là ước lượng lý thuyết; cần load test với SMS provider thật trước production.</span>
+      <span class="en">SMS Campaign Scaling Guide · Java / Spring Boot · Figures are theoretical estimates; load-test with the real SMS provider before production.</span>
+    </div>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    const body = document.body;
+    const $ = id => document.getElementById(id);
+
+    function applyLanguage(lang) {
+      body.dataset.lang = lang;
+      root.lang = lang;
+      $('langVi').classList.toggle('active', lang === 'vi');
+      $('langEn').classList.toggle('active', lang === 'en');
+      localStorage.setItem('sms-guide-language', lang);
+    }
+
+    function applyTheme(theme) {
+      root.dataset.theme = theme;
+      $('themeToggle').textContent = theme === 'dark' ? '☀' : '☾';
+      $('themeToggle').setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      localStorage.setItem('sms-guide-theme', theme);
+    }
+
+    $('langVi').addEventListener('click', () => applyLanguage('vi'));
+    $('langEn').addEventListener('click', () => applyLanguage('en'));
+    $('themeToggle').addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+
+    const savedLanguage = localStorage.getItem('sms-guide-language');
+    const savedTheme = localStorage.getItem('sms-guide-theme');
+    applyLanguage(savedLanguage === 'en' ? 'en' : 'vi');
+    applyTheme(savedTheme === 'light' ? 'light' : 'dark');
+
+    const inputIds = ['customers', 'latency', 'concurrency', 'providerTps', 'chunkSize', 'retryPct'];
+
+    function formatDuration(seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return '—';
+      const value = Math.ceil(seconds);
+      const h = Math.floor(value / 3600);
+      const m = Math.floor((value % 3600) / 60);
+      const s = value % 60;
+      return [h ? h + 'h' : '', m ? m + 'm' : '', s || (!h && !m) ? s + 's' : ''].filter(Boolean).join(' ');
+    }
+
+    function calculate() {
+      const customers = Math.max(1, Number($('customers').value) || 1);
+      const latency = Math.max(.01, Number($('latency').value) || 1);
+      const concurrency = Math.max(1, Number($('concurrency').value) || 1);
+      const providerTps = Math.max(1, Number($('providerTps').value) || 1);
+      const chunkSize = Math.max(1, Number($('chunkSize').value) || 1);
+      const retryPct = Math.max(0, Number($('retryPct').value) || 0);
+      const capacity = concurrency / latency;
+      const effective = Math.min(capacity, providerTps);
+      const raw = customers / effective;
+      const total = raw * (1 + retryPct / 100);
+
+      $('chunksOut').textContent = Math.ceil(customers / chunkSize).toLocaleString();
+      $('capacityOut').textContent = capacity.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' TPS';
+      $('effectiveOut').textContent = effective.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' TPS';
+      $('rawOut').textContent = formatDuration(raw);
+      $('totalOut').textContent = formatDuration(total);
+    }
+
+    inputIds.forEach(id => $(id).addEventListener('input', calculate));
+    calculate();
+
+    document.querySelectorAll('.tab').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+        button.classList.add('active');
+        $(button.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.copy').forEach(button => {
+      button.addEventListener('click', async () => {
+        const code = button.closest('.code-card').querySelector('code').innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          const original = button.textContent;
+          button.textContent = 'Copied';
+          setTimeout(() => button.textContent = original, 1200);
+        } catch (_) {
+          button.textContent = 'Select & copy';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

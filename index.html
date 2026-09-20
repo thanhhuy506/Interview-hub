@@ -31,6 +31,8 @@
       --testing: #2563eb;
       --caching: #0e7490;
       --ai: #4f46e5;
+      --optimise-performance: #0d9488;
+      --api-security: #1d4ed8;
       --production-issue: #b91c1c;
       --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
       --radius: 8px;
@@ -641,6 +643,8 @@
         <button class="filter-btn" type="button" data-filter="kafka">Kafka</button>
         <button class="filter-btn" type="button" data-filter="caching">Caching</button>
         <button class="filter-btn" type="button" data-filter="ai">AI</button>
+        <button class="filter-btn" type="button" data-filter="optimise-performance">Optimise performance</button>
+        <button class="filter-btn" type="button" data-filter="api-security">API/security</button>
         <button class="filter-btn" type="button" data-filter="microservice">Microservice</button>
         <button class="filter-btn" type="button" data-filter="behavior">Behavior</button>
         <button class="filter-btn" type="button" data-filter="testing">Testing</button>
@@ -895,6 +899,16 @@
         filter: "spring",
         accent: "var(--spring)",
         tags: ["oauth2", "oidc", "jwt", "security", "authentication", "authorization", "pkce", "refresh token"]
+      },
+      {
+        id: "api-jwt-flow",
+        title: "Spring Boot API Request and JWT Flow",
+        summary: "Bilingual Spring Boot API request-flow guide covering security filters, JWT authentication, MVC dispatch, service and repository layers, inheritance, and key runtime methods.",
+        file: "api_jwt_flow_multilang.html",
+        category: "API/security",
+        filter: "api-security",
+        accent: "var(--api-security)",
+        tags: ["api", "security", "jwt", "spring boot", "request flow", "filter", "mvc", "authentication", "authorization"]
       },
       {
         id: "jpa-hibernate",
@@ -1395,6 +1409,16 @@
         filter: "architecture",
         accent: "#b45309",
         tags: ["software design", "diagram", "architecture", "database", "caching", "performance optimization", "promotion event", "system design"]
+      },
+      {
+        id: "sms-campaign-scaling-solution",
+        title: "50,000 SMS Campaign Scaling Solution",
+        summary: "Bilingual deep-dive solution for scaling a 50,000-customer SMS campaign with chunking, async processing, rate limiting, queues, retries, idempotency, and production-safe delivery controls.",
+        file: "sms_campaign_scaling_solution_bilingual.html",
+        category: "Optimise performance",
+        filter: "optimise-performance",
+        accent: "var(--optimise-performance)",
+        tags: ["optimise performance", "performance", "scaling", "sms campaign", "async processing", "rate limiting", "queue", "retry", "idempotency", "throughput"]
       },
       {
         id: "software-testing-guide",

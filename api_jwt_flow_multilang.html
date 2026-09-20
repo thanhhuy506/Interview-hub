@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Boot API Request Flow — EN / VN</title>
+<style>
+:root {
+  --bg:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--soft:#f8fafc;
+  --soft2:#f3f4f6;--blue:#2563eb;--green:#047857;--orange:#b45309;--red:#b91c1c;--code:#0f172a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg);line-height:1.65}
+.topbar{
+  position:sticky;top:0;z-index:1000;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;padding:10px 18px
+}
+.brand{font-weight:800;font-size:14px}
+.lang-switch{display:flex;gap:6px}
+.lang-switch button{
+  border:1px solid var(--line);background:#fff;padding:7px 12px;border-radius:8px;
+  cursor:pointer;font-weight:700
+}
+.lang-switch button.active{background:#111827;color:#fff;border-color:#111827}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+aside{position:sticky;top:57px;height:calc(100vh - 57px);overflow:auto;border-right:1px solid var(--line);padding:22px 16px;background:#fff}
+aside h1{font-size:17px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+aside a{display:block;text-decoration:none;color:#374151;font-size:13px;padding:7px 9px;border-radius:7px}
+aside a:hover{background:var(--soft2);color:var(--blue)}
+main{max-width:1250px;padding:42px 50px 90px}
+h1.page{font-size:39px;line-height:1.15;margin:0 0 12px}
+.lead{font-size:18px;color:#4b5563;max-width:1000px}
+h2{font-size:28px;margin:58px 0 18px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+h3{font-size:20px;margin:30px 0 10px} h4{font-size:16px;margin:20px 0 8px}
+p{margin:10px 0}
+.callout{border-left:4px solid var(--blue);background:#f8fbff;padding:14px 16px;border-radius:7px;margin:16px 0}
+.good{border-left-color:var(--green);background:#f3fbf7}.warn{border-left-color:var(--orange);background:#fffaf2}.bad{border-left-color:var(--red);background:#fff6f6}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:16px 0}
+.node{padding:9px 11px;border-radius:9px;background:#fff;border:1px solid #cbd5e1;font-size:13px;font-weight:700}
+.security{border-color:#93c5fd}.mvc{border-color:#c4b5fd}.biz{border-color:#86efac}.data{border-color:#fdba74}.arrow{color:#64748b;font-weight:800}
+table{border-collapse:collapse;width:100%;margin:14px 0 24px;font-size:14px}
+th,td{border:1px solid var(--line);padding:10px 11px;vertical-align:top;text-align:left}
+th{background:var(--soft2)}
+pre{background:var(--code);color:#e5e7eb;padding:17px;border-radius:11px;overflow:auto;font-size:13px;line-height:1.55;border:1px solid #1e293b}
+code{font-family:"SFMono-Regular",Consolas,monospace}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:11px;padding:15px;background:#fff}.card h3,.card h4{margin-top:0}
+.badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;border:1px solid var(--line);margin-right:5px}
+.you{background:#f0fdf4}.spring{background:#eff6ff}.java{background:#faf5ff}
+.step{display:grid;grid-template-columns:42px 1fr;gap:12px;margin:18px 0}.num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#111827;color:#fff;font-weight:800}
+details{border:1px solid var(--line);border-radius:9px;padding:10px 13px;margin:10px 0}summary{font-weight:750;cursor:pointer}
+.footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.lang-content{display:none}
+.lang-content.active{display:block}
+@media(max-width:900px){.layout{display:block}aside{display:none}main{padding:24px 18px 60px}h1.page{font-size:30px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Spring Boot API Flow — Deep Dive</div>
+  <div class="lang-switch">
+    <button id="btn-vi" class="active" onclick="setLang('vi')">VI</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside>
+    <div id="toc-vi">
+      <h1>Spring API Deep Dive</h1>
+      <div class="sub">Runtime flow + inheritance + method chính</div>
+      <a href="#vi-overview">1. Tổng quan</a>
+      <a href="#vi-security">2. Security / JWT</a>
+      <a href="#vi-mvc">3. MVC</a>
+      <a href="#vi-data">4. Service / Repository / DB</a>
+      <a href="#vi-inheritance">5. Extends / Implements</a>
+    </div>
+    <div id="toc-en" style="display:none">
+      <h1>Spring API Deep Dive</h1>
+      <div class="sub">Runtime flow + inheritance + core methods</div>
+      <a href="#en-overview">1. Mental model</a>
+      <a href="#en-security">2. Security / JWT</a>
+      <a href="#en-mvc">3. MVC</a>
+      <a href="#en-data">4. Service / Repository / DB</a>
+      <a href="#en-inheritance">5. Extends / Implements</a>
+    </div>
+  </aside>
+
+  <main>
+    <div id="lang-vi" class="lang-content active">
+      <div id="vi-overview"></div>
+      
+<section id="overview">
+  <h1 class="page">Luồng hoạt động của một API trong Spring Boot</h1>
+  <p class="lead">
+    Tài liệu này giải thích từ lúc client gọi <code>GET /api/orders/123</code>, request đi qua những layer nào,
+    Spring Security detect JWT ra sao, class nào chịu trách nhiệm authentication/authorization, khi nào request mới tới Controller,
+    rồi đi tiếp tới Service, Repository, Database và quay ngược trở lại thành HTTP response.
+  </p>
+
+  <div class="callout">
+    <strong>Ý chính cần nhớ:</strong> JWT authentication nên được xử lý trong <strong>Spring Security Filter Chain</strong>.
+    Sau khi token hợp lệ, Spring tạo một đối tượng <code>Authentication</code> và đặt nó vào <code>SecurityContextHolder</code>.
+    Từ thời điểm đó Controller/Service có thể biết user hiện tại là ai và có role/scope gì.
+  </div>
+
+  <div class="flow">
+    <div class="node">Client</div><div class="arrow">→</div>
+    <div class="node">Web Server</div><div class="arrow">→</div>
+    <div class="node security">Security Filter Chain</div><div class="arrow">→</div>
+    <div class="node app">DispatcherServlet</div><div class="arrow">→</div>
+    <div class="node app">Interceptor</div><div class="arrow">→</div>
+    <div class="node app">Controller</div><div class="arrow">→</div>
+    <div class="node app">Service</div><div class="arrow">→</div>
+    <div class="node data">Repository</div><div class="arrow">→</div>
+    <div class="node data">DB</div>
+  </div>
+
+  <div class="legend">
+    <span>Security layer = authentication / authorization</span>
+    <span>MVC layer = routing / controller / interceptor</span>
+    <span>Business layer = service logic</span>
+    <span>Data layer = repository / ORM / DB</span>
+  </div>
+</section>
+
+<section id="network">
+<h2>1. Khi request đi vào Java application</h2>
+
+<p>Ví dụ client gọi:</p>
+<pre>GET /api/orders/123 HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiIs...
+Content-Type: application/json</pre>
+
+<div class="step"><div class="num">1</div><div>
+  <h3>Client → Load Balancer / API Gateway / Reverse Proxy</h3>
+  <p>Ở production, request thường chưa đi thẳng tới Java app. Nó có thể đi qua AWS ALB, API Gateway, Nginx, Kong, Kubernetes Ingress...</p>
+  <p>Các layer này có thể làm TLS termination, routing, WAF, rate limiting hoặc logging trước khi forward request vào app.</p>
+</div></div>
+
+<div class="step"><div class="num">2</div><div>
+  <h3>Embedded server nhận HTTP request</h3>
+  <p>Nếu dùng <strong>Spring MVC</strong>, Spring Boot thường chạy trên embedded Tomcat, Jetty hoặc Undertow.</p>
+  <p>Nếu dùng <strong>Spring WebFlux</strong>, thường là Reactor Netty.</p>
+</div></div>
+
+<table>
+<tr><th>Stack</th><th>Server thường gặp</th><th>Programming model</th></tr>
+<tr><td>spring-boot-starter-web</td><td>Tomcat</td><td>Servlet / blocking</td></tr>
+<tr><td>spring-boot-starter-webflux</td><td>Reactor Netty</td><td>Reactive / non-blocking</td></tr>
+</table>
+
+<div class="callout warn">
+  Trong tài liệu này, phần chính dùng <strong>Spring MVC + Spring Security</strong>.
+  Với WebFlux, ý tưởng security giống nhau nhưng class sẽ thuộc reactive stack, ví dụ <code>SecurityWebFilterChain</code>.
+</div>
+</section>
+
+<section id="security">
+<h2>2. Spring Security chạy trước Controller</h2>
+
+<p>Khi Spring Security được bật, request sẽ đi qua security filters trước khi đi tới <code>DispatcherServlet</code>.</p>
+
+<div class="flow">
+  <div class="node">Servlet Container</div><div class="arrow">→</div>
+  <div class="node security">DelegatingFilterProxy</div><div class="arrow">→</div>
+  <div class="node security">FilterChainProxy</div><div class="arrow">→</div>
+  <div class="node security">SecurityFilterChain</div><div class="arrow">→</div>
+  <div class="node app">DispatcherServlet</div>
+</div>
+
+<h3>DelegatingFilterProxy</h3>
+<p>
+  Đây là bridge giữa Servlet container và Spring bean. Servlet container biết về một Filter,
+  nhưng logic thực tế được delegate vào Spring Security.
+</p>
+
+<h3>FilterChainProxy</h3>
+<p>
+  Đây là filter trung tâm của Spring Security. Nó chọn một <code>SecurityFilterChain</code> phù hợp với request hiện tại.
+</p>
+
+<h3>SecurityFilterChain</h3>
+<p>
+  Là danh sách các security filter chạy theo thứ tự. Tùy cấu hình, chain có thể chứa filter xử lý CORS, CSRF,
+  Bearer token, exception handling, anonymous user, authorization...
+</p>
+
+<div class="callout good">
+  <strong>SecurityFilterChain không chỉ là một filter.</strong>
+  Nó là một chuỗi filter, mỗi filter làm một nhiệm vụ security riêng.
+</div>
+</section>
+
+<section id="jwt">
+<h2>3. Spring detect JWT như thế nào?</h2>
+
+<p>Với OAuth2 Resource Server, Spring Security thường detect JWT từ HTTP header:</p>
+<pre>Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</pre>
+
+<h3>Luồng chính</h3>
+
+<div class="flow">
+  <div class="node">Authorization header</div><div class="arrow">→</div>
+  <div class="node security">BearerTokenAuthenticationFilter</div><div class="arrow">→</div>
+  <div class="node security">BearerTokenResolver</div><div class="arrow">→</div>
+  <div class="node security">AuthenticationManager</div><div class="arrow">→</div>
+  <div class="node security">JwtAuthenticationProvider</div><div class="arrow">→</div>
+  <div class="node security">JwtDecoder</div>
+</div>
+
+<div class="step"><div class="num">1</div><div>
+  <h3>BearerTokenAuthenticationFilter</h3>
+  <p>Filter này kiểm tra request có Bearer token hay không.</p>
+  <p>Nếu có, nó lấy raw token string và tạo một authentication request object để đưa vào authentication pipeline.</p>
+</div></div>
+
+<div class="step"><div class="num">2</div><div>
+  <h3>BearerTokenResolver</h3>
+  <p>Mặc định Spring tìm token trong <code>Authorization: Bearer ...</code>.</p>
+  <p>Class mặc định thường dùng là <code>DefaultBearerTokenResolver</code>.</p>
+</div></div>
+
+<div class="step"><div class="num">3</div><div>
+  <h3>AuthenticationManager</h3>
+  <p>Nhận yêu cầu authentication và tìm provider phù hợp.</p>
+</div></div>
+
+<div class="step"><div class="num">4</div><div>
+  <h3>JwtAuthenticationProvider</h3>
+  <p>Provider này dùng <code>JwtDecoder</code> để decode và validate JWT.</p>
+</div></div>
+
+<div class="step"><div class="num">5</div><div>
+  <h3>JwtDecoder / NimbusJwtDecoder</h3>
+  <p>JWT không chỉ được Base64 decode. Spring còn phải verify token.</p>
+</div></div>
+
+<h3>JWT validation thực tế gồm những gì?</h3>
+
+<table>
+<tr><th>Check</th><th>Ý nghĩa</th><th>Nếu fail</th></tr>
+<tr><td>Format</td><td>JWT phải có format hợp lệ: header.payload.signature</td><td>401</td></tr>
+<tr><td>Signature</td><td>Verify chữ ký bằng secret hoặc public key/JWKS</td><td>401</td></tr>
+<tr><td>exp</td><td>Token chưa hết hạn</td><td>401</td></tr>
+<tr><td>nbf</td><td>Token đã tới thời điểm được phép dùng</td><td>401</td></tr>
+<tr><td>iss</td><td>Issuer có đúng Cognito/Keycloak/Auth server không</td><td>401</td></tr>
+<tr><td>aud</td><td>Token có dành cho API/client này không</td><td>401</td></tr>
+<tr><td>scope / roles</td><td>Convert claim thành GrantedAuthority</td><td>Có thể dẫn tới 403 khi authorize</td></tr>
+</table>
+
+<div class="callout bad">
+  <strong>Base64 decode ≠ JWT validation.</strong>
+  Ai cũng có thể decode phần header/payload của JWT. Security nằm ở bước verify signature và validate claims.
+</div>
+
+<h3>Ví dụ JWT payload</h3>
+<pre>{
+  "sub": "user-123",
+  "iss": "https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_xxx",
+  "aud": "client-id",
+  "exp": 1790000000,
+  "scope": "order.read order.write",
+  "cognito:groups": ["ADMIN"]
+}</pre>
+
+<p>Sau khi token hợp lệ, Spring convert các claim cần thiết thành authorities, ví dụ:</p>
+<pre>SCOPE_order.read
+SCOPE_order.write
+ROLE_ADMIN</pre>
+</section>
+
+<section id="authn-authz">
+<h2>4. Authentication và Authorization khác nhau như thế nào?</h2>
+
+<div class="grid">
+  <div class="card">
+    <h3>Authentication</h3>
+    <p><strong>Câu hỏi:</strong> Bạn là ai?</p>
+    <p>Ví dụ: token này có hợp lệ không? User ID là gì?</p>
+    <p>Output thường là một <code>Authentication</code> đã authenticated.</p>
+  </div>
+  <div class="card">
+    <h3>Authorization</h3>
+    <p><strong>Câu hỏi:</strong> Bạn được phép làm gì?</p>
+    <p>Ví dụ: user có role ADMIN hoặc scope <code>order.read</code> không?</p>
+    <p>Spring có thể dùng <code>AuthorizationFilter</code> và method security.</p>
+  </div>
+</div>
+
+<h3>Sau authentication thành công</h3>
+
+<pre>Authentication authentication = ...;
+
+SecurityContext context = SecurityContextHolder.createEmptyContext();
+context.setAuthentication(authentication);
+SecurityContextHolder.setContext(context);</pre>
+
+<p>Từ đó bất kỳ code nào trong cùng request thread cũng có thể lấy user hiện tại:</p>
+
+<pre>Authentication auth =
+    SecurityContextHolder.getContext().getAuthentication();
+
+String username = auth.getName();
+Collection&lt;? extends GrantedAuthority&gt; roles = auth.getAuthorities();</pre>
+
+<h3>Authorization ở URL level</h3>
+<pre>http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/public/**").permitAll()
+    .requestMatchers("/admin/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.GET, "/api/orders/**")
+        .hasAuthority("SCOPE_order.read")
+    .anyRequest().authenticated()
+);</pre>
+
+<h3>Authorization ở method level</h3>
+<pre>@PreAuthorize("hasRole('ADMIN')")
+public void deleteUser(String userId) {
+    ...
+}
+
+@PreAuthorize("hasAuthority('SCOPE_order.write')")
+public Order createOrder(CreateOrderRequest request) {
+    ...
+}</pre>
+</section>
+
+<section id="mvc">
+<h2>5. Sau Security mới tới Spring MVC</h2>
+
+<div class="flow">
+  <div class="node security">Security done</div><div class="arrow">→</div>
+  <div class="node app">DispatcherServlet</div><div class="arrow">→</div>
+  <div class="node app">HandlerMapping</div><div class="arrow">→</div>
+  <div class="node app">HandlerInterceptor.preHandle()</div><div class="arrow">→</div>
+  <div class="node app">HandlerAdapter</div><div class="arrow">→</div>
+  <div class="node app">@RestController</div>
+</div>
+
+<h3>DispatcherServlet</h3>
+<p>Đây là front controller của Spring MVC. Hầu hết request MVC đều đi qua nó.</p>
+
+<h3>HandlerMapping</h3>
+<p>Tìm Controller method nào match URL + HTTP method.</p>
+
+<pre>@RestController
+@RequestMapping("/api/orders")
+class OrderController {
+
+    @GetMapping("/{id}")
+    OrderResponse getOrder(@PathVariable Long id) {
+        ...
+    }
+}</pre>
+
+<p>Request <code>GET /api/orders/123</code> sẽ được map vào <code>getOrder(123)</code>.</p>
+
+<h3>HandlerInterceptor</h3>
+<p>Interceptor chạy trong MVC layer. Nó phù hợp với:</p>
+
+<ul>
+  <li>Request logging</li>
+  <li>Timing</li>
+  <li>Correlation ID</li>
+  <li>Business-level request check</li>
+  <li>Audit context</li>
+</ul>
+
+<p>Interceptor <strong>không phải nơi tốt nhất để authenticate JWT</strong>, vì security nên hoàn thành trước MVC layer.</p>
+
+<pre>public class ApiInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        Authentication authentication =
+            SecurityContextHolder.getContext().getAuthentication();
+
+        return true;
+    }
+}</pre>
+</section>
+
+<section id="business">
+<h2>6. Controller → Service → Repository → Database</h2>
+
+<div class="flow">
+  <div class="node app">@RestController</div><div class="arrow">→</div>
+  <div class="node app">@Service</div><div class="arrow">→</div>
+  <div class="node data">@Repository</div><div class="arrow">→</div>
+  <div class="node data">JPA / Hibernate</div><div class="arrow">→</div>
+  <div class="node data">JDBC</div><div class="arrow">→</div>
+  <div class="node data">Connection Pool</div><div class="arrow">→</div>
+  <div class="node data">Database</div>
+</div>
+
+<h3>Controller</h3>
+<p>Controller nên tập trung vào HTTP concern:</p>
+<ul>
+  <li>Nhận request</li>
+  <li>Validate input</li>
+  <li>Call service</li>
+  <li>Convert kết quả thành response</li>
+</ul>
+
+<pre>@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public OrderResponse getOrder(@PathVariable Long id) {
+        return orderService.getOrder(id);
+    }
+}</pre>
+
+<h3>Service</h3>
+<p>Chứa business logic, transaction boundary, orchestration.</p>
+
+<pre>@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(Long id) {
+        Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new OrderNotFoundException(id));
+
+        return OrderResponse.from(order);
+    }
+}</pre>
+
+<h3>Repository</h3>
+<p>Data access layer. Với Spring Data JPA:</p>
+
+<pre>public interface OrderRepository
+        extends JpaRepository&lt;Order, Long&gt; {
+}</pre>
+
+<h3>JPA / Hibernate</h3>
+<p>
+  JPA là specification. Hibernate thường là implementation. Hibernate convert entity operation/JPQL thành SQL,
+  quản lý persistence context, dirty checking, lazy loading...
+</p>
+
+<h3>Connection Pool</h3>
+<p>
+  Spring Boot thường dùng HikariCP. Repository không mở TCP connection mới cho từng query;
+  nó lấy một connection có sẵn từ pool.
+</p>
+</section>
+
+<section id="response">
+<h2>7. Response quay ngược trở lại như thế nào?</h2>
+
+<div class="flow">
+  <div class="node data">DB result</div><div class="arrow">→</div>
+  <div class="node data">Repository</div><div class="arrow">→</div>
+  <div class="node app">Service</div><div class="arrow">→</div>
+  <div class="node app">Controller</div><div class="arrow">→</div>
+  <div class="node app">HttpMessageConverter</div><div class="arrow">→</div>
+  <div class="node app">Interceptor.afterCompletion()</div><div class="arrow">→</div>
+  <div class="node security">Security filters</div><div class="arrow">→</div>
+  <div class="node">Client</div>
+</div>
+
+<h3>Object → JSON</h3>
+<p>Spring MVC thường dùng Jackson thông qua <code>HttpMessageConverter</code>.</p>
+
+<pre>return new OrderResponse(123L, "PAID");</pre>
+
+<p>trở thành:</p>
+
+<pre>{
+  "id": 123,
+  "status": "PAID"
+}</pre>
+
+<h3>Exception flow</h3>
+<p>Nếu Controller/Service throw exception, Spring có thể đi qua:</p>
+
+<pre>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    ResponseEntity&lt;ErrorResponse&gt; handle(OrderNotFoundException ex) {
+        return ResponseEntity.status(404)
+                .body(new ErrorResponse("ORDER_NOT_FOUND"));
+    }
+}</pre>
+</section>
+
+<section id="401403">
+<h2>8. 401 và 403 khác nhau ở đâu?</h2>
+
+<table>
+<tr>
+  <th>Status</th><th>Ý nghĩa</th><th>Ví dụ</th><th>Thường xử lý bởi</th>
+</tr>
+<tr>
+  <td class="tag401">401 Unauthorized</td>
+  <td>Chưa authenticate thành công</td>
+  <td>Không có token, token expired, signature sai</td>
+  <td><code>AuthenticationEntryPoint</code></td>
+</tr>
+<tr>
+  <td class="tag403">403 Forbidden</td>
+  <td>Đã authenticate nhưng không đủ quyền</td>
+  <td>User có JWT hợp lệ nhưng thiếu ADMIN / scope cần thiết</td>
+  <td><code>AccessDeniedHandler</code></td>
+</tr>
+</table>
+
+<div class="callout">
+  Cách nhớ rất nhanh: <strong>401 = Who are you?</strong>, <strong>403 = I know who you are, but you cannot do this.</strong>
+</div>
+</section>
+
+<section id="classes">
+<h2>9. Class nào dùng ở layer nào?</h2>
+
+<table>
+<tr><th>Layer</th><th>Class / Interface</th><th>Vai trò</th></tr>
+<tr><td>Servlet</td><td>DelegatingFilterProxy</td><td>Bridge từ servlet filter sang Spring bean</td></tr>
+<tr><td>Security</td><td>FilterChainProxy</td><td>Điều phối Spring Security filter chains</td></tr>
+<tr><td>Security</td><td>SecurityFilterChain</td><td>Danh sách security filters cho request</td></tr>
+<tr><td>JWT</td><td>BearerTokenAuthenticationFilter</td><td>Detect Bearer token và trigger authentication</td></tr>
+<tr><td>JWT</td><td>BearerTokenResolver</td><td>Lấy Bearer token từ request</td></tr>
+<tr><td>Authentication</td><td>AuthenticationManager</td><td>Điều phối authentication</td></tr>
+<tr><td>Authentication</td><td>AuthenticationProvider</td><td>Thực hiện một loại authentication cụ thể</td></tr>
+<tr><td>JWT</td><td>JwtAuthenticationProvider</td><td>Authenticate JWT</td></tr>
+<tr><td>JWT</td><td>JwtDecoder</td><td>Decode + verify + validate JWT</td></tr>
+<tr><td>JWT</td><td>NimbusJwtDecoder</td><td>Implementation phổ biến của JwtDecoder</td></tr>
+<tr><td>Security context</td><td>SecurityContextHolder</td><td>Giữ Authentication hiện tại</td></tr>
+<tr><td>Authorization</td><td>AuthorizationFilter</td><td>Check quyền URL/request</td></tr>
+<tr><td>MVC</td><td>DispatcherServlet</td><td>Front controller của Spring MVC</td></tr>
+<tr><td>MVC</td><td>HandlerMapping</td><td>Tìm handler/controller phù hợp</td></tr>
+<tr><td>MVC</td><td>HandlerInterceptor</td><td>Cross-cutting logic trong MVC</td></tr>
+<tr><td>MVC</td><td>HandlerAdapter</td><td>Invoke handler/controller method</td></tr>
+<tr><td>API</td><td>@RestController</td><td>HTTP endpoint</td></tr>
+<tr><td>Business</td><td>@Service</td><td>Business logic</td></tr>
+<tr><td>Transaction</td><td>@Transactional</td><td>Transaction boundary</td></tr>
+<tr><td>Data</td><td>@Repository / JpaRepository</td><td>Data access</td></tr>
+<tr><td>ORM</td><td>EntityManager / Hibernate Session</td><td>Persistence / ORM</td></tr>
+<tr><td>JSON</td><td>HttpMessageConverter / Jackson</td><td>Java object ↔ JSON</td></tr>
+<tr><td>Error</td><td>@RestControllerAdvice</td><td>Global exception mapping</td></tr>
+</table>
+</section>
+
+<section id="resource-server">
+<h2>10. Cách nên dùng trong production: OAuth2 Resource Server</h2>
+
+<p>Nếu backend nhận JWT từ Cognito, Keycloak, Auth0 hoặc một OAuth2/OIDC provider, thường không cần tự viết JWT filter.</p>
+
+<pre>@Bean
+SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+    http
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/public/**").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .anyRequest().authenticated()
+        )
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt());
+
+    return http.build();
+}</pre>
+
+<p>Và config issuer:</p>
+
+<pre>spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-issuer.example.com</pre>
+
+<p>Spring sẽ tự tạo/compose phần lớn pipeline:</p>
+
+<pre>Authorization: Bearer JWT
+        ↓
+BearerTokenAuthenticationFilter
+        ↓
+JwtAuthenticationProvider
+        ↓
+JwtDecoder
+        ↓
+verify signature + validate claims
+        ↓
+JwtAuthenticationToken
+        ↓
+SecurityContextHolder
+        ↓
+Authorization
+        ↓
+Controller</pre>
+
+<h3>JWKS là gì?</h3>
+<p>
+  Với RS256/ES256, auth server ký JWT bằng private key.
+  Backend lấy public key từ JWKS endpoint để verify signature.
+</p>
+
+<div class="callout good">
+  Backend <strong>không cần private key</strong> để verify JWT ký bất đối xứng.
+  Private key thuộc auth server. Resource server dùng public key.
+</div>
+</section>
+
+<section id="custom-filter">
+<h2>11. Khi nào mới dùng Custom JWT Filter?</h2>
+
+<p>Dùng custom filter khi authentication mechanism của bạn không phù hợp với Resource Server chuẩn, hoặc bạn cần logic đặc biệt.</p>
+
+<pre>@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String header = request.getHeader("Authorization");
+
+        if (header == null || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = header.substring(7);
+
+        JwtUser user = jwtService.validateAndParse(token);
+
+        var auth =
+            new UsernamePasswordAuthenticationToken(
+                user.username(),
+                null,
+                user.authorities()
+            );
+
+        SecurityContextHolder.getContext()
+            .setAuthentication(auth);
+
+        filterChain.doFilter(request, response);
+    }
+}</pre>
+
+<p>Đăng ký filter:</p>
+
+<pre>http.addFilterBefore(
+    jwtAuthenticationFilter,
+    UsernamePasswordAuthenticationFilter.class
+);</pre>
+
+<div class="callout warn">
+  Nếu tự viết filter, bạn phải chịu trách nhiệm chính xác cho signature verification, expiration, issuer, audience,
+  error handling, key rotation, authority mapping và các security edge cases. Vì vậy, nếu chuẩn OAuth2/OIDC đáp ứng được,
+  ưu tiên Resource Server.
+</div>
+</section>
+
+<section id="sequence">
+<h2>12. End-to-end sequence của một API có JWT</h2>
+
+<pre>Client
+  |
+  | GET /api/orders/123
+  | Authorization: Bearer JWT
+  v
+Load Balancer / API Gateway
+  |
+  v
+Tomcat
+  |
+  v
+DelegatingFilterProxy
+  |
+  v
+FilterChainProxy
+  |
+  v
+SecurityFilterChain
+  |
+  +--> BearerTokenAuthenticationFilter
+  |       |
+  |       +--> resolve Bearer token
+  |       |
+  |       +--> AuthenticationManager
+  |               |
+  |               +--> JwtAuthenticationProvider
+  |                        |
+  |                        +--> JwtDecoder
+  |                               |
+  |                               +--> verify signature
+  |                               +--> validate exp
+  |                               +--> validate iss
+  |                               +--> validate aud
+  |
+  +--> create Authentication
+  |
+  +--> put into SecurityContextHolder
+  |
+  +--> AuthorizationFilter
+  |       |
+  |       +--> enough permission?
+  |
+  v
+DispatcherServlet
+  |
+  v
+HandlerMapping
+  |
+  v
+HandlerInterceptor.preHandle()
+  |
+  v
+OrderController
+  |
+  v
+OrderService
+  |
+  +--> @Transactional
+  |
+  v
+OrderRepository
+  |
+  v
+Hibernate / JDBC / HikariCP
+  |
+  v
+PostgreSQL
+  |
+  | result
+  v
+Repository
+  |
+  v
+Service
+  |
+  v
+Controller
+  |
+  v
+Jackson / HttpMessageConverter
+  |
+  v
+HTTP 200 JSON
+  |
+  v
+Client</pre>
+
+<h3>Case A: token expired</h3>
+<pre>BearerTokenAuthenticationFilter
+        ↓
+JwtDecoder
+        ↓
+exp invalid
+        ↓
+AuthenticationException
+        ↓
+AuthenticationEntryPoint
+        ↓
+HTTP 401
+
+Controller DOES NOT RUN</pre>
+
+<h3>Case B: token valid nhưng thiếu role</h3>
+<pre>JWT valid
+   ↓
+Authentication created
+   ↓
+SecurityContextHolder
+   ↓
+AuthorizationFilter
+   ↓
+role/scope missing
+   ↓
+AccessDeniedHandler
+   ↓
+HTTP 403
+
+Controller DOES NOT RUN</pre>
+
+<h3>Case C: token valid + đủ quyền</h3>
+<pre>JWT valid
+   ↓
+Authentication created
+   ↓
+Authorization passed
+   ↓
+DispatcherServlet
+   ↓
+Controller
+   ↓
+Service
+   ↓
+Repository
+   ↓
+DB</pre>
+</section>
+
+<section id="interview">
+<h2>13. Cách trả lời trong phỏng vấn</h2>
+
+<div class="callout">
+  <strong>Short answer:</strong><br>
+  When a request comes to a Spring Boot application, it first reaches the web server such as Tomcat.
+  If Spring Security is enabled, the request goes through the Security Filter Chain before reaching the DispatcherServlet.
+  For JWT authentication, the BearerTokenAuthenticationFilter extracts the token, then Spring uses the AuthenticationManager,
+  JwtAuthenticationProvider and JwtDecoder to verify the signature and validate claims such as expiration and issuer.
+  If authentication succeeds, an Authentication object is stored in the SecurityContextHolder.
+  Authorization is then checked based on roles or scopes. Only after security succeeds does the request reach DispatcherServlet,
+  Interceptor, Controller, Service, Repository and finally the database.
+</div>
+
+<h3>Câu hỏi follow-up thường gặp</h3>
+
+<details>
+<summary>Filter khác Interceptor ở đâu?</summary>
+<p>
+Filter chạy ở Servlet/security layer, trước DispatcherServlet. Interceptor thuộc Spring MVC và chạy sau DispatcherServlet đã bắt đầu xử lý request.
+Authentication nên nằm ở Filter; logging/business context có thể dùng Interceptor.
+</p>
+</details>
+
+<details>
+<summary>JWT decode ở Filter hay Interceptor?</summary>
+<p>
+Ở security filter layer. Nếu dùng Spring Security Resource Server thì để framework xử lý bằng BearerTokenAuthenticationFilter + JwtDecoder.
+</p>
+</details>
+
+<details>
+<summary>JWT có cần gọi DB mỗi request không?</summary>
+<p>
+Không bắt buộc. JWT thường self-contained và có thể verify bằng public key. Nhưng hệ thống vẫn có thể gọi DB/cache nếu cần user status,
+token revocation, permission động hoặc business authorization.
+</p>
+</details>
+
+<details>
+<summary>Authentication được giữ ở đâu?</summary>
+<p>
+Trong <code>SecurityContext</code>, được truy cập qua <code>SecurityContextHolder</code>. Ở servlet application truyền thống,
+context gắn với request execution thread.
+</p>
+</details>
+
+<details>
+<summary>401 và 403?</summary>
+<p>
+401 khi authentication thất bại hoặc không có credential hợp lệ. 403 khi đã authenticate nhưng không đủ permission.
+</p>
+</details>
+
+<details>
+<summary>Cognito JWT thì backend verify thế nào?</summary>
+<p>
+Backend đọc issuer/JWKS public keys của Cognito, verify JWT signature, sau đó validate claims như issuer, expiry và audience/client-specific claim tùy loại token/config.
+Spring Security Resource Server có thể làm phần này tự động.
+</p>
+</details>
+
+</section>
+
+<section>
+<h2>14. Mental model để nhớ nhanh</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Security</h3>
+    <p><strong>Filter</strong></p>
+    <p>Who are you?</p>
+    <p>Can you access this?</p>
+  </div>
+  <div class="card">
+    <h3>MVC</h3>
+    <p><strong>DispatcherServlet + Interceptor + Controller</strong></p>
+    <p>Which endpoint handles this request?</p>
+  </div>
+  <div class="card">
+    <h3>Business</h3>
+    <p><strong>Service</strong></p>
+    <p>What should the system do?</p>
+  </div>
+  <div class="card">
+    <h3>Data</h3>
+    <p><strong>Repository / ORM / DB</strong></p>
+    <p>How do we read/write data?</p>
+  </div>
+</div>
+
+<div class="flow">
+  <div class="node security">Authenticate</div>
+  <div class="arrow">→</div>
+  <div class="node security">Authorize</div>
+  <div class="arrow">→</div>
+  <div class="node app">Route</div>
+  <div class="arrow">→</div>
+  <div class="node app">Business</div>
+  <div class="arrow">→</div>
+  <div class="node data">Data</div>
+  <div class="arrow">→</div>
+  <div class="node">Response</div>
+</div>
+</section>
+
+
+<section id="deep-code">
+<h2>15. Deep dive: class-by-class code flow</h2>
+<p>Phần này mô phỏng một project Spring Boot 3 + Spring Security 6 + JWT Resource Server hoàn chỉnh. Mục tiêu là nhìn request đi qua từng class và nhớ method chính của mỗi layer.</p>
+
+<h3>Project structure mẫu</h3>
+<pre>com.example.orderapi
+├── config
+│   └── SecurityConfig.java
+├── security
+│   ├── CustomJwtAuthenticationConverter.java
+│   └── CurrentUser.java
+├── controller
+│   └── OrderController.java
+├── service
+│   └── OrderService.java
+├── repository
+│   └── OrderRepository.java
+├── entity
+│   └── Order.java
+├── dto
+│   ├── OrderResponse.java
+│   └── CreateOrderRequest.java
+├── exception
+│   ├── OrderNotFoundException.java
+│   └── GlobalExceptionHandler.java
+└── OrderApplication.java</pre>
+
+<h3>15.1 OrderApplication.java — application entry point</h3>
+<pre>@SpringBootApplication
+public class OrderApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderApplication.class, args);
+    }
+}</pre>
+<p><strong>Method cần nhớ:</strong> <code>main()</code>. Đây là entry point của Java process. <code>SpringApplication.run()</code> bootstrap Spring context, scan bean, create embedded server, register servlet/filter/security components và start application.</p>
+<div class="callout"><strong>Ai gọi?</strong> JVM gọi <code>main()</code>. <strong>Output?</strong> Một Spring <code>ApplicationContext</code> đang chạy cùng web server.</div>
+
+<h3>15.2 SecurityConfig.java — cấu hình security pipeline</h3>
+<pre>@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/orders/**")
+                    .hasAuthority("SCOPE_order.read")
+                .requestMatchers(HttpMethod.POST, "/api/orders/**")
+                    .hasAuthority("SCOPE_order.write")
+                .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                )
+            );
+
+        return http.build();
+    }
+
+    @Bean
+    Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
+        return new CustomJwtAuthenticationConverter();
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>securityFilterChain()</code>. Method này không xử lý request trực tiếp; nó build cấu hình security lúc application startup.</p>
+<p>Điểm rất quan trọng: khi bật <code>oauth2ResourceServer().jwt()</code>, Spring tự add các component cần để xử lý Bearer JWT vào security chain. Bạn không cần tự gọi <code>BearerTokenAuthenticationFilter</code>.</p>
+
+<h3>15.3 BearerTokenAuthenticationFilter — filter framework chạy mỗi request</h3>
+<pre>// Spring Security framework class - simplified mental model
+public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) {
+
+        String token = bearerTokenResolver.resolve(request);
+
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        Authentication requestAuth =
+            new BearerTokenAuthenticationToken(token);
+
+        Authentication result =
+            authenticationManager.authenticate(requestAuth);
+
+        SecurityContext context =
+            SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(result);
+        SecurityContextHolder.setContext(context);
+
+        filterChain.doFilter(request, response);
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>doFilterInternal()</code>. Đây là method chạy cho mỗi HTTP request đi qua filter.</p>
+<table><tr><th>Dòng logic</th><th>Ý nghĩa</th></tr>
+<tr><td><code>bearerTokenResolver.resolve()</code></td><td>Tìm Bearer token trong request.</td></tr>
+<tr><td><code>authenticationManager.authenticate()</code></td><td>Chuyển việc verify/authenticate cho authentication subsystem.</td></tr>
+<tr><td><code>SecurityContextHolder.setContext()</code></td><td>Lưu user đã authenticate để các layer sau sử dụng.</td></tr>
+<tr><td><code>filterChain.doFilter()</code></td><td>Cho request đi tiếp sang filter kế tiếp.</td></tr></table>
+
+<h3>15.4 DefaultBearerTokenResolver — detect JWT ở đâu?</h3>
+<pre>String header = request.getHeader("Authorization");
+
+// Expected
+Authorization: Bearer eyJhbGciOiJSUzI1NiIs...</pre>
+<p><strong>Method mental model:</strong> <code>resolve(HttpServletRequest)</code>. Nó không validate JWT; nó chỉ lấy token string ra khỏi request.</p>
+
+<h3>15.5 AuthenticationManager — entry point của authentication</h3>
+<pre>public interface AuthenticationManager {
+    Authentication authenticate(Authentication authentication)
+        throws AuthenticationException;
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>authenticate()</code>. Input là một object đại diện credential cần xác thực; output là <code>Authentication</code> đã authenticated nếu thành công.</p>
+<p>Trong JWT flow, input thường là <code>BearerTokenAuthenticationToken</code>.</p>
+
+<h3>15.6 ProviderManager — implementation phổ biến của AuthenticationManager</h3>
+<pre>// simplified framework behavior
+for (AuthenticationProvider provider : providers) {
+    if (provider.supports(authentication.getClass())) {
+        Authentication result = provider.authenticate(authentication);
+        if (result != null) {
+            return result;
+        }
+    }
+}
+throw new ProviderNotFoundException(...);</pre>
+<p><strong>Điểm nhớ:</strong> <code>AuthenticationManager</code> là interface; <code>ProviderManager</code> thường là implementation và delegate sang <code>AuthenticationProvider</code>.</p>
+
+<h3>15.7 JwtAuthenticationProvider — authenticate JWT</h3>
+<pre>// simplified mental model
+public Authentication authenticate(Authentication authentication) {
+    BearerTokenAuthenticationToken bearer =
+        (BearerTokenAuthenticationToken) authentication;
+
+    Jwt jwt = jwtDecoder.decode(bearer.getToken());
+
+    AbstractAuthenticationToken result =
+        jwtAuthenticationConverter.convert(jwt);
+
+    result.setAuthenticated(true);
+    return result;
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>authenticate()</code>. Nó gọi <code>JwtDecoder.decode()</code>, rồi convert claims thành principal + authorities.</p>
+
+<h3>15.8 JwtDecoder — decode + verify + validate</h3>
+<pre>public interface JwtDecoder {
+    Jwt decode(String token) throws JwtException;
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>decode()</code>. Tên là decode nhưng trong security context nó còn verify signature và validate token.</p>
+<pre>// mental flow
+raw JWT
+  -> parse header
+  -> read alg / kid
+  -> locate public key
+  -> verify signature
+  -> parse claims
+  -> validate exp / nbf / iss / aud
+  -> return Jwt object</pre>
+
+<h3>15.9 CustomJwtAuthenticationConverter — map claim thành role/scope</h3>
+<pre>public class CustomJwtAuthenticationConverter
+        implements Converter<Jwt, AbstractAuthenticationToken> {
+
+    @Override
+    public AbstractAuthenticationToken convert(Jwt jwt) {
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        String scope = jwt.getClaimAsString("scope");
+        if (scope != null) {
+            Arrays.stream(scope.split(" \"))
+                .map(s -> new SimpleGrantedAuthority("SCOPE_" + s))
+                .forEach(authorities::add);
+        }
+
+        List<String> groups = jwt.getClaimAsStringList("cognito:groups");
+        if (groups != null) {
+            groups.stream()
+                .map(g -> new SimpleGrantedAuthority("ROLE_" + g))
+                .forEach(authorities::add);
+        }
+
+        return new JwtAuthenticationToken(
+            jwt,
+            authorities,
+            jwt.getSubject()
+        );
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> <code>convert(Jwt jwt)</code>. Đây là chỗ rất hay dùng khi claim của Cognito/Keycloak không map đúng với authority format app cần.</p>
+
+<h3>15.10 SecurityContextHolder — giữ user hiện tại</h3>
+<pre>Authentication authentication =
+    SecurityContextHolder.getContext().getAuthentication();
+
+String userId = authentication.getName();
+Collection<? extends GrantedAuthority> authorities =
+    authentication.getAuthorities();</pre>
+<p><strong>Method cần nhớ:</strong> <code>getContext()</code>, sau đó <code>getAuthentication()</code>.</p>
+<div class="callout warn">Không nên tự parse JWT lại trong Controller. Authentication đã được security layer xử lý rồi. Controller chỉ đọc principal/authentication đã xác thực.</div>
+
+<h3>15.11 AuthorizationFilter — check user có quyền không</h3>
+<pre>// simplified mental model
+AuthorizationDecision decision =
+    authorizationManager.check(authentication, request);
+
+if (!decision.isGranted()) {
+    throw new AccessDeniedException("Access denied");
+}</pre>
+<p><strong>Điểm nhớ:</strong> Authentication trả lời “user là ai”; AuthorizationFilter trả lời “user có được đi tiếp vào endpoint này không”.</p>
+
+<h3>15.12 DispatcherServlet — front controller của Spring MVC</h3>
+<pre>// highly simplified
+protected void doDispatch(
+        HttpServletRequest request,
+        HttpServletResponse response) {
+
+    HandlerExecutionChain mappedHandler =
+        getHandler(request);
+
+    HandlerAdapter adapter =
+        getHandlerAdapter(mappedHandler.getHandler());
+
+    if (!mappedHandler.applyPreHandle(request, response)) {
+        return;
+    }
+
+    ModelAndView mv = adapter.handle(
+        request,
+        response,
+        mappedHandler.getHandler()
+    );
+
+    mappedHandler.applyPostHandle(request, response, mv);
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> về mặt framework là <code>doDispatch()</code>. Bạn thường không gọi method này, nhưng nên hiểu nó tìm handler, chạy interceptor và invoke controller.</p>
+
+<h3>15.13 HandlerMapping — tìm Controller method</h3>
+<pre>@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    @GetMapping("/{id}")
+    public OrderResponse getOrder(@PathVariable Long id) {
+        ...
+    }
+}
+</pre>
+<p>Với <code>GET /api/orders/123</code>, HandlerMapping tìm metadata phù hợp và xác định handler là <code>OrderController#getOrder(Long)</code>.</p>
+
+<h3>15.14 HandlerInterceptor — MVC cross-cutting logic</h3>
+<pre>@Component
+public class RequestLoggingInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        request.setAttribute("startTime", System.nanoTime());
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+
+        Long start = (Long) request.getAttribute("startTime");
+        // log elapsed time
+    }
+}
+</pre>
+<p><strong>Methods cần nhớ:</strong> <code>preHandle()</code>, <code>postHandle()</code>, <code>afterCompletion()</code>.</p>
+<ul><li><code>preHandle()</code>: trước Controller</li><li><code>postHandle()</code>: sau Controller, trước view rendering</li><li><code>afterCompletion()</code>: sau khi request hoàn thành</li></ul>
+
+<h3>15.15 OrderController — HTTP layer</h3>
+<pre>@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrder(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        String currentUserId = authentication.getName();
+        OrderResponse response =
+            orderService.getOrder(id, currentUserId);
+
+        return ResponseEntity.ok(response);
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> endpoint method, ví dụ <code>getOrder()</code>. Controller nhận HTTP input, lấy current user nếu cần, gọi service và trả HTTP response.</p>
+<div class="callout"><strong>Controller không nên:</strong> viết SQL, chứa business logic phức tạp, tự verify JWT, tự quản transaction phức tạp.</div>
+
+<h3>15.16 OrderService — business layer</h3>
+<pre>@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(Long id, String currentUserId) {
+
+        Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new OrderNotFoundException(id));
+
+        if (!order.getOwnerId().equals(currentUserId)) {
+            throw new AccessDeniedException("Not owner of order");
+        }
+
+        return OrderResponse.from(order);
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> business use-case method như <code>getOrder()</code>, <code>createOrder()</code>, <code>cancelOrder()</code>.</p>
+<p><code>@Transactional</code> thường đặt ở service vì một business operation có thể gồm nhiều repository calls và phải commit/rollback cùng nhau.</p>
+
+<h3>15.17 @Transactional — proxy hoạt động như thế nào?</h3>
+<pre>Controller
+   |
+   v
+OrderService Proxy
+   |
+   +--> TransactionInterceptor
+           |
+           +--> begin transaction
+           |
+           +--> call real OrderService.getOrder()
+           |
+           +--> commit / rollback
+</pre>
+<p>Spring thường tạo proxy quanh service bean. Khi caller từ bên ngoài proxy gọi method annotated <code>@Transactional</code>, <code>TransactionInterceptor</code> mở transaction trước method và commit/rollback sau method.</p>
+<p><strong>Điểm phỏng vấn:</strong> self-invocation như <code>this.otherTransactionalMethod()</code> có thể bypass proxy nên annotation ở method được gọi nội bộ không tạo transaction mới như bạn kỳ vọng.</p>
+
+<h3>15.18 OrderRepository — data access abstraction</h3>
+<pre>public interface OrderRepository
+        extends JpaRepository<Order, Long> {
+
+    Optional<Order> findByIdAndOwnerId(Long id, String ownerId);
+
+    @Query("select o from Order o where o.status = :status")
+    List<Order> findByStatus(@Param("status") OrderStatus status);
+}
+</pre>
+<p><strong>Methods cần nhớ:</strong> <code>findById()</code>, <code>save()</code>, <code>delete()</code>, custom derived query hoặc <code>@Query</code>.</p>
+<p>Bạn chỉ khai báo interface; Spring Data tạo proxy implementation lúc runtime.</p>
+
+<h3>15.19 SimpleJpaRepository — implementation phía sau JpaRepository</h3>
+<pre>// simplified
+public Optional<T> findById(ID id) {
+    T entity = entityManager.find(domainType, id);
+    return Optional.ofNullable(entity);
+}
+
+@Transactional
+public <S extends T> S save(S entity) {
+    if (entityInformation.isNew(entity)) {
+        entityManager.persist(entity);
+        return entity;
+    }
+    return entityManager.merge(entity);
+}
+</pre>
+<p><strong>Điểm nhớ:</strong> Repository proxy cuối cùng delegate tới JPA/EntityManager. Với Spring Data JPA, class framework quan trọng là <code>SimpleJpaRepository</code>.</p>
+
+<h3>15.20 EntityManager — API chính của JPA runtime</h3>
+<pre>Order order = entityManager.find(Order.class, 123L);
+entityManager.persist(order);
+entityManager.remove(order);
+entityManager.flush();</pre>
+<table><tr><th>Method</th><th>Dùng để</th></tr>
+<tr><td><code>find()</code></td><td>Load entity bằng primary key</td></tr>
+<tr><td><code>persist()</code></td><td>Đưa entity mới vào persistence context</td></tr>
+<tr><td><code>merge()</code></td><td>Merge detached/entity state</td></tr>
+<tr><td><code>remove()</code></td><td>Đánh dấu entity để delete</td></tr>
+<tr><td><code>flush()</code></td><td>Đẩy pending SQL xuống DB ngay tại thời điểm đó</td></tr></table>
+
+<h3>15.21 Hibernate Session / Persistence Context</h3>
+<p>Hibernate là JPA provider phổ biến. Persistence Context giữ managed entities trong transaction/request scope phù hợp và hỗ trợ first-level cache + dirty checking.</p>
+<pre>@Transactional
+public void renameOrder(Long id, String newName) {
+    Order order = orderRepository.findById(id).orElseThrow();
+    order.setName(newName);
+
+    // Không nhất thiết gọi save() nếu entity đang managed.
+    // Khi flush/commit, Hibernate dirty checking phát hiện thay đổi
+    // và generate UPDATE SQL.
+}</pre>
+
+<h3>15.22 JDBC + HikariCP + Database</h3>
+<pre>Hibernate generates SQL
+       ↓
+JDBC PreparedStatement
+       ↓
+HikariCP.getConnection()
+       ↓
+PostgreSQL / Oracle / MySQL</pre>
+<p><strong>Method mental model:</strong> connection pool cấp connection đã có sẵn; JDBC gửi SQL; DB execute; ResultSet quay lại Hibernate rồi được map thành entity.</p>
+
+<h3>15.23 OrderResponse + HttpMessageConverter + Jackson</h3>
+<pre>public record OrderResponse(
+    Long id,
+    String status,
+    BigDecimal amount
+) {
+    public static OrderResponse from(Order order) {
+        return new OrderResponse(
+            order.getId(),
+            order.getStatus().name(),
+            order.getAmount()
+        );
+    }
+}
+</pre>
+<p>Controller trả Java object. <code>RequestResponseBodyMethodProcessor</code> phối hợp với <code>HttpMessageConverter</code>; với JSON thường là Jackson converter, serialize object thành response body.</p>
+
+<h3>15.24 GlobalExceptionHandler — map exception thành HTTP error</h3>
+<pre>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            OrderNotFoundException ex) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse(
+                "ORDER_NOT_FOUND",
+                ex.getMessage()
+            ));
+    }
+}
+</pre>
+<p><strong>Method cần nhớ:</strong> method annotated <code>@ExceptionHandler</code>. MVC exception sẽ được resolver tìm handler phù hợp.</p>
+
+<h3>15.25 Full call stack để học thuộc</h3>
+<pre>JVM
+└── OrderApplication.main()
+    └── SpringApplication.run()
+
+HTTP REQUEST
+└── Tomcat
+    └── DelegatingFilterProxy.doFilter()
+        └── FilterChainProxy.doFilter()
+            └── SecurityFilterChain
+                ├── BearerTokenAuthenticationFilter.doFilterInternal()
+                │   ├── BearerTokenResolver.resolve()
+                │   ├── AuthenticationManager.authenticate()
+                │   │   └── ProviderManager.authenticate()
+                │   │       └── JwtAuthenticationProvider.authenticate()
+                │   │           ├── JwtDecoder.decode()
+                │   │           └── JwtAuthenticationConverter.convert()
+                │   └── SecurityContextHolder.setContext()
+                │
+                └── AuthorizationFilter.doFilter()
+                    └── permission granted
+                        ↓
+DispatcherServlet.doDispatch()
+├── HandlerMapping.getHandler()
+├── HandlerInterceptor.preHandle()
+├── HandlerAdapter.handle()
+│   └── OrderController.getOrder()
+│       └── OrderService proxy
+│           └── TransactionInterceptor
+│               └── OrderService.getOrder()
+│                   └── OrderRepository proxy
+│                       └── SimpleJpaRepository.findById()
+│                           └── EntityManager.find()
+│                               └── Hibernate
+│                                   └── JDBC
+│                                       └── HikariCP
+│                                           └── Database
+│
+└── HttpMessageConverter
+    └── Jackson
+        └── HTTP JSON Response</pre>
+
+<h3>15.26 Bảng method chính để ghi nhớ</h3>
+<table>
+<tr><th>Class</th><th>Main method cần nhớ</th><th>Ý nghĩa một câu</th></tr>
+<tr><td>OrderApplication</td><td><code>main()</code></td><td>Start Spring Boot app</td></tr>
+<tr><td>SecurityConfig</td><td><code>securityFilterChain()</code></td><td>Build security rules</td></tr>
+<tr><td>BearerTokenAuthenticationFilter</td><td><code>doFilterInternal()</code></td><td>Detect Bearer token và bắt đầu authentication</td></tr>
+<tr><td>BearerTokenResolver</td><td><code>resolve()</code></td><td>Extract raw token</td></tr>
+<tr><td>AuthenticationManager</td><td><code>authenticate()</code></td><td>Entry point authentication</td></tr>
+<tr><td>JwtAuthenticationProvider</td><td><code>authenticate()</code></td><td>Authenticate JWT</td></tr>
+<tr><td>JwtDecoder</td><td><code>decode()</code></td><td>Verify và validate JWT</td></tr>
+<tr><td>JwtAuthenticationConverter</td><td><code>convert()</code></td><td>Claims → principal/authorities</td></tr>
+<tr><td>SecurityContextHolder</td><td><code>getContext()</code></td><td>Access current authentication</td></tr>
+<tr><td>DispatcherServlet</td><td><code>doDispatch()</code></td><td>Điều phối MVC request</td></tr>
+<tr><td>HandlerInterceptor</td><td><code>preHandle()</code></td><td>Logic trước Controller</td></tr>
+<tr><td>Controller</td><td>endpoint method</td><td>HTTP input/output</td></tr>
+<tr><td>Service</td><td>use-case method</td><td>Business logic</td></tr>
+<tr><td>TransactionInterceptor</td><td><code>invoke()</code> mental model</td><td>Begin/commit/rollback transaction</td></tr>
+<tr><td>JpaRepository</td><td><code>findById()/save()</code></td><td>Data access abstraction</td></tr>
+<tr><td>SimpleJpaRepository</td><td><code>findById()/save()</code></td><td>Spring Data JPA implementation</td></tr>
+<tr><td>EntityManager</td><td><code>find()/persist()/merge()/flush()</code></td><td>JPA persistence operations</td></tr>
+<tr><td>HttpMessageConverter</td><td><code>write()</code> mental model</td><td>Java object → response body</td></tr>
+<tr><td>@RestControllerAdvice</td><td><code>@ExceptionHandler</code> method</td><td>Exception → HTTP error response</td></tr>
+</table>
+
+<div class="callout good"><strong>Cách học:</strong> đừng cố nhớ toàn bộ framework source code. Hãy nhớ 4 thứ cho mỗi class: <strong>nó ở layer nào → ai gọi nó → main method nào → output chuyển cho class nào tiếp theo</strong>. Khi nhớ được chuỗi đó, bạn sẽ hiểu sâu hơn rất nhiều so với học annotation rời rạc.</div>
+</section>
+
+<section id="inheritance-deep">
+<h2>15. Class Hierarchy: extends / implements từ đâu?</h2>
+
+<div class="callout">
+  <strong>Cực kỳ quan trọng:</strong> hãy tách 2 khái niệm:
+  <br><strong>Inheritance relationship</strong> = class/interface quan hệ với nhau bằng <code>extends</code>/<code>implements</code>.
+  <br><strong>Runtime call flow</strong> = object nào gọi method của object nào khi request đang chạy.
+  <br><br>
+  Ví dụ: <code>BearerTokenAuthenticationFilter extends OncePerRequestFilter</code>, nhưng khi authenticate nó
+  <strong>gọi</strong> <code>AuthenticationManager.authenticate()</code>. <code>AuthenticationManager</code> không phải parent của filter.
+</div>
+
+<h3>A. Servlet / Filter hierarchy</h3>
+<pre>jakarta.servlet.Filter                         [interface]
+        ▲
+        │ implements
+GenericFilterBean                              [abstract class]
+        ▲
+        │ extends
+OncePerRequestFilter                           [abstract class]
+        ▲
+        │ extends
+BearerTokenAuthenticationFilter                [class]</pre>
+
+<table>
+<tr><th>Class</th><th>Extends</th><th>Implements</th><th>Main method</th><th>Ý nghĩa</th></tr>
+<tr><td><code>GenericFilterBean</code></td><td>Object</td><td><code>Filter</code> + Spring aware/lifecycle interfaces</td><td><code>init()</code>, <code>destroy()</code></td><td>Base class kết nối Servlet Filter với Spring lifecycle.</td></tr>
+<tr><td><code>OncePerRequestFilter</code></td><td><code>GenericFilterBean</code></td><td>—</td><td><code>doFilter()</code> → <code>doFilterInternal()</code></td><td>Đảm bảo logic filter chạy một lần cho một request dispatch thích hợp.</td></tr>
+<tr><td><code>BearerTokenAuthenticationFilter</code></td><td><code>OncePerRequestFilter</code></td><td>—</td><td><code>doFilterInternal()</code></td><td>Lấy bearer token và đưa vào authentication pipeline.</td></tr>
+<tr><td><code>DelegatingFilterProxy</code></td><td><code>GenericFilterBean</code></td><td>—</td><td><code>doFilter()</code></td><td>Delegate Servlet Filter call sang Spring bean, thường là security filter chain.</td></tr>
+<tr><td><code>FilterChainProxy</code></td><td><code>GenericFilterBean</code></td><td>—</td><td><code>doFilter()</code></td><td>Chọn SecurityFilterChain và chạy các security filter.</td></tr>
+</table>
+
+<h3>B. Authentication hierarchy</h3>
+<pre>AuthenticationManager                          [interface]
+        ▲
+        │ implements
+ProviderManager                                 [class]
+
+AuthenticationProvider                         [interface]
+        ▲
+        │ implements
+JwtAuthenticationProvider                      [class]
+
+JwtDecoder                                     [interface]
+        ▲
+        │ implements
+NimbusJwtDecoder                               [class]</pre>
+
+<table>
+<tr><th>Type</th><th>Relationship</th><th>Main method</th><th>Ai gọi?</th></tr>
+<tr><td><code>ProviderManager</code></td><td><code>implements AuthenticationManager</code></td><td><code>authenticate(Authentication)</code></td><td>Bearer token filter / authentication filter</td></tr>
+<tr><td><code>JwtAuthenticationProvider</code></td><td><code>implements AuthenticationProvider</code></td><td><code>authenticate(Authentication)</code>, <code>supports(Class)</code></td><td><code>ProviderManager</code></td></tr>
+<tr><td><code>NimbusJwtDecoder</code></td><td><code>implements JwtDecoder</code></td><td><code>decode(String)</code></td><td><code>JwtAuthenticationProvider</code></td></tr>
+</table>
+
+<h3>C. Authentication object hierarchy</h3>
+<pre>Authentication                                 [interface]
+        ▲
+        │ implements
+AbstractAuthenticationToken                    [abstract]
+        ▲
+        │ extends
+AbstractOAuth2TokenAuthenticationToken&lt;Jwt&gt;     [abstract]
+        ▲
+        │ extends
+JwtAuthenticationToken                         [class]</pre>
+
+<p>
+Sau khi JWT hợp lệ, Spring có thể tạo <code>JwtAuthenticationToken</code>.
+Object này cuối cùng implement contract <code>Authentication</code>,
+nên <code>SecurityContext</code> có thể giữ nó mà không phụ thuộc JWT cụ thể.
+</p>
+
+<h3>D. Spring MVC hierarchy</h3>
+<pre>jakarta.servlet.http.HttpServlet
+        ▲
+        │ extends
+HttpServletBean
+        ▲
+        │ extends
+FrameworkServlet
+        ▲
+        │ extends
+DispatcherServlet</pre>
+
+<p><strong>Main runtime path:</strong></p>
+<pre>HttpServlet.service()
+      ↓
+FrameworkServlet.service()
+      ↓
+FrameworkServlet.processRequest()
+      ↓
+DispatcherServlet.doService()
+      ↓
+DispatcherServlet.doDispatch()</pre>
+
+<h3>E. Handler mapping hierarchy</h3>
+<pre>HandlerMapping                                 [interface]
+        ▲
+        │ implements
+AbstractHandlerMapping                         [abstract]
+        ▲
+        │ extends
+AbstractHandlerMethodMapping&lt;RequestMappingInfo&gt;
+        ▲
+        │ extends
+RequestMappingInfoHandlerMapping
+        ▲
+        │ extends
+RequestMappingHandlerMapping</pre>
+
+<p>
+<code>RequestMappingHandlerMapping</code> scan các method có <code>@RequestMapping</code>,
+<code>@GetMapping</code>, <code>@PostMapping</code>... và tạo mapping giữa request và <code>HandlerMethod</code>.
+</p>
+
+<h3>F. HandlerAdapter hierarchy</h3>
+<pre>HandlerAdapter                                 [interface]
+        ▲
+        │ implements
+AbstractHandlerMethodAdapter                   [abstract]
+        ▲
+        │ extends
+RequestMappingHandlerAdapter                   [class]</pre>
+
+<p>
+<code>DispatcherServlet</code> dùng <code>HandlerMapping</code> để <strong>find</strong> handler,
+sau đó dùng <code>HandlerAdapter</code> để <strong>invoke</strong> handler.
+</p>
+
+<h3>G. Interceptor</h3>
+<pre>HandlerInterceptor                             [interface]
+        ▲
+        │ implements
+RequestLoggingInterceptor                      [your class]</pre>
+
+<pre>public class RequestLoggingInterceptor
+        implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+    }
+}</pre>
+
+<h3>H. Transaction / AOP hierarchy</h3>
+<pre>MethodInterceptor                              [AOP Alliance interface]
+        ▲
+        │ implements
+TransactionInterceptor                         [Spring class]
+        │
+        └── extends TransactionAspectSupport</pre>
+
+<p>Main method:</p>
+<pre>TransactionInterceptor.invoke(MethodInvocation)
+        ↓
+TransactionAspectSupport.invokeWithinTransaction(...)
+        ↓
+begin transaction
+        ↓
+proceed()  // call OrderService.getOrder()
+        ↓
+commit / rollback</pre>
+
+<h3>I. Repository hierarchy</h3>
+<pre>Repository&lt;T, ID&gt;                               [marker interface]
+   ▲
+   ├── CrudRepository&lt;T, ID&gt;
+   │      ▲
+   │      └── ListCrudRepository&lt;T, ID&gt;
+   │
+   ├── PagingAndSortingRepository&lt;T, ID&gt;
+   │      ▲
+   │      └── ListPagingAndSortingRepository&lt;T, ID&gt;
+   │
+   └──────────────────────────────┐
+                                  │
+JpaRepository&lt;T, ID&gt;  extends ListCrudRepository,
+                       ListPagingAndSortingRepository,
+                       QueryByExampleExecutor
+        ▲
+        │ extends
+OrderRepository                                  [your interface]</pre>
+
+<pre>public interface OrderRepository
+        extends JpaRepository&lt;Order, Long&gt; {
+
+    Optional&lt;Order&gt; findByOrderNo(String orderNo);
+}</pre>
+
+<p>
+Bạn không viết implementation. Spring Data tạo proxy cho <code>OrderRepository</code>.
+Đối với CRUD chuẩn, implementation quan trọng phía dưới là <code>SimpleJpaRepository</code>.
+</p>
+
+<pre>JpaRepositoryImplementation&lt;T, ID&gt;             [interface]
+        ▲
+        │ implements
+SimpleJpaRepository&lt;T, ID&gt;                      [class]</pre>
+
+<h3>J. EntityManager / Hibernate</h3>
+<pre>jakarta.persistence.EntityManager               [interface]
+              ▲
+              │ Hibernate Session also follows
+org.hibernate.Session                           [interface]</pre>
+
+<p>
+Application nên code theo JPA <code>EntityManager</code> abstraction.
+Hibernate là JPA provider phổ biến và <code>Session</code> cung cấp thêm API Hibernate-specific.
+</p>
+
+<h3>K. Connection pool</h3>
+<pre>javax.sql.DataSource                            [interface]
+        ▲
+        │ implements
+HikariDataSource                                [class]
+        │
+        └── extends HikariConfig</pre>
+
+<p>Main method phía consumer nhìn thấy thường là:</p>
+<pre>dataSource.getConnection()
+        ↓
+HikariCP lấy connection từ pool
+        ↓
+JDBC driver
+        ↓
+Database</pre>
+
+<h3>L. HTTP response conversion</h3>
+<pre>HttpMessageConverter&lt;T&gt;                         [interface]
+        ▲
+        │ implements
+AbstractHttpMessageConverter&lt;T&gt;                 [abstract]
+        ▲
+        │ ...
+MappingJackson2HttpMessageConverter             [class]</pre>
+
+<p>
+Controller return Java object → <code>RequestResponseBodyMethodProcessor</code> chọn
+<code>HttpMessageConverter</code> phù hợp → Jackson serialize object thành JSON.
+</p>
+
+<h3>M. Các class của bạn có cần extends Spring class không?</h3>
+
+<table>
+<tr><th>Your class</th><th>Usually extends / implements?</th><th>Why?</th></tr>
+<tr><td><code>OrderController</code></td><td>Không cần</td><td>Dùng annotation <code>@RestController</code>.</td></tr>
+<tr><td><code>OrderService</code></td><td>Không cần</td><td>Dùng <code>@Service</code>; Spring quản lý bằng IoC/proxy.</td></tr>
+<tr><td><code>OrderRepository</code></td><td><code>extends JpaRepository</code></td><td>Nhận CRUD/query infrastructure của Spring Data.</td></tr>
+<tr><td><code>RequestLoggingInterceptor</code></td><td><code>implements HandlerInterceptor</code></td><td>Để Spring MVC gọi lifecycle methods.</td></tr>
+<tr><td><code>CustomJwtFilter</code></td><td><code>extends OncePerRequestFilter</code></td><td>Convenient base class cho servlet filter chạy once/request.</td></tr>
+<tr><td><code>GlobalExceptionHandler</code></td><td>Không cần</td><td>Dùng <code>@RestControllerAdvice</code>.</td></tr>
+<tr><td><code>SecurityConfig</code></td><td>Không cần</td><td>Spring Security hiện đại dùng bean configuration thay vì extend WebSecurityConfigurerAdapter.</td></tr>
+</table>
+
+<h3>N. Bảng học thuộc: Class → Parent → Interface → Main method</h3>
+
+<table>
+<tr><th>Class</th><th>Extends</th><th>Implements / contract</th><th>Main method nên nhớ</th></tr>
+<tr><td>BearerTokenAuthenticationFilter</td><td>OncePerRequestFilter</td><td>Filter gián tiếp</td><td>doFilterInternal()</td></tr>
+<tr><td>OncePerRequestFilter</td><td>GenericFilterBean</td><td>Filter gián tiếp</td><td>doFilter(), doFilterInternal()</td></tr>
+<tr><td>DelegatingFilterProxy</td><td>GenericFilterBean</td><td>Filter gián tiếp</td><td>doFilter()</td></tr>
+<tr><td>FilterChainProxy</td><td>GenericFilterBean</td><td>Filter gián tiếp</td><td>doFilter()</td></tr>
+<tr><td>ProviderManager</td><td>Object</td><td>AuthenticationManager</td><td>authenticate()</td></tr>
+<tr><td>JwtAuthenticationProvider</td><td>Object</td><td>AuthenticationProvider</td><td>authenticate(), supports()</td></tr>
+<tr><td>NimbusJwtDecoder</td><td>Object</td><td>JwtDecoder</td><td>decode()</td></tr>
+<tr><td>JwtAuthenticationToken</td><td>AbstractOAuth2TokenAuthenticationToken&lt;Jwt&gt;</td><td>Authentication gián tiếp</td><td>getToken(), getPrincipal(), getAuthorities()</td></tr>
+<tr><td>DispatcherServlet</td><td>FrameworkServlet</td><td>Servlet gián tiếp</td><td>doService(), doDispatch()</td></tr>
+<tr><td>RequestMappingHandlerMapping</td><td>RequestMappingInfoHandlerMapping</td><td>HandlerMapping gián tiếp</td><td>getHandler()</td></tr>
+<tr><td>RequestMappingHandlerAdapter</td><td>AbstractHandlerMethodAdapter</td><td>HandlerAdapter</td><td>handle()</td></tr>
+<tr><td>RequestLoggingInterceptor</td><td>Object</td><td>HandlerInterceptor</td><td>preHandle(), postHandle(), afterCompletion()</td></tr>
+<tr><td>TransactionInterceptor</td><td>TransactionAspectSupport</td><td>MethodInterceptor</td><td>invoke()</td></tr>
+<tr><td>OrderRepository</td><td>—</td><td>extends JpaRepository</td><td>findById(), save(), custom find...</td></tr>
+<tr><td>SimpleJpaRepository</td><td>Object</td><td>JpaRepositoryImplementation</td><td>findById(), save(), delete()</td></tr>
+<tr><td>HikariDataSource</td><td>HikariConfig</td><td>DataSource, Closeable</td><td>getConnection(), close()</td></tr>
+<tr><td>MappingJackson2HttpMessageConverter</td><td>AbstractJackson2HttpMessageConverter</td><td>HttpMessageConverter gián tiếp</td><td>read(), write()</td></tr>
+</table>
+
+</section>
+
+<div class="footer">
+  Spring Boot 3 / Spring Security 6 learning note — focus: servlet request lifecycle, JWT authentication, authorization, MVC and persistence flow.
+</div>
+
+      <div id="vi-security"></div>
+      <div id="vi-mvc"></div>
+      <div id="vi-data"></div>
+      <div id="vi-inheritance"></div>
+    </div>
+
+    <div id="lang-en" class="lang-content">
+      <div id="en-overview"></div>
+      
+<section id="mental">
+<h1 class="page">Spring Boot API Request Flow — Deep Dive</h1>
+<p class="lead">
+A class-by-class guide to how a Spring Boot REST API works: from process startup, Servlet filters, Spring Security and JWT,
+to DispatcherServlet, Controller, Service, transaction proxy, Spring Data JPA, Hibernate, JDBC, connection pool,
+database, JSON serialization, and the HTTP response.
+</p>
+
+<div class="callout">
+<strong>Two dimensions must be learned separately.</strong><br>
+<strong>Class hierarchy</strong> answers: “What does this class extend or implement?”<br>
+<strong>Runtime flow</strong> answers: “Who calls this object, which method is called, and what happens next?”
+</div>
+
+<div class="flow">
+<div class="node">Client</div><div class="arrow">→</div>
+<div class="node security">Security Filters</div><div class="arrow">→</div>
+<div class="node mvc">DispatcherServlet</div><div class="arrow">→</div>
+<div class="node mvc">Controller</div><div class="arrow">→</div>
+<div class="node biz">Service</div><div class="arrow">→</div>
+<div class="node data">Repository</div><div class="arrow">→</div>
+<div class="node data">DB</div><div class="arrow">→</div>
+<div class="node">JSON Response</div>
+</div>
+
+<div class="grid">
+<div class="card"><h3>Authentication</h3><p><strong>Who are you?</strong></p><p>JWT signature, issuer, expiry, claims.</p></div>
+<div class="card"><h3>Authorization</h3><p><strong>Can you do this?</strong></p><p>Roles, scopes, authorities, ownership.</p></div>
+<div class="card"><h3>MVC</h3><p><strong>Which Java method handles this URL?</strong></p><p>Mapping, argument resolution, controller invocation.</p></div>
+<div class="card"><h3>Persistence</h3><p><strong>How is data read/written?</strong></p><p>Repository, EntityManager, Hibernate, JDBC, pool.</p></div>
+</div>
+</section>
+
+<section id="project">
+<h2>1. Example project structure</h2>
+<pre>com.example.order
+├── OrderApplication.java
+├── config
+│   ├── SecurityConfig.java
+│   └── WebMvcConfig.java
+├── security
+│   ├── JwtAuthorityConverter.java
+│   └── CurrentUser.java
+├── web
+│   ├── OrderController.java
+│   ├── RequestLoggingInterceptor.java
+│   └── GlobalExceptionHandler.java
+├── service
+│   └── OrderService.java
+├── repository
+│   └── OrderRepository.java
+├── entity
+│   └── Order.java
+└── dto
+    ├── OrderResponse.java
+    └── ErrorResponse.java</pre>
+
+<table>
+<tr><th>Class</th><th>Who owns it?</th><th>Extends / Implements?</th><th>Main purpose</th></tr>
+<tr><td>OrderApplication</td><td><span class="badge you">YOU WRITE</span></td><td>Usually none</td><td>Application entry point.</td></tr>
+<tr><td>SecurityConfig</td><td><span class="badge you">YOU WRITE</span></td><td>Usually none</td><td>Creates SecurityFilterChain and JWT configuration.</td></tr>
+<tr><td>OrderController</td><td><span class="badge you">YOU WRITE</span></td><td>Usually none</td><td>HTTP endpoint.</td></tr>
+<tr><td>OrderService</td><td><span class="badge you">YOU WRITE</span></td><td>Usually none</td><td>Business logic.</td></tr>
+<tr><td>OrderRepository</td><td><span class="badge you">YOU WRITE</span></td><td><code>extends JpaRepository&lt;Order, Long&gt;</code></td><td>Data-access contract.</td></tr>
+<tr><td>BearerTokenAuthenticationFilter</td><td><span class="badge spring">SPRING</span></td><td><code>extends OncePerRequestFilter</code></td><td>Reads Bearer token and starts authentication.</td></tr>
+<tr><td>DispatcherServlet</td><td><span class="badge spring">SPRING</span></td><td><code>extends FrameworkServlet</code></td><td>Main MVC front controller.</td></tr>
+</table>
+</section>
+
+<section id="startup">
+<h2>2. Application startup: where everything begins</h2>
+
+<h3><span class="badge you">YOU WRITE</span> OrderApplication</h3>
+<pre>@SpringBootApplication
+public class OrderApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderApplication.class, args);
+    }
+}</pre>
+
+<p><strong>Inheritance:</strong> normally none. This is just your POJO with a static <code>main()</code>.</p>
+<p><strong>Main method to remember:</strong> <code>main(String[] args)</code>.</p>
+<p><strong>Important call:</strong> <code>SpringApplication.run(...)</code>.</p>
+
+<h3>What does @SpringBootApplication mean?</h3>
+<p>It is a composed annotation. Conceptually, it combines:</p>
+<pre>@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan</pre>
+
+<p>During startup Spring creates the <code>ApplicationContext</code>, scans components, creates beans,
+applies BeanPostProcessors, auto-configures MVC/Security/JPA/DataSource, and starts the embedded web server.</p>
+
+<div class="callout warn">
+Do not memorize Spring Boot startup as “main calls Controller”. Controllers do not execute during startup.
+They are instantiated as beans and wait for HTTP requests.
+</div>
+</section>
+
+<section id="request">
+<h2>3. Request entry: from HTTP to the Servlet pipeline</h2>
+
+<p>Assume the client sends:</p>
+<pre>GET /api/orders/123 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJSUzI1NiIs...
+Accept: application/json</pre>
+
+<p>Typical path:</p>
+<pre>Client
+  ↓
+Load Balancer / API Gateway / Nginx
+  ↓
+Tomcat
+  ↓
+Servlet Filter chain
+  ↓
+Spring Security
+  ↓
+DispatcherServlet
+  ↓
+Spring MVC
+  ↓
+Controller</pre>
+
+<p>Tomcat creates/uses <code>HttpServletRequest</code> and <code>HttpServletResponse</code>, then invokes the registered servlet/filter chain.</p>
+</section>
+
+<section id="filter-hierarchy">
+<h2>4. Servlet Filter and Spring Security class hierarchy</h2>
+
+<h3>Core hierarchy</h3>
+<pre>jakarta.servlet.Filter                         [interface]
+        ▲
+        │ implements
+GenericFilterBean                              [abstract Spring class]
+        ▲
+        │ extends
+OncePerRequestFilter                           [abstract Spring class]
+        ▲
+        │ extends
+BearerTokenAuthenticationFilter                [Spring Security class]</pre>
+
+<h3>GenericFilterBean</h3>
+<p><span class="badge spring">SPRING</span>
+A convenient base class for Servlet filters that integrates Servlet Filter lifecycle with Spring's bean infrastructure.</p>
+
+<table>
+<tr><th>Relationship</th><th>Details</th></tr>
+<tr><td>Extends</td><td><code>Object</code></td></tr>
+<tr><td>Implements</td><td><code>Filter</code> plus several Spring lifecycle/aware contracts</td></tr>
+<tr><td>Important methods</td><td><code>init()</code>, <code>destroy()</code>, inherited <code>doFilter()</code> contract</td></tr>
+</table>
+
+<h3>OncePerRequestFilter</h3>
+<p><span class="badge spring">SPRING</span> <code>extends GenericFilterBean</code>.</p>
+<p>It owns the public filter workflow and delegates your real filter logic to:</p>
+<pre>protected abstract void doFilterInternal(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    FilterChain filterChain
+)</pre>
+
+<p>This is why custom security filters commonly override <code>doFilterInternal()</code>, not the raw Servlet <code>doFilter()</code>.</p>
+
+<h3>BearerTokenAuthenticationFilter</h3>
+<p><span class="badge spring">SPRING SECURITY</span> <code>extends OncePerRequestFilter</code>.</p>
+
+<p><strong>Main runtime method:</strong> <code>doFilterInternal()</code>.</p>
+<p>Conceptually it does this:</p>
+<pre>doFilterInternal(request, response, chain)
+    ↓
+BearerTokenResolver.resolve(request)
+    ↓
+create BearerTokenAuthenticationToken(rawToken)
+    ↓
+AuthenticationManager.authenticate(authenticationRequest)
+    ↓
+success → SecurityContext.setAuthentication(authentication)
+    ↓
+chain.doFilter(request, response)</pre>
+
+<h3>Other important security filter classes</h3>
+<pre>GenericFilterBean
+   ├── DelegatingFilterProxy
+   ├── FilterChainProxy
+   └── OncePerRequestFilter
+          └── BearerTokenAuthenticationFilter</pre>
+
+<table>
+<tr><th>Class</th><th>Extends</th><th>Main method</th><th>Role</th></tr>
+<tr><td>DelegatingFilterProxy</td><td>GenericFilterBean</td><td>doFilter()</td><td>Bridge from Servlet container to a Spring-managed Filter bean.</td></tr>
+<tr><td>FilterChainProxy</td><td>GenericFilterBean</td><td>doFilter()</td><td>Runs Spring Security's selected SecurityFilterChain.</td></tr>
+<tr><td>BearerTokenAuthenticationFilter</td><td>OncePerRequestFilter</td><td>doFilterInternal()</td><td>Extracts Bearer token and triggers authentication.</td></tr>
+</table>
+</section>
+
+<section id="jwt-flow">
+<h2>5. JWT authentication pipeline</h2>
+
+<div class="flow">
+<div class="node security">BearerTokenAuthenticationFilter</div><div class="arrow">→</div>
+<div class="node security">BearerTokenResolver</div><div class="arrow">→</div>
+<div class="node security">AuthenticationManager</div><div class="arrow">→</div>
+<div class="node security">ProviderManager</div><div class="arrow">→</div>
+<div class="node security">JwtAuthenticationProvider</div><div class="arrow">→</div>
+<div class="node security">JwtDecoder</div>
+</div>
+
+<h3>5.1 BearerTokenResolver</h3>
+<pre>BearerTokenResolver                            [interface]
+        ▲
+        │ implements
+DefaultBearerTokenResolver                     [class]</pre>
+
+<p><strong>Main method:</strong></p>
+<pre>String resolve(HttpServletRequest request)</pre>
+
+<p>Default behavior looks for:</p>
+<pre>Authorization: Bearer &lt;token&gt;</pre>
+
+<h3>5.2 AuthenticationManager</h3>
+<pre>AuthenticationManager                          [interface]
+        ▲
+        │ implements
+ProviderManager                                 [class]</pre>
+
+<p><strong>Contract:</strong></p>
+<pre>Authentication authenticate(Authentication authentication)
+    throws AuthenticationException;</pre>
+
+<p>The filter does not need to know how JWT is validated. It only depends on the <code>AuthenticationManager</code> abstraction.</p>
+
+<h3>5.3 ProviderManager</h3>
+<p><span class="badge spring">SPRING SECURITY</span> <code>implements AuthenticationManager</code>.</p>
+<p>It owns a list of <code>AuthenticationProvider</code>s and asks which provider supports the authentication request type.</p>
+
+<pre>ProviderManager.authenticate(authentication)
+    ↓
+for each AuthenticationProvider:
+    provider.supports(authentication.getClass()) ?
+       yes → provider.authenticate(authentication)
+       no  → continue</pre>
+
+<h3>5.4 JwtAuthenticationProvider</h3>
+<pre>AuthenticationProvider                         [interface]
+        ▲
+        │ implements
+JwtAuthenticationProvider                      [class]</pre>
+
+<p><strong>Main methods:</strong></p>
+<pre>Authentication authenticate(Authentication authentication)
+boolean supports(Class&lt;?&gt; authentication)</pre>
+
+<p>It delegates token verification to <code>JwtDecoder</code>, then converts the resulting <code>Jwt</code> to an authenticated token.</p>
+
+<h3>5.5 JwtDecoder</h3>
+<pre>JwtDecoder                                     [interface]
+        ▲
+        │ implements
+NimbusJwtDecoder                               [class]</pre>
+
+<p><strong>Main method:</strong></p>
+<pre>Jwt decode(String token) throws JwtException;</pre>
+
+<p>Conceptually:</p>
+<pre>raw JWT string
+    ↓
+parse header + payload + signature
+    ↓
+find/select verification key
+    ↓
+verify cryptographic signature
+    ↓
+validate claims (exp, nbf, iss, aud as configured)
+    ↓
+return Jwt object</pre>
+
+<div class="callout bad">
+<strong>Decoding is not validation.</strong> Base64-decoding the payload only reads data.
+A secure resource server must verify the signature and validate required claims.
+</div>
+
+<h3>5.6 JwtAuthenticationConverter</h3>
+<p>Spring converts JWT claims into Spring Security authorities.</p>
+
+<pre>Converter&lt;Jwt, AbstractAuthenticationToken&gt;
+        ▲
+        │ implemented by / used through
+JwtAuthenticationConverter</pre>
+
+<p>You can customize how Cognito groups or custom role claims become <code>GrantedAuthority</code>s.</p>
+
+<pre>@Bean
+JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter scopes =
+        new JwtGrantedAuthoritiesConverter();
+
+    scopes.setAuthorityPrefix("SCOPE_");
+
+    JwtAuthenticationConverter converter =
+        new JwtAuthenticationConverter();
+
+    converter.setJwtGrantedAuthoritiesConverter(scopes);
+    return converter;
+}</pre>
+</section>
+
+<section id="auth-types">
+<h2>6. What object represents the authenticated user?</h2>
+
+<h3>Authentication hierarchy</h3>
+<pre>Authentication                                 [interface]
+        ▲
+        │ implements
+AbstractAuthenticationToken                    [abstract class]
+        ▲
+        │ extends
+AbstractOAuth2TokenAuthenticationToken&lt;Jwt&gt;     [abstract class]
+        ▲
+        │ extends
+JwtAuthenticationToken                         [class]</pre>
+
+<p><code>AbstractAuthenticationToken</code> also implements the Spring Security authentication contract.
+That abstraction lets Spring Security treat username/password authentication, JWT authentication, API keys, etc. uniformly.</p>
+
+<h3>Important Authentication methods</h3>
+<pre>Object getPrincipal()
+Object getCredentials()
+Collection&lt;? extends GrantedAuthority&gt; getAuthorities()
+boolean isAuthenticated()
+String getName()</pre>
+
+<h3>SecurityContext</h3>
+<pre>SecurityContext                                [interface]
+        ▲
+        │ implementation
+SecurityContextImpl                            [class]</pre>
+
+<p>Main methods:</p>
+<pre>Authentication getAuthentication()
+void setAuthentication(Authentication authentication)</pre>
+
+<h3>SecurityContextHolder</h3>
+<p><code>SecurityContextHolder</code> is a static utility/facade. You normally do not extend it.</p>
+
+<pre>Authentication auth =
+    SecurityContextHolder.getContext().getAuthentication();
+
+String currentUser = auth.getName();</pre>
+</section>
+
+<section id="authorization">
+<h2>7. Authorization: valid JWT does not automatically mean access is allowed</h2>
+
+<p>Authentication answers <strong>who</strong>. Authorization answers <strong>what that identity may do</strong>.</p>
+
+<h3>URL authorization</h3>
+<pre>http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/public/**").permitAll()
+    .requestMatchers("/admin/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.GET, "/api/orders/**")
+        .hasAuthority("SCOPE_order.read")
+    .anyRequest().authenticated()
+);</pre>
+
+<h3>Method authorization</h3>
+<pre>@PreAuthorize("hasAuthority('SCOPE_order.read')")
+public OrderResponse getOrder(Long id) {
+    ...
+}</pre>
+
+<h3>AuthorizationFilter</h3>
+<p><code>AuthorizationFilter</code> is part of the Spring Security web filter chain and performs request authorization through an <code>AuthorizationManager</code>.</p>
+
+<pre>request
+   ↓
+Authentication already available
+   ↓
+AuthorizationFilter
+   ↓
+AuthorizationManager checks authorities/rules
+   ↓
+granted → continue
+denied  → 403</pre>
+
+<h3>401 vs 403</h3>
+<table>
+<tr><th>Status</th><th>Meaning</th><th>Typical example</th></tr>
+<tr><td><strong>401</strong></td><td>Authentication did not succeed</td><td>No valid credential, expired JWT, invalid signature.</td></tr>
+<tr><td><strong>403</strong></td><td>Identity is known but access is denied</td><td>JWT valid but missing role/scope.</td></tr>
+</table>
+</section>
+
+<section id="mvc-hierarchy">
+<h2>8. DispatcherServlet and Spring MVC hierarchy</h2>
+
+<h3>DispatcherServlet inheritance</h3>
+<pre>jakarta.servlet.http.HttpServlet
+        ▲
+        │ extends
+HttpServletBean
+        ▲
+        │ extends
+FrameworkServlet
+        ▲
+        │ extends
+DispatcherServlet</pre>
+
+<h3>Main call path</h3>
+<pre>HttpServlet.service()
+    ↓
+FrameworkServlet.service()
+    ↓
+FrameworkServlet.processRequest()
+    ↓
+DispatcherServlet.doService()
+    ↓
+DispatcherServlet.doDispatch()</pre>
+
+<p><strong>The method to remember most:</strong> <code>DispatcherServlet.doDispatch()</code>.</p>
+<p>It coordinates handler lookup, interceptors, handler invocation, exception resolution, and result processing.</p>
+
+<h3>HandlerMapping</h3>
+<pre>HandlerMapping                                 [interface]
+        ▲
+AbstractHandlerMapping                         [abstract]
+        ▲
+AbstractHandlerMethodMapping&lt;RequestMappingInfo&gt;
+        ▲
+RequestMappingInfoHandlerMapping
+        ▲
+RequestMappingHandlerMapping</pre>
+
+<p><strong>Question it answers:</strong> “Which handler method matches this request?”</p>
+
+<pre>GET /api/orders/123
+        ↓
+RequestMappingHandlerMapping
+        ↓
+HandlerMethod:
+OrderController#getOrder(Long id)</pre>
+
+<h3>HandlerAdapter</h3>
+<pre>HandlerAdapter                                 [interface]
+        ▲
+AbstractHandlerMethodAdapter                   [abstract]
+        ▲
+RequestMappingHandlerAdapter                   [class]</pre>
+
+<p><strong>Question it answers:</strong> “Now that we found the handler, how do we invoke it?”</p>
+
+<p>It is responsible for pieces such as argument resolution, validation integration, invoking the Java method,
+and processing the return value.</p>
+
+<h3>HandlerInterceptor</h3>
+<pre>HandlerInterceptor                             [interface]
+        ▲
+        │ implements
+RequestLoggingInterceptor                      [your class]</pre>
+
+<p>Main methods:</p>
+<pre>boolean preHandle(...)
+void postHandle(...)
+void afterCompletion(...)</pre>
+
+<div class="callout">
+<strong>Filter vs Interceptor:</strong> Filters execute at Servlet/web-security level before Spring MVC.
+Interceptors are a Spring MVC concept and execute around controller handling.
+JWT authentication belongs in the security filter layer.
+</div>
+</section>
+
+<section id="controller">
+<h2>9. Controller layer</h2>
+
+<h3><span class="badge you">YOU WRITE</span> OrderController</h3>
+<pre>@RestController
+@RequestMapping("/api/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public OrderResponse getOrder(@PathVariable Long id) {
+        return orderService.getOrder(id);
+    }
+}</pre>
+
+<table>
+<tr><th>Question</th><th>Answer</th></tr>
+<tr><td>Extends?</td><td>Usually nothing special.</td></tr>
+<tr><td>Implements?</td><td>Usually nothing special.</td></tr>
+<tr><td>How does Spring know it is a controller?</td><td><code>@RestController</code> annotation + component scanning.</td></tr>
+<tr><td>Main method in this example</td><td><code>getOrder(Long id)</code>.</td></tr>
+<tr><td>Who invokes it?</td><td><code>RequestMappingHandlerAdapter</code>, coordinated by <code>DispatcherServlet</code>.</td></tr>
+</table>
+
+<div class="callout good">
+Modern Spring is strongly annotation- and interface-driven. Your Controller does not need to inherit a giant Spring base class.
+</div>
+</section>
+
+<section id="service">
+<h2>10. Service layer and @Transactional</h2>
+
+<h3><span class="badge you">YOU WRITE</span> OrderService</h3>
+<pre>@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(Long id) {
+        Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new OrderNotFoundException(id));
+
+        return OrderResponse.from(order);
+    }
+}</pre>
+
+<p>The class usually extends/implements nothing. The important part is what Spring may place <strong>around</strong> it: an AOP proxy.</p>
+
+<h3>TransactionInterceptor hierarchy</h3>
+<pre>MethodInterceptor                              [AOP Alliance interface]
+        ▲
+        │ implements
+TransactionInterceptor                         [Spring class]
+        │
+        └── extends TransactionAspectSupport</pre>
+
+<p><strong>Main method:</strong> <code>invoke(MethodInvocation invocation)</code>.</p>
+
+<pre>Controller
+   ↓
+Spring AOP proxy for OrderService
+   ↓
+TransactionInterceptor.invoke(...)
+   ↓
+TransactionAspectSupport.invokeWithinTransaction(...)
+   ↓
+BEGIN transaction
+   ↓
+real OrderService.getOrder(...)
+   ↓
+COMMIT
+or
+ROLLBACK</pre>
+
+<h3>Why self-invocation matters</h3>
+<pre>@Transactional
+public void outer() {
+    inner();  // direct this.inner(), may bypass proxy interception
+}
+
+@Transactional
+public void inner() {
+}</pre>
+
+<p>In standard proxy-based Spring AOP, calling another method on <code>this</code> does not cross the proxy again.
+That is why transaction behavior on an internally-called method can surprise developers.</p>
+</section>
+
+<section id="repository">
+<h2>11. Repository, Spring Data JPA, EntityManager, Hibernate</h2>
+
+<h3>Your repository interface</h3>
+<pre>public interface OrderRepository
+        extends JpaRepository&lt;Order, Long&gt; {
+
+    Optional&lt;Order&gt; findByOrderNo(String orderNo);
+}</pre>
+
+<h3>Current Spring Data repository hierarchy — simplified</h3>
+<pre>Repository&lt;T, ID&gt;                              [marker interface]
+   ▲
+   ├── CrudRepository&lt;T, ID&gt;
+   │      ▲
+   │      └── ListCrudRepository&lt;T, ID&gt;
+   │
+   ├── PagingAndSortingRepository&lt;T, ID&gt;
+   │      ▲
+   │      └── ListPagingAndSortingRepository&lt;T, ID&gt;
+   │
+   └───────────────────────────────────┐
+                                       │
+JpaRepository&lt;T, ID&gt; extends
+    ListCrudRepository&lt;T, ID&gt;,
+    ListPagingAndSortingRepository&lt;T, ID&gt;,
+    QueryByExampleExecutor&lt;T&gt;
+        ▲
+        │ extends
+OrderRepository</pre>
+
+<p>Spring generates a proxy implementing your repository interface. For standard JPA repository behavior, a key implementation class is:</p>
+
+<pre>JpaRepositoryImplementation&lt;T, ID&gt;             [interface]
+        ▲
+        │ implements
+SimpleJpaRepository&lt;T, ID&gt;                     [class]</pre>
+
+<h3>SimpleJpaRepository methods worth remembering</h3>
+<pre>findById(ID id)
+save(S entity)
+saveAll(...)
+delete(...)
+findAll(...)</pre>
+
+<p>Internally it uses JPA's <code>EntityManager</code>.</p>
+
+<h3>EntityManager</h3>
+<pre>jakarta.persistence.EntityManager               [interface]</pre>
+
+<p>Main methods to recognize:</p>
+<pre>find(...)
+persist(...)
+merge(...)
+remove(...)
+createQuery(...)
+flush()</pre>
+
+<h3>Hibernate Session</h3>
+<p>Hibernate is a common JPA provider. Hibernate's <code>Session</code> is its native persistence interface and integrates with the JPA model.</p>
+
+<pre>JPA abstraction used by application:
+EntityManager
+    ↓
+Hibernate implementation / persistence context
+    ↓
+SQL generation
+    ↓
+JDBC</pre>
+</section>
+
+<section id="db">
+<h2>12. JDBC, DataSource, HikariCP and Database</h2>
+
+<h3>DataSource hierarchy</h3>
+<pre>javax.sql.DataSource                            [interface]
+        ▲
+        │ implements
+HikariDataSource                                [class]
+        │
+        └── extends HikariConfig</pre>
+
+<p><strong>Main method:</strong></p>
+<pre>Connection getConnection()</pre>
+
+<p>The conceptual flow:</p>
+<pre>Hibernate
+   ↓
+JDBC API
+   ↓
+DataSource.getConnection()
+   ↓
+HikariCP
+   ↓
+borrow existing pooled connection
+   ↓
+JDBC Driver
+   ↓
+PostgreSQL / Oracle / MySQL</pre>
+
+<div class="callout">
+A normal query should not create a brand-new database TCP connection from scratch.
+The application normally borrows an existing connection from the connection pool and returns it after use.
+</div>
+</section>
+
+<section id="response">
+<h2>13. Return value → JSON → HTTP response</h2>
+
+<p>Your controller returns:</p>
+<pre>return new OrderResponse(123L, "PAID");</pre>
+
+<p>Spring MVC's return-value processing selects an HTTP message converter.</p>
+
+<h3>Message converter hierarchy — simplified</h3>
+<pre>HttpMessageConverter&lt;T&gt;                         [interface]
+        ▲
+AbstractHttpMessageConverter&lt;T&gt;                 [abstract]
+        ▲
+... Jackson-specific abstract converters ...
+        ▲
+MappingJackson2HttpMessageConverter             [class]</pre>
+
+<p>Jackson then serializes the object:</p>
+<pre>{
+  "id": 123,
+  "status": "PAID"
+}</pre>
+
+<h3>ResponseEntity</h3>
+<pre>HttpEntity&lt;T&gt;
+    ▲
+    │ extends
+ResponseEntity&lt;T&gt;</pre>
+
+<p><code>ResponseEntity</code> lets your controller explicitly control status, headers and body.</p>
+
+<h3>Global exception handling</h3>
+<pre>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    ResponseEntity&lt;ErrorResponse&gt; handle(OrderNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse("ORDER_NOT_FOUND", ex.getMessage()));
+    }
+}</pre>
+
+<p>Your advice class does not normally need to extend anything. Spring discovers it through annotations.</p>
+</section>
+
+<section id="custom-filter">
+<h2>14. Custom JWT filter: when you write the filter yourself</h2>
+
+<pre>public class CustomJwtFilter
+        extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String authorization = request.getHeader("Authorization");
+
+        if (authorization == null ||
+            !authorization.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authorization.substring(7);
+
+        JwtUser user = jwtService.validateAndParse(token);
+
+        Authentication authentication =
+            new UsernamePasswordAuthenticationToken(
+                user.username(),
+                null,
+                user.authorities()
+            );
+
+        SecurityContextHolder.getContext()
+            .setAuthentication(authentication);
+
+        filterChain.doFilter(request, response);
+    }
+}</pre>
+
+<h3>Hierarchy</h3>
+<pre>Filter
+  ▲
+GenericFilterBean
+  ▲
+OncePerRequestFilter
+  ▲
+CustomJwtFilter</pre>
+
+<p>Registering it:</p>
+<pre>http.addFilterBefore(
+    customJwtFilter,
+    UsernamePasswordAuthenticationFilter.class
+);</pre>
+
+<div class="callout warn">
+For standard OAuth2/OIDC JWT resource-server authentication, prefer Spring Security Resource Server over reimplementing signature validation, issuer checks, claim validation and key rotation yourself.
+</div>
+</section>
+
+<section id="full-code">
+<h2>15. Complete example classes you should recognize</h2>
+
+<h3>15.1 SecurityConfig</h3>
+<pre>@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationConverter jwtConverter)
+            throws Exception {
+
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/public/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/orders/**"
+                ).hasAuthority("SCOPE_order.read")
+                .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .jwtAuthenticationConverter(jwtConverter)
+                )
+            );
+
+        return http.build();
+    }
+
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authorities =
+            new JwtGrantedAuthoritiesConverter();
+
+        authorities.setAuthorityPrefix("SCOPE_");
+
+        JwtAuthenticationConverter converter =
+            new JwtAuthenticationConverter();
+
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
+    }
+}</pre>
+
+<p><strong>Extends/implements:</strong> normally none.</p>
+<p><strong>Main method to remember:</strong> your <code>@Bean SecurityFilterChain</code> configuration method.</p>
+
+<h3>15.2 WebMvcConfig</h3>
+<pre>@Configuration
+@RequiredArgsConstructor
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    private final RequestLoggingInterceptor interceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(interceptor);
+    }
+}</pre>
+
+<p><strong>Implements:</strong> <code>WebMvcConfigurer</code>.</p>
+
+<h3>15.3 RequestLoggingInterceptor</h3>
+<pre>@Component
+public class RequestLoggingInterceptor
+        implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) {
+
+        Authentication auth =
+            SecurityContextHolder.getContext()
+                .getAuthentication();
+
+        // JWT authentication has already happened here.
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            Exception ex) {
+    }
+}</pre>
+
+<p><strong>Implements:</strong> <code>HandlerInterceptor</code>.</p>
+
+<h3>15.4 OrderController</h3>
+<pre>@RestController
+@RequestMapping("/api/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public OrderResponse getOrder(
+            @PathVariable Long id) {
+        return orderService.getOrder(id);
+    }
+}</pre>
+
+<p><strong>Extends/implements:</strong> none required.</p>
+
+<h3>15.5 OrderService</h3>
+<pre>@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(Long id) {
+        return orderRepository.findById(id)
+            .map(OrderResponse::from)
+            .orElseThrow(
+                () -> new OrderNotFoundException(id)
+            );
+    }
+}</pre>
+
+<p><strong>Extends/implements:</strong> none required. At runtime Spring may wrap it with an AOP proxy.</p>
+
+<h3>15.6 OrderRepository</h3>
+<pre>public interface OrderRepository
+        extends JpaRepository&lt;Order, Long&gt; {
+
+    Optional&lt;Order&gt; findByOrderNo(String orderNo);
+}</pre>
+
+<p><strong>Extends:</strong> <code>JpaRepository&lt;Order, Long&gt;</code>.</p>
+
+<h3>15.7 Entity</h3>
+<pre>@Entity
+@Table(name = "orders")
+@Getter
+@NoArgsConstructor
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String orderNo;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+}</pre>
+
+<p><strong>Extends/implements:</strong> usually none required for a JPA entity.</p>
+</section>
+
+<section id="trace">
+<h2>16. Full end-to-end runtime call trace</h2>
+
+<pre>OrderApplication.main()
+  ↓
+SpringApplication.run()
+  ↓
+ApplicationContext + beans + embedded Tomcat ready
+
+================ HTTP REQUEST ================
+
+Tomcat / Servlet container
+  ↓
+Servlet Filter chain
+  ↓
+DelegatingFilterProxy.doFilter()
+  ↓
+FilterChainProxy.doFilter()
+  ↓
+selected SecurityFilterChain
+  ↓
+BearerTokenAuthenticationFilter.doFilterInternal()
+  ↓
+DefaultBearerTokenResolver.resolve(request)
+  ↓
+ProviderManager.authenticate(...)
+  ↓
+JwtAuthenticationProvider.authenticate(...)
+  ↓
+NimbusJwtDecoder.decode(rawJwt)
+  ├── parse
+  ├── verify signature
+  └── validate claims
+  ↓
+JwtAuthenticationConverter.convert(jwt)
+  ↓
+JwtAuthenticationToken
+  ↓
+SecurityContext.setAuthentication(...)
+  ↓
+AuthorizationFilter
+  ├── granted → continue
+  └── denied  → 403
+  ↓
+DispatcherServlet.doDispatch()
+  ↓
+RequestMappingHandlerMapping.getHandler(...)
+  ↓
+HandlerExecutionChain
+  ↓
+RequestLoggingInterceptor.preHandle(...)
+  ↓
+RequestMappingHandlerAdapter.handle(...)
+  ↓
+argument resolvers
+  ↓
+OrderController.getOrder(id)
+  ↓
+Spring AOP proxy for OrderService
+  ↓
+TransactionInterceptor.invoke(...)
+  ↓
+BEGIN transaction
+  ↓
+OrderService.getOrder(id)
+  ↓
+Spring Data repository proxy
+  ↓
+SimpleJpaRepository.findById(id)
+  ↓
+EntityManager.find(...)
+  ↓
+Hibernate persistence context
+  ↓
+SQL / JDBC
+  ↓
+HikariDataSource.getConnection()
+  ↓
+Database
+
+================ RETURN PATH ================
+
+Database result
+  ↓
+Hibernate maps row → Order entity
+  ↓
+Repository
+  ↓
+Service
+  ↓
+COMMIT transaction
+  ↓
+Controller returns OrderResponse
+  ↓
+HandlerMethod return-value processing
+  ↓
+MappingJackson2HttpMessageConverter
+  ↓
+Jackson serializes object → JSON
+  ↓
+HttpServletResponse
+  ↓
+Security/filter chain returns
+  ↓
+Tomcat
+  ↓
+Client</pre>
+</section>
+
+<section id="memorize">
+<h2>17. Memorization table: class → parent → contract → main method</h2>
+
+<table>
+<tr><th>Class / Interface</th><th>Extends</th><th>Implements / Extends contract</th><th>Main method(s)</th><th>Called by / role</th></tr>
+<tr><td>OrderApplication</td><td>Object</td><td>—</td><td>main()</td><td>JVM entry point</td></tr>
+<tr><td>DelegatingFilterProxy</td><td>GenericFilterBean</td><td>Filter indirectly</td><td>doFilter()</td><td>Servlet container → Spring Filter bean</td></tr>
+<tr><td>FilterChainProxy</td><td>GenericFilterBean</td><td>Filter indirectly</td><td>doFilter()</td><td>Runs Spring Security chain</td></tr>
+<tr><td>OncePerRequestFilter</td><td>GenericFilterBean</td><td>Filter indirectly</td><td>doFilter(), doFilterInternal()</td><td>Base for one-per-request filters</td></tr>
+<tr><td>BearerTokenAuthenticationFilter</td><td>OncePerRequestFilter</td><td>Filter indirectly</td><td>doFilterInternal()</td><td>Extracts token, starts authentication</td></tr>
+<tr><td>DefaultBearerTokenResolver</td><td>Object</td><td>BearerTokenResolver</td><td>resolve()</td><td>Finds Bearer token</td></tr>
+<tr><td>ProviderManager</td><td>Object</td><td>AuthenticationManager</td><td>authenticate()</td><td>Chooses AuthenticationProvider</td></tr>
+<tr><td>JwtAuthenticationProvider</td><td>Object</td><td>AuthenticationProvider</td><td>authenticate(), supports()</td><td>Authenticates JWT</td></tr>
+<tr><td>NimbusJwtDecoder</td><td>Object</td><td>JwtDecoder</td><td>decode()</td><td>Verifies/validates JWT</td></tr>
+<tr><td>JwtAuthenticationConverter</td><td>Object</td><td>Converter contract</td><td>convert()</td><td>Maps JWT claims → Authentication</td></tr>
+<tr><td>JwtAuthenticationToken</td><td>AbstractOAuth2TokenAuthenticationToken&lt;Jwt&gt;</td><td>Authentication indirectly</td><td>getToken(), getPrincipal(), getAuthorities()</td><td>Authenticated JWT identity</td></tr>
+<tr><td>SecurityContextImpl</td><td>Object</td><td>SecurityContext</td><td>getAuthentication(), setAuthentication()</td><td>Stores current Authentication</td></tr>
+<tr><td>AuthorizationFilter</td><td>GenericFilterBean</td><td>Filter indirectly</td><td>doFilter()</td><td>Checks request authorization</td></tr>
+<tr><td>DispatcherServlet</td><td>FrameworkServlet</td><td>Servlet indirectly</td><td>doService(), doDispatch()</td><td>Coordinates Spring MVC</td></tr>
+<tr><td>RequestMappingHandlerMapping</td><td>RequestMappingInfoHandlerMapping</td><td>HandlerMapping indirectly</td><td>getHandler()</td><td>Finds controller HandlerMethod</td></tr>
+<tr><td>RequestMappingHandlerAdapter</td><td>AbstractHandlerMethodAdapter</td><td>HandlerAdapter</td><td>handle()</td><td>Invokes controller method</td></tr>
+<tr><td>RequestLoggingInterceptor</td><td>Object</td><td>HandlerInterceptor</td><td>preHandle(), postHandle(), afterCompletion()</td><td>MVC cross-cutting logic</td></tr>
+<tr><td>OrderController</td><td>Object</td><td>—</td><td>getOrder()</td><td>HTTP endpoint</td></tr>
+<tr><td>TransactionInterceptor</td><td>TransactionAspectSupport</td><td>MethodInterceptor</td><td>invoke()</td><td>Starts/commits/rolls back transaction</td></tr>
+<tr><td>OrderService</td><td>Object</td><td>—</td><td>getOrder()</td><td>Business logic</td></tr>
+<tr><td>OrderRepository</td><td>—</td><td>extends JpaRepository&lt;Order,Long&gt;</td><td>findById(), save(), custom methods</td><td>Repository contract/proxy</td></tr>
+<tr><td>SimpleJpaRepository</td><td>Object</td><td>JpaRepositoryImplementation</td><td>findById(), save(), delete()</td><td>Core Spring Data JPA implementation</td></tr>
+<tr><td>EntityManager</td><td>—</td><td>interface</td><td>find(), persist(), merge(), remove(), flush()</td><td>JPA persistence API</td></tr>
+<tr><td>HikariDataSource</td><td>HikariConfig</td><td>DataSource, Closeable</td><td>getConnection(), close()</td><td>Connection pool</td></tr>
+<tr><td>MappingJackson2HttpMessageConverter</td><td>AbstractJackson2HttpMessageConverter</td><td>HttpMessageConverter indirectly</td><td>read(), write()</td><td>JSON HTTP conversion</td></tr>
+<tr><td>ResponseEntity</td><td>HttpEntity</td><td>—</td><td>status(), ok(), getStatusCode()</td><td>HTTP status + headers + body</td></tr>
+</table>
+
+<h3>The shortest chain to memorize first</h3>
+<pre>Filter
+  ↓
+OncePerRequestFilter
+  ↓
+BearerTokenAuthenticationFilter
+  ↓ calls
+AuthenticationManager
+  ↓ implemented by
+ProviderManager
+  ↓ calls
+AuthenticationProvider
+  ↓ implemented by
+JwtAuthenticationProvider
+  ↓ calls
+JwtDecoder
+  ↓ implemented by
+NimbusJwtDecoder
+
+THEN
+
+DispatcherServlet
+  ↓
+HandlerMapping
+  ↓
+HandlerAdapter
+  ↓
+Controller
+  ↓
+Service Proxy
+  ↓
+TransactionInterceptor
+  ↓
+Service
+  ↓
+Repository Proxy
+  ↓
+SimpleJpaRepository
+  ↓
+EntityManager
+  ↓
+Hibernate
+  ↓
+JDBC / Hikari
+  ↓
+Database</pre>
+</section>
+
+<section id="interview">
+<h2>18. Interview-ready explanation</h2>
+
+<div class="callout good">
+When a request reaches a Spring Boot MVC application, the Servlet container first runs the Servlet filter chain.
+With Spring Security enabled, DelegatingFilterProxy delegates into Spring Security's FilterChainProxy.
+For a JWT resource server, BearerTokenAuthenticationFilter, which extends OncePerRequestFilter,
+extracts the Bearer token and delegates authentication to AuthenticationManager.
+The common AuthenticationManager implementation is ProviderManager, which delegates to an AuthenticationProvider such as JwtAuthenticationProvider.
+That provider uses a JwtDecoder, commonly NimbusJwtDecoder, to verify the JWT signature and validate its claims.
+After successful authentication, Spring stores an Authentication object such as JwtAuthenticationToken in the SecurityContext.
+Authorization is checked before the request reaches Spring MVC.
+Then DispatcherServlet finds the controller through HandlerMapping and invokes it through HandlerAdapter.
+The controller calls the service. If the service method is transactional, a Spring AOP proxy invokes TransactionInterceptor before the real service method.
+The service calls a Spring Data repository proxy, which commonly delegates standard JPA operations to SimpleJpaRepository and EntityManager.
+Hibernate generates SQL, obtains a JDBC connection through a DataSource such as HikariDataSource, and talks to the database.
+The result travels back to the controller, and Spring uses an HttpMessageConverter such as MappingJackson2HttpMessageConverter to serialize the response to JSON.
+</div>
+
+<details>
+<summary>Why does OrderController not extend a Spring Controller class?</summary>
+<p>Because annotation-based Spring MVC discovers it through <code>@RestController</code>. Inheritance is not required.</p>
+</details>
+
+<details>
+<summary>Why does OrderRepository extend JpaRepository?</summary>
+<p>Because the repository is a contract. Extending <code>JpaRepository</code> gives Spring Data enough type information and API contracts to create a runtime proxy and provide standard CRUD operations.</p>
+</details>
+
+<details>
+<summary>Why does a custom JWT filter extend OncePerRequestFilter?</summary>
+<p>It gives you a Spring-friendly Servlet filter base class and a clear <code>doFilterInternal()</code> hook while handling once-per-request filter semantics.</p>
+</details>
+
+<details>
+<summary>Does BearerTokenAuthenticationFilter extend AuthenticationManager?</summary>
+<p>No. This is exactly the difference between inheritance and collaboration. The filter <em>has/uses</em> an AuthenticationManager and calls <code>authenticate()</code>; it does not inherit from it.</p>
+</details>
+
+<details>
+<summary>Does @Transactional mean OrderService extends TransactionInterceptor?</summary>
+<p>No. Spring usually wraps the service with an AOP proxy. The proxy/interceptor surrounds the real method call. Your service class still does not extend TransactionInterceptor.</p>
+</details>
+</section>
+
+<div class="footer">
+English study version — Spring Boot / Spring MVC / Spring Security JWT / Spring Data JPA.
+Focus: class hierarchy, framework contracts, main methods, runtime call flow, and interview understanding.
+</div>
+
+      <div id="en-security"></div>
+      <div id="en-mvc"></div>
+      <div id="en-data"></div>
+      <div id="en-inheritance"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+function setLang(lang) {
+  const vi = document.getElementById('lang-vi');
+  const en = document.getElementById('lang-en');
+  const btnVi = document.getElementById('btn-vi');
+  const btnEn = document.getElementById('btn-en');
+  const tocVi = document.getElementById('toc-vi');
+  const tocEn = document.getElementById('toc-en');
+
+  const isVi = lang === 'vi';
+  vi.classList.toggle('active', isVi);
+  en.classList.toggle('active', !isVi);
+  btnVi.classList.toggle('active', isVi);
+  btnEn.classList.toggle('active', !isVi);
+  tocVi.style.display = isVi ? 'block' : 'none';
+  tocEn.style.display = isVi ? 'none' : 'block';
+  document.documentElement.lang = lang;
+  localStorage.setItem('springApiLang', lang);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('springApiLang');
+  if (saved === 'en' || saved === 'vi') setLang(saved);
+});
+</script>
+</body>
+</html>
