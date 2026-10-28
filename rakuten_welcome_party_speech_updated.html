@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#9c1431" />
+  <meta name="description" content="A warm, professional welcome party speech celebrating a first month at Rakuten Fintech Vietnam. Includes a presentation view and rehearsal controls." />
+  <title>My First Month at Rakuten | Welcome Party Speech</title>
+  <style>
+    :root {
+      --ruby: #9c1431;
+      --ruby-dark: #791229;
+      --coral: #dd766f;
+      --ink: #22252e;
+      --muted: #666976;
+      --paper: #ffffff;
+      --wash: #faf7f6;
+      --line: #eae3e3;
+      --speech-size: 21px;
+      --shadow: 0 18px 55px rgba(50, 26, 36, .07);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--wash); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #ed967b; outline-offset: 3px; }
+    .site-head { background: #fff; border-bottom: 1px solid #f0e8e9; }
+    .site-head .inner { max-width: 1150px; margin: 0 auto; padding: 19px 30px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .mark { display: grid; place-items: center; width: 33px; height: 33px; flex-shrink: 0; color: #fff; font-size: 15px; font-weight: 900; background: var(--ruby); border-radius: 10px; }
+    .brandname { font-weight: 800; letter-spacing: -.02em; font-size: 15px; }
+    .brandname small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
+    .headnote { font-size: 12px; color: var(--muted); border: 1px solid var(--line); padding: 8px 13px; border-radius: 100px; white-space: nowrap; }
+    .hero { position: relative; overflow: hidden; background: linear-gradient(112deg,#92122c 0%,#b11c40 56%,#c94b56 100%); color: #fff; }
+    .hero::before { content: ""; position: absolute; width: 650px; height: 650px; border: 1px solid #ffffff22; border-radius: 50%; right: -90px; top: -340px; box-shadow: 0 0 0 85px #ffffff0b, 0 0 0 175px #ffffff07; }
+    .hero::after { content: ""; position: absolute; width: 260px; height: 260px; right: 110px; bottom: -200px; border: 1px solid #ffffff33; transform: rotate(35deg); }
+    .hero .inner { position: relative; max-width: 1150px; margin: 0 auto; padding: 66px 30px 78px; z-index: 1; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; letter-spacing: .18em; font-weight: 750; font-size: 11px; text-transform: uppercase; color: #fff0f0; }
+    .eyebrow::before { content: ""; display: inline-block; height: 2px; width: 29px; background: #ffccac; }
+    h1 { max-width: 770px; font-size: clamp(40px, 5.8vw, 67px); line-height: 1.09; letter-spacing: -.055em; font-weight: 760; margin: 25px 0 19px; }
+    .hero .summary { max-width: 650px; font-size: 16px; line-height: 1.75; color: #ffe4e5; margin: 0; }
+    .hero-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 29px; }
+    .hero-chips span { font-size: 12px; font-weight: 600; border: 1px solid #ffffff55; border-radius: 100px; padding: 9px 14px; background: #ffffff0e; }
+    .page { max-width: 1150px; margin: -28px auto 50px; padding: 0 30px; position: relative; z-index: 2; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 22px; align-items: start; }
+    .card { background: var(--paper); border: 1px solid #ede8e6; border-radius: 20px; box-shadow: var(--shadow); }
+    .speech { padding: 40px 43px 45px; }
+    .section-label { font-size: 11px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; color: var(--ruby); }
+    .speech-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 26px; }
+    .speech-title { font-size: 24px; letter-spacing: -.03em; font-weight: 750; margin: 7px 0 0; }
+    .duration { display: inline-flex; color: var(--muted); font-size: 12px; border: 1px solid var(--line); padding: 8px 10px; white-space: nowrap; border-radius: 99px; }
+    .speech-body { font-size: var(--speech-size); line-height: 1.85; letter-spacing: -.008em; font-weight: 450; }
+    .speech-body p { margin: 0 0 1.24em; transition: background .22s, border-color .22s, color .22s; border-left: 3px solid transparent; padding: 4px 0 4px 14px; margin-left: -17px; border-radius: 0 8px 8px 0; }
+    .speech-body p:last-child { margin-bottom: 0; }
+    .speech-body p.current { border-left-color: var(--ruby); background: #fff3f3; }
+    .speech-body .greeting { font-weight: 760; color: var(--ruby); }
+    .aside { display: grid; gap: 18px; }
+    .side-card { padding: 26px 23px; }
+    .side-card h2 { margin: 8px 0 13px; font-size: 20px; letter-spacing: -.03em; }
+    .side-card p, .side-card li { font-size: 13px; color: var(--muted); line-height: 1.72; }
+    .side-card ul { margin: 0; padding-left: 17px; }
+    .side-card li { padding-bottom: 9px; }
+    .side-card li::marker { color: var(--ruby); }
+    .callout { background: #fff3f1; border: 1px solid #f6dedb; color: #73313b; border-radius: 16px; padding: 22px; }
+    .callout .quote { font-size: 19px; font-weight: 690; letter-spacing: -.025em; line-height: 1.4; margin: 12px 0; }
+    .callout small { color: #8d5960; line-height: 1.6; display: block; }
+    .toolbar-wrap { position: sticky; bottom: 15px; z-index: 5; padding: 0 30px 25px; pointer-events: none; }
+    .toolbar { pointer-events: auto; max-width: 1090px; margin: auto; background: #24252c; color: #fff; border: 1px solid #56565b; border-radius: 17px; box-shadow: 0 14px 40px #0004; display: flex; align-items: center; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+    .toolbar-label { color: #c8c7cc; font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin: 0 7px; }
+    .controls { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .control { background: #3a3b43; border: 1px solid #5a5b64; color: #fff; padding: 10px 13px; border-radius: 10px; font-size: 12px; font-weight: 650; min-height: 40px; }
+    .control:hover { background: #51525b; }
+    .control.primary { background: #f7f1f1; color: #8e1931; border-color: #f7f1f1; }
+    .control.primary:hover { background: #fff; }
+    .control[disabled] { opacity: .4; cursor: not-allowed; }
+    .toolbar .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .timer { font-variant-numeric: tabular-nums; font-size: 16px; letter-spacing: .04em; font-weight: 700; padding: 0 9px; }
+    .footer { text-align: center; font-size: 12px; color: #8c8890; padding: 4px 30px 31px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    body.presenting { --paper: #17191e; --ink: #f5f5f7; --line: #3f4248; background: #111216; }
+    body.presenting .site-head, body.presenting .hero, body.presenting .aside, body.presenting .footer { display: none; }
+    body.presenting .page { max-width: 1100px; margin: 0 auto; padding: 34px 30px 145px; }
+    body.presenting .grid { display: block; }
+    body.presenting .speech { padding: 26px 45px 40px; border: 0; box-shadow: none; background: transparent; }
+    body.presenting .section-label { color: #ffadb9; }
+    body.presenting .speech-title { font-size: 20px; }
+    body.presenting .speech-body { line-height: 1.77; }
+    body.presenting .speech-body p.current { border-left-color: #ff7d96; background: #39242d; color: #fff; }
+    body.presenting .speech-body .greeting { color: #ffb8c8; }
+    body.presenting .duration { color: #ddd; }
+    body.presenting .toolbar-wrap { position: fixed; bottom: 0; left: 0; right: 0; padding: 0 14px 15px; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .aside { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .toolbar .right { margin-left: 0; }
+    }
+    @media (max-width: 650px) {
+      .site-head .inner { padding: 15px 20px; }
+      .headnote { display: none; }
+      .hero .inner { padding: 48px 21px 62px; }
+      h1 { font-size: 44px; }
+      .hero .summary { font-size: 14px; }
+      .page { margin-top: -23px; padding: 0 13px; }
+      .speech { padding: 25px 20px 30px; }
+      .speech-title { font-size: 20px; }
+      .duration { display: none; }
+      .speech-body { line-height: 1.75; }
+      .aside { grid-template-columns: 1fr; }
+      .toolbar-wrap { padding: 0 9px 12px; }
+      .toolbar { gap: 6px; padding: 9px; border-radius: 13px; }
+      .toolbar-label { display: none; }
+      .control { padding: 9px 11px; font-size: 12px; }
+      .timer { font-size: 13px; padding: 0 3px; }
+      body.presenting .page { padding: 14px 13px 150px; }
+      body.presenting .speech { padding: 14px 10px 30px; }
+      body.presenting .speech-top { margin-bottom: 18px; }
+    }
+    @media print {
+      body { background: #fff!important; color:#111!important; }
+      .site-head, .hero, .aside, .toolbar-wrap, .footer { display: none!important; }
+      .page { max-width: 100%!important; margin: 0!important; padding:0!important; }
+      .grid { display:block!important; }
+      .speech { padding: 0!important; box-shadow: none!important; border: none!important; background:#fff!important; }
+      .speech-body { font-size: 14pt!important; color:#111!important; }
+      .speech-body p { background: transparent!important; color:#111!important; border-color: transparent!important; break-inside: avoid; }
+      .speech-body .greeting { color:#111!important; }
+      .speech-top { border-color: #ddd!important; }
+      .section-label { color:#333!important; }
+    }
+
+    /* Personal reference notes: independent from speech and rehearsal controls */
+    .study-wrap { margin-top: 24px; }
+    .notes-panel { overflow: hidden; }
+    .notes-panel summary { cursor: pointer; padding: 25px 30px; list-style: none; display: flex; align-items: center; gap: 16px; }
+    .notes-panel summary::-webkit-details-marker { display: none; }
+    .notes-panel summary:focus-visible { outline: 3px solid #ed967b; outline-offset: -4px; }
+    .notes-summary-text { flex: 1; }
+    .notes-summary-text h2 { margin: 5px 0 7px; font-size: 24px; letter-spacing: -.035em; }
+    .notes-summary-text p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .notes-toggle { flex: none; color: var(--ruby); font-size: 12px; font-weight: 750; border: 1px solid #e9cbcf; background: #fff4f4; border-radius: 99px; padding: 10px 13px; }
+    .notes-panel[open] .notes-toggle::after { content: 'Hide notes'; }
+    .notes-panel:not([open]) .notes-toggle::after { content: 'Open notes'; }
+    .notes-content { padding: 0 30px 30px; border-top: 1px solid var(--line); }
+    .notes-warning { margin: 24px 0; padding: 13px 17px; border-radius: 10px; background: #fff4e9; border: 1px solid #f2dcc1; color: #79502c; line-height: 1.6; font-size: 13px; font-weight: 630; }
+    .notes-eyebrow { text-transform: uppercase; font-weight: 800; letter-spacing: .13em; color: var(--ruby); font-size: 11px; margin-bottom: 8px; }
+    .note-lead { font-size: 16px; line-height: 1.72; margin: 8px 0; }
+    .vn { color: #696a76; font-size: 13px; line-height: 1.65; }
+    .note-subhead { margin: 29px 0 12px; font-size: 20px; letter-spacing: -.03em; }
+    .memory-line { background: #f8f7f7; border-left: 3px solid var(--ruby); border-radius: 0 12px 12px 0; padding: 17px 19px; line-height: 1.68; }
+    .memory-line strong { display: block; font-size: 13px; color: var(--ruby); margin-bottom: 3px; }
+    .memory-line p { margin: 0 0 5px; }
+    .concept-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; margin-top: 14px; }
+    .concept { border: 1px solid var(--line); border-radius: 13px; padding: 15px; background: #fff; min-width: 0; }
+    .concept .concept-num { display: inline-grid; place-items:center; background:#fff0f1; color:var(--ruby); width:25px; height:25px; border-radius:8px; font-size:12px; font-weight:750; }
+    .concept h4 { margin: 13px 0 6px; font-size: 14px; line-height: 1.4; }
+    .concept p { margin: 0; color: var(--muted); line-height: 1.57; font-size: 12px; }
+    .principle-list { display: grid; gap: 11px; }
+    .principle { display: grid; grid-template-columns: 40px minmax(0,1fr); gap: 13px; align-items: start; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; background: #fff; }
+    .principle-index { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; background:#fce9eb; color:var(--ruby); font-weight:800; }
+    .principle h4 { margin: 0 0 5px; font-size: 15px; }
+    .principle p { margin: 4px 0; line-height: 1.64; font-size: 13px; }
+    .example { margin-top: 6px!important; color:#57444b; background:#faf7f6; border-radius:8px; padding: 9px 11px; }
+    .qa-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 13px; }
+    .qa { background: #faf8f7; border: 1px solid #eae2e2; padding: 17px 19px; border-radius: 13px; }
+    .qa h4 { font-size: 14px; margin: 0 0 8px; }
+    .qa p { margin: 0 0 8px; font-size:13px; line-height:1.65; }
+    .notes-sources { margin-top: 25px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); line-height: 1.9; }
+    .notes-sources a, .study-link { color: var(--ruby); text-decoration: underline; text-underline-offset: 3px; }
+    .study-link { display:inline-block; margin-top: 9px; font-size: 13px; font-weight: 750; }
+    body.presenting .study-wrap { display: none!important; }
+    @media (max-width: 900px) { .concept-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+    @media (max-width: 650px) {
+      .notes-panel summary { padding: 22px 19px; flex-wrap:wrap; gap:10px; }
+      .notes-summary-text h2 { font-size:20px; }
+      .notes-content { padding: 0 19px 21px; }
+      .concept-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .qa-grid { grid-template-columns: 1fr; }
+      .principle { grid-template-columns: 30px minmax(0,1fr); padding: 14px 12px; }
+      .principle-index { width:28px; height:28px; }
+    }
+    @media print { .study-wrap { display: none!important; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } .speech-body p { transition:none; } }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="inner">
+      <div class="brand"><div class="mark" aria-hidden="true">R</div><div class="brandname">Rakuten Fintech Vietnam<small>Welcome party · Speech notes</small></div></div>
+      <span class="headnote">Personal speech · Approximately 2 minutes</span>
+    </div>
+  </header>
+  <section class="hero" aria-label="Welcome party speech introduction">
+    <div class="inner">
+      <span class="eyebrow">A new chapter</span>
+      <h1>Grateful to<br />be here.</h1>
+      <p class="summary">A few words about my first month at Rakuten Fintech Vietnam — what I've learned, the people I've met, and what I'm looking forward to.</p>
+      <div class="hero-chips"><span>Welcome Party</span><span>First Month Reflection</span><span>Rakuten Shugi</span></div>
+    </div>
+  </section>
+  <main class="page">
+    <div class="grid">
+      <article class="card speech" aria-labelledby="speechTitle">
+        <div class="speech-top"><div><span class="section-label">The speech</span><h2 id="speechTitle" class="speech-title">My First Month at Rakuten</h2></div><span class="duration" id="readingLength">About 2 minutes</span></div>
+        <div class="speech-body" id="speechBody">
+          <p class="greeting">Good evening, everyone!</p>
+          <p>First of all, thank you for organizing this welcome party and giving me the opportunity to share a few words.</p>
+          <p>It's been almost a month since I joined Rakuten Fintech Vietnam, and I can say that it has been a great learning experience for me.</p>
+          <p>During this time, I've learned a lot, especially about Rakuten's company culture, Rakuten Shugi, and the Five Principles for Success. These principles have not only helped me understand the company's values, but also inspired me to improve myself. I believe they are useful not only at work, but also in our everyday lives.</p>
+          <p>I've also received valuable training about our projects and the credit card business. In particular, I've started learning about RADECO, the debt collection project I'm joining. There is still a lot for me to learn, but I'm really excited about it.</p>
+          <p>One thing that has impressed me the most is the working environment. Everyone is professional, positive, and always willing to help. I truly appreciate the support and kindness I've received from my colleagues.</p>
+          <p>Although I'm still new and haven't had the chance to get to know everyone yet, I hope to become more familiar with the project, build good relationships with my colleagues, and contribute to the success of Rakuten Fintech Vietnam.</p>
+          <p>Once again, thank you so much for the warm welcome. I look forward to learning from all of you, working together, and growing as part of the team.</p>
+          <p class="greeting">Thank you, everyone!</p>
+        </div>
+      </article>
+      <aside class="aside" aria-label="Rehearsal tips">
+        <section class="card side-card">
+          <span class="section-label">Before you speak</span>
+          <h2>Small tips, big impact.</h2>
+          <ul>
+            <li>Smile and look around the room after your greeting.</li>
+            <li>Slow down when you mention Rakuten Shugi and the Five Principles.</li>
+            <li>Pause briefly before talking about the supportive team.</li>
+            <li>Finish warmly. Don't rush the last “Thank you.”</li>
+          </ul>
+        </section>
+        <section class="callout">
+          <span class="section-label">Your key message</span>
+          <div class="quote">“I've learned a lot, and I'm excited to grow with the team.”</div>
+          <small>Click any paragraph to highlight it. In Presentation mode, use the ↑ / ↓ arrow keys to move between paragraphs.</small>
+          <a class="study-link" href="#studyNotes" id="goToNotes">Review Rakuten Shugi notes ↓</a>
+        </section>
+      </aside>
+    </div>
+
+    <section class="study-wrap" aria-label="Personal Rakuten Shugi study notes">
+      <details class="notes-panel card" id="studyNotes">
+        <summary>
+          <div class="notes-summary-text">
+            <span class="section-label">Personal study notes · Q&amp;A</span>
+            <h2>Rakuten Shugi &amp; Five Principles</h2>
+            <p>Quick explanations, Vietnamese summaries, practical examples, and answers if someone asks.</p>
+          </div>
+          <span class="notes-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="notes-content">
+          <div class="notes-warning">For your own preparation only. These notes are NOT part of the speech and will stay hidden in Presentation Mode and Print / PDF.</div>
+
+          <div class="notes-eyebrow">01 / The big picture</div>
+          <h3 class="note-subhead" style="margin-top:4px">What is Rakuten Shugi?</h3>
+          <p class="note-lead"><strong>English:</strong> Rakuten Shugi means “Rakuten Basic Principles.” It is the shared set of values and ways of working that guides employees. It has two parts: <strong>Brand Concepts</strong> and the <strong>Five Principles for Success</strong>.</p>
+          <p class="vn"><strong>Tiếng Việt:</strong> Rakuten Shugi là hệ thống giá trị và nguyên tắc hành động chung của Rakuten. Gồm 2 phần: 5 giá trị cốt lõi (Brand Concepts) và 5 nguyên tắc để thành công (Five Principles for Success).</p>
+          <div class="memory-line">
+            <strong>Say it in 20 seconds</strong>
+            <p>“To me, Rakuten Shugi is about working with integrity, teamwork, and commitment, while always improving, learning from results, and focusing on customers. I think these values are useful at work and in daily life.”</p>
+            <div class="vn">Ý chính: Làm việc chính trực, hợp tác, có trách nhiệm; luôn cải tiến, học từ kết quả và đặt khách hàng làm trọng tâm.</div>
+          </div>
+
+          <h3 class="note-subhead">A. Brand Concepts — 5 core values</h3>
+          <div class="concept-grid">
+            <div class="concept"><span class="concept-num">1</span><h4>On a Mission:<br>Empowerment</h4><p>Help individuals and businesses grow and succeed.<br><span class="vn">Trao quyền, tạo giá trị cho người khác.</span></p></div>
+            <div class="concept"><span class="concept-num">2</span><h4>Behave Ethically:<br>Integrity</h4><p>Act honestly and do the right thing.<br><span class="vn">Trung thực, chính trực.</span></p></div>
+            <div class="concept"><span class="concept-num">3</span><h4>Prepare to Succeed:<br>Professionalism</h4><p>Prepare well and work professionally.<br><span class="vn">Chuẩn bị kỹ và làm việc chuyên nghiệp.</span></p></div>
+            <div class="concept"><span class="concept-num">4</span><h4>Complete Commitment:<br>Get Things Done</h4><p>Take ownership and finish what matters.<br><span class="vn">Cam kết đến cùng, hoàn thành mục tiêu.</span></p></div>
+            <div class="concept"><span class="concept-num">5</span><h4>Solidarity:<br>Succeed as a Team</h4><p>Collaborate and help one another succeed.<br><span class="vn">Đoàn kết, hỗ trợ nhau cùng thành công.</span></p></div>
+          </div>
+
+          <h3 class="note-subhead">B. Five Principles for Success — remember these five</h3>
+          <div class="principle-list">
+            <div class="principle"><div class="principle-index">1</div><div><h4>Always Improve, Always Advance</h4><p>Keep improving and challenge yourself; don't stop at “good enough.”</p><p class="vn">Luôn cải tiến, không ngừng tiến bộ.</p><p class="example"><strong>Example:</strong> After each task, find one way to make the next task better. <span class="vn">Sau mỗi task, rút ra một điều để cải thiện lần sau.</span></p></div></div>
+            <div class="principle"><div class="principle-index">2</div><div><h4>Passionately Professional</h4><p>Take responsibility, prepare carefully, and keep improving your skills.</p><p class="vn">Làm việc với tinh thần chuyên nghiệp, trách nhiệm và chủ động học hỏi.</p><p class="example"><strong>Example:</strong> Understand the business requirement, test your code carefully, and deliver reliable work.</p></div></div>
+            <div class="principle"><div class="principle-index">3</div><div><h4>Hypothesize → Practice → Validate → Shikumika</h4><p>Make a hypothesis, try it, check the result, then turn what works into a repeatable process. <strong>Shikumika</strong> roughly means systemizing.</p><p class="vn">Đặt giả thuyết → Thực hiện → Kiểm chứng → Chuẩn hóa thành quy trình có thể lặp lại.</p><p class="example"><strong>Example:</strong> Think an API is slow because of a database query → optimize it → measure latency → document the fix as a reusable practice.</p></div></div>
+            <div class="principle"><div class="principle-index">4</div><div><h4>Maximize Customer Satisfaction</h4><p>Understand what customers need and continuously improve their experience.</p><p class="vn">Luôn quan tâm nhu cầu khách hàng và cải thiện trải nghiệm của họ.</p><p class="example"><strong>Example:</strong> Make a credit-card-related process accurate, clear, and easy for users to understand.</p></div></div>
+            <div class="principle"><div class="principle-index">5</div><div><h4>Speed!! Speed!! Speed!!</h4><p>Act quickly, make timely decisions, and avoid unnecessary delay, without ignoring quality or safety.</p><p class="vn">Hành động nhanh, ra quyết định kịp thời; nhanh nhưng vẫn phải đảm bảo chất lượng.</p><p class="example"><strong>Example:</strong> Raise a blocker early, share progress, and deliver small verified improvements instead of waiting too long.</p></div></div>
+          </div>
+
+          <h3 class="note-subhead">C. Quick Q&amp;A — if someone asks you</h3>
+          <div class="qa-grid">
+            <div class="qa"><h4>Q: What is Rakuten Shugi?</h4><p>“It is Rakuten's basic philosophy. It combines shared values with five practical principles that help us work better and keep improving.”</p><p class="vn">Là triết lý nền tảng, kết hợp giá trị cốt lõi và các nguyên tắc hành động để liên tục phát triển.</p></div>
+            <div class="qa"><h4>Q: Which principle do you like most?</h4><p>“I like ‘Always Improve, Always Advance’ because I believe even small improvements every day can create a big difference over time.”</p><p class="vn">Em thích nguyên tắc luôn cải tiến vì những bước tiến nhỏ hằng ngày sẽ mang lại sự thay đổi lớn.</p></div>
+            <div class="qa"><h4>Q: How can you use it in daily life?</h4><p>“I can set a small goal, take action, review the result, and improve. I can also be more responsible and supportive toward my family and friends.”</p><p class="vn">Đặt mục tiêu nhỏ, hành động, nhìn lại kết quả và cải thiện; có trách nhiệm và hỗ trợ người thân.</p></div>
+            <div class="qa"><h4>Q: What does Shikumika mean?</h4><p>“For me, it means turning a successful solution into a clear and repeatable process, so the team can use it again.”</p><p class="vn">Biến giải pháp hiệu quả thành quy trình chuẩn để cả nhóm có thể tái sử dụng.</p></div>
+            <div class="qa"><h4>Q: What have you learned in your first month?</h4><p>“I've learned about Rakuten's culture, the credit card business, and the RADECO project. I've also learned a lot from my colleagues and their professional way of working.”</p><p class="vn">Đã học văn hóa công ty, nghiệp vụ thẻ tín dụng, dự án RADECO và cách làm việc chuyên nghiệp từ đồng nghiệp.</p></div>
+            <div class="qa"><h4>Q: How will you apply these principles at work?</h4><p>“I'll keep learning, ask questions when needed, take ownership of tasks, and work closely with the team to deliver good results.”</p><p class="vn">Tiếp tục học hỏi, chủ động trao đổi, chịu trách nhiệm với task và phối hợp để tạo ra kết quả tốt.</p></div>
+          </div>
+          <div class="notes-sources">
+            <strong>Sources (official Rakuten Group):</strong> <a href="https://global.rakuten.com/corp/about/philosophy/principle/" target="_blank" rel="noopener noreferrer">Rakuten Shugi: Brand Concepts &amp; Five Principles</a> · <a href="https://global.rakuten.com/corp/about/philosophy/" target="_blank" rel="noopener noreferrer">Corporate Philosophy</a><br>
+            Explanations, examples, and Q&amp;A are personal learning notes, not official company quotations. This page works offline; source links require internet.
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+  <div class="toolbar-wrap"><div class="toolbar" role="toolbar" aria-label="Speech practice controls">
+    <span class="toolbar-label">Practice tools</span>
+    <div class="controls">
+      <button class="control" id="smaller" aria-label="Decrease text size" title="Smaller text">A−</button>
+      <button class="control" id="larger" aria-label="Increase text size" title="Larger text">A+</button>
+      <button class="control primary" id="presentation" aria-pressed="false">Presentation mode</button>
+      <button class="control" id="copy">Copy speech</button>
+      <button class="control" id="print">Print / PDF</button>
+    </div>
+    <div class="right"><span class="timer" id="timer" aria-live="off">00:00</span><button class="control" id="start">Start timer</button><button class="control" id="reset" title="Reset timer">Reset</button></div>
+  </div></div>
+  <footer class="footer">Made for a memorable first month. Practice at your own pace; your words matter more than perfect pronunciation.</footer>
+  <div class="sr-only" aria-live="polite" id="announcement"></div>
+  <script>
+    (() => {
+      'use strict';
+      const body = document.body;
+      document.getElementById('goToNotes').addEventListener('click', () => {
+        document.getElementById('studyNotes').open = true;
+      });
+      const paras = [...document.querySelectorAll('#speechBody p')];
+      const announce = document.getElementById('announcement');
+      const presentation = document.getElementById('presentation');
+      const timer = document.getElementById('timer');
+      const start = document.getElementById('start');
+      let speechSize = 21;
+      let current = -1;
+      let seconds = 0;
+      let interval = null;
+      const words = paras.map(p => p.textContent.trim()).join(' ').split(/\s+/).length;
+      document.getElementById('readingLength').textContent = `About ${Math.round(words / 125)} minutes · ${words} words`;
+      const updateFont = () => document.documentElement.style.setProperty('--speech-size', speechSize + 'px');
+      document.getElementById('smaller').addEventListener('click', () => { speechSize = Math.max(16, speechSize - 2); updateFont(); });
+      document.getElementById('larger').addEventListener('click', () => { speechSize = Math.min(46, speechSize + 2); updateFont(); });
+      function mark(index, scroll = true) {
+        current = Math.max(0, Math.min(paras.length - 1, index));
+        paras.forEach((p, i) => p.classList.toggle('current', i === current));
+        if (scroll) paras[current].scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+      }
+      paras.forEach((p, i) => p.addEventListener('click', () => mark(i, false)));
+      presentation.addEventListener('click', async () => {
+        const active = !body.classList.contains('presenting');
+        body.classList.toggle('presenting', active);
+        presentation.textContent = active ? 'Exit presentation' : 'Presentation mode';
+        presentation.setAttribute('aria-pressed', String(active));
+        if (active) { mark(current < 0 ? 0 : current); }
+        else { document.querySelector('.hero').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+      document.addEventListener('keydown', e => {
+        if (!body.classList.contains('presenting') || e.altKey || e.ctrlKey || e.metaKey || ['BUTTON', 'INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); mark(current + 1); }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); mark(current - 1); }
+        if (e.key === 'Escape') presentation.click();
+      });
+      function format() { const m = String(Math.floor(seconds / 60)).padStart(2, '0'); const s = String(seconds % 60).padStart(2, '0'); timer.textContent = `${m}:${s}`; }
+      start.addEventListener('click', () => {
+        if (interval) { clearInterval(interval); interval = null; start.textContent = 'Resume timer'; }
+        else { interval = setInterval(() => { seconds++; format(); }, 1000); start.textContent = 'Pause timer'; }
+      });
+      document.getElementById('reset').addEventListener('click', () => { if (interval) clearInterval(interval); interval = null; seconds = 0; format(); start.textContent = 'Start timer'; });
+      document.getElementById('copy').addEventListener('click', async e => {
+        const content = paras.map(p => p.textContent.trim()).join('\n\n');
+        try { await navigator.clipboard.writeText(content); e.target.textContent = 'Copied!'; announce.textContent = 'Speech copied to clipboard'; }
+        catch (_) {
+          const t = document.createElement('textarea'); t.value = content; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+          const ok = document.execCommand('copy'); t.remove(); e.target.textContent = ok ? 'Copied!' : 'Copy unavailable'; announce.textContent = ok ? 'Speech copied to clipboard' : 'Clipboard unavailable. Please select speech text manually.';
+        }
+        setTimeout(() => { e.target.textContent = 'Copy speech'; }, 1800);
+      });
+      document.getElementById('print').addEventListener('click', () => window.print());
+    })();
+  </script>
+</body>
+</html>
